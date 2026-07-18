@@ -1,0 +1,229 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/db/app_database.dart';
+import '../../../core/models/field_model.dart';
+import '../../../core/services/document_repository.dart';
+import '../../../core/services/press_service.dart';
+import '../../../core/utils/router.dart';
+
+class PressScreen extends ConsumerStatefulWidget {
+  const PressScreen({super.key, required this.docId});
+  final int docId;
+
+  @override
+  ConsumerState<PressScreen> createState() => _PressScreenState();
+}
+
+class _PressScreenState extends ConsumerState<PressScreen> {
+  bool _pressing = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final fieldsStream =
+        ref.watch(fieldRepositoryProvider).watchFields(widget.docId);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Review & Press')),
+      body: StreamBuilder<List<Field>>(
+        stream: fieldsStream,
+        builder: (context, snapshot) {
+          final fields = snapshot.data ?? [];
+          final filled =
+              fields.where((f) => f.isFilled).length;
+          final unfilled = fields.length - filled;
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // Summary card
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Field Summary',
+                          style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 12),
+                      _SummaryRow(
+                          icon: Icons.check_circle,
+                          color: Colors.green,
+                          label: 'Filled',
+                          count: filled),
+                      if (unfilled > 0)
+                        _SummaryRow(
+                            icon: Icons.warning_amber_rounded,
+                            color: Colors.amber.shade700,
+                            label: 'Unfilled',
+                            count: unfilled),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Field list
+              ...fields.map((f) => _FieldTile(field: f)),
+
+              const SizedBox(height: 80),
+            ],
+          );
+        },
+      ),
+      floatingActionButton: _pressing
+          ? FloatingActionButton.extended(
+              onPressed: null,
+              icon: const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
+              ),
+              label: const Text('Pressing…'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            )
+          : FloatingActionButton.extended(
+              onPressed: () => _confirmPress(context),
+              icon: const Icon(Icons.lock),
+              label: const Text('Press & Lock'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+    );
+  }
+
+  Future<void> _confirmPress(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Press Document?'),
+        content: const Text(
+          'Pressing permanently embeds your entries into a new PDF.\n\n'
+          'The filled copy cannot be edited. Your blank original is preserved as a reusable template.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(ctx).colorScheme.error,
+                foregroundColor: Theme.of(ctx).colorScheme.onError),
+            child: const Text('Press'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    setState(() => _pressing = true);
+    // ignore: use_build_context_synchronously
+    final router = GoRouter.of(context);
+    // ignore: use_build_context_synchronously
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final pressedPath =
+          await ref.read(pressServiceProvider).press(widget.docId);
+      debugPrint('Pressed PDF: $pressedPath');
+      if (mounted) {
+        router.pushReplacement(
+          AppRoutes.send.replaceAll(':docId', '${widget.docId}'),
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() => _pressing = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Press failed: $e')),
+      );
+    }
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.count,
+  });
+  final IconData icon;
+  final Color color;
+  final String label;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 8),
+          Text('$count $label field${count == 1 ? '' : 's'}'),
+        ],
+      ),
+    );
+  }
+}
+
+class _FieldTile extends StatelessWidget {
+  const _FieldTile({required this.field});
+  final Field field;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = field.type.toFieldType();
+    return ListTile(
+      dense: true,
+      leading: Icon(
+        field.isFilled ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+        color: field.isFilled ? Colors.green : Colors.amber.shade700,
+        size: 20,
+      ),
+      title: Text(
+        field.label.isNotEmpty ? field.label : _typeName(type),
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+      subtitle: field.isFilled
+          ? Text(
+              _displayValue(field, type),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Colors.grey),
+              overflow: TextOverflow.ellipsis,
+            )
+          : Text(
+              'Not filled',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Colors.amber.shade700),
+            ),
+      trailing: Chip(
+        label: Text(_typeName(type),
+            style: const TextStyle(fontSize: 10)),
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  String _typeName(FieldType t) => switch (t) {
+        FieldType.text => 'Text',
+        FieldType.date => 'Date',
+        FieldType.checkbox => 'Checkbox',
+        FieldType.signature => 'Signature',
+      };
+
+  String _displayValue(Field f, FieldType t) => switch (t) {
+        FieldType.checkbox => f.isChecked ? 'Checked ✓' : 'Unchecked',
+        FieldType.signature => 'Signature captured',
+        _ => f.value,
+      };
+}
