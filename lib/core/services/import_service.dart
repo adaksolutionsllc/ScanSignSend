@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -9,20 +10,46 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:uuid/uuid.dart';
 
 import '../db/app_database.dart';
+import '../models/field_model.dart';
 import 'document_repository.dart';
+import 'pdf_geometry.dart';
+
+/// Serializable intermediate for one parsed AcroForm widget.
+class _ParsedField {
+  final String pdfFieldName;
+  final int pageIndex;
+  final FieldType type;
+  final BoundingBox bbox;
+  final String label;
+  final String value;
+  final bool isChecked;
+  final String? optionsJson;
+  const _ParsedField({
+    required this.pdfFieldName,
+    required this.pageIndex,
+    required this.type,
+    required this.bbox,
+    required this.label,
+    required this.value,
+    required this.isChecked,
+    required this.optionsJson,
+  });
+}
 
 final importServiceProvider = Provider<ImportService>((ref) {
   return ImportService(
     ref.watch(documentRepositoryProvider),
     ref.watch(pageRepositoryProvider),
+    ref.watch(fieldRepositoryProvider),
   );
 });
 
 class ImportService {
-  ImportService(this._docRepo, this._pageRepo);
+  ImportService(this._docRepo, this._pageRepo, this._fieldRepo);
 
   final DocumentRepository _docRepo;
   final PageRepository _pageRepo;
+  final FieldRepository _fieldRepo;
   final _uuid = const Uuid();
 
   /// Opens the system file picker and imports the selected file.
@@ -73,12 +100,12 @@ class ImportService {
 
     final bytes = await File(dest).readAsBytes();
     int pageCount;
-    bool hasFormFields;
+    // Parsed AcroForm widgets, if any, captured while the doc is open.
+    List<_ParsedField> parsedFields;
     try {
       final pdfDoc = PdfDocument(inputBytes: bytes);
       pageCount = pdfDoc.pages.count;
-      // Check if the PDF already has AcroForm fields
-      hasFormFields = pdfDoc.form.fields.count > 0;
+      parsedFields = _parseFormFields(pdfDoc);
       pdfDoc.dispose();
     } catch (e) {
       // Corrupt / encrypted / password-protected PDF — clean up the copy so we
@@ -104,14 +131,92 @@ class ImportService {
         imagePath: '$dest#page=$i',
       );
     }
+
+    // Persist any real AcroForm fields as rows the editor can fill directly.
+    for (final f in parsedFields) {
+      await _fieldRepo.addField(FieldsCompanion.insert(
+        documentId: doc.id,
+        pageIndex: f.pageIndex,
+        type: f.type.name,
+        boundingBoxJson: f.bbox.toJsonString(),
+        label: Value(f.label),
+        value: Value(f.value),
+        isChecked: Value(f.isChecked),
+        isFilled: Value(f.value.isNotEmpty || f.isChecked),
+        pdfFieldName: Value(f.pdfFieldName),
+        sourceKind: const Value('acroform'),
+        optionsJson: Value(f.optionsJson),
+      ));
+    }
+
     await _docRepo.updateDocument(DocumentsCompanion(
       id: Value(doc.id),
       pageCount: Value(pageCount),
       updatedAt: Value(DateTime.now()),
-      // Use ocrText as a sentinel flag so field detection can skip auto-scan
-      ocrText: hasFormFields ? const Value('__has_form_fields__') : const Value(''),
+      // Sentinel: skip the OCR auto-scan when the PDF already carries real form
+      // fields — we imported those as rows above.
+      ocrText: parsedFields.isNotEmpty
+          ? const Value('__has_form_fields__')
+          : const Value(''),
     ));
     return (await _docRepo.getById(doc.id))!;
+  }
+
+  /// Reads supported AcroForm widgets from an open [pdfDoc] into a serializable
+  /// intermediate, mapping each field's PDF-point bounds to our normalised box
+  /// using that page's own point size. Unsupported field types are skipped
+  /// (they still render in the background PDF view, just aren't editable yet).
+  List<_ParsedField> _parseFormFields(PdfDocument pdfDoc) {
+    final out = <_ParsedField>[];
+    final form = pdfDoc.form;
+    for (var i = 0; i < form.fields.count; i++) {
+      final field = form.fields[i];
+      final page = field.page;
+      if (page == null) continue;
+      final pageIndex = pdfDoc.pages.indexOf(page);
+      if (pageIndex < 0) continue;
+      final pw = page.size.width;
+      final ph = page.size.height;
+      final bbox = PdfGeometry.pdfToNorm(field.bounds, pw, ph);
+
+      FieldType type;
+      var value = '';
+      var isChecked = false;
+      String? optionsJson;
+
+      if (field is PdfTextBoxField) {
+        type = FieldType.text;
+        value = field.text;
+      } else if (field is PdfCheckBoxField) {
+        type = FieldType.checkbox;
+        isChecked = field.isChecked;
+      } else if (field is PdfSignatureField) {
+        type = FieldType.signature;
+      } else if (field is PdfComboBoxField) {
+        type = FieldType.text; // fill as text; choices captured for later UI
+        value = field.selectedValue;
+        final items = <String>[];
+        for (var j = 0; j < field.items.count; j++) {
+          items.add(field.items[j].text);
+        }
+        if (items.isNotEmpty) optionsJson = jsonEncode(items);
+      } else {
+        // Unsupported (radio/list/button) for v1 fill — skip.
+        continue;
+      }
+
+      out.add(_ParsedField(
+        pdfFieldName: field.name ?? 'field_$i',
+        pageIndex: pageIndex,
+        type: type,
+        bbox: bbox,
+        label: field.name ?? '',
+        value: value,
+        isChecked: isChecked,
+        optionsJson: optionsJson,
+      ));
+    }
+    return out;
   }
 
   Future<String> _copyToAppDir(String src, String id) async {

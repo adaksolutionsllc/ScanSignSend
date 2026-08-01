@@ -48,6 +48,21 @@ class Fields extends Table {
   BoolColumn get isChecked => boolean().withDefault(const Constant(false))();
   BoolColumn get isFilled => boolean().withDefault(const Constant(false))();
   IntColumn get signatureId => integer().nullable()();
+
+  // ── AcroForm workbench (schema v2) ──────────────────────────────────────────
+  // Fully-qualified AcroForm field name when this row mirrors a real widget in
+  // an imported PDF. Null for app-authored fields. This is the round-trip key.
+  TextColumn get pdfFieldName => text().nullable()();
+  // Whether the source form marked this field required.
+  BoolColumn get isRequired => boolean().withDefault(const Constant(false))();
+  // 'acroform' = read from an imported PDF's form; 'app' = user/heuristic made.
+  // Only 'app' fields are movable in the editor; 'acroform' fields are fill-only
+  // until authoring (Phase C) can safely re-geometry a real widget.
+  TextColumn get sourceKind =>
+      text().withDefault(const Constant('app'))();
+  // JSON list of choices for combo/radio/list fields, e.g. ["Yes","No"]. Null
+  // for text/checkbox/date/signature.
+  TextColumn get optionsJson => text().nullable()();
 }
 
 class Signatures extends Table {
@@ -87,8 +102,28 @@ class UserProfile extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// Test-only constructor: run the database over a caller-supplied executor
+  /// (e.g. an in-memory SQLite) so migrations can be exercised without touching
+  /// the on-device file.
+  AppDatabase.forTesting(super.executor);
+
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          // v1 → v2: AcroForm workbench columns. Purely additive — all new
+          // columns are nullable or have defaults, so existing rows are safe.
+          if (from < 2) {
+            await m.addColumn(fields, fields.pdfFieldName);
+            await m.addColumn(fields, fields.isRequired);
+            await m.addColumn(fields, fields.sourceKind);
+            await m.addColumn(fields, fields.optionsJson);
+          }
+        },
+      );
 
   static QueryExecutor _openConnection() {
     return LazyDatabase(() async {

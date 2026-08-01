@@ -1129,6 +1129,55 @@ class $FieldsTable extends Fields with TableInfo<$FieldsTable, Field> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _pdfFieldNameMeta = const VerificationMeta(
+    'pdfFieldName',
+  );
+  @override
+  late final GeneratedColumn<String> pdfFieldName = GeneratedColumn<String>(
+    'pdf_field_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isRequiredMeta = const VerificationMeta(
+    'isRequired',
+  );
+  @override
+  late final GeneratedColumn<bool> isRequired = GeneratedColumn<bool>(
+    'is_required',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_required" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _sourceKindMeta = const VerificationMeta(
+    'sourceKind',
+  );
+  @override
+  late final GeneratedColumn<String> sourceKind = GeneratedColumn<String>(
+    'source_kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('app'),
+  );
+  static const VerificationMeta _optionsJsonMeta = const VerificationMeta(
+    'optionsJson',
+  );
+  @override
+  late final GeneratedColumn<String> optionsJson = GeneratedColumn<String>(
+    'options_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1141,6 +1190,10 @@ class $FieldsTable extends Fields with TableInfo<$FieldsTable, Field> {
     isChecked,
     isFilled,
     signatureId,
+    pdfFieldName,
+    isRequired,
+    sourceKind,
+    optionsJson,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1225,6 +1278,36 @@ class $FieldsTable extends Fields with TableInfo<$FieldsTable, Field> {
         ),
       );
     }
+    if (data.containsKey('pdf_field_name')) {
+      context.handle(
+        _pdfFieldNameMeta,
+        pdfFieldName.isAcceptableOrUnknown(
+          data['pdf_field_name']!,
+          _pdfFieldNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_required')) {
+      context.handle(
+        _isRequiredMeta,
+        isRequired.isAcceptableOrUnknown(data['is_required']!, _isRequiredMeta),
+      );
+    }
+    if (data.containsKey('source_kind')) {
+      context.handle(
+        _sourceKindMeta,
+        sourceKind.isAcceptableOrUnknown(data['source_kind']!, _sourceKindMeta),
+      );
+    }
+    if (data.containsKey('options_json')) {
+      context.handle(
+        _optionsJsonMeta,
+        optionsJson.isAcceptableOrUnknown(
+          data['options_json']!,
+          _optionsJsonMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1274,6 +1357,22 @@ class $FieldsTable extends Fields with TableInfo<$FieldsTable, Field> {
         DriftSqlType.int,
         data['${effectivePrefix}signature_id'],
       ),
+      pdfFieldName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pdf_field_name'],
+      ),
+      isRequired: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_required'],
+      )!,
+      sourceKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_kind'],
+      )!,
+      optionsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}options_json'],
+      ),
     );
   }
 
@@ -1294,6 +1393,10 @@ class Field extends DataClass implements Insertable<Field> {
   final bool isChecked;
   final bool isFilled;
   final int? signatureId;
+  final String? pdfFieldName;
+  final bool isRequired;
+  final String sourceKind;
+  final String? optionsJson;
   const Field({
     required this.id,
     required this.documentId,
@@ -1305,6 +1408,10 @@ class Field extends DataClass implements Insertable<Field> {
     required this.isChecked,
     required this.isFilled,
     this.signatureId,
+    this.pdfFieldName,
+    required this.isRequired,
+    required this.sourceKind,
+    this.optionsJson,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1320,6 +1427,14 @@ class Field extends DataClass implements Insertable<Field> {
     map['is_filled'] = Variable<bool>(isFilled);
     if (!nullToAbsent || signatureId != null) {
       map['signature_id'] = Variable<int>(signatureId);
+    }
+    if (!nullToAbsent || pdfFieldName != null) {
+      map['pdf_field_name'] = Variable<String>(pdfFieldName);
+    }
+    map['is_required'] = Variable<bool>(isRequired);
+    map['source_kind'] = Variable<String>(sourceKind);
+    if (!nullToAbsent || optionsJson != null) {
+      map['options_json'] = Variable<String>(optionsJson);
     }
     return map;
   }
@@ -1338,6 +1453,14 @@ class Field extends DataClass implements Insertable<Field> {
       signatureId: signatureId == null && nullToAbsent
           ? const Value.absent()
           : Value(signatureId),
+      pdfFieldName: pdfFieldName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pdfFieldName),
+      isRequired: Value(isRequired),
+      sourceKind: Value(sourceKind),
+      optionsJson: optionsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(optionsJson),
     );
   }
 
@@ -1357,6 +1480,10 @@ class Field extends DataClass implements Insertable<Field> {
       isChecked: serializer.fromJson<bool>(json['isChecked']),
       isFilled: serializer.fromJson<bool>(json['isFilled']),
       signatureId: serializer.fromJson<int?>(json['signatureId']),
+      pdfFieldName: serializer.fromJson<String?>(json['pdfFieldName']),
+      isRequired: serializer.fromJson<bool>(json['isRequired']),
+      sourceKind: serializer.fromJson<String>(json['sourceKind']),
+      optionsJson: serializer.fromJson<String?>(json['optionsJson']),
     );
   }
   @override
@@ -1373,6 +1500,10 @@ class Field extends DataClass implements Insertable<Field> {
       'isChecked': serializer.toJson<bool>(isChecked),
       'isFilled': serializer.toJson<bool>(isFilled),
       'signatureId': serializer.toJson<int?>(signatureId),
+      'pdfFieldName': serializer.toJson<String?>(pdfFieldName),
+      'isRequired': serializer.toJson<bool>(isRequired),
+      'sourceKind': serializer.toJson<String>(sourceKind),
+      'optionsJson': serializer.toJson<String?>(optionsJson),
     };
   }
 
@@ -1387,6 +1518,10 @@ class Field extends DataClass implements Insertable<Field> {
     bool? isChecked,
     bool? isFilled,
     Value<int?> signatureId = const Value.absent(),
+    Value<String?> pdfFieldName = const Value.absent(),
+    bool? isRequired,
+    String? sourceKind,
+    Value<String?> optionsJson = const Value.absent(),
   }) => Field(
     id: id ?? this.id,
     documentId: documentId ?? this.documentId,
@@ -1398,6 +1533,10 @@ class Field extends DataClass implements Insertable<Field> {
     isChecked: isChecked ?? this.isChecked,
     isFilled: isFilled ?? this.isFilled,
     signatureId: signatureId.present ? signatureId.value : this.signatureId,
+    pdfFieldName: pdfFieldName.present ? pdfFieldName.value : this.pdfFieldName,
+    isRequired: isRequired ?? this.isRequired,
+    sourceKind: sourceKind ?? this.sourceKind,
+    optionsJson: optionsJson.present ? optionsJson.value : this.optionsJson,
   );
   Field copyWithCompanion(FieldsCompanion data) {
     return Field(
@@ -1417,6 +1556,18 @@ class Field extends DataClass implements Insertable<Field> {
       signatureId: data.signatureId.present
           ? data.signatureId.value
           : this.signatureId,
+      pdfFieldName: data.pdfFieldName.present
+          ? data.pdfFieldName.value
+          : this.pdfFieldName,
+      isRequired: data.isRequired.present
+          ? data.isRequired.value
+          : this.isRequired,
+      sourceKind: data.sourceKind.present
+          ? data.sourceKind.value
+          : this.sourceKind,
+      optionsJson: data.optionsJson.present
+          ? data.optionsJson.value
+          : this.optionsJson,
     );
   }
 
@@ -1432,7 +1583,11 @@ class Field extends DataClass implements Insertable<Field> {
           ..write('value: $value, ')
           ..write('isChecked: $isChecked, ')
           ..write('isFilled: $isFilled, ')
-          ..write('signatureId: $signatureId')
+          ..write('signatureId: $signatureId, ')
+          ..write('pdfFieldName: $pdfFieldName, ')
+          ..write('isRequired: $isRequired, ')
+          ..write('sourceKind: $sourceKind, ')
+          ..write('optionsJson: $optionsJson')
           ..write(')'))
         .toString();
   }
@@ -1449,6 +1604,10 @@ class Field extends DataClass implements Insertable<Field> {
     isChecked,
     isFilled,
     signatureId,
+    pdfFieldName,
+    isRequired,
+    sourceKind,
+    optionsJson,
   );
   @override
   bool operator ==(Object other) =>
@@ -1463,7 +1622,11 @@ class Field extends DataClass implements Insertable<Field> {
           other.value == this.value &&
           other.isChecked == this.isChecked &&
           other.isFilled == this.isFilled &&
-          other.signatureId == this.signatureId);
+          other.signatureId == this.signatureId &&
+          other.pdfFieldName == this.pdfFieldName &&
+          other.isRequired == this.isRequired &&
+          other.sourceKind == this.sourceKind &&
+          other.optionsJson == this.optionsJson);
 }
 
 class FieldsCompanion extends UpdateCompanion<Field> {
@@ -1477,6 +1640,10 @@ class FieldsCompanion extends UpdateCompanion<Field> {
   final Value<bool> isChecked;
   final Value<bool> isFilled;
   final Value<int?> signatureId;
+  final Value<String?> pdfFieldName;
+  final Value<bool> isRequired;
+  final Value<String> sourceKind;
+  final Value<String?> optionsJson;
   const FieldsCompanion({
     this.id = const Value.absent(),
     this.documentId = const Value.absent(),
@@ -1488,6 +1655,10 @@ class FieldsCompanion extends UpdateCompanion<Field> {
     this.isChecked = const Value.absent(),
     this.isFilled = const Value.absent(),
     this.signatureId = const Value.absent(),
+    this.pdfFieldName = const Value.absent(),
+    this.isRequired = const Value.absent(),
+    this.sourceKind = const Value.absent(),
+    this.optionsJson = const Value.absent(),
   });
   FieldsCompanion.insert({
     this.id = const Value.absent(),
@@ -1500,6 +1671,10 @@ class FieldsCompanion extends UpdateCompanion<Field> {
     this.isChecked = const Value.absent(),
     this.isFilled = const Value.absent(),
     this.signatureId = const Value.absent(),
+    this.pdfFieldName = const Value.absent(),
+    this.isRequired = const Value.absent(),
+    this.sourceKind = const Value.absent(),
+    this.optionsJson = const Value.absent(),
   }) : documentId = Value(documentId),
        pageIndex = Value(pageIndex),
        type = Value(type),
@@ -1515,6 +1690,10 @@ class FieldsCompanion extends UpdateCompanion<Field> {
     Expression<bool>? isChecked,
     Expression<bool>? isFilled,
     Expression<int>? signatureId,
+    Expression<String>? pdfFieldName,
+    Expression<bool>? isRequired,
+    Expression<String>? sourceKind,
+    Expression<String>? optionsJson,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1527,6 +1706,10 @@ class FieldsCompanion extends UpdateCompanion<Field> {
       if (isChecked != null) 'is_checked': isChecked,
       if (isFilled != null) 'is_filled': isFilled,
       if (signatureId != null) 'signature_id': signatureId,
+      if (pdfFieldName != null) 'pdf_field_name': pdfFieldName,
+      if (isRequired != null) 'is_required': isRequired,
+      if (sourceKind != null) 'source_kind': sourceKind,
+      if (optionsJson != null) 'options_json': optionsJson,
     });
   }
 
@@ -1541,6 +1724,10 @@ class FieldsCompanion extends UpdateCompanion<Field> {
     Value<bool>? isChecked,
     Value<bool>? isFilled,
     Value<int?>? signatureId,
+    Value<String?>? pdfFieldName,
+    Value<bool>? isRequired,
+    Value<String>? sourceKind,
+    Value<String?>? optionsJson,
   }) {
     return FieldsCompanion(
       id: id ?? this.id,
@@ -1553,6 +1740,10 @@ class FieldsCompanion extends UpdateCompanion<Field> {
       isChecked: isChecked ?? this.isChecked,
       isFilled: isFilled ?? this.isFilled,
       signatureId: signatureId ?? this.signatureId,
+      pdfFieldName: pdfFieldName ?? this.pdfFieldName,
+      isRequired: isRequired ?? this.isRequired,
+      sourceKind: sourceKind ?? this.sourceKind,
+      optionsJson: optionsJson ?? this.optionsJson,
     );
   }
 
@@ -1589,6 +1780,18 @@ class FieldsCompanion extends UpdateCompanion<Field> {
     if (signatureId.present) {
       map['signature_id'] = Variable<int>(signatureId.value);
     }
+    if (pdfFieldName.present) {
+      map['pdf_field_name'] = Variable<String>(pdfFieldName.value);
+    }
+    if (isRequired.present) {
+      map['is_required'] = Variable<bool>(isRequired.value);
+    }
+    if (sourceKind.present) {
+      map['source_kind'] = Variable<String>(sourceKind.value);
+    }
+    if (optionsJson.present) {
+      map['options_json'] = Variable<String>(optionsJson.value);
+    }
     return map;
   }
 
@@ -1604,7 +1807,11 @@ class FieldsCompanion extends UpdateCompanion<Field> {
           ..write('value: $value, ')
           ..write('isChecked: $isChecked, ')
           ..write('isFilled: $isFilled, ')
-          ..write('signatureId: $signatureId')
+          ..write('signatureId: $signatureId, ')
+          ..write('pdfFieldName: $pdfFieldName, ')
+          ..write('isRequired: $isRequired, ')
+          ..write('sourceKind: $sourceKind, ')
+          ..write('optionsJson: $optionsJson')
           ..write(')'))
         .toString();
   }
@@ -3581,6 +3788,10 @@ typedef $$FieldsTableCreateCompanionBuilder =
       Value<bool> isChecked,
       Value<bool> isFilled,
       Value<int?> signatureId,
+      Value<String?> pdfFieldName,
+      Value<bool> isRequired,
+      Value<String> sourceKind,
+      Value<String?> optionsJson,
     });
 typedef $$FieldsTableUpdateCompanionBuilder =
     FieldsCompanion Function({
@@ -3594,6 +3805,10 @@ typedef $$FieldsTableUpdateCompanionBuilder =
       Value<bool> isChecked,
       Value<bool> isFilled,
       Value<int?> signatureId,
+      Value<String?> pdfFieldName,
+      Value<bool> isRequired,
+      Value<String> sourceKind,
+      Value<String?> optionsJson,
     });
 
 final class $$FieldsTableReferences
@@ -3669,6 +3884,26 @@ class $$FieldsTableFilterComposer
 
   ColumnFilters<int> get signatureId => $composableBuilder(
     column: $table.signatureId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pdfFieldName => $composableBuilder(
+    column: $table.pdfFieldName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isRequired => $composableBuilder(
+    column: $table.isRequired,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceKind => $composableBuilder(
+    column: $table.sourceKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get optionsJson => $composableBuilder(
+    column: $table.optionsJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3750,6 +3985,26 @@ class $$FieldsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get pdfFieldName => $composableBuilder(
+    column: $table.pdfFieldName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isRequired => $composableBuilder(
+    column: $table.isRequired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceKind => $composableBuilder(
+    column: $table.sourceKind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get optionsJson => $composableBuilder(
+    column: $table.optionsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$DocumentsTableOrderingComposer get documentId {
     final $$DocumentsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3811,6 +4066,26 @@ class $$FieldsTableAnnotationComposer
 
   GeneratedColumn<int> get signatureId => $composableBuilder(
     column: $table.signatureId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get pdfFieldName => $composableBuilder(
+    column: $table.pdfFieldName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isRequired => $composableBuilder(
+    column: $table.isRequired,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceKind => $composableBuilder(
+    column: $table.sourceKind,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get optionsJson => $composableBuilder(
+    column: $table.optionsJson,
     builder: (column) => column,
   );
 
@@ -3876,6 +4151,10 @@ class $$FieldsTableTableManager
                 Value<bool> isChecked = const Value.absent(),
                 Value<bool> isFilled = const Value.absent(),
                 Value<int?> signatureId = const Value.absent(),
+                Value<String?> pdfFieldName = const Value.absent(),
+                Value<bool> isRequired = const Value.absent(),
+                Value<String> sourceKind = const Value.absent(),
+                Value<String?> optionsJson = const Value.absent(),
               }) => FieldsCompanion(
                 id: id,
                 documentId: documentId,
@@ -3887,6 +4166,10 @@ class $$FieldsTableTableManager
                 isChecked: isChecked,
                 isFilled: isFilled,
                 signatureId: signatureId,
+                pdfFieldName: pdfFieldName,
+                isRequired: isRequired,
+                sourceKind: sourceKind,
+                optionsJson: optionsJson,
               ),
           createCompanionCallback:
               ({
@@ -3900,6 +4183,10 @@ class $$FieldsTableTableManager
                 Value<bool> isChecked = const Value.absent(),
                 Value<bool> isFilled = const Value.absent(),
                 Value<int?> signatureId = const Value.absent(),
+                Value<String?> pdfFieldName = const Value.absent(),
+                Value<bool> isRequired = const Value.absent(),
+                Value<String> sourceKind = const Value.absent(),
+                Value<String?> optionsJson = const Value.absent(),
               }) => FieldsCompanion.insert(
                 id: id,
                 documentId: documentId,
@@ -3911,6 +4198,10 @@ class $$FieldsTableTableManager
                 isChecked: isChecked,
                 isFilled: isFilled,
                 signatureId: signatureId,
+                pdfFieldName: pdfFieldName,
+                isRequired: isRequired,
+                sourceKind: sourceKind,
+                optionsJson: optionsJson,
               ),
           withReferenceMapper: (p0) => p0
               .map(
