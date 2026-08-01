@@ -273,6 +273,10 @@ class _DocumentCard extends StatelessWidget {
     final dateStr = DateFormat('MMM d, yyyy').format(doc.updatedAt);
     final isDraft = status == DocumentStatus.draft;
     final isTemplate = status == DocumentStatus.template;
+    // Exported docs (pressed/fillable) open in the viewer; drafts open in fill
+    // mode; templates spawn a new draft.
+    final isExported = status == DocumentStatus.pressed ||
+        status == DocumentStatus.fillable;
     final showStatusPill = tab == _LibraryTab.all;
 
     return Card(
@@ -280,9 +284,13 @@ class _DocumentCard extends StatelessWidget {
       child: InkWell(
         onTap: isTemplate
             ? onUseTemplate
-            : () => context.push(
-                  AppRoutes.fillMode.replaceAll(':docId', '${doc.id}'),
-                ),
+            : isExported
+                ? () => context.push(
+                      AppRoutes.viewer.replaceAll(':docId', '${doc.id}'),
+                    )
+                : () => context.push(
+                      AppRoutes.fillMode.replaceAll(':docId', '${doc.id}'),
+                    ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

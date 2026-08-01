@@ -11,6 +11,7 @@ import '../../features/press/presentation/press_screen.dart';
 import '../../features/send/presentation/send_screen.dart';
 import '../../features/library/presentation/search_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/viewer/presentation/document_viewer_screen.dart';
 import '../../features/settings/presentation/signatures_manager_screen.dart';
 
 // Route path constants
@@ -26,6 +27,7 @@ class AppRoutes {
   static const settings = '/settings';
   static const search = '/search';
   static const signaturesManager = '/settings/signatures';
+  static const viewer = '/viewer/:docId';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -88,6 +90,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.signaturesManager,
         builder: (context, state) => const SignaturesManagerScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.viewer,
+        builder: (context, state) => DocumentViewerScreen(
+          docId: int.parse(state.pathParameters['docId']!),
+        ),
       ),
     ],
   );

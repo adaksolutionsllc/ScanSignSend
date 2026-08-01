@@ -242,5 +242,12 @@ document is still editable and what each exit does.
 ---
 
 ## Progress log
-- 2026-07-31 — Plan created. Phase A not started. Next action: **A0 library
-  spike** (the gate). Nothing coded yet.
+- 2026-07-31 — Plan created. A0 spike built (byte-level round-trip proven;
+  3-app render check still manual).
+- 2026-08-01 — **Phase A complete** (A1 schema+migration, pdf_geometry, A2
+  reader, A4 FillableFormExportService, A3/A5 fill UI + two exits). analyze
+  clean, 16 tests pass, debug APK builds. Branch `pdf-workbench`. Committed per
+  phase. Next: **Phase B** (faithful viewer).
+- ⚠️ Still-open gate: human must confirm `docs/acroform_spike.pdf` renders/fills
+  correctly in Acrobat + Preview + Chrome before relying on fillable export in
+  production. And stakeholder Qs (pricing/scope) remain for Phase C+.
