@@ -373,6 +373,11 @@ class _FillOverlayState extends ConsumerState<_FillOverlay> {
             final w = size.width.clamp(_minW, cw - left);
             final h = size.height.clamp(_minH, ch - top);
 
+            // Real AcroForm fields (from an imported PDF) are fill-only — moving
+            // a live widget's geometry is an authoring action (Phase C), and we
+            // must not shift a field away from where the source form placed it.
+            final movable = field.sourceKind == 'app';
+
             return Positioned(
               left: left,
               top: top,
@@ -383,6 +388,7 @@ class _FillOverlayState extends ConsumerState<_FillOverlay> {
                 type: type,
                 color: color,
                 handleSize: _handleSize,
+                movable: movable,
                 onTap: () => widget.onFieldTap(field),
                 onDrag: (delta) {
                   setState(() {
@@ -446,6 +452,7 @@ class _DraggableField extends StatelessWidget {
     required this.type,
     required this.color,
     required this.handleSize,
+    required this.movable,
     required this.onTap,
     required this.onDrag,
     required this.onResize,
@@ -457,6 +464,7 @@ class _DraggableField extends StatelessWidget {
   final FieldType type;
   final Color color;
   final double handleSize;
+  final bool movable;
   final VoidCallback onTap;
   final ValueChanged<Offset> onDrag;
   final ValueChanged<Offset> onResize;
@@ -469,8 +477,10 @@ class _DraggableField extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      onPanUpdate: (d) => onDrag(d.delta),
-      onPanEnd: (_) => onDragEnd(),
+      // Drag only when the field is app-authored; real AcroForm fields keep
+      // the geometry the source PDF gave them.
+      onPanUpdate: movable ? (d) => onDrag(d.delta) : null,
+      onPanEnd: movable ? (_) => onDragEnd() : null,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -493,28 +503,29 @@ class _DraggableField extends StatelessWidget {
             ),
           ),
 
-          // Resize handle — bottom-right corner
-          Positioned(
-            right: -handleSize / 2,
-            bottom: -handleSize / 2,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onPanUpdate: (d) => onResize(d.delta),
-              onPanEnd: (_) => onResizeEnd(),
-              onTap: () {}, // absorb tap so it doesn't trigger field tap
-              child: Container(
-                width: handleSize,
-                height: handleSize,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
+          // Resize handle — bottom-right corner (app-authored fields only)
+          if (movable)
+            Positioned(
+              right: -handleSize / 2,
+              bottom: -handleSize / 2,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onPanUpdate: (d) => onResize(d.delta),
+                onPanEnd: (_) => onResizeEnd(),
+                onTap: () {}, // absorb tap so it doesn't trigger field tap
+                child: Container(
+                  width: handleSize,
+                  height: handleSize,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: const Icon(Icons.open_in_full,
+                      color: Colors.white, size: 10),
                 ),
-                child: const Icon(Icons.open_in_full,
-                    color: Colors.white, size: 10),
               ),
             ),
-          ),
         ],
       ),
     );

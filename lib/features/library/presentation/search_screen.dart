@@ -77,6 +77,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           : Icons.description_outlined,
                   color: switch (status) {
                     DocumentStatus.pressed => AppTheme.statusPressed,
+                    DocumentStatus.fillable => AppTheme.statusFillable,
                     DocumentStatus.template => AppTheme.statusTemplate,
                     DocumentStatus.draft => AppTheme.statusDraft,
                   },

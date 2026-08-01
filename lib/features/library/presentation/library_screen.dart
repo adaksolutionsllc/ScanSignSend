@@ -248,18 +248,21 @@ class _DocumentCard extends StatelessWidget {
 
   static Color _statusColor(DocumentStatus s) => switch (s) {
         DocumentStatus.pressed => AppTheme.statusPressed,
+        DocumentStatus.fillable => AppTheme.statusFillable,
         DocumentStatus.template => AppTheme.statusTemplate,
         DocumentStatus.draft => AppTheme.statusDraft,
       };
 
   static String _statusLabel(DocumentStatus s) => switch (s) {
         DocumentStatus.pressed => 'Pressed',
+        DocumentStatus.fillable => 'Fillable',
         DocumentStatus.template => 'Template',
         DocumentStatus.draft => 'Draft',
       };
 
   static IconData _statusIcon(DocumentStatus s) => switch (s) {
         DocumentStatus.pressed => Icons.lock,
+        DocumentStatus.fillable => Icons.edit_document,
         DocumentStatus.template => Icons.layers,
         DocumentStatus.draft => Icons.edit,
       };
