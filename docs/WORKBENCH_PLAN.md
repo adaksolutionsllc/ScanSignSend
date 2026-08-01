@@ -245,9 +245,21 @@ document is still editable and what each exit does.
 - 2026-07-31 — Plan created. A0 spike built (byte-level round-trip proven;
   3-app render check still manual).
 - 2026-08-01 — **Phase A complete** (A1 schema+migration, pdf_geometry, A2
-  reader, A4 FillableFormExportService, A3/A5 fill UI + two exits). analyze
-  clean, 16 tests pass, debug APK builds. Branch `pdf-workbench`. Committed per
-  phase. Next: **Phase B** (faithful viewer).
-- ⚠️ Still-open gate: human must confirm `docs/acroform_spike.pdf` renders/fills
-  correctly in Acrobat + Preview + Chrome before relying on fillable export in
-  production. And stakeholder Qs (pricing/scope) remain for Phase C+.
+  reader, A4 FillableFormExportService, A3/A5 fill UI + two exits).
+- 2026-08-01 — **Phase B complete** — DocumentViewerScreen (zoom, page nav,
+  in-document search) at /viewer/:docId; Library routes exported docs there.
+- 2026-08-01 — **Phase C complete** — authoring canvas gains field name +
+  required; saveAll preserves imported acroform fields; authored fields export
+  live via the A4 path.
+- 2026-08-01 — **Phase D complete** — flatten guardrails (warn on live fields),
+  signature-honesty note, mode clarity (fillable status + weighted exits).
+- **All phases A–D done.** analyze clean, 16 tests pass, debug APK builds.
+  Branch `pdf-workbench`, committed per phase.
+- ⚠️ REMAINING GATES (not code — need a human / stakeholders):
+  1. Confirm `docs/acroform_spike.pdf` renders/fills correctly in Acrobat +
+     Preview + Chrome before relying on fillable export in production.
+  2. iOS/macOS builds not run here (built Android debug repeatedly).
+  3. Stakeholder Qs still open: "faithful" scope, one-time-price vs service
+     cost, differentiator (see "Open strategic questions").
+  4. Syncfusion can't stamp the AcroForm required flag → isRequired persisted
+     but not reflected in exported PDFs (documented in the exporter).
