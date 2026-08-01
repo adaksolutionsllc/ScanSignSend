@@ -144,13 +144,44 @@ class _PressScreenState extends ConsumerState<PressScreen> {
   }
 
   Future<void> _confirmPress(BuildContext context) async {
+    // D3 guardrail: if this document carries live (AcroForm) fields, warn that
+    // flattening throws away their interactivity.
+    final fields =
+        await ref.read(fieldRepositoryProvider).watchFields(widget.docId).first;
+    final hasLiveFields = fields.any((f) => f.sourceKind == 'acroform');
+    if (!context.mounted) return;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Press Document?'),
-        content: const Text(
-          'Pressing permanently embeds your entries into a new PDF.\n\n'
-          'The filled copy cannot be edited. Your blank original is preserved as a reusable template.',
+        title: const Text('Flatten & lock this document?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Flattening bakes your entries into a new PDF. The result is '
+              'permanent — no one can edit it afterward, including you. Your '
+              'blank original is kept as a reusable template.',
+            ),
+            if (hasLiveFields) ...[
+              const SizedBox(height: 12),
+              Text(
+                'This document has interactive form fields. Flattening removes '
+                'them — to keep them editable, choose “Save as Fillable Form” '
+                'instead.',
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Text(
+              'Note: a drawn signature here is a visual mark, not a certified '
+              'digital e-signature.',
+              style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey,
+                  ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -162,7 +193,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
             style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(ctx).colorScheme.error,
                 foregroundColor: Theme.of(ctx).colorScheme.onError),
-            child: const Text('Press'),
+            child: const Text('Flatten & Lock'),
           ),
         ],
       ),
