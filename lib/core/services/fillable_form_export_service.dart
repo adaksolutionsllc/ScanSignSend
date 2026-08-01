@@ -256,4 +256,7 @@ void _addWidget(PdfDocument pdfDoc, PdfPage page, _FieldPlan f) {
     case FieldType.signature:
       pdfDoc.form.fields.add(PdfSignatureField(page, name, bounds: rect));
   }
+  // NOTE: a field's `isRequired` is persisted in our DB and used for in-app
+  // validation, but this Syncfusion version exposes no setter to stamp the
+  // AcroForm "required" flag into the PDF, so it isn't reflected in the export.
 }

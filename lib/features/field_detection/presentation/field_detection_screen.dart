@@ -355,6 +355,7 @@ class _EditorView extends ConsumerWidget {
           Navigator.pop(ctx);
         },
         onUpdateLabel: (l) => notifier.updateLabel(fieldIndex, l),
+        onToggleRequired: (v) => notifier.setRequired(fieldIndex, v),
       ),
     );
   }
@@ -636,6 +637,7 @@ class _FieldEditSheet extends StatefulWidget {
     required this.onDelete,
     required this.onChangeType,
     required this.onUpdateLabel,
+    required this.onToggleRequired,
   });
 
   final EditableField field;
@@ -643,6 +645,7 @@ class _FieldEditSheet extends StatefulWidget {
   final VoidCallback onDelete;
   final ValueChanged<FieldType> onChangeType;
   final ValueChanged<String> onUpdateLabel;
+  final ValueChanged<bool> onToggleRequired;
 
   @override
   State<_FieldEditSheet> createState() => _FieldEditSheetState();
@@ -650,11 +653,13 @@ class _FieldEditSheet extends StatefulWidget {
 
 class _FieldEditSheetState extends State<_FieldEditSheet> {
   late final TextEditingController _labelCtrl;
+  late bool _required;
 
   @override
   void initState() {
     super.initState();
     _labelCtrl = TextEditingController(text: widget.field.label);
+    _required = widget.field.isRequired;
   }
 
   @override
@@ -691,17 +696,29 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
           ),
           const SizedBox(height: 12),
 
-          // Label
+          // Label — also becomes the field name in an exported fillable form.
           TextField(
             controller: _labelCtrl,
             decoration: const InputDecoration(
-              labelText: 'Label (optional)',
+              labelText: 'Label / field name',
               border: OutlineInputBorder(),
               isDense: true,
             ),
             onChanged: widget.onUpdateLabel,
           ),
-          const SizedBox(height: 16),
+
+          // Required toggle — used when exporting as a fillable form.
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            title: const Text('Required field'),
+            value: _required,
+            onChanged: (v) {
+              setState(() => _required = v);
+              widget.onToggleRequired(v);
+            },
+          ),
+          const SizedBox(height: 8),
 
           Row(
             children: [

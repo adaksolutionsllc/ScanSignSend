@@ -51,6 +51,7 @@ class EditableField {
   String label;
   int pageIndex;
   bool confirmed;
+  bool isRequired;
 
   EditableField({
     this.dbId,
@@ -59,6 +60,7 @@ class EditableField {
     required this.label,
     required this.pageIndex,
     this.confirmed = false,
+    this.isRequired = false,
   });
 }
 
@@ -187,6 +189,13 @@ class FieldDetectionNotifier
     state = state.copyWith(fields: updated);
   }
 
+  void setRequired(int index, bool required) {
+    if (index < 0 || index >= state.fields.length) return;
+    final updated = List<EditableField>.from(state.fields);
+    updated[index].isRequired = required;
+    state = state.copyWith(fields: updated);
+  }
+
   void addManualField({
     required FieldType type,
     required int pageIndex,
@@ -203,20 +212,30 @@ class FieldDetectionNotifier
     state = state.copyWith(fields: updated);
   }
 
-  /// Persist all fields to the DB and return.
+  /// Persist all editor fields to the DB.
+  ///
+  /// Only app-authored fields are rewritten — real AcroForm fields imported
+  /// from a PDF (`sourceKind='acroform'`) are left untouched so a detection
+  /// pass can never wipe the source form's fields.
   Future<void> saveAll() async {
-    // Delete any previously detected fields for this doc
     final existing = await fieldRepo.watchFields(docId).first;
     for (final f in existing) {
+      if (f.sourceKind == 'acroform') continue; // preserve real form fields
       await fieldRepo.deleteField(f.id);
     }
     for (final f in state.fields) {
+      // Use a non-empty label as the AcroForm field name so authored forms
+      // export with meaningful, fillable field names.
+      final name = f.label.trim().isEmpty ? null : f.label.trim();
       await fieldRepo.addField(FieldsCompanion.insert(
         documentId: docId,
         pageIndex: f.pageIndex,
         type: f.type.name,
         boundingBoxJson: f.bbox.toJsonString(),
         label: Value(f.label),
+        isRequired: Value(f.isRequired),
+        pdfFieldName: Value(name),
+        sourceKind: const Value('app'),
       ));
     }
   }
