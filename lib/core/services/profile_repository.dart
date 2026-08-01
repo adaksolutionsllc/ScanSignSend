@@ -22,12 +22,24 @@ class ProfileRepository {
         .getSingle();
   }
 
-  Stream<UserProfileData> watch() =>
-      (_db.select(_db.userProfile)).watchSingle();
+  /// Emits the profile row, ensuring one exists first. Selecting with limit(1)
+  /// + filtering empty emissions means a missing/duplicate row never throws
+  /// (unlike watchSingle, which errors on 0 or 2+ rows).
+  Stream<UserProfileData> watch() async* {
+    final seed = await getOrCreate();
+    yield seed;
+    yield* (_db.select(_db.userProfile)..limit(1))
+        .watch()
+        .where((rows) => rows.isNotEmpty)
+        .map((rows) => rows.first);
+  }
 
-  Future<void> update(UserProfileCompanion companion) =>
-      (_db.update(_db.userProfile)..where((t) => t.id.equals(1)))
-          .write(companion);
+  Future<void> update(UserProfileCompanion companion) async {
+    // Don't assume id==1 — target whatever row getOrCreate established.
+    final profile = await getOrCreate();
+    await (_db.update(_db.userProfile)..where((t) => t.id.equals(profile.id)))
+        .write(companion);
+  }
 
   Future<void> incrementScanCount() async {
     final profile = await getOrCreate();

@@ -179,6 +179,14 @@ class FieldDetectionNotifier
     state = state.copyWith(fields: updated);
   }
 
+  /// Reposition / resize a field after the user drags it in the editor.
+  void updateBbox(int index, BoundingBox bbox) {
+    if (index < 0 || index >= state.fields.length) return;
+    final updated = List<EditableField>.from(state.fields);
+    updated[index].bbox = bbox;
+    state = state.copyWith(fields: updated);
+  }
+
   void addManualField({
     required FieldType type,
     required int pageIndex,

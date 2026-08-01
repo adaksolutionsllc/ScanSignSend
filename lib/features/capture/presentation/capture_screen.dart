@@ -12,6 +12,7 @@ import '../../../core/services/import_service.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/services/scan_service.dart';
 import '../../../core/utils/router.dart';
+import '../../../shared/widgets/paywall_screen.dart';
 import 'package:uuid/uuid.dart';
 
 class CaptureScreen extends ConsumerStatefulWidget {
@@ -107,7 +108,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
     for (var i = 0; i < tempPaths.length; i++) {
       final dest = p.join(pagesDir.path, 'page_$i.jpg');
-      await File(tempPaths[i]).copy(dest);
+      final src = File(tempPaths[i]);
+      await src.copy(dest);
+      // Remove the staging file now that it's safely copied
+      try { await src.delete(); } catch (_) {}
       await pageRepo.addPage(
         documentId: doc.id,
         pageIndex: i,
@@ -130,27 +134,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   }
 
   void _showPaywall() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Unlock Unlimited Scans'),
-        content: const Text(
-          "You've used your 3 free scans.\n\n"
-          "Scan Sign Send Full Access — one-time purchase, unlimited documents forever.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Maybe later'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              // Phase 4: trigger StoreKit / Play Billing
-            },
-            child: const Text('Unlock — \$9.99'),
-          ),
-        ],
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const PaywallScreen(),
       ),
     );
   }

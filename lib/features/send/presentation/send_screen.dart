@@ -24,25 +24,21 @@ class _SendScreenState extends ConsumerState<SendScreen> {
   Widget build(BuildContext context) {
     final docRepo = ref.watch(documentRepositoryProvider);
 
+    // The document is already pressed and saved before we reach this screen,
+    // so never trap the user here — back always returns to the Library.
     return PopScope(
-      canPop: _shared,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Share the document before leaving.')),
-          );
-        }
+        if (!didPop) context.go(AppRoutes.library);
       },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Send Document'),
-          leading: _shared
-              ? IconButton(
-                  icon: const Icon(Icons.check),
-                  onPressed: () => context.go(AppRoutes.library),
-                )
-              : null,
+          leading: IconButton(
+            icon: Icon(_shared ? Icons.check : Icons.arrow_back),
+            tooltip: 'Back to Library',
+            onPressed: () => context.go(AppRoutes.library),
+          ),
         ),
         body: FutureBuilder(
           future: docRepo.getById(widget.docId),

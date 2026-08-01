@@ -14,6 +14,18 @@ class PaywallScreen extends ConsumerStatefulWidget {
 class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   bool _loading = false;
   String? _error;
+  String _price = '\$14.99'; // fallback until the live store price loads
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrice();
+  }
+
+  Future<void> _loadPrice() async {
+    final price = await ref.read(iapServiceProvider).localizedPrice();
+    if (price != null && mounted) setState(() => _price = price);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,9 +97,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 onPressed: _loading ? null : _buy,
                 child: _loading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Unlock — \$9.99',
-                        style: TextStyle(
+                    : Text(
+                        'Unlock — $_price',
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
               ),
@@ -134,8 +146,14 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       _error = null;
     });
     try {
-      await ref.read(iapServiceProvider).restore();
-      if (mounted) Navigator.of(context).pop();
+      final restored = await ref.read(iapServiceProvider).restore();
+      if (!mounted) return;
+      if (restored) {
+        Navigator.of(context).pop();
+      } else {
+        setState(() =>
+            _error = 'No previous purchase found on this account.');
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {

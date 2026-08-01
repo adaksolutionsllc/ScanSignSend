@@ -68,17 +68,36 @@ class ImportService {
   /// viewer knows which page to display (0-indexed).
   Future<Document> _importPdf(String pdfPath, String name) async {
     final id = _uuid.v4();
-    final dest = await _copyToAppDir(pdfPath, id, keepName: true);
+    final dest = await _copyToAppDir(pdfPath, id);
     final title = p.basenameWithoutExtension(name);
 
     final bytes = await File(dest).readAsBytes();
-    final pdfDoc = PdfDocument(inputBytes: bytes);
-    final pageCount = pdfDoc.pages.count;
-    pdfDoc.dispose();
+    int pageCount;
+    bool hasFormFields;
+    try {
+      final pdfDoc = PdfDocument(inputBytes: bytes);
+      pageCount = pdfDoc.pages.count;
+      // Check if the PDF already has AcroForm fields
+      hasFormFields = pdfDoc.form.fields.count > 0;
+      pdfDoc.dispose();
+    } catch (e) {
+      // Corrupt / encrypted / password-protected PDF — clean up the copy so we
+      // don't leave an unreadable file behind, then surface a clear message.
+      try {
+        await Directory(p.dirname(dest)).delete(recursive: true);
+      } catch (_) {}
+      throw Exception(
+          "This PDF couldn't be opened. It may be password-protected or damaged.");
+    }
+    if (pageCount == 0) {
+      try {
+        await Directory(p.dirname(dest)).delete(recursive: true);
+      } catch (_) {}
+      throw Exception('This PDF has no pages.');
+    }
 
     final doc = await _docRepo.createDocument(title);
     for (var i = 0; i < pageCount; i++) {
-      // Convention: "$pdfPath#page=$i" — review screen interprets the fragment
       await _pageRepo.addPage(
         documentId: doc.id,
         pageIndex: i,
@@ -89,20 +108,17 @@ class ImportService {
       id: Value(doc.id),
       pageCount: Value(pageCount),
       updatedAt: Value(DateTime.now()),
+      // Use ocrText as a sentinel flag so field detection can skip auto-scan
+      ocrText: hasFormFields ? const Value('__has_form_fields__') : const Value(''),
     ));
     return (await _docRepo.getById(doc.id))!;
   }
 
-  Future<String> _copyToAppDir(
-    String src,
-    String id, {
-    bool keepName = false,
-  }) async {
+  Future<String> _copyToAppDir(String src, String id) async {
     final appDir = await getApplicationDocumentsDirectory();
     final dir = Directory(p.join(appDir.path, 'pages', id));
     await dir.create(recursive: true);
-    final destName = keepName ? p.basename(src) : p.basename(src);
-    final dest = p.join(dir.path, destName);
+    final dest = p.join(dir.path, p.basename(src));
     await File(src).copy(dest);
     return dest;
   }

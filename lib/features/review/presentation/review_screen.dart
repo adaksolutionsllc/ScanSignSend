@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image/image.dart' as img;
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/services/document_repository.dart';
@@ -67,15 +68,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             },
             itemBuilder: (context, index) {
               final page = _pages[index];
-              final filter = _filters[page.id] ?? PageFilter.enhanced;
+              // Seed from the persisted per-page filter so the choice survives
+              // reopening and flows into the pressed PDF.
+              final filter = _filters[page.id] ?? _filterFromString(page.activeFilter);
               return _PageCard(
                 key: ValueKey(page.id),
                 page: page,
                 filter: filter,
                 pageNumber: index + 1,
                 totalPages: _pages.length,
-                onFilterChanged: (f) =>
-                    setState(() => _filters[page.id] = f),
+                onFilterChanged: (f) => _setFilter(page, f),
                 onRotate: () => _rotatePage(page),
                 onDelete: () => _deletePage(page),
               );
@@ -98,6 +100,29 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         ),
       ),
     );
+  }
+
+  static PageFilter _filterFromString(String s) => switch (s) {
+        'original' => PageFilter.original,
+        'bw' => PageFilter.bw,
+        _ => PageFilter.enhanced,
+      };
+
+  static String _filterToString(PageFilter f) => switch (f) {
+        PageFilter.original => 'original',
+        PageFilter.enhanced => 'enhanced',
+        PageFilter.bw => 'bw',
+      };
+
+  void _setFilter(db.Page page, PageFilter f) {
+    setState(() => _filters[page.id] = f);
+    // Persist so the pressed PDF uses the same filter the user previewed.
+    ref.read(pageRepositoryProvider).updatePage(
+          db.PagesCompanion(
+            id: Value(page.id),
+            activeFilter: Value(_filterToString(f)),
+          ),
+        );
   }
 
   Future<void> _saveOrder() async {
@@ -258,20 +283,26 @@ class _FilteredImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // PDF-backed page — show a placeholder (full viewer in Phase 2)
+    // PDF-backed page — render with SfPdfViewer
     if (path.contains('#page=')) {
-      return Container(
-        color: Colors.grey.shade100,
-        child: const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.picture_as_pdf_outlined,
-                  size: 48, color: Colors.grey),
-              SizedBox(height: 8),
-              Text('PDF page', style: TextStyle(color: Colors.grey)),
-            ],
-          ),
+      final parts = path.split('#page=');
+      final pdfPath = parts[0];
+      final pageNum = (int.tryParse(parts[1]) ?? 0) + 1; // SfPdfViewer is 1-indexed
+      final pdfFile = File(pdfPath);
+      if (!pdfFile.existsSync()) {
+        return Container(
+          color: Colors.grey.shade100,
+          child: const Center(child: Icon(Icons.picture_as_pdf_outlined, size: 48, color: Colors.grey)),
+        );
+      }
+      return IgnorePointer(
+        child: SfPdfViewer.file(
+          pdfFile,
+          initialPageNumber: pageNum,
+          canShowScrollHead: false,
+          canShowScrollStatus: false,
+          enableDoubleTapZooming: false,
+          pageLayoutMode: PdfPageLayoutMode.single,
         ),
       );
     }

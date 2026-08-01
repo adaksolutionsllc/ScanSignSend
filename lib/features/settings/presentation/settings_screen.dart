@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/db/app_database.dart';
+import '../../../core/services/biometric_service.dart';
 import '../../../core/services/iap_service.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/utils/router.dart';
@@ -88,8 +89,27 @@ class SettingsScreen extends ConsumerWidget {
                 title: const Text('Biometric App Lock'),
                 subtitle: const Text('Require Face ID / fingerprint on launch'),
                 value: profile.biometricLockEnabled,
-                onChanged: (v) => profileRepo.update(
-                    UserProfileCompanion(biometricLockEnabled: Value(v))),
+                onChanged: (v) async {
+                  // Never let the user enable a lock they can't satisfy —
+                  // verify the device actually supports biometrics first.
+                  if (v) {
+                    final available =
+                        await ref.read(biometricServiceProvider).isAvailable();
+                    if (!available) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'No biometrics enrolled on this device. Set up Face ID / fingerprint first.'),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+                  }
+                  await profileRepo.update(
+                      UserProfileCompanion(biometricLockEnabled: Value(v)));
+                },
               ),
               _SectionHeader('AI Detection (v1.1)'),
               SwitchListTile(
@@ -106,7 +126,7 @@ class SettingsScreen extends ConsumerWidget {
                   leading: const Icon(Icons.workspace_premium,
                       color: Color(0xFF1A73E8)),
                   title: const Text('Unlock Full Access'),
-                  subtitle: const Text('\$9.99 — one-time purchase'),
+                  subtitle: const Text('One-time purchase — see price'),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (_) => const PaywallScreen()),
@@ -115,15 +135,7 @@ class SettingsScreen extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.restore),
                 title: const Text('Restore Purchase'),
-                onTap: () async {
-                  await ref.read(iapServiceProvider).restore();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Restore complete.')),
-                    );
-                  }
-                },
+                onTap: () => _restore(context, ref),
               ),
               if (profile.isPurchased)
                 const ListTile(
@@ -135,6 +147,29 @@ class SettingsScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+Future<void> _restore(BuildContext context, WidgetRef ref) async {
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.showSnackBar(
+    const SnackBar(content: Text('Checking for previous purchases…')),
+  );
+  try {
+    final restored = await ref.read(iapServiceProvider).restore();
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(restored
+            ? 'Full access restored. Thank you!'
+            : 'No previous purchase found on this account.'),
+      ),
+    );
+  } catch (e) {
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(content: Text('Restore failed: $e')),
     );
   }
 }
@@ -175,26 +210,30 @@ class _ProfileField extends StatelessWidget {
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
         final ctrl = TextEditingController(text: value);
-        final result = await showDialog<String>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('Edit $label'),
-            content: TextField(
-              controller: ctrl,
-              autofocus: true,
-              decoration: InputDecoration(hintText: label),
+        try {
+          final result = await showDialog<String>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text('Edit $label'),
+              content: TextField(
+                controller: ctrl,
+                autofocus: true,
+                decoration: InputDecoration(hintText: label),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Cancel')),
+                FilledButton(
+                    onPressed: () => Navigator.pop(ctx, ctrl.text),
+                    child: const Text('Save')),
+              ],
             ),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel')),
-              FilledButton(
-                  onPressed: () => Navigator.pop(ctx, ctrl.text),
-                  child: const Text('Save')),
-            ],
-          ),
-        );
-        if (result != null) await onSave(result);
+          );
+          if (result != null) await onSave(result);
+        } finally {
+          ctrl.dispose();
+        }
       },
     );
   }

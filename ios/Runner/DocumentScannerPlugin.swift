@@ -60,11 +60,24 @@ class DocumentScannerPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewContro
     ) {
         controller.dismiss(animated: true)
         var paths: [String] = []
-        let tmpDir = FileManager.default.temporaryDirectory
+
+        // Save directly to Documents/scan_staging/ — permanent, never cleared by OS
+        let fm = FileManager.default
+        guard let docsDir = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            pendingResult?(FlutterError(code: "STORAGE_ERROR",
+                                        message: "Cannot access Documents directory",
+                                        details: nil))
+            pendingResult = nil
+            return
+        }
+        let stagingDir = docsDir.appendingPathComponent("scan_staging", isDirectory: true)
+        try? fm.createDirectory(at: stagingDir, withIntermediateDirectories: true)
+
+        let batchId = UUID().uuidString
         for i in 0..<scan.pageCount {
             let image = scan.imageOfPage(at: i)
-            let fileName = "scan_page_\(i)_\(UUID().uuidString).jpg"
-            let url = tmpDir.appendingPathComponent(fileName)
+            let fileName = "scan_\(batchId)_page_\(i).jpg"
+            let url = stagingDir.appendingPathComponent(fileName)
             if let data = image.jpegData(compressionQuality: 0.92) {
                 try? data.write(to: url)
                 paths.append(url.path)
