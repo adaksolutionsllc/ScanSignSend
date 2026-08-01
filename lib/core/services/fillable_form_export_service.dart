@@ -1,0 +1,259 @@
+import 'dart:io';
+import 'dart:ui' show Rect;
+
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter/foundation.dart' show compute;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:uuid/uuid.dart';
+
+import '../db/app_database.dart';
+import '../models/field_model.dart';
+import 'document_repository.dart';
+import 'pdf_geometry.dart';
+
+final fillableFormExportServiceProvider =
+    Provider<FillableFormExportService>((ref) {
+  return FillableFormExportService(
+    ref.watch(documentRepositoryProvider),
+    ref.watch(pageRepositoryProvider),
+    ref.watch(fieldRepositoryProvider),
+  );
+});
+
+/// Exports a document as a **live AcroForm PDF** — fields stay interactive and
+/// re-fillable in Adobe/Preview/Chrome. This is the "Save as Fillable Form"
+/// exit, the counterpart to [PressService] (the "Flatten & Sign" exit).
+///
+/// Two source shapes are handled:
+///   - **Imported PDF** whose pages are `"$path#page=N"` refs: we re-open the
+///     original PDF and set values on its existing AcroForm widgets (matched by
+///     `pdfFieldName`), preserving the real form.
+///   - **Scanned pages** (image files): we build image-backed pages and add new
+///     AcroForm widgets at each field's transformed bounds.
+class FillableFormExportService {
+  FillableFormExportService(this._docRepo, this._pageRepo, this._fieldRepo);
+  final DocumentRepository _docRepo;
+  final PageRepository _pageRepo;
+  final FieldRepository _fieldRepo;
+
+  /// Builds the fillable PDF and returns its path.
+  Future<String> export(int docId) async {
+    final doc = await _docRepo.getById(docId);
+    if (doc == null) throw StateError('Document $docId not found');
+
+    final pages = await _pageRepo.watchPages(docId).first;
+    if (pages.isEmpty) {
+      throw StateError('This document has no pages to export.');
+    }
+    final fields = await _fieldRepo.watchFields(docId).first;
+
+    // Determine the source PDF (if this is an imported PDF, every page shares
+    // the same underlying file via the `#page=` convention).
+    String? sourcePdfPath;
+    for (final pg in pages) {
+      if (pg.imagePath.contains('#page=')) {
+        sourcePdfPath = pg.imagePath.split('#page=').first;
+        break;
+      }
+    }
+
+    final dir = await getApplicationDocumentsDirectory();
+    final outDir = Directory(p.join(dir.path, 'fillable'));
+    await outDir.create(recursive: true);
+    final outPath = p.join(outDir.path, '${const Uuid().v4()}.pdf');
+
+    final job = _ExportJob(
+      outPath: outPath,
+      sourcePdfPath: sourcePdfPath,
+      pages: [
+        for (final pg in pages)
+          _PagePlan(imagePath: pg.imagePath),
+      ],
+      fields: [
+        for (final f in fields)
+          _FieldPlan(
+            pageIndex: f.pageIndex,
+            type: f.type,
+            boundingBoxJson: f.boundingBoxJson,
+            value: f.value,
+            isChecked: f.isChecked,
+            pdfFieldName: f.pdfFieldName,
+            sourceKind: f.sourceKind,
+          ),
+      ],
+    );
+
+    await compute(_buildFillablePdf, job);
+
+    await _docRepo.updateDocument(DocumentsCompanion(
+      id: Value(docId),
+      // Distinct status so the Library can show "Fillable" vs "Pressed".
+      status: const Value('fillable'),
+      pressedPdfPath: Value(outPath),
+      updatedAt: Value(DateTime.now()),
+    ));
+
+    return outPath;
+  }
+}
+
+// ── Serializable job ────────────────────────────────────────────────────────
+
+class _ExportJob {
+  final String outPath;
+  final String? sourcePdfPath;
+  final List<_PagePlan> pages;
+  final List<_FieldPlan> fields;
+  const _ExportJob({
+    required this.outPath,
+    required this.sourcePdfPath,
+    required this.pages,
+    required this.fields,
+  });
+}
+
+class _PagePlan {
+  final String imagePath;
+  const _PagePlan({required this.imagePath});
+}
+
+class _FieldPlan {
+  final int pageIndex;
+  final String type;
+  final String boundingBoxJson;
+  final String value;
+  final bool isChecked;
+  final String? pdfFieldName;
+  final String sourceKind;
+  const _FieldPlan({
+    required this.pageIndex,
+    required this.type,
+    required this.boundingBoxJson,
+    required this.value,
+    required this.isChecked,
+    required this.pdfFieldName,
+    required this.sourceKind,
+  });
+}
+
+// ── Isolate entry point ─────────────────────────────────────────────────────
+
+Future<void> _buildFillablePdf(_ExportJob job) async {
+  final PdfDocument pdfDoc;
+  final bool imported = job.sourcePdfPath != null &&
+      File(job.sourcePdfPath!).existsSync();
+
+  if (imported) {
+    // Re-open the original PDF so its real AcroForm is preserved.
+    pdfDoc = PdfDocument(inputBytes: File(job.sourcePdfPath!).readAsBytesSync());
+  } else {
+    pdfDoc = PdfDocument();
+  }
+
+  try {
+    if (imported) {
+      _fillExistingForm(pdfDoc, job.fields);
+      _addAppFieldsToLoadedPages(pdfDoc, job.fields);
+    } else {
+      _buildImagePagesWithFields(pdfDoc, job);
+    }
+
+    final bytes = await pdfDoc.save();
+    await File(job.outPath).writeAsBytes(bytes);
+  } finally {
+    pdfDoc.dispose();
+  }
+}
+
+/// Sets values on the imported PDF's existing widgets, matched by name.
+void _fillExistingForm(PdfDocument pdfDoc, List<_FieldPlan> fields) {
+  final byName = <String, _FieldPlan>{
+    for (final f in fields)
+      if (f.sourceKind == 'acroform' && f.pdfFieldName != null)
+        f.pdfFieldName!: f,
+  };
+  final form = pdfDoc.form;
+  for (var i = 0; i < form.fields.count; i++) {
+    final field = form.fields[i];
+    final plan = byName[field.name];
+    if (plan == null) continue;
+    if (field is PdfTextBoxField) {
+      field.text = plan.value;
+    } else if (field is PdfCheckBoxField) {
+      field.isChecked = plan.isChecked;
+    } else if (field is PdfComboBoxField && plan.value.isNotEmpty) {
+      field.selectedValue = plan.value;
+    }
+    // Signature widgets are left empty — a drawn signature is an image overlay,
+    // not an AcroForm value; it belongs to the flatten path.
+  }
+}
+
+/// Adds user-authored fields (sourceKind='app') as new widgets onto the already
+/// loaded pages of an imported PDF.
+void _addAppFieldsToLoadedPages(PdfDocument pdfDoc, List<_FieldPlan> fields) {
+  for (final f in fields) {
+    if (f.sourceKind != 'app') continue;
+    if (f.pageIndex < 0 || f.pageIndex >= pdfDoc.pages.count) continue;
+    final page = pdfDoc.pages[f.pageIndex];
+    _addWidget(pdfDoc, page, f);
+  }
+}
+
+/// Builds image-backed pages (scanned docs) and adds every field as a widget.
+void _buildImagePagesWithFields(PdfDocument pdfDoc, _ExportJob job) {
+  final pw = PdfPageSize.a4.width;
+  final ph = PdfPageSize.a4.height;
+
+  for (var i = 0; i < job.pages.length; i++) {
+    final plan = job.pages[i];
+    final page = pdfDoc.pages.add();
+
+    // Background image (scanned page).
+    final file = File(plan.imagePath);
+    if (!plan.imagePath.contains('#page=') && file.existsSync()) {
+      final bmp = PdfBitmap(file.readAsBytesSync());
+      final iw = bmp.width.toDouble();
+      final ih = bmp.height.toDouble();
+      if (iw > 0 && ih > 0) {
+        final scale = (iw / pw > ih / ph) ? pw / iw : ph / ih;
+        final dw = iw * scale;
+        final dh = ih * scale;
+        page.graphics
+            .drawImage(bmp, Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh));
+      }
+    }
+
+    for (final f in job.fields.where((f) => f.pageIndex == i)) {
+      _addWidget(pdfDoc, page, f);
+    }
+  }
+}
+
+/// Creates a single live AcroForm widget for [f] on [page].
+void _addWidget(PdfDocument pdfDoc, PdfPage page, _FieldPlan f) {
+  final bbox = BoundingBox.fromJsonString(f.boundingBoxJson);
+  final rect = PdfGeometry.normToPdf(bbox, page.size.width, page.size.height);
+  final type = f.type.toFieldType();
+  // Unique-ish name so multiple widgets don't collide in the AcroForm.
+  final name = (f.pdfFieldName != null && f.pdfFieldName!.isNotEmpty)
+      ? f.pdfFieldName!
+      : '${type.name}_${page.hashCode}_${rect.left.toInt()}_${rect.top.toInt()}';
+
+  switch (type) {
+    case FieldType.text:
+    case FieldType.date:
+      final field = PdfTextBoxField(page, name, rect);
+      if (f.value.isNotEmpty) field.text = f.value;
+      pdfDoc.form.fields.add(field);
+    case FieldType.checkbox:
+      final field = PdfCheckBoxField(page, name, rect);
+      field.isChecked = f.isChecked;
+      pdfDoc.form.fields.add(field);
+    case FieldType.signature:
+      pdfDoc.form.fields.add(PdfSignatureField(page, name, bounds: rect));
+  }
+}
