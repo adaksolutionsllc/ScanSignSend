@@ -12,6 +12,31 @@
 .swiftpm/
 migrate_working_dir/
 
+# ── Signing secrets & credentials — NEVER commit these ──────────────────────
+# Android upload/release signing
+android/key.properties
+**/*.jks
+**/*.keystore
+# iOS / App Store Connect
+**/*.p8
+**/*.p12
+**/*.mobileprovision
+**/*.cer
+**/*.certSigningRequest
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+**/fastlane/report.xml
+# Google Play service account & Firebase
+**/play-service-account*.json
+**/service-account*.json
+google-services.json
+GoogleService-Info.plist
+# Generic secrets
+.env
+.env.*
+*.secrets
+secrets/
+
 # IntelliJ related
 *.iml
 *.ipr

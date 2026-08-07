@@ -1,0 +1,111 @@
+# Store Submission Checklist — Scan Sign Send (ADAK Ventures)
+
+Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
+
+---
+
+## 0. What's already done in this repo
+- ✅ App icons for iOS + Android (adaptive) generated from the ADAK logo — `branding/`
+- ✅ iOS `PrivacyInfo.xcprivacy` privacy manifest (added to Xcode build resources)
+- ✅ iOS permission strings (camera, photos, Face ID) + `ITSAppUsesNonExemptEncryption=false`
+- ✅ Android release-signing scaffold (`build.gradle.kts` reads `key.properties`)
+- ✅ Android R8/ProGuard rules + `isMinifyEnabled`/`isShrinkResources`
+- ✅ Android permissions: camera, media, `USE_BIOMETRIC`, Play `BILLING`
+- ✅ `MainActivity` → `FlutterFragmentActivity` (required for biometric lock)
+- ✅ ML Kit document scanner bumped off `-beta1` to stable `16.0.0`
+- ✅ IAP wired to live store price ($14.99 fallback), product `com.scansignsend.fullaccess`
+- ✅ Version `1.0.0+1`
+
+---
+
+## 1. Accounts & one-time setup ⬜
+- ⬜ Apple Developer Program membership ($99/yr) — team `T995T8G6Z2` is already set in the project
+- ⬜ Google Play Developer account ($25 one-time)
+- ⬜ Register App IDs / bundle IDs:
+      - iOS: `com.scansignsend.scanSignSend`
+      - Android: `com.scansignsend.scan_sign_send`
+- ⬜ Enable **In-App Purchase** capability on the iOS App ID (Xcode → Signing & Capabilities → + In-App Purchase). No entitlement file is needed for StoreKit.
+
+## 2. Android upload keystore ⬜ (irreversible — back it up!)
+```bash
+keytool -genkey -v -keystore ~/adak-upload-key.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+cp android/key.properties.example android/key.properties
+# edit android/key.properties with your passwords + absolute storeFile path
+```
+- ⬜ Store the `.jks` + passwords in a password manager. If you lose them you can never update the app (unless enrolled in Play App Signing, which is recommended — opt in during first upload).
+
+## 3. In-app purchase product ⬜
+Create the **same non-consumable** in BOTH consoles:
+- Product ID: `com.scansignsend.fullaccess`
+- Type: Non-consumable (iOS) / One-time product (Android)
+- Price tier: **$14.99 USD**
+- Display name: `Full Access`
+- ⬜ App Store: fill IAP metadata + screenshot, submit IAP **with** the first app version
+- ⬜ Play: activate the product; upload at least one build to a track first so billing works
+
+## 4. App Privacy / Data Safety declarations ⬜
+Both answers are the same: **no data collected, no tracking.**
+
+**App Store — App Privacy:**
+- Data used to track you: **None**
+- Data linked to you: **None**
+- Data not linked to you: **None**
+- → Select "Data Not Collected."
+
+**Google Play — Data Safety:**
+- Does your app collect or share user data? **No**
+- Is all data encrypted in transit? N/A (no data leaves the device)
+- Data deletion: users can delete all data by uninstalling.
+
+## 5. Store listing content ⬜
+- ⬜ Copy fields from `STORE_LISTING.md`
+- ⬜ Host `PRIVACY_POLICY.md` at a public URL; add it to both consoles (Play **requires** a privacy policy URL)
+- ⬜ Support URL / email live
+
+## 6. Screenshots & graphics ⬜
+Capture on a real device or simulator (status bar clean; use the built-in demo doc).
+- **iOS (required sizes):**
+      - 6.9" iPhone (1320×2868 or 1290×2796) — **required**
+      - 6.5" iPhone (1242×2688) — recommended
+      - 13" iPad (2048×2732) — required only if you ship iPad (you support iPad orientation, so provide these or disable iPad)
+- **Android:**
+      - Phone screenshots: min 2, up to 8 (1080×1920 or similar 16:9/9:16)
+      - Feature graphic: **1024×500** (required)
+      - App icon: 512×512 (use `branding/icon_master.png` resized)
+- Suggested 5 shots: (1) Library grid, (2) Scanning, (3) Field detection with draggable fields, (4) Signature pad, (5) Finished/shared PDF.
+
+## 7. Build & upload ⬜
+```bash
+# from repo root
+flutter clean && flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+
+# iOS — archive in Xcode (Product > Archive) or:
+flutter build ipa --release
+#   then upload the .ipa via Transporter or Xcode Organizer
+
+# Android — App Bundle for Play:
+flutter build appbundle --release
+#   output: build/app/outputs/bundle/release/app-release.aab
+```
+- ⬜ iOS: run through **TestFlight** internal testing first (validates IAP sandbox)
+- ⬜ Android: upload to **Internal testing** track first
+- ⬜ Verify the one-time purchase completes and unlocks Full Access in sandbox/test
+
+## 8. Pre-submit smoke test (real device) ⬜
+- ⬜ Full cycle: scan → detect fields → drag a field → fill → sign → press → share
+- ⬜ Import a PDF and an image
+- ⬜ Enable Face ID / fingerprint lock, background & relaunch, confirm unlock works and cancel doesn't brick
+- ⬜ Buy Full Access (sandbox) and confirm paywall disappears + Restore works
+- ⬜ Confirm the app icon shows the ADAK triangle on the home screen
+
+## 9. App Review notes ⬜
+Add to the review-notes field:
+> This app is fully offline. To test: tap New Scan (or Import), fill a field, add a signature, then Press & Send. Full Access is a one-time non-consumable unlock ($14.99) that removes the 3-document free-trial limit.
+
+---
+
+## Known non-blocking follow-ups (optional polish)
+- Review-screen Enhanced/B&W filters are cosmetic only — not yet baked into the pressed PDF.
+- Consider a branded launch/splash screen using `branding/adak_ventures_logo_full.png`.

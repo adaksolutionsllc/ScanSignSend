@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/fillable_form_export_service.dart';
 import '../../../core/services/press_service.dart';
 import '../../../core/utils/router.dart';
 
@@ -17,7 +18,7 @@ class PressScreen extends ConsumerStatefulWidget {
 }
 
 class _PressScreenState extends ConsumerState<PressScreen> {
-  bool _pressing = false;
+  bool _busy = false;
 
   @override
   Widget build(BuildContext context) {
@@ -72,37 +73,115 @@ class _PressScreenState extends ConsumerState<PressScreen> {
           );
         },
       ),
-      floatingActionButton: _pressing
-          ? FloatingActionButton.extended(
-              onPressed: null,
-              icon: const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white),
-              ),
-              label: const Text('Pressing…'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            )
-          : FloatingActionButton.extended(
-              onPressed: () => _confirmPress(context),
-              icon: const Icon(Icons.lock),
-              label: const Text('Press & Lock'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: _busy
+              ? const _BusyBar()
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Primary, safe default: keep fields editable.
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: FilledButton.icon(
+                        onPressed: () => _exportFillable(context),
+                        icon: const Icon(Icons.edit_document),
+                        label: const Text('Save as Fillable Form'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Deliberate, irreversible: flatten + lock.
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _confirmPress(context),
+                        icon: Icon(Icons.lock_outline,
+                            color: Theme.of(context).colorScheme.error),
+                        label: Text(
+                          'Flatten & Sign (locks the document)',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.error),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .error
+                                  .withValues(alpha: 0.5)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 
+  /// Save-as-Fillable exit: exports a live AcroForm PDF (fields stay editable).
+  Future<void> _exportFillable(BuildContext context) async {
+    setState(() => _busy = true);
+    final router = GoRouter.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(fillableFormExportServiceProvider)
+          .export(widget.docId);
+      if (mounted) {
+        router.pushReplacement(
+          AppRoutes.send.replaceAll(':docId', '${widget.docId}'),
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() => _busy = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Export failed: $e')),
+      );
+    }
+  }
+
   Future<void> _confirmPress(BuildContext context) async {
+    // D3 guardrail: if this document carries live (AcroForm) fields, warn that
+    // flattening throws away their interactivity.
+    final fields =
+        await ref.read(fieldRepositoryProvider).watchFields(widget.docId).first;
+    final hasLiveFields = fields.any((f) => f.sourceKind == 'acroform');
+    if (!context.mounted) return;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Press Document?'),
-        content: const Text(
-          'Pressing permanently embeds your entries into a new PDF.\n\n'
-          'The filled copy cannot be edited. Your blank original is preserved as a reusable template.',
+        title: const Text('Flatten & lock this document?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Flattening bakes your entries into a new PDF. The result is '
+              'permanent — no one can edit it afterward, including you. Your '
+              'blank original is kept as a reusable template.',
+            ),
+            if (hasLiveFields) ...[
+              const SizedBox(height: 12),
+              Text(
+                'This document has interactive form fields. Flattening removes '
+                'them — to keep them editable, choose “Save as Fillable Form” '
+                'instead.',
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Text(
+              'Note: a drawn signature here is a visual mark, not a certified '
+              'digital e-signature.',
+              style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey,
+                  ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -114,14 +193,14 @@ class _PressScreenState extends ConsumerState<PressScreen> {
             style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(ctx).colorScheme.error,
                 foregroundColor: Theme.of(ctx).colorScheme.onError),
-            child: const Text('Press'),
+            child: const Text('Flatten & Lock'),
           ),
         ],
       ),
     );
     if (confirm != true || !mounted) return;
 
-    setState(() => _pressing = true);
+    setState(() => _busy = true);
     // ignore: use_build_context_synchronously
     final router = GoRouter.of(context);
     // ignore: use_build_context_synchronously
@@ -136,11 +215,38 @@ class _PressScreenState extends ConsumerState<PressScreen> {
         );
       }
     } catch (e) {
-      if (mounted) setState(() => _pressing = false);
+      if (mounted) setState(() => _busy = false);
       messenger.showSnackBar(
         SnackBar(content: Text('Press failed: $e')),
       );
     }
+  }
+}
+
+/// Progress bar shown while either export path runs.
+class _BusyBar extends StatelessWidget {
+  const _BusyBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: FilledButton(
+        onPressed: null,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Text('Working…'),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +9,9 @@ import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/utils/router.dart';
 import 'field_detection_notifier.dart';
+
+// Sentinel written by ImportService when a PDF already has AcroForm fields
+const _kHasFormFields = '__has_form_fields__';
 
 class FieldDetectionScreen extends ConsumerStatefulWidget {
   const FieldDetectionScreen({super.key, required this.docId});
@@ -20,11 +24,18 @@ class FieldDetectionScreen extends ConsumerStatefulWidget {
 
 class _FieldDetectionScreenState
     extends ConsumerState<FieldDetectionScreen> {
+  bool _hasFormFields = false;
+
   @override
   void initState() {
     super.initState();
-    // Kick off OCR + heuristics right away
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Check sentinel before running OCR
+      final doc = await ref.read(documentRepositoryProvider).getById(widget.docId);
+      if (doc != null && doc.ocrText == _kHasFormFields) {
+        if (mounted) setState(() => _hasFormFields = true);
+        return;
+      }
       ref
           .read(fieldDetectionNotifierProvider(widget.docId).notifier)
           .run();
@@ -33,8 +44,49 @@ class _FieldDetectionScreenState
 
   @override
   Widget build(BuildContext context) {
-    final state =
-        ref.watch(fieldDetectionNotifierProvider(widget.docId));
+    // PDF already has form fields — skip detection entirely
+    if (_hasFormFields) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Detect Fields')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.picture_as_pdf,
+                    size: 72,
+                    color: Theme.of(context).colorScheme.primary),
+                const SizedBox(height: 24),
+                Text('Fillable PDF detected',
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 12),
+                Text(
+                  'This PDF already contains form fields.\nYou can add your own fields manually or continue directly to fill.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Colors.grey),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton.icon(
+                    onPressed: () => _proceed(context),
+                    icon: const Icon(Icons.arrow_forward),
+                    label: const Text('Continue to Fill'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final state = ref.watch(fieldDetectionNotifierProvider(widget.docId));
 
     return Scaffold(
       appBar: AppBar(
@@ -235,6 +287,7 @@ class _EditorView extends ConsumerWidget {
                     _showFieldSheet(context, globalIndex),
                 onAddField: (bbox) => _showAddFieldSheet(
                     context, pageIndex, bbox),
+                onFieldMoved: notifier.updateBbox,
               ),
             ),
 
@@ -302,6 +355,7 @@ class _EditorView extends ConsumerWidget {
           Navigator.pop(ctx);
         },
         onUpdateLabel: (l) => notifier.updateLabel(fieldIndex, l),
+        onToggleRequired: (v) => notifier.setRequired(fieldIndex, v),
       ),
     );
   }
@@ -331,19 +385,26 @@ class _EditorView extends ConsumerWidget {
 
 // ── Page overlay editor ───────────────────────────────────────────────────────
 
-class _PageOverlayEditor extends StatelessWidget {
+class _PageOverlayEditor extends StatefulWidget {
   const _PageOverlayEditor({
     required this.imagePath,
     required this.fields,
     required this.onFieldTap,
     required this.onAddField,
+    required this.onFieldMoved,
   });
 
   final String imagePath;
   final List<MapEntry<int, EditableField>> fields;
   final ValueChanged<int> onFieldTap;
   final ValueChanged<BoundingBox> onAddField;
+  final void Function(int index, BoundingBox bbox) onFieldMoved;
 
+  @override
+  State<_PageOverlayEditor> createState() => _PageOverlayEditorState();
+}
+
+class _PageOverlayEditorState extends State<_PageOverlayEditor> {
   static const _fieldColors = {
     FieldType.text: Color(0xFF1565C0),
     FieldType.date: Color(0xFF6A1B9A),
@@ -351,85 +412,212 @@ class _PageOverlayEditor extends StatelessWidget {
     FieldType.signature: Color(0xFFBF360C),
   };
 
+  static const double _minW = 40;
+  static const double _minH = 24;
+  static const double _handleSize = 18;
+
+  // Live drag/resize deltas keyed by field index (pixels), cleared on end.
+  final Map<int, Offset> _dragPx = {};
+  final Map<int, Offset> _resizePx = {};
+
   @override
   Widget build(BuildContext context) {
-    final isPdf = imagePath.contains('#page=');
+    final isPdf = widget.imagePath.contains('#page=');
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final cw = constraints.maxWidth;
+        final ch = constraints.maxHeight;
+        final valid = cw.isFinite && ch.isFinite && cw >= _minW && ch >= _minH;
+
         return GestureDetector(
           onTapUp: (details) {
+            if (!valid) return;
             // Tap on blank area → add field
             final rel = details.localPosition;
             final bbox = BoundingBox(
-              x: (rel.dx / constraints.maxWidth).clamp(0.0, 0.9),
-              y: (rel.dy / constraints.maxHeight).clamp(0.0, 0.9),
+              x: (rel.dx / cw).clamp(0.0, 0.9),
+              y: (rel.dy / ch).clamp(0.0, 0.9),
               w: 0.3,
               h: 0.05,
             );
-            onAddField(bbox);
+            widget.onAddField(bbox);
           },
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Background image
-              isPdf
-                  ? Container(
-                      color: Colors.grey.shade100,
-                      child: const Center(
-                          child: Icon(Icons.picture_as_pdf_outlined,
-                              size: 64, color: Colors.grey)),
-                    )
-                  : Image.file(File(imagePath), fit: BoxFit.contain),
+              _buildBackground(isPdf),
 
               // Field overlays
-              ...fields.map((entry) {
-                final idx = entry.key;
-                final field = entry.value;
-                final color = _fieldColors[field.type] ?? Colors.blue;
+              if (valid)
+                ...widget.fields.map((entry) {
+                  final idx = entry.key;
+                  final field = entry.value;
+                  final color = _fieldColors[field.type] ?? Colors.blue;
 
-                return Positioned(
-                  left: field.bbox.x * constraints.maxWidth,
-                  top: field.bbox.y * constraints.maxHeight,
-                  width: field.bbox.w * constraints.maxWidth,
-                  height: field.bbox.h * constraints.maxHeight,
-                  child: GestureDetector(
-                    onTap: () => onFieldTap(idx),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.18),
-                        border: Border.all(
-                          color: color,
-                          width: field.confirmed ? 2 : 1.5,
-                          strokeAlign: BorderSide.strokeAlignOutside,
-                        ),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 3, vertical: 1),
-                          color: color,
-                          child: Text(
-                            _typeLabel(field.type),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
+                  final drag = _dragPx[idx] ?? Offset.zero;
+                  final resize = _resizePx[idx] ?? Offset.zero;
+
+                  final left = (field.bbox.x * cw + drag.dx).clamp(0.0, cw - _minW);
+                  final top = (field.bbox.y * ch + drag.dy).clamp(0.0, ch - _minH);
+                  final w =
+                      (field.bbox.w * cw + resize.dx).clamp(_minW, cw - left);
+                  final h =
+                      (field.bbox.h * ch + resize.dy).clamp(_minH, ch - top);
+
+                  return Positioned(
+                    left: left,
+                    top: top,
+                    width: w,
+                    height: h,
+                    child: _buildField(
+                      idx: idx,
+                      field: field,
+                      color: color,
+                      left: left,
+                      top: top,
+                      w: w,
+                      h: h,
+                      cw: cw,
+                      ch: ch,
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
             ],
           ),
         );
       },
     );
+  }
+
+  Widget _buildField({
+    required int idx,
+    required EditableField field,
+    required Color color,
+    required double left,
+    required double top,
+    required double w,
+    required double h,
+    required double cw,
+    required double ch,
+  }) {
+    void persist() {
+      widget.onFieldMoved(
+        idx,
+        BoundingBox(
+          x: (left / cw).clamp(0.0, 1.0),
+          y: (top / ch).clamp(0.0, 1.0),
+          w: (w / cw).clamp(0.001, 1.0),
+          h: (h / ch).clamp(0.001, 1.0),
+        ),
+      );
+      setState(() {
+        _dragPx.remove(idx);
+        _resizePx.remove(idx);
+      });
+    }
+
+    return GestureDetector(
+      onTap: () => widget.onFieldTap(idx),
+      onPanUpdate: (d) => setState(() {
+        _dragPx[idx] = (_dragPx[idx] ?? Offset.zero) + d.delta;
+      }),
+      onPanEnd: (_) => persist(),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.18),
+                border: Border.all(
+                  color: color,
+                  width: field.confirmed ? 2 : 1.5,
+                  strokeAlign: BorderSide.strokeAlignOutside,
+                ),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                  color: color,
+                  child: Text(
+                    _typeLabel(field.type),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Resize handle — bottom-right corner
+          Positioned(
+            right: -_handleSize / 2,
+            bottom: -_handleSize / 2,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {}, // absorb so it doesn't trigger field tap
+              onPanUpdate: (d) => setState(() {
+                _resizePx[idx] = (_resizePx[idx] ?? Offset.zero) + d.delta;
+              }),
+              onPanEnd: (_) => persist(),
+              child: Container(
+                width: _handleSize,
+                height: _handleSize,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
+                child: const Icon(Icons.open_in_full,
+                    color: Colors.white, size: 10),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackground(bool isPdf) {
+    if (isPdf) {
+      final parts = widget.imagePath.split('#page=');
+      final pdfFile = File(parts[0]);
+      final pageNum = (int.tryParse(parts[1]) ?? 0) + 1;
+      if (!pdfFile.existsSync()) {
+        return Container(
+          color: Colors.grey.shade100,
+          child: const Center(
+              child: Icon(Icons.picture_as_pdf_outlined,
+                  size: 64, color: Colors.grey)),
+        );
+      }
+      return IgnorePointer(
+        child: SfPdfViewer.file(
+          pdfFile,
+          initialPageNumber: pageNum,
+          canShowScrollHead: false,
+          canShowScrollStatus: false,
+          enableDoubleTapZooming: false,
+          pageLayoutMode: PdfPageLayoutMode.single,
+        ),
+      );
+    }
+    final file = File(widget.imagePath);
+    if (!file.existsSync()) {
+      return Container(
+        color: Colors.grey.shade100,
+        child: const Center(
+            child: Icon(Icons.broken_image_outlined,
+                size: 64, color: Colors.grey)),
+      );
+    }
+    return Image.file(file, fit: BoxFit.contain);
   }
 
   String _typeLabel(FieldType t) => switch (t) {
@@ -449,6 +637,7 @@ class _FieldEditSheet extends StatefulWidget {
     required this.onDelete,
     required this.onChangeType,
     required this.onUpdateLabel,
+    required this.onToggleRequired,
   });
 
   final EditableField field;
@@ -456,6 +645,7 @@ class _FieldEditSheet extends StatefulWidget {
   final VoidCallback onDelete;
   final ValueChanged<FieldType> onChangeType;
   final ValueChanged<String> onUpdateLabel;
+  final ValueChanged<bool> onToggleRequired;
 
   @override
   State<_FieldEditSheet> createState() => _FieldEditSheetState();
@@ -463,11 +653,13 @@ class _FieldEditSheet extends StatefulWidget {
 
 class _FieldEditSheetState extends State<_FieldEditSheet> {
   late final TextEditingController _labelCtrl;
+  late bool _required;
 
   @override
   void initState() {
     super.initState();
     _labelCtrl = TextEditingController(text: widget.field.label);
+    _required = widget.field.isRequired;
   }
 
   @override
@@ -504,17 +696,29 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
           ),
           const SizedBox(height: 12),
 
-          // Label
+          // Label — also becomes the field name in an exported fillable form.
           TextField(
             controller: _labelCtrl,
             decoration: const InputDecoration(
-              labelText: 'Label (optional)',
+              labelText: 'Label / field name',
               border: OutlineInputBorder(),
               isDense: true,
             ),
             onChanged: widget.onUpdateLabel,
           ),
-          const SizedBox(height: 16),
+
+          // Required toggle — used when exporting as a fillable form.
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            title: const Text('Required field'),
+            value: _required,
+            onChanged: (v) {
+              setState(() => _required = v);
+              widget.onToggleRequired(v);
+            },
+          ),
+          const SizedBox(height: 8),
 
           Row(
             children: [

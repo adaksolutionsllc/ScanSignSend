@@ -1,0 +1,42 @@
+# Android release automation.
+#
+# `internal` uploads the app bundle built by CI to the Play Console "Internal
+# testing" track. Promote to production from the Play Console once verified.
+#
+# Auth: a Google Play service-account JSON, provided at runtime via the
+# PLAY_SERVICE_ACCOUNT_JSON secret (written to a temp file by the workflow) and
+# referenced through the GOOGLE_PLAY_JSON_KEY env var.
+
+default_platform(:android)
+
+platform :android do
+  desc "Upload the AAB to the Play Store internal testing track"
+  lane :internal do
+    upload_to_play_store(
+      package_name: "com.scansignsend.scan_sign_send",
+      track: "internal",
+      aab: ENV["AAB_PATH"] || "../build/app/outputs/bundle/release/app-release.aab",
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"],
+      release_status: "draft",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+
+  desc "Promote the latest internal build to production (manual)"
+  lane :promote_to_production do
+    upload_to_play_store(
+      package_name: "com.scansignsend.scan_sign_send",
+      track: "internal",
+      track_promote_to: "production",
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"],
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+end

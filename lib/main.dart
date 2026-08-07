@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,7 +9,58 @@ import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'shared/theme/app_theme.dart';
 
 void main() {
-  runApp(const ProviderScope(child: ScanSignSendApp()));
+  // Replace the default red error screen with a calm, branded fallback so a
+  // single widget build failure never shows users a scary crash overlay.
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    return const _FriendlyErrorWidget();
+  };
+
+  runZonedGuarded(
+    () {
+      WidgetsFlutterBinding.ensureInitialized();
+      // Framework errors → log (and forward to zone in debug for visibility).
+      FlutterError.onError = (details) {
+        FlutterError.presentError(details);
+      };
+      runApp(const ProviderScope(child: ScanSignSendApp()));
+    },
+    (error, stack) {
+      // Uncaught async errors land here instead of crashing the isolate.
+      debugPrint('Uncaught error: $error\n$stack');
+    },
+  );
+}
+
+/// Shown in place of a widget that failed to build. Keeps the app usable.
+class _FriendlyErrorWidget extends StatelessWidget {
+  const _FriendlyErrorWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.sentiment_dissatisfied_outlined,
+                  size: 48, color: Colors.grey),
+              SizedBox(height: 12),
+              Text('Something went wrong here.',
+                  textAlign: TextAlign.center),
+              SizedBox(height: 4),
+              Text('Try going back and reopening this document.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 13)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class ScanSignSendApp extends ConsumerStatefulWidget {
@@ -18,7 +71,7 @@ class ScanSignSendApp extends ConsumerStatefulWidget {
 }
 
 class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
-  late final Future<bool> _onboardingDoneFuture;
+  late Future<bool> _onboardingDoneFuture;
 
   @override
   void initState() {
@@ -33,8 +86,12 @@ class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           // Splash while checking prefs
-          return const MaterialApp(
-            home: Scaffold(
+          return MaterialApp(
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: ThemeMode.system,
+            debugShowCheckedModeBanner: false,
+            home: const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
           );

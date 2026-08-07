@@ -32,4 +32,5 @@ class AppTheme {
   static const statusDraft = Color(0xFFFFB300);
   static const statusPressed = Color(0xFF2E7D32);
   static const statusTemplate = Color(0xFF1565C0);
+  static const statusFillable = Color(0xFF00897B); // teal — live fillable form
 }

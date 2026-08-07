@@ -1,0 +1,13 @@
+# Copy this file to android/key.properties and fill in your real values.
+# NEVER commit key.properties or the .jks keystore — they are git-ignored.
+#
+# Generate an upload keystore (one time — back it up securely!):
+#   keytool -genkey -v -keystore ~/adak-upload-key.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# Then set storeFile below to the absolute path of that .jks file.
+
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=upload
+storeFile=/absolute/path/to/adak-upload-key.jks

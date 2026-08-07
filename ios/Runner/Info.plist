@@ -3,13 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Scan Sign Send needs camera access to scan documents.</string>
+	<string>Scan Sign Send uses the camera to scan paper documents into PDFs. Photos are processed on your device and never uploaded.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Scan Sign Send needs photo library access to import images.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Scan Sign Send may save scanned pages to your photo library.</string>
+	<string>Scan Sign Send lets you import existing photos or images as document pages. Selected images stay on your device.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Scan Sign Send uses Face ID to unlock the app and keep your documents private.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- App uses only standard/exempt encryption (HTTPS via OS). Declaring this
+	     avoids the export-compliance question on every TestFlight/App Store upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

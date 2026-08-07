@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/models/field_model.dart';
@@ -30,11 +31,13 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     final fieldsStream =
         ref.watch(fieldRepositoryProvider).watchFields(widget.docId);
     final docStream = ref.watch(documentRepositoryProvider).watchAll().map(
-          (docs) => docs.firstWhere((d) => d.id == widget.docId,
-              orElse: () => throw StateError('doc not found')),
+          (docs) => docs.fold<db.Document?>(
+            null,
+            (found, d) => found ?? (d.id == widget.docId ? d : null),
+          ),
         );
 
-    return StreamBuilder<db.Document>(
+    return StreamBuilder<db.Document?>(
       stream: docStream,
       builder: (context, docSnap) {
         final doc = docSnap.data;
@@ -55,16 +58,28 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
             builder: (context, pagesSnap) {
               final pages = pagesSnap.data ?? [];
               if (pages.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
+                if (pagesSnap.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                // Doc has no pages (e.g. all deleted) — don't spin forever.
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Text('This document has no pages.',
+                        textAlign: TextAlign.center),
+                  ),
+                );
               }
-              final page = pages[_currentPage.clamp(0, pages.length - 1)];
+              // Keep the active page in range so field/page views never diverge.
+              final safePage = _currentPage.clamp(0, pages.length - 1);
+              final page = pages[safePage];
 
               return StreamBuilder<List<db.Field>>(
                 stream: fieldsStream,
                 builder: (context, fieldsSnap) {
                   final allFields = fieldsSnap.data ?? [];
                   final pageFields = allFields
-                      .where((f) => f.pageIndex == _currentPage)
+                      .where((f) => f.pageIndex == safePage)
                       .toList();
 
                   return Column(
@@ -87,7 +102,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                       if (pages.length > 1)
                         _PagePicker(
                           pageCount: pages.length,
-                          currentIndex: _currentPage,
+                          currentIndex: safePage,
                           onSelect: (i) => setState(() => _currentPage = i),
                         ),
                     ],
@@ -154,9 +169,10 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     }
   }
 
-  Future<String?> _showTextInput(BuildContext context, db.Field field) {
+  Future<String?> _showTextInput(BuildContext context, db.Field field) async {
     final ctrl = TextEditingController(text: field.value);
-    return showModalBottomSheet<String>(
+    try {
+      return await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => Padding(
@@ -196,7 +212,10 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
           ],
         ),
       ),
-    );
+      );
+    } finally {
+      ctrl.dispose();
+    }
   }
 }
 
@@ -284,7 +303,7 @@ class _ChipData {
 
 // ── Fill overlay ──────────────────────────────────────────────────────────────
 
-class _FillOverlay extends StatelessWidget {
+class _FillOverlay extends ConsumerStatefulWidget {
   const _FillOverlay({
     required this.page,
     required this.fields,
@@ -295,6 +314,11 @@ class _FillOverlay extends StatelessWidget {
   final List<db.Field> fields;
   final ValueChanged<db.Field> onFieldTap;
 
+  @override
+  ConsumerState<_FillOverlay> createState() => _FillOverlayState();
+}
+
+class _FillOverlayState extends ConsumerState<_FillOverlay> {
   static const _typeColors = {
     FieldType.text: Color(0xFF1565C0),
     FieldType.date: Color(0xFF6A1B9A),
@@ -302,51 +326,89 @@ class _FillOverlay extends StatelessWidget {
     FieldType.signature: Color(0xFFBF360C),
   };
 
+  // Per-field drag/resize state (keyed by field id)
+  final Map<int, Offset> _offsets = {};
+  final Map<int, Size> _sizes = {};
+
+  static const double _minW = 40;
+  static const double _minH = 24;
+  static const double _handleSize = 18;
+
   @override
   Widget build(BuildContext context) {
-    final isPdf = page.imagePath.contains('#page=');
-
     return LayoutBuilder(builder: (context, constraints) {
+      final cw = constraints.maxWidth;
+      final ch = constraints.maxHeight;
+
+      // Guard: during transient layout passes the box can be unbounded or
+      // smaller than a field's minimum — bail rather than feed invalid values
+      // to clamp() / Positioned (both throw on inverted or negative ranges).
+      if (!cw.isFinite || !ch.isFinite || cw < _minW || ch < _minH) {
+        return _PageBackground(imagePath: widget.page.imagePath);
+      }
+
       return Stack(
         fit: StackFit.expand,
         children: [
-          isPdf
-              ? Container(
-                  color: Colors.grey.shade100,
-                  child: const Center(
-                      child: Icon(Icons.picture_as_pdf_outlined,
-                          size: 64, color: Colors.grey)),
-                )
-              : Image.file(File(page.imagePath), fit: BoxFit.contain),
+          _PageBackground(imagePath: widget.page.imagePath),
 
-          ...fields.map((field) {
+          ...widget.fields.map((field) {
             final bbox = BoundingBox.fromJsonString(field.boundingBoxJson);
             final type = field.type.toFieldType();
             final color = _typeColors[type] ?? Colors.blue;
-            final isFilled = field.isFilled;
+
+            // Compute current position/size — start from bbox, apply any drag delta
+            final baseLeft = bbox.x * cw;
+            final baseTop = bbox.y * ch;
+            final baseW = bbox.w * cw;
+            final baseH = bbox.h * ch;
+
+            final offset = _offsets[field.id] ?? Offset.zero;
+            final size = _sizes[field.id] ?? Size(baseW, baseH);
+
+            // left/top are bounded so at least _minW/_minH remains to the edge,
+            // guaranteeing the width/height clamp ranges below are non-inverted.
+            final left = (baseLeft + offset.dx).clamp(0.0, cw - _minW);
+            final top = (baseTop + offset.dy).clamp(0.0, ch - _minH);
+            final w = size.width.clamp(_minW, cw - left);
+            final h = size.height.clamp(_minH, ch - top);
+
+            // Real AcroForm fields (from an imported PDF) are fill-only — moving
+            // a live widget's geometry is an authoring action (Phase C), and we
+            // must not shift a field away from where the source form placed it.
+            final movable = field.sourceKind == 'app';
 
             return Positioned(
-              left: bbox.x * constraints.maxWidth,
-              top: bbox.y * constraints.maxHeight,
-              width: bbox.w * constraints.maxWidth,
-              height: bbox.h * constraints.maxHeight,
-              child: GestureDetector(
-                onTap: () => onFieldTap(field),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isFilled
-                        ? Colors.yellow.withValues(alpha: 0.35)
-                        : color.withValues(alpha: 0.12),
-                    border: Border.all(
-                      color: isFilled ? Colors.amber.shade700 : color,
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 3, vertical: 1),
-                  child: _fieldContent(field, type),
-                ),
+              left: left,
+              top: top,
+              width: w,
+              height: h,
+              child: _DraggableField(
+                field: field,
+                type: type,
+                color: color,
+                handleSize: _handleSize,
+                movable: movable,
+                onTap: () => widget.onFieldTap(field),
+                onDrag: (delta) {
+                  setState(() {
+                    final prev = _offsets[field.id] ?? Offset.zero;
+                    _offsets[field.id] = prev + delta;
+                  });
+                },
+                onResize: (delta) {
+                  setState(() {
+                    final prev = _sizes[field.id] ?? Size(baseW, baseH);
+                    _sizes[field.id] = Size(
+                      (prev.width + delta.dx).clamp(_minW, cw),
+                      (prev.height + delta.dy).clamp(_minH, ch),
+                    );
+                  });
+                },
+                onDragEnd: () => _persistPosition(
+                    field, left, top, w, h, cw, ch),
+                onResizeEnd: () => _persistPosition(
+                    field, left, top, w, h, cw, ch),
               ),
             );
           }),
@@ -355,7 +417,121 @@ class _FillOverlay extends StatelessWidget {
     });
   }
 
-  Widget _fieldContent(db.Field field, FieldType type) {
+  Future<void> _persistPosition(
+    db.Field field,
+    double left,
+    double top,
+    double w,
+    double h,
+    double cw,
+    double ch,
+  ) async {
+    final newBbox = BoundingBox(
+      x: (left / cw).clamp(0.0, 1.0),
+      y: (top / ch).clamp(0.0, 1.0),
+      w: (w / cw).clamp(0.001, 1.0),
+      h: (h / ch).clamp(0.001, 1.0),
+    );
+    await ref.read(fieldRepositoryProvider).updateField(
+          db.FieldsCompanion(
+            id: Value(field.id),
+            boundingBoxJson: Value(newBbox.toJsonString()),
+          ),
+        );
+    // Clear local override — DB value now matches
+    setState(() {
+      _offsets.remove(field.id);
+      _sizes.remove(field.id);
+    });
+  }
+}
+
+class _DraggableField extends StatelessWidget {
+  const _DraggableField({
+    required this.field,
+    required this.type,
+    required this.color,
+    required this.handleSize,
+    required this.movable,
+    required this.onTap,
+    required this.onDrag,
+    required this.onResize,
+    required this.onDragEnd,
+    required this.onResizeEnd,
+  });
+
+  final db.Field field;
+  final FieldType type;
+  final Color color;
+  final double handleSize;
+  final bool movable;
+  final VoidCallback onTap;
+  final ValueChanged<Offset> onDrag;
+  final ValueChanged<Offset> onResize;
+  final VoidCallback onDragEnd;
+  final VoidCallback onResizeEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    final isFilled = field.isFilled;
+
+    return GestureDetector(
+      onTap: onTap,
+      // Drag only when the field is app-authored; real AcroForm fields keep
+      // the geometry the source PDF gave them.
+      onPanUpdate: movable ? (d) => onDrag(d.delta) : null,
+      onPanEnd: movable ? (_) => onDragEnd() : null,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Field body
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isFilled
+                    ? Colors.yellow.withValues(alpha: 0.35)
+                    : color.withValues(alpha: 0.12),
+                border: Border.all(
+                  color: isFilled ? Colors.amber.shade700 : color,
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+              child: _fieldContent(),
+            ),
+          ),
+
+          // Resize handle — bottom-right corner (app-authored fields only)
+          if (movable)
+            Positioned(
+              right: -handleSize / 2,
+              bottom: -handleSize / 2,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onPanUpdate: (d) => onResize(d.delta),
+                onPanEnd: (_) => onResizeEnd(),
+                onTap: () {}, // absorb tap so it doesn't trigger field tap
+                child: Container(
+                  width: handleSize,
+                  height: handleSize,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: const Icon(Icons.open_in_full,
+                      color: Colors.white, size: 10),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fieldContent() {
     if (!field.isFilled) {
       return Text(
         _placeholder(type),
@@ -384,6 +560,63 @@ class _FillOverlay extends StatelessWidget {
         FieldType.checkbox => 'Tap to check',
         FieldType.signature => 'Tap to sign…',
       };
+}
+
+// ── Page background (image or PDF page) ──────────────────────────────────────
+
+class _PageBackground extends StatelessWidget {
+  const _PageBackground({required this.imagePath});
+  final String imagePath;
+
+  @override
+  Widget build(BuildContext context) {
+    // PDF-backed page: render with SfPdfViewer
+    if (imagePath.contains('#page=')) {
+      final parts = imagePath.split('#page=');
+      final pdfPath = parts[0];
+      final pageNum = int.tryParse(parts[1]) ?? 1;
+      final pdfFile = File(pdfPath);
+      if (!pdfFile.existsSync()) {
+        return _placeholder(Icons.picture_as_pdf_outlined, 'PDF not found');
+      }
+      return SfPdfViewer.file(
+        pdfFile,
+        initialPageNumber: pageNum,
+        canShowScrollHead: false,
+        canShowScrollStatus: false,
+        enableDoubleTapZooming: false,
+        pageLayoutMode: PdfPageLayoutMode.single,
+      );
+    }
+
+    // Regular image
+    final file = File(imagePath);
+    if (!file.existsSync()) {
+      return _placeholder(Icons.broken_image_outlined, 'Image not found');
+    }
+    return Image.file(file, fit: BoxFit.contain);
+  }
+
+  Widget _placeholder(IconData icon, String label) {
+    return Container(
+      color: Colors.grey.shade100,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 64, color: Colors.grey),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 4),
+            const Text(
+              'Scan or import a new document',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ── Page picker ───────────────────────────────────────────────────────────────
