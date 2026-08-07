@@ -12,13 +12,25 @@ Store *submission for review* stays a manual click in App Store Connect / Play C
 ## Cutting a release
 
 ```bash
-# bump version in pubspec.yaml first, e.g. 1.0.1+2
+# bump the marketing version in pubspec.yaml if it changed, e.g. 1.0.1
+# (the build number is set automatically — see below)
 git tag v1.0.1
 git push origin v1.0.1
 ```
 
 The tag push kicks off `release.yml`. You can also run it manually from the
 Actions tab (`workflow_dispatch`).
+
+**Build number is automatic.** Both jobs build with
+`--build-number=${{ github.run_number }}`, so every release run gets a unique,
+monotonically increasing build number (iOS `CFBundleVersion` / Android
+`versionCode`) without editing `pubspec.yaml`. This satisfies TestFlight and
+Play, which reject re-uploads that reuse a build number. You only need to bump
+the *marketing* version (`1.0.1`) in `pubspec.yaml` when it actually changes.
+
+**Preflight.** Each job first checks that its required secrets are present and
+fails fast with a clear `::error::` listing any that are missing (pointing back
+to this file), instead of failing deep inside the signing/upload step.
 
 ---
 
