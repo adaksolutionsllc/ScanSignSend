@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart' show Share, XFile;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/utils/path_resolver.dart';
 
 /// First-class PDF viewer: pinch-zoom, page navigation, and in-document text
 /// search. Opens the document's exported PDF (pressed/fillable) when present,
@@ -27,6 +29,11 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
   bool _searching = false;
   int _currentPage = 1;
   int _pageCount = 0;
+
+  // Resolve the document + source path ONCE. Calling _load() directly in build()
+  // creates a new Future each frame; the viewer's onDocumentLoaded/onPageChanged
+  // setState calls then rebuild → new Future → reload → setState → flicker loop.
+  late final Future<_ViewerData> _dataFuture = _load();
 
   @override
   void dispose() {
@@ -54,15 +61,16 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Document?>(
-      future: ref.read(documentRepositoryProvider).getById(widget.docId),
+    return FutureBuilder<_ViewerData>(
+      future: _dataFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        final doc = snapshot.data;
+        final doc = snapshot.data?.doc;
+        _importedSourcePdf = snapshot.data?.sourcePdf;
         final path = _resolvePath(doc);
 
         return Scaffold(
@@ -76,6 +84,14 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
             actions: _searching
                 ? _searchActions()
                 : [
+                    IconButton(
+                      tooltip: 'Share',
+                      icon: const Icon(Icons.share),
+                      onPressed: (path != null)
+                          ? () => _share(context, path,
+                              doc?.title ?? 'Document')
+                          : null,
+                    ),
                     IconButton(
                       tooltip: 'Search',
                       icon: const Icon(Icons.search),
@@ -150,15 +166,75 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
     ];
   }
 
-  /// Prefer the exported PDF (pressed or fillable); otherwise the imported
-  /// source PDF. Scanned-only docs with no export yet have no single PDF to
-  /// show here (they live in the fill/review flows).
+  Future<void> _share(
+      BuildContext context, String pdfPath, String title) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!File(pdfPath).existsSync()) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('PDF file not found.')),
+      );
+      return;
+    }
+    // iOS needs a non-zero source rect to anchor the share popover.
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = (box != null && box.hasSize)
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
+    try {
+      await Share.shareXFiles(
+        [XFile(pdfPath, mimeType: 'application/pdf')],
+        subject: title,
+        text: 'Signed with Scan Sign Send',
+        sharePositionOrigin: origin,
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Share failed: $e')));
+    }
+  }
+
+  Future<_ViewerData> _load() async {
+    final repo = ref.read(documentRepositoryProvider);
+    final doc = await repo.getById(widget.docId);
+    String? sourcePdf;
+    final pages = await ref.read(pageRepositoryProvider).watchPages(widget.docId).first;
+    for (final pg in pages) {
+      if (pg.imagePath.contains('#page=')) {
+        sourcePdf = pg.imagePath.split('#page=').first;
+        break;
+      }
+    }
+    return _ViewerData(doc, sourcePdf);
+  }
+
+  /// Prefer the exported PDF (pressed or fillable); otherwise fall back to the
+  /// imported source PDF so an imported-but-not-yet-exported document still
+  /// renders instead of showing a blank page. Scanned-only (image) docs with no
+  /// export have no single PDF here (they live in the fill/review flows).
   String? _resolvePath(Document? doc) {
     if (doc == null) return null;
     final exported = doc.pressedPdfPath;
-    if (exported != null && File(exported).existsSync()) return exported;
+    if (exported != null) {
+      final abs = PathResolver.resolve(exported);
+      if (File(abs).existsSync()) return abs;
+    }
+
+    // Fallback: the original imported PDF. Pages of an imported PDF store their
+    // path as "<file>.pdf#page=N" — strip the fragment to get the real file.
+    final src = _importedSourcePdf;
+    if (src != null) {
+      final abs = PathResolver.resolve(src);
+      if (File(abs).existsSync()) return abs;
+    }
     return null;
   }
+
+  String? _importedSourcePdf;
+}
+
+class _ViewerData {
+  const _ViewerData(this.doc, this.sourcePdf);
+  final Document? doc;
+  final String? sourcePdf;
 }
 
 class _SearchField extends StatelessWidget {

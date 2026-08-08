@@ -16,7 +16,7 @@
 
 default_platform(:ios)
 
-APP_IDENTIFIER = "com.scansignsend.scanSignSend"
+APP_IDENTIFIER = "com.adakVentures.scanSignSend"
 
 platform :ios do
   desc "Build a signed IPA and upload to TestFlight"

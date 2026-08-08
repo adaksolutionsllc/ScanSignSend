@@ -20,15 +20,17 @@ class PressScreen extends ConsumerStatefulWidget {
 class _PressScreenState extends ConsumerState<PressScreen> {
   bool _busy = false;
 
+  // Created once — building a fresh drift stream in build() re-subscribes every
+  // frame and can spin a rebuild loop. See fill_mode_screen.dart.
+  late final Stream<List<Field>> _fieldsStream =
+      ref.read(fieldRepositoryProvider).watchFields(widget.docId);
+
   @override
   Widget build(BuildContext context) {
-    final fieldsStream =
-        ref.watch(fieldRepositoryProvider).watchFields(widget.docId);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Review & Press')),
       body: StreamBuilder<List<Field>>(
-        stream: fieldsStream,
+        stream: _fieldsStream,
         builder: (context, snapshot) {
           final fields = snapshot.data ?? [];
           final filled =
@@ -161,8 +163,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
           children: [
             const Text(
               'Flattening bakes your entries into a new PDF. The result is '
-              'permanent — no one can edit it afterward, including you. Your '
-              'blank original is kept as a reusable template.',
+              'permanent — no one can edit it afterward, including you.',
             ),
             if (hasLiveFields) ...[
               const SizedBox(height: 12),

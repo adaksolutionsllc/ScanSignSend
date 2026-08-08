@@ -18,18 +18,31 @@ class TemplateService {
   final PageRepository _pageRepo;
   final FieldRepository _fieldRepo;
 
-  /// Clone a template into a fresh draft Document ready for filling.
-  /// Returns the new document's id.
+  /// Clone a template into a draft Document ready for filling. Returns the
+  /// document's id.
+  ///
+  /// Reuses an existing draft clone of this template if one is already present
+  /// and untouched, so repeatedly opening a template from the Library doesn't
+  /// spawn duplicate drafts. A new clone is only created on the first use (or
+  /// after the previous clone was promoted past 'draft' by filling/exporting).
   Future<int> useTemplate(int templateDocId) async {
     final tmpl = await _docRepo.getById(templateDocId);
     if (tmpl == null) throw StateError('Template $templateDocId not found');
 
+    final cloneTitle = tmpl.title.replaceAll(' (Template)', '');
+
+    // Look for an existing draft clone we can hand back instead of duplicating.
+    final all = await _docRepo.watchAll().first;
+    final existing = all.where((d) =>
+        !d.isTemplate &&
+        d.status == 'draft' &&
+        d.title == cloneTitle);
+    if (existing.isNotEmpty) return existing.first.id;
+
     final pages = await _pageRepo.watchPages(templateDocId).first;
     final fields = await _fieldRepo.watchFields(templateDocId).first;
 
-    final newDoc = await _docRepo.createDocument(
-      tmpl.title.replaceAll(' (Template)', ''),
-    );
+    final newDoc = await _docRepo.createDocument(cloneTitle);
     await _docRepo.updateDocument(DocumentsCompanion(
       id: Value(newDoc.id),
       pageCount: Value(tmpl.pageCount),

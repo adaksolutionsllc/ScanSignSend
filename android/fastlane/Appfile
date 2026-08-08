@@ -1,2 +1,2 @@
-package_name("com.scansignsend.scan_sign_send")
+package_name("com.adakventures.scansignsend")
 # json_key_file is supplied at runtime via GOOGLE_PLAY_JSON_KEY (see Fastfile).

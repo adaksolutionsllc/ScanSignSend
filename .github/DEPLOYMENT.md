@@ -62,7 +62,7 @@ upload).
 |---|---|
 | `IOS_DIST_CERT_P12_BASE64` | Apple Distribution certificate exported from Keychain as `.p12`, then `base64 -i cert.p12 \| pbcopy` |
 | `IOS_DIST_CERT_PASSWORD` | password you set when exporting the `.p12` |
-| `IOS_PROVISIONING_PROFILE_BASE64` | App Store provisioning profile for `com.scansignsend.scanSignSend`, `base64 -i profile.mobileprovision \| pbcopy` |
+| `IOS_PROVISIONING_PROFILE_BASE64` | App Store provisioning profile for `com.adakVentures.scanSignSend`, `base64 -i profile.mobileprovision \| pbcopy` |
 | `IOS_PROVISIONING_PROFILE_NAME` | the profile's exact name (e.g. `ScanSignSend App Store`) |
 | `IOS_KEYCHAIN_PASSWORD` | any throwaway string — used for the ephemeral CI keychain |
 | `ASC_KEY_ID` | App Store Connect API key ID |
@@ -75,7 +75,7 @@ upload).
 
 **Certificate + profile:** created in the Apple Developer portal (or let Xcode
 manage signing once, then export the resulting cert/profile). The bundle id is
-`com.scansignsend.scanSignSend`, team `T995T8G6Z2`.
+`com.adakVentures.scanSignSend`, team `T995T8G6Z2`.
 
 ---
 

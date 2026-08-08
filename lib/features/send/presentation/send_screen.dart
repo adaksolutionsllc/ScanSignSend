@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 
+import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 
 class SendScreen extends ConsumerStatefulWidget {
@@ -20,10 +22,13 @@ class _SendScreenState extends ConsumerState<SendScreen> {
   bool _sharing = false;
   bool _shared = false;
 
+  // Fetch the doc once. Toggling _sharing/_shared calls setState; a fresh
+  // getById() future per build would reload and can flicker.
+  late final Future<Document?> _docFuture =
+      ref.read(documentRepositoryProvider).getById(widget.docId);
+
   @override
   Widget build(BuildContext context) {
-    final docRepo = ref.watch(documentRepositoryProvider);
-
     // The document is already pressed and saved before we reach this screen,
     // so never trap the user here — back always returns to the Library.
     return PopScope(
@@ -41,10 +46,12 @@ class _SendScreenState extends ConsumerState<SendScreen> {
           ),
         ),
         body: FutureBuilder(
-          future: docRepo.getById(widget.docId),
+          future: _docFuture,
           builder: (context, snapshot) {
             final doc = snapshot.data;
-            final pdfPath = doc?.pressedPdfPath;
+            final storedPdf = doc?.pressedPdfPath;
+            final pdfPath =
+                storedPdf == null ? null : PathResolver.resolve(storedPdf);
 
             return Center(
               child: Padding(
@@ -69,7 +76,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                     const SizedBox(height: 8),
                     Text(
                       _shared
-                          ? 'The pressed PDF has been shared. Your original is preserved as a template.'
+                          ? 'The pressed PDF has been shared.'
                           : 'Share your pressed PDF via Mail, Messages, AirDrop, or any app.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context)
@@ -103,6 +110,22 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                               : 'Share Pressed Document'),
                         ),
                       ),
+
+                    if (!_shared && pdfPath != null) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.push(
+                            AppRoutes.viewer
+                                .replaceAll(':docId', '${widget.docId}'),
+                          ),
+                          icon: const Icon(Icons.visibility_outlined),
+                          label: const Text('Preview Document'),
+                        ),
+                      ),
+                    ],
 
                     if (_shared) ...[
                       SizedBox(
@@ -155,19 +178,24 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     }
     setState(() => _sharing = true);
     final messenger = ScaffoldMessenger.of(context);
+    // iPad (and iOS in general) requires a non-zero source rect to anchor the
+    // share popover; without it share_plus throws a PlatformException.
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = (box != null && box.hasSize)
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
     try {
       await Share.shareXFiles(
         [XFile(pdfPath, mimeType: 'application/pdf')],
         subject: title,
         text: 'Signed with Scan Sign Send',
+        sharePositionOrigin: origin,
       );
       if (mounted) {
         setState(() {
           _sharing = false;
           _shared = true;
         });
-        // ignore: use_build_context_synchronously
-        if (mounted) _offerSaveAsTemplate(context);
       }
     } catch (e) {
       if (mounted) setState(() => _sharing = false);
@@ -175,25 +203,5 @@ class _SendScreenState extends ConsumerState<SendScreen> {
         SnackBar(content: Text('Share failed: $e')),
       );
     }
-  }
-
-  Future<void> _offerSaveAsTemplate(BuildContext context) async {
-    // Template is already auto-created by PressService.
-    // Just confirm to the user.
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Template Saved'),
-        content: const Text(
-          'A blank template was saved to your Library so you can re-use this form without re-scanning.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Got it'),
-          ),
-        ],
-      ),
-    );
   }
 }

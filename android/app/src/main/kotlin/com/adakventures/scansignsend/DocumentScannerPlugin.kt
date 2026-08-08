@@ -1,4 +1,4 @@
-package com.scansignsend.scan_sign_send
+package com.adakventures.scansignsend
 
 import android.app.Activity
 import android.content.Context

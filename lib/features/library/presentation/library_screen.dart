@@ -271,7 +271,6 @@ class _DocumentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = doc.statusEnum;
     final dateStr = DateFormat('MMM d, yyyy').format(doc.updatedAt);
-    final isDraft = status == DocumentStatus.draft;
     final isTemplate = status == DocumentStatus.template;
     // Exported docs (pressed/fillable) open in the viewer; drafts open in fill
     // mode; templates spawn a new draft.
@@ -390,33 +389,47 @@ class _DocumentCard extends StatelessWidget {
               ),
             ),
 
-            // ── Inline actions (Draft tab + All tab for drafts) ─────────────
-            if (isDraft && (tab == _LibraryTab.draft || tab == _LibraryTab.all))
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _ActionButton(
-                        icon: Icons.edit_outlined,
-                        label: 'Edit',
-                        onTap: () => context.push(
-                          AppRoutes.fillMode.replaceAll(':docId', '${doc.id}'),
-                        ),
-                      ),
+            // ── Inline actions: Edit + Delete on every card ─────────────────
+            // "Edit" adapts to the doc type: drafts → fill mode, exported
+            // (pressed/fillable) → viewer, templates → spawn a draft to fill.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _ActionButton(
+                      icon: isExported
+                          ? Icons.visibility_outlined
+                          : Icons.edit_outlined,
+                      label: isExported ? 'Open' : 'Edit',
+                      onTap: () {
+                        if (isTemplate) {
+                          onUseTemplate?.call();
+                        } else if (isExported) {
+                          context.push(
+                            AppRoutes.viewer.replaceAll(':docId', '${doc.id}'),
+                          );
+                        } else {
+                          context.push(
+                            AppRoutes.fillMode
+                                .replaceAll(':docId', '${doc.id}'),
+                          );
+                        }
+                      },
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: _ActionButton(
-                        icon: Icons.delete_outline,
-                        label: 'Delete',
-                        color: Theme.of(context).colorScheme.error,
-                        onTap: onDelete,
-                      ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.delete_outline,
+                      label: 'Delete',
+                      color: Theme.of(context).colorScheme.error,
+                      onTap: onDelete,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
 
             // ── Template "Use" button ───────────────────────────────────────
             if (isTemplate && tab == _LibraryTab.template)

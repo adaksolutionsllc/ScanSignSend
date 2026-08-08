@@ -22,8 +22,8 @@ Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
 - ⬜ Apple Developer Program membership ($99/yr) — team `T995T8G6Z2` is already set in the project
 - ⬜ Google Play Developer account ($25 one-time)
 - ⬜ Register App IDs / bundle IDs:
-      - iOS: `com.scansignsend.scanSignSend`
-      - Android: `com.scansignsend.scan_sign_send`
+      - iOS: `com.adakVentures.scanSignSend`
+      - Android: `com.adakventures.scansignsend`
 - ⬜ Enable **In-App Purchase** capability on the iOS App ID (Xcode → Signing & Capabilities → + In-App Purchase). No entitlement file is needed for StoreKit.
 
 ## 2. Android upload keystore ⬜ (irreversible — back it up!)

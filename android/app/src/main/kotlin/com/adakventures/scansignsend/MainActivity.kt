@@ -1,4 +1,4 @@
-package com.scansignsend.scan_sign_send
+package com.adakventures.scansignsend
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine

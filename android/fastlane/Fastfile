@@ -13,7 +13,7 @@ platform :android do
   desc "Upload the AAB to the Play Store internal testing track"
   lane :internal do
     upload_to_play_store(
-      package_name: "com.scansignsend.scan_sign_send",
+      package_name: "com.adakventures.scansignsend",
       track: "internal",
       aab: ENV["AAB_PATH"] || "../build/app/outputs/bundle/release/app-release.aab",
       json_key: ENV["GOOGLE_PLAY_JSON_KEY"],
@@ -28,7 +28,7 @@ platform :android do
   desc "Promote the latest internal build to production (manual)"
   lane :promote_to_production do
     upload_to_play_store(
-      package_name: "com.scansignsend.scan_sign_send",
+      package_name: "com.adakventures.scansignsend",
       track: "internal",
       track_promote_to: "production",
       json_key: ENV["GOOGLE_PLAY_JSON_KEY"],

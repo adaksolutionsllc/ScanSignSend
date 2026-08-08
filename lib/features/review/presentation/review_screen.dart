@@ -9,6 +9,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/services/document_repository.dart';
+import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 
 enum PageFilter { original, enhanced, bw }
@@ -26,10 +27,13 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   List<db.Page> _pages = [];
   bool _dirty = false;
 
+  // Created once — a fresh drift stream per build() re-subscribes each frame.
+  late final Stream<List<db.Page>> _pagesStream =
+      ref.read(pageRepositoryProvider).watchPages(widget.docId);
+
   @override
   Widget build(BuildContext context) {
-    final pagesStream =
-        ref.watch(pageRepositoryProvider).watchPages(widget.docId);
+    final pagesStream = _pagesStream;
 
     return Scaffold(
       appBar: AppBar(
@@ -135,7 +139,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     // Skip rotation for PDF-backed pages
     if (page.imagePath.contains('#page=')) return;
     try {
-      final file = File(page.imagePath);
+      final file = File(PathResolver.resolve(page.imagePath));
       final bytes = await file.readAsBytes();
       final decoded = img.decodeImage(bytes);
       if (decoded == null) return;
@@ -283,9 +287,10 @@ class _FilteredImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolved = PathResolver.resolve(path);
     // PDF-backed page — render with SfPdfViewer
-    if (path.contains('#page=')) {
-      final parts = path.split('#page=');
+    if (resolved.contains('#page=')) {
+      final parts = resolved.split('#page=');
       final pdfPath = parts[0];
       final pageNum = (int.tryParse(parts[1]) ?? 0) + 1; // SfPdfViewer is 1-indexed
       final pdfFile = File(pdfPath);
@@ -307,7 +312,7 @@ class _FilteredImage extends StatelessWidget {
       );
     }
 
-    final file = File(path);
+    final file = File(resolved);
     if (!file.existsSync()) {
       return Container(
         color: Colors.grey.shade200,

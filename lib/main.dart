@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/services/app_lock_provider.dart';
+import 'core/utils/path_resolver.dart';
 import 'core/utils/router.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'shared/theme/app_theme.dart';
@@ -17,8 +18,12 @@ void main() {
   };
 
   runZonedGuarded(
-    () {
+    () async {
       WidgetsFlutterBinding.ensureInitialized();
+      // Resolve the current app Documents container up front. Stored file paths
+      // are rebased onto it so they survive iOS container-UUID changes across
+      // reinstalls / restores. Must happen before any screen reads a path.
+      await PathResolver.init();
       // Framework errors → log (and forward to zone in debug for visibility).
       FlutterError.onError = (details) {
         FlutterError.presentError(details);

@@ -11,6 +11,7 @@ import '../../../core/db/app_database.dart' as db;
 import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/profile_repository.dart';
+import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 
 class FillModeScreen extends ConsumerStatefulWidget {
@@ -24,37 +25,50 @@ class FillModeScreen extends ConsumerStatefulWidget {
 class _FillModeScreenState extends ConsumerState<FillModeScreen> {
   int _currentPage = 0;
 
+  // Streams are created ONCE here — not in build(). Rebuilding a StreamBuilder
+  // with a freshly-allocated stream on every build re-subscribes each frame and
+  // spins an infinite rebuild loop (the "flicker" seen when opening a doc).
+  late final Stream<List<db.Page>> _pagesStream =
+      ref.read(pageRepositoryProvider).watchPages(widget.docId);
+  late final Stream<List<db.Field>> _fieldsStream =
+      ref.read(fieldRepositoryProvider).watchFields(widget.docId);
+  late final Stream<db.Document?> _docStream =
+      ref.read(documentRepositoryProvider).watchAll().map(
+            (docs) => docs.fold<db.Document?>(
+              null,
+              (found, d) => found ?? (d.id == widget.docId ? d : null),
+            ),
+          );
+
   @override
   Widget build(BuildContext context) {
-    final pagesStream =
-        ref.watch(pageRepositoryProvider).watchPages(widget.docId);
-    final fieldsStream =
-        ref.watch(fieldRepositoryProvider).watchFields(widget.docId);
-    final docStream = ref.watch(documentRepositoryProvider).watchAll().map(
-          (docs) => docs.fold<db.Document?>(
-            null,
-            (found, d) => found ?? (d.id == widget.docId ? d : null),
-          ),
-        );
-
     return StreamBuilder<db.Document?>(
-      stream: docStream,
+      stream: _docStream,
       builder: (context, docSnap) {
         final doc = docSnap.data;
         return Scaffold(
           appBar: AppBar(
             title: Text(doc?.title ?? 'Fill Document'),
-            actions: [
-              TextButton(
-                onPressed: () => context.push(
-                  AppRoutes.press.replaceAll(':docId', '${widget.docId}'),
+          ),
+          // Primary next-step action: prominent, bottom-centre, always reachable.
+          bottomNavigationBar: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton.icon(
+                  onPressed: () => context.push(
+                    AppRoutes.press.replaceAll(':docId', '${widget.docId}'),
+                  ),
+                  icon: const Icon(Icons.task_alt),
+                  label: const Text('Review & Press'),
                 ),
-                child: const Text('Review & Press →'),
               ),
-            ],
+            ),
           ),
           body: StreamBuilder<List<db.Page>>(
-            stream: pagesStream,
+            stream: _pagesStream,
             builder: (context, pagesSnap) {
               final pages = pagesSnap.data ?? [];
               if (pages.isEmpty) {
@@ -75,7 +89,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
               final page = pages[safePage];
 
               return StreamBuilder<List<db.Field>>(
-                stream: fieldsStream,
+                stream: _fieldsStream,
                 builder: (context, fieldsSnap) {
                   final allFields = fieldsSnap.data ?? [];
                   final pageFields = allFields
@@ -405,6 +419,21 @@ class _FillOverlayState extends ConsumerState<_FillOverlay> {
                     );
                   });
                 },
+                // Two-finger pinch resize — works on ANY field (incl. filled /
+                // signed / AcroForm), grown symmetrically around its centre.
+                onScale: (factor) {
+                  setState(() {
+                    final prev = _sizes[field.id] ?? Size(baseW, baseH);
+                    final newW = (prev.width * factor).clamp(_minW, cw);
+                    final newH = (prev.height * factor).clamp(_minH, ch);
+                    // Keep the centre fixed while scaling.
+                    final prevOff = _offsets[field.id] ?? Offset.zero;
+                    _offsets[field.id] = prevOff +
+                        Offset((prev.width - newW) / 2,
+                            (prev.height - newH) / 2);
+                    _sizes[field.id] = Size(newW, newH);
+                  });
+                },
                 onDragEnd: () => _persistPosition(
                     field, left, top, w, h, cw, ch),
                 onResizeEnd: () => _persistPosition(
@@ -446,7 +475,7 @@ class _FillOverlayState extends ConsumerState<_FillOverlay> {
   }
 }
 
-class _DraggableField extends StatelessWidget {
+class _DraggableField extends StatefulWidget {
   const _DraggableField({
     required this.field,
     required this.type,
@@ -456,6 +485,7 @@ class _DraggableField extends StatelessWidget {
     required this.onTap,
     required this.onDrag,
     required this.onResize,
+    required this.onScale,
     required this.onDragEnd,
     required this.onResizeEnd,
   });
@@ -468,19 +498,49 @@ class _DraggableField extends StatelessWidget {
   final VoidCallback onTap;
   final ValueChanged<Offset> onDrag;
   final ValueChanged<Offset> onResize;
+  final ValueChanged<double> onScale;
   final VoidCallback onDragEnd;
   final VoidCallback onResizeEnd;
+
+  @override
+  State<_DraggableField> createState() => _DraggableFieldState();
+}
+
+class _DraggableFieldState extends State<_DraggableField> {
+  // Baseline scale at the start of a pinch, so each update applies an
+  // incremental factor rather than the absolute cumulative one.
+  double _lastScale = 1.0;
+
+  db.Field get field => widget.field;
+  FieldType get type => widget.type;
+  Color get color => widget.color;
+  double get handleSize => widget.handleSize;
+  bool get movable => widget.movable;
 
   @override
   Widget build(BuildContext context) {
     final isFilled = field.isFilled;
 
     return GestureDetector(
-      onTap: onTap,
-      // Drag only when the field is app-authored; real AcroForm fields keep
-      // the geometry the source PDF gave them.
-      onPanUpdate: movable ? (d) => onDrag(d.delta) : null,
-      onPanEnd: movable ? (_) => onDragEnd() : null,
+      onTap: widget.onTap,
+      // Unified drag + pinch. Using scale callbacks (not pan) so 1-finger drag
+      // and 2-finger resize coexist without gesture-arena conflicts.
+      // 1 pointer → move (app-authored fields only). 2 pointers → resize ANY
+      // field (incl. filled / signed / AcroForm) via the pinch scale factor.
+      onScaleStart: (_) => _lastScale = 1.0,
+      onScaleUpdate: (details) {
+        if (details.pointerCount >= 2) {
+          final incremental = details.scale / _lastScale;
+          _lastScale = details.scale;
+          widget.onScale(incremental);
+        } else if (movable) {
+          widget.onDrag(details.focalPointDelta);
+        }
+      },
+      onScaleEnd: (_) {
+        _lastScale = 1.0;
+        widget.onResizeEnd();
+      },
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -503,15 +563,15 @@ class _DraggableField extends StatelessWidget {
             ),
           ),
 
-          // Resize handle — bottom-right corner (app-authored fields only)
-          if (movable)
-            Positioned(
+          // Resize handle — bottom-right corner. Shown on every field so users
+          // can resize signatures / filled fields (pinch works too).
+          Positioned(
               right: -handleSize / 2,
               bottom: -handleSize / 2,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onPanUpdate: (d) => onResize(d.delta),
-                onPanEnd: (_) => onResizeEnd(),
+                onPanUpdate: (d) => widget.onResize(d.delta),
+                onPanEnd: (_) => widget.onResizeEnd(),
                 onTap: () {}, // absorb tap so it doesn't trigger field tap
                 child: Container(
                   width: handleSize,
@@ -541,9 +601,12 @@ class _DraggableField extends StatelessWidget {
       );
     }
     if (type == FieldType.signature && field.value.isNotEmpty) {
-      final sigFile = File(field.value);
+      final sigFile = File(PathResolver.resolve(field.value));
       if (sigFile.existsSync()) {
-        return Image.file(sigFile, fit: BoxFit.contain);
+        // Fill the field box; the PNG is pre-cropped to the ink bounds.
+        return SizedBox.expand(
+          child: Image.file(sigFile, fit: BoxFit.contain),
+        );
       }
     }
     return Text(
@@ -570,9 +633,12 @@ class _PageBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Rebase onto the current app container (paths in the DB may be stale after
+    // a reinstall — see PathResolver).
+    final resolved = PathResolver.resolve(imagePath);
     // PDF-backed page: render with SfPdfViewer
-    if (imagePath.contains('#page=')) {
-      final parts = imagePath.split('#page=');
+    if (resolved.contains('#page=')) {
+      final parts = resolved.split('#page=');
       final pdfPath = parts[0];
       final pageNum = int.tryParse(parts[1]) ?? 1;
       final pdfFile = File(pdfPath);
@@ -590,7 +656,7 @@ class _PageBackground extends StatelessWidget {
     }
 
     // Regular image
-    final file = File(imagePath);
+    final file = File(resolved);
     if (!file.existsSync()) {
       return _placeholder(Icons.broken_image_outlined, 'Image not found');
     }

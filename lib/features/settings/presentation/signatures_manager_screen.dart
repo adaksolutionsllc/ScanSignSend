@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/db/app_database.dart';
 import '../../../core/services/signature_repository.dart';
+import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 
 class SignaturesManagerScreen extends ConsumerWidget {
@@ -50,8 +51,10 @@ class SignaturesManagerScreen extends ConsumerWidget {
                   leading: SizedBox(
                     width: 80,
                     height: 48,
-                    child: File(sig.imagePath).existsSync()
-                        ? Image.file(File(sig.imagePath), fit: BoxFit.contain)
+                    child: File(PathResolver.resolve(sig.imagePath))
+                            .existsSync()
+                        ? Image.file(File(PathResolver.resolve(sig.imagePath)),
+                            fit: BoxFit.contain)
                         : const Icon(Icons.broken_image_outlined),
                   ),
                   title: Text(sig.label),
@@ -129,7 +132,7 @@ class SignaturesManagerScreen extends ConsumerWidget {
         if (confirm == true) {
           await repo.deleteSignature(sig.id);
           // Clean up the image file
-          final f = File(sig.imagePath);
+          final f = File(PathResolver.resolve(sig.imagePath));
           if (f.existsSync()) await f.delete();
         }
     }

@@ -11,6 +11,7 @@ import 'package:uuid/uuid.dart';
 
 import '../db/app_database.dart';
 import '../models/field_model.dart';
+import '../utils/path_resolver.dart';
 import 'document_repository.dart';
 import 'pdf_geometry.dart';
 
@@ -51,11 +52,14 @@ class FillableFormExportService {
     final fields = await _fieldRepo.watchFields(docId).first;
 
     // Determine the source PDF (if this is an imported PDF, every page shares
-    // the same underlying file via the `#page=` convention).
+    // the same underlying file via the `#page=` convention). Resolve to a
+    // currently-valid absolute path here on the main isolate — the compute()
+    // isolate has no initialised PathResolver.
     String? sourcePdfPath;
     for (final pg in pages) {
       if (pg.imagePath.contains('#page=')) {
-        sourcePdfPath = pg.imagePath.split('#page=').first;
+        sourcePdfPath =
+            PathResolver.resolve(pg.imagePath.split('#page=').first);
         break;
       }
     }
@@ -70,7 +74,7 @@ class FillableFormExportService {
       sourcePdfPath: sourcePdfPath,
       pages: [
         for (final pg in pages)
-          _PagePlan(imagePath: pg.imagePath),
+          _PagePlan(imagePath: PathResolver.resolve(pg.imagePath)),
       ],
       fields: [
         for (final f in fields)
@@ -92,7 +96,8 @@ class FillableFormExportService {
       id: Value(docId),
       // Distinct status so the Library can show "Fillable" vs "Pressed".
       status: const Value('fillable'),
-      pressedPdfPath: Value(outPath),
+      // Store container-relative so it survives reinstalls (see PathResolver).
+      pressedPdfPath: Value(PathResolver.toStorable(outPath)),
       updatedAt: Value(DateTime.now()),
     ));
 

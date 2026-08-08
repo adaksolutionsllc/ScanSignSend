@@ -14,6 +14,7 @@ import 'package:uuid/uuid.dart';
 
 import '../db/app_database.dart';
 import '../models/field_model.dart';
+import '../utils/path_resolver.dart';
 import 'document_repository.dart';
 
 final pressServiceProvider = Provider<PressService>((ref) {
@@ -87,13 +88,17 @@ class PressService {
           .map((f) => _FieldPlan(
                 type: f.type,
                 boundingBoxJson: f.boundingBoxJson,
-                value: f.value,
+                // Signature values are file paths — resolve to the current
+                // container here (the compute() isolate can't).
+                value: f.type == FieldType.signature.name && f.value.isNotEmpty
+                    ? PathResolver.resolve(f.value)
+                    : f.value,
                 isChecked: f.isChecked,
                 isFilled: f.isFilled,
               ))
           .toList();
       pagePlans.add(_PagePlan(
-        srcPage.imagePath,
+        PathResolver.resolve(srcPage.imagePath),
         srcPage.activeFilter,
         pageFields,
       ));
@@ -114,50 +119,15 @@ class PressService {
     await _docRepo.updateDocument(DocumentsCompanion(
       id: Value(docId),
       status: const Value('pressed'),
-      pressedPdfPath: Value(outPath),
+      pressedPdfPath: Value(PathResolver.toStorable(outPath)),
       updatedAt: Value(DateTime.now()),
     ));
 
-    // Preserve blank original as template
-    await _preserveTemplate(doc, pages, fields);
+    // NOTE: Flatten & Press no longer auto-saves a blank template copy — that
+    // was creating unwanted duplicate entries. Users who want a reusable blank
+    // should use "Save as Fillable Form" or an explicit template action.
 
     return outPath;
-  }
-
-  // ── Template preservation ──────────────────────────────────────────────────
-
-  Future<void> _preserveTemplate(
-    Document doc,
-    List<Page> pages,
-    List<Field> fields,
-  ) async {
-    final all = await _docRepo.watchAll().first;
-    final templateTitle = '${doc.title} (Template)';
-    if (all.any((d) => d.isTemplate && d.title == templateTitle)) return;
-
-    final tmpl = await _docRepo.createDocument(templateTitle);
-    await _docRepo.updateDocument(DocumentsCompanion(
-      id: Value(tmpl.id),
-      status: const Value('template'),
-      isTemplate: const Value(true),
-      pageCount: Value(doc.pageCount),
-      updatedAt: Value(DateTime.now()),
-    ));
-    for (final pg in pages) {
-      await _pageRepo.addPage(
-          documentId: tmpl.id,
-          pageIndex: pg.pageIndex,
-          imagePath: pg.imagePath);
-    }
-    for (final f in fields) {
-      await _fieldRepo.addField(FieldsCompanion.insert(
-        documentId: tmpl.id,
-        pageIndex: f.pageIndex,
-        type: f.type,
-        boundingBoxJson: f.boundingBoxJson,
-        label: Value(f.label),
-      ));
-    }
   }
 }
 
