@@ -3,7 +3,7 @@
 Publisher: **ADAK Ventures**
 Category: Productivity (secondary: Business)
 Price: Free to download • One-time in-app purchase **$14.99** for Full Access
-Product ID (both stores): `com.scansignsend.fullaccess` (non-consumable)
+Product ID (both stores): `com.adakVentures.fullaccess` (non-consumable)
 
 ---
 

@@ -7,7 +7,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import '../db/app_database.dart';
 import 'profile_repository.dart';
 
-const kProductId = 'com.scansignsend.fullaccess';
+const kProductId = 'com.adakVentures.fullaccess';
 
 final iapServiceProvider = Provider<IapService>((ref) {
   final svc = IapService(ref.watch(profileRepositoryProvider));

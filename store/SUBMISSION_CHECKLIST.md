@@ -13,7 +13,7 @@ Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
 - ✅ Android permissions: camera, media, `USE_BIOMETRIC`, Play `BILLING`
 - ✅ `MainActivity` → `FlutterFragmentActivity` (required for biometric lock)
 - ✅ ML Kit document scanner bumped off `-beta1` to stable `16.0.0`
-- ✅ IAP wired to live store price ($14.99 fallback), product `com.scansignsend.fullaccess`
+- ✅ IAP wired to live store price ($14.99 fallback), product `com.adakVentures.fullaccess`
 - ✅ Version `1.0.0+1`
 
 ---
@@ -37,7 +37,7 @@ cp android/key.properties.example android/key.properties
 
 ## 3. In-app purchase product ⬜
 Create the **same non-consumable** in BOTH consoles:
-- Product ID: `com.scansignsend.fullaccess`
+- Product ID: `com.adakVentures.fullaccess`
 - Type: Non-consumable (iOS) / One-time product (Android)
 - Price tier: **$14.99 USD**
 - Display name: `Full Access`
