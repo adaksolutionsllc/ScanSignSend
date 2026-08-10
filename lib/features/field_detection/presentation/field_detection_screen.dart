@@ -58,7 +58,7 @@ class _FieldDetectionScreenState
                     size: 72,
                     color: Theme.of(context).colorScheme.primary),
                 const SizedBox(height: 24),
-                Text('Fillable PDF detected',
+                Text('Form fields detected',
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Text(

@@ -311,7 +311,7 @@ class _NoPdf extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
             const Text(
-              'Fill and export this document (fillable or flattened) to view it here.',
+              'Fill and export this document (draft or flattened) to view it here.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey),
             ),

@@ -28,7 +28,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Review & Press')),
+      appBar: AppBar(title: const Text('Review & Finish')),
       body: StreamBuilder<List<Field>>(
         stream: _fieldsStream,
         builder: (context, snapshot) {
@@ -90,7 +90,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
                       child: FilledButton.icon(
                         onPressed: () => _exportFillable(context),
                         icon: const Icon(Icons.edit_document),
-                        label: const Text('Save as Fillable Form'),
+                        label: const Text('Save Draft'),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -169,7 +169,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
               const SizedBox(height: 12),
               Text(
                 'This document has interactive form fields. Flattening removes '
-                'them — to keep them editable, choose “Save as Fillable Form” '
+                'them — to keep them editable, choose “Save Draft” '
                 'instead.',
                 style: TextStyle(color: Theme.of(ctx).colorScheme.error),
               ),

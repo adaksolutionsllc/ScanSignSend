@@ -82,8 +82,13 @@ class FillableFormExportService {
             pageIndex: f.pageIndex,
             type: f.type,
             boundingBoxJson: f.boundingBoxJson,
-            value: f.value,
+            // Signature values are file paths — resolve to the current
+            // container here (the compute() isolate can't). See PressService.
+            value: f.type == FieldType.signature.name && f.value.isNotEmpty
+                ? PathResolver.resolve(f.value)
+                : f.value,
             isChecked: f.isChecked,
+            isFilled: f.isFilled,
             pdfFieldName: f.pdfFieldName,
             sourceKind: f.sourceKind,
           ),
@@ -94,7 +99,7 @@ class FillableFormExportService {
 
     await _docRepo.updateDocument(DocumentsCompanion(
       id: Value(docId),
-      // Distinct status so the Library can show "Fillable" vs "Pressed".
+      // Distinct status so the Library can show "Fillable" vs "Completed".
       status: const Value('fillable'),
       // Store container-relative so it survives reinstalls (see PathResolver).
       pressedPdfPath: Value(PathResolver.toStorable(outPath)),
@@ -131,6 +136,7 @@ class _FieldPlan {
   final String boundingBoxJson;
   final String value;
   final bool isChecked;
+  final bool isFilled;
   final String? pdfFieldName;
   final String sourceKind;
   const _FieldPlan({
@@ -139,6 +145,7 @@ class _FieldPlan {
     required this.boundingBoxJson,
     required this.value,
     required this.isChecked,
+    required this.isFilled,
     required this.pdfFieldName,
     required this.sourceKind,
   });
@@ -159,9 +166,14 @@ Future<void> _buildFillablePdf(_ExportJob job) async {
   }
 
   try {
+    // Stamp appearance streams for field values so filled text/checkboxes are
+    // visible in viewers that don't honour NeedAppearances (Preview, Chrome).
+    pdfDoc.form.setDefaultAppearance(true);
+
     if (imported) {
       _fillExistingForm(pdfDoc, job.fields);
       _addAppFieldsToLoadedPages(pdfDoc, job.fields);
+      _drawSignaturesOnLoadedPages(pdfDoc, job.fields);
     } else {
       _buildImagePagesWithFields(pdfDoc, job);
     }
@@ -192,8 +204,8 @@ void _fillExistingForm(PdfDocument pdfDoc, List<_FieldPlan> fields) {
     } else if (field is PdfComboBoxField && plan.value.isNotEmpty) {
       field.selectedValue = plan.value;
     }
-    // Signature widgets are left empty — a drawn signature is an image overlay,
-    // not an AcroForm value; it belongs to the flatten path.
+    // Signatures aren't AcroForm values — they're painted onto the page by
+    // _drawSignaturesOnLoadedPages after this pass.
   }
 }
 
@@ -206,6 +218,44 @@ void _addAppFieldsToLoadedPages(PdfDocument pdfDoc, List<_FieldPlan> fields) {
     final page = pdfDoc.pages[f.pageIndex];
     _addWidget(pdfDoc, page, f);
   }
+}
+
+/// Draws captured signatures onto imported-PDF pages. A drawn signature is an
+/// image overlay, not an AcroForm value, so it's painted onto page graphics for
+/// every signature field (app- and acroform-sourced alike).
+void _drawSignaturesOnLoadedPages(PdfDocument pdfDoc, List<_FieldPlan> fields) {
+  for (final f in fields) {
+    if (f.type.toFieldType() != FieldType.signature) continue;
+    if (!f.isFilled || f.value.isEmpty) continue;
+    if (f.pageIndex < 0 || f.pageIndex >= pdfDoc.pages.count) continue;
+    final page = pdfDoc.pages[f.pageIndex];
+    final bbox = BoundingBox.fromJsonString(f.boundingBoxJson);
+    final rect = PdfGeometry.normToPdf(bbox, page.size.width, page.size.height);
+    _drawSignature(page.graphics, f.value, rect);
+  }
+}
+
+/// Paints a signature image file into [rect], preserving aspect ratio.
+void _drawSignature(PdfGraphics gfx, String path, Rect rect) {
+  final file = File(path);
+  if (!file.existsSync()) return;
+  final bmp = PdfBitmap(file.readAsBytesSync());
+  final iw = bmp.width.toDouble();
+  final ih = bmp.height.toDouble();
+  if (iw <= 0 || ih <= 0) return;
+  final scale =
+      (iw / rect.width > ih / rect.height) ? rect.width / iw : rect.height / ih;
+  final dw = iw * scale;
+  final dh = ih * scale;
+  gfx.drawImage(
+    bmp,
+    Rect.fromLTWH(
+      rect.left + (rect.width - dw) / 2,
+      rect.top + (rect.height - dh) / 2,
+      dw,
+      dh,
+    ),
+  );
 }
 
 /// Builds image-backed pages (scanned docs) and adds every field as a widget.
@@ -259,7 +309,13 @@ void _addWidget(PdfDocument pdfDoc, PdfPage page, _FieldPlan f) {
       field.isChecked = f.isChecked;
       pdfDoc.form.fields.add(field);
     case FieldType.signature:
-      pdfDoc.form.fields.add(PdfSignatureField(page, name, bounds: rect));
+      // A drawn signature is an image overlay, not an AcroForm value — paint it
+      // onto the page rather than adding an empty signature widget.
+      if (f.isFilled && f.value.isNotEmpty) {
+        _drawSignature(page.graphics, f.value, rect);
+      } else {
+        pdfDoc.form.fields.add(PdfSignatureField(page, name, bounds: rect));
+      }
   }
   // NOTE: a field's `isRequired` is persisted in our DB and used for in-app
   // validation, but this Syncfusion version exposes no setter to stamp the

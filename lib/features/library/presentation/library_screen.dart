@@ -91,7 +91,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                 tabs: const [
                   Tab(text: 'All'),
                   Tab(text: 'Draft'),
-                  Tab(text: 'Pressed'),
+                  Tab(text: 'Completed'),
                   Tab(text: 'Template'),
                 ],
                 onTap: (_) => setState(() {}),
@@ -254,8 +254,8 @@ class _DocumentCard extends StatelessWidget {
       };
 
   static String _statusLabel(DocumentStatus s) => switch (s) {
-        DocumentStatus.pressed => 'Pressed',
-        DocumentStatus.fillable => 'Fillable',
+        DocumentStatus.pressed => 'Completed',
+        DocumentStatus.fillable => 'Editable',
         DocumentStatus.template => 'Template',
         DocumentStatus.draft => 'Draft',
       };

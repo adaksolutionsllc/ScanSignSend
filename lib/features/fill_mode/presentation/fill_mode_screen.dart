@@ -62,7 +62,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                     AppRoutes.press.replaceAll(':docId', '${widget.docId}'),
                   ),
                   icon: const Icon(Icons.task_alt),
-                  label: const Text('Review & Press'),
+                  label: const Text('Review & Finish'),
                 ),
               ),
             ),
