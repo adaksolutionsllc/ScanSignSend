@@ -38,9 +38,6 @@ dependencies:
   # Image processing utilities
   image: ^4.2.0
 
-  # Permissions
-  permission_handler: ^11.3.1
-
   # In-app purchases (StoreKit 2 on iOS, Play Billing on Android)
   in_app_purchase: ^3.2.0
 
@@ -68,11 +65,14 @@ flutter:
 
 # App launcher icons — regenerate with:
 #   dart run flutter_launcher_icons
-# Source art is produced by branding/make_icon.py from the ADAK Ventures logo.
+# Source art is produced by branding/make_icon_3d.py (--variant gold --install).
 flutter_launcher_icons:
   image_path: "branding/icon_master.png"
   android: "ic_launcher"
-  adaptive_icon_background: "#0B0B10"
+  # The gradient background image (not a flat colour) so the Android adaptive
+  # icon matches the iOS one. icon_foreground.png is the mark alone on
+  # transparency, scaled into Android's 66% safe zone.
+  adaptive_icon_background: "branding/icon_background.png"
   adaptive_icon_foreground: "branding/icon_foreground.png"
   min_sdk_android: 21
   ios: true

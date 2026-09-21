@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/theme/app_theme.dart';
 import 'biometric_service.dart';
+import 'privacy_screen_service.dart';
 import 'profile_repository.dart';
 
 /// True = locked, false = unlocked.
@@ -10,23 +13,30 @@ final appLockProvider = StateNotifierProvider<AppLockNotifier, bool>((ref) {
   return AppLockNotifier(
     ref.watch(biometricServiceProvider),
     ref.watch(profileRepositoryProvider),
+    ref.watch(privacyScreenServiceProvider),
   );
 });
 
 class AppLockNotifier extends StateNotifier<bool> {
-  AppLockNotifier(this._bio, this._profile) : super(false) {
+  AppLockNotifier(this._bio, this._profile, this._privacy) : super(false) {
     _init();
   }
 
   final BiometricService _bio;
   final ProfileRepository _profile;
+  final PrivacyScreenService _privacy;
 
   bool _authInFlight = false;
+  /// Mirror of `profile.biometricLockEnabled`, kept live so toggling the
+  /// setting takes effect without a restart.
+  bool _lockEnabled = false;
+  StreamSubscription<dynamic>? _profileSub;
 
   Future<void> _init() async {
     try {
       final profile = await _profile.getOrCreate();
-      if (profile.biometricLockEnabled) {
+      _applyLockEnabled(profile.biometricLockEnabled);
+      if (_lockEnabled) {
         state = true;
         await unlock();
       }
@@ -34,6 +44,34 @@ class AppLockNotifier extends StateNotifier<bool> {
       // Never leave the user stranded on a lock screen due to a profile read
       // failure — default to unlocked rather than bricking the app.
       state = false;
+    }
+    _profileSub = _profile.watch().listen(
+      (p) => _applyLockEnabled(p.biometricLockEnabled),
+      onError: (_) {},
+    );
+  }
+
+  void _applyLockEnabled(bool enabled) {
+    if (_lockEnabled == enabled) return;
+    _lockEnabled = enabled;
+    // Someone who locks their documents doesn't want them legible in the task
+    // switcher or in a screenshot either.
+    _privacy.setSecure(enabled);
+  }
+
+  /// Re-arms the lock when the app leaves the foreground.
+  ///
+  /// Without this the lock was a cold-start-only gate: background the app,
+  /// hand the unlocked phone to someone, and every scanned document was
+  /// readable. We re-lock on `paused` rather than `inactive` so the platform
+  /// biometric sheet — which briefly makes the app inactive — doesn't fight
+  /// the unlock it was opened to perform.
+  void handleLifecycle(AppLifecycleState lifecycle) {
+    if (!_lockEnabled) return;
+    if (lifecycle == AppLifecycleState.paused ||
+        lifecycle == AppLifecycleState.detached ||
+        lifecycle == AppLifecycleState.hidden) {
+      state = true;
     }
   }
 
@@ -52,17 +90,51 @@ class AppLockNotifier extends StateNotifier<bool> {
   }
 
   void lock() => state = true;
+
+  @override
+  void dispose() {
+    _profileSub?.cancel();
+    super.dispose();
+  }
 }
 
-/// Wraps the app; shows a lock screen when [appLockProvider] is true.
-class AppLockGate extends ConsumerWidget {
+/// Wraps the app; shows a lock screen when [appLockProvider] is true, and
+/// observes the app lifecycle so the lock re-arms every time the app is
+/// backgrounded.
+class AppLockGate extends ConsumerStatefulWidget {
   const AppLockGate({super.key, required this.child});
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppLockGate> createState() => _AppLockGateState();
+}
+
+class _AppLockGateState extends ConsumerState<AppLockGate>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Touch the provider so the notifier is constructed (and the privacy
+    // screen flag applied) even before anything else reads the lock state.
+    ref.read(appLockProvider);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
+    ref.read(appLockProvider.notifier).handleLifecycle(lifecycle);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final locked = ref.watch(appLockProvider);
-    if (!locked) return child;
+    if (!locked) return widget.child;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,

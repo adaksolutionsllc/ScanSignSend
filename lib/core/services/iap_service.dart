@@ -122,6 +122,13 @@ class IapService {
         );
         _restoreCompleter = null;
       }
+      // A cancelled restore is a definite "nothing happened" — resolve it now
+      // instead of making the user watch a spinner until the 12s timeout.
+      if (p.status == PurchaseStatus.canceled &&
+          !(_restoreCompleter?.isCompleted ?? true)) {
+        _restoreCompleter!.complete(false);
+        _restoreCompleter = null;
+      }
       // Complete pending purchases for every terminal status the store asks us
       // to acknowledge — required on both stores to avoid stuck transactions.
       if (p.pendingCompletePurchase) {

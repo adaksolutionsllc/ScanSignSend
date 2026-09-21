@@ -7,6 +7,9 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // Blur the UI in the app-switcher snapshot so scanned documents aren't
+    // legible from outside the app. See PrivacyOverlay.
+    PrivacyOverlay.shared.activate()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

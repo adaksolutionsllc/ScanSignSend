@@ -10,11 +10,19 @@ Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
 - ✅ iOS permission strings (camera, photos, Face ID) + `ITSAppUsesNonExemptEncryption=false`
 - ✅ Android release-signing scaffold (`build.gradle.kts` reads `key.properties`)
 - ✅ Android R8/ProGuard rules + `isMinifyEnabled`/`isShrinkResources`
-- ✅ Android permissions: camera, media, `USE_BIOMETRIC`, Play `BILLING`
+- ✅ Android permissions: camera, `USE_BIOMETRIC`, Play `BILLING` — **no storage/media
+  permission is declared**, so the Play "Photo and Video Permissions" declaration
+  does not apply (imports go through the Storage Access Framework)
+- ✅ Android Auto Backup + device-transfer disabled (`allowBackup=false`,
+  `data_extraction_rules.xml`) so scans never reach Google Drive
+- ✅ App lock re-arms on backgrounding; iOS app-switcher blur; Android
+  `FLAG_SECURE` when the lock is on
+- ✅ Deleting a document deletes its files on disk, not just its DB rows
+- ✅ iOS deployment target 15.0 (Xcode 26+ refuses to build below 15.0)
 - ✅ `MainActivity` → `FlutterFragmentActivity` (required for biometric lock)
 - ✅ ML Kit document scanner bumped off `-beta1` to stable `16.0.0`
 - ✅ IAP wired to live store price ($14.99 fallback), product `com.adakVentures.fullaccess`
-- ✅ Version `1.0.0+1`
+- ✅ Version `1.0.0+4`
 
 ---
 
@@ -107,5 +115,14 @@ Add to the review-notes field:
 ---
 
 ## Known non-blocking follow-ups (optional polish)
-- Review-screen Enhanced/B&W filters are cosmetic only — not yet baked into the pressed PDF.
 - Consider a branded launch/splash screen using `branding/adak_ventures_logo_full.png`.
+- No sweep exists for files orphaned by builds released *before* the delete-cleanup
+  fix. Not a shipping blocker (the app is pre-launch), but a one-shot janitor at
+  startup would reclaim them if any test installs are ever upgraded in place.
+- `google_mlkit_text_recognition` has no arm64 simulator slice, so the app can
+  only be run on a physical device or an Intel simulator. Device builds are
+  unaffected.
+- IAP entitlement is trusted from the local `purchaseStream` with no receipt
+  validation. Correct for a no-server app, but it means a jailbroken/rooted
+  device can unlock Full Access. Accepted trade-off — revisit only if piracy
+  shows up in the numbers.

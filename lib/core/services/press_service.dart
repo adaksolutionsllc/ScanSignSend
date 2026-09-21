@@ -138,6 +138,11 @@ class PressService {
 
 Future<void> _buildPressedPdf(_PressJob job) async {
   final pdfDoc = PdfDocument();
+  // Every page of an imported PDF points at the *same* file via `#page=N`.
+  // Opening it once per page re-read and re-parsed the whole document N times
+  // — quadratic work and N peak-sized allocations on a 20-page import. Keep
+  // each source open for the run instead, and dispose them together.
+  final sourceCache = <String, PdfDocument?>{};
   try {
     final pw = PdfPageSize.a4.width;
     final ph = PdfPageSize.a4.height;
@@ -146,7 +151,7 @@ Future<void> _buildPressedPdf(_PressJob job) async {
       final pdfPage = pdfDoc.pages.add();
       final gfx = pdfPage.graphics;
 
-      await _drawBackground(gfx, plan, pw, ph);
+      await _drawBackground(gfx, plan, pw, ph, sourceCache);
       _drawFields(gfx, plan.fields, pw, ph);
     }
 
@@ -156,12 +161,32 @@ Future<void> _buildPressedPdf(_PressJob job) async {
     await File(job.outPath).writeAsBytes(bytes);
   } finally {
     // Always release native buffers even if save/draw throws.
+    for (final src in sourceCache.values) {
+      src?.dispose();
+    }
     pdfDoc.dispose();
   }
 }
 
-Future<void> _drawBackground(
-    PdfGraphics gfx, _PagePlan plan, double pw, double ph) async {
+/// Opens [pdfPath] once and memoises the result (including a null for an
+/// unreadable file, so a broken source isn't retried on every page).
+PdfDocument? _openSource(String pdfPath, Map<String, PdfDocument?> cache) {
+  if (cache.containsKey(pdfPath)) return cache[pdfPath];
+  PdfDocument? doc;
+  try {
+    final file = File(pdfPath);
+    if (file.existsSync()) {
+      doc = PdfDocument(inputBytes: file.readAsBytesSync());
+    }
+  } catch (_) {
+    doc = null;
+  }
+  cache[pdfPath] = doc;
+  return doc;
+}
+
+Future<void> _drawBackground(PdfGraphics gfx, _PagePlan plan, double pw,
+    double ph, Map<String, PdfDocument?> sourceCache) async {
   final path = plan.imagePath;
 
   // Imported-PDF page: import the source page as a vector template so its
@@ -170,11 +195,9 @@ Future<void> _drawBackground(
     final parts = path.split('#page=');
     final pdfPath = parts[0];
     final pageNum = int.tryParse(parts[1]) ?? 0; // 0-indexed in our model
-    final srcFile = File(pdfPath);
-    if (!srcFile.existsSync()) return;
-    PdfDocument? src;
     try {
-      src = PdfDocument(inputBytes: await srcFile.readAsBytes());
+      final src = _openSource(pdfPath, sourceCache);
+      if (src == null) return;
       if (pageNum < 0 || pageNum >= src.pages.count) return;
       final template = src.pages[pageNum].createTemplate();
       // Scale the source page to fit the A4 output while preserving aspect.
@@ -192,8 +215,6 @@ Future<void> _drawBackground(
     } catch (_) {
       // Unreadable source page — leave the background blank rather than crash
       // the whole press. Overlays still render on top.
-    } finally {
-      src?.dispose();
     }
     return;
   }

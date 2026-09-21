@@ -18,7 +18,16 @@ Nothing. The app has no analytics, no advertising SDKs, no crash-reporting that 
 The one-time "Full Access" purchase is processed by Apple's App Store or Google Play. We do not receive or store your payment information. Purchase validation is handled by the platform's in-app purchase system.
 
 ## Data storage & deletion
-Your documents, signatures, and profile details are stored in a private database on your device. Deleting the app removes all of this data. We cannot access or recover it because we never receive it.
+Your documents, signatures, and profile details are stored in a private database on your device. Deleting a document inside the app removes its stored pages and exported PDFs from your device's storage, not just its entry in the list. Deleting the app removes everything. We cannot access or recover any of it because we never receive it.
+
+On Android, the app is excluded from Android Auto Backup and device-to-device transfer, so your documents are never copied to Google Drive or to another phone.
+
+## On-device protections
+- **App lock** — optional Face ID / fingerprint lock. When enabled, the lock re-engages every time the app leaves the foreground, not only at launch.
+- **App switcher** — the app's contents are blurred in the iOS app switcher. On Android, enabling the app lock also blocks screenshots and screen recording.
+
+## Network access
+The app makes no network calls with your document data. The Android build does declare internet access, because Google Play Billing and the bundled Google ML Kit components require it; neither transmits the contents of your documents.
 
 ## Children
 The app is suitable for all ages and collects no personal information from anyone, including children.
