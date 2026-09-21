@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../shared/theme/app_theme.dart';
 import 'biometric_service.dart';
 import 'privacy_screen_service.dart';
 import 'profile_repository.dart';
@@ -145,46 +144,40 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
     final locked = ref.watch(appLockProvider);
     if (!locked) return widget.child;
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      home: Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.lock_outline,
-                    size: 72,
-                    color: Theme.of(context).colorScheme.primary),
-                const SizedBox(height: 20),
-                Text(
-                  context.l10n.lockTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.lock_outline,
+                  size: 72,
+                  color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 20),
+              Text(
+                context.l10n.lockTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.lockBody,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Colors.grey),
+              ),
+              const SizedBox(height: 28),
+              FilledButton.icon(
+                onPressed: () => ref.read(appLockProvider.notifier).unlock(),
+                icon: const Icon(Icons.fingerprint),
+                label: Text(context.l10n.lockUnlock),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(200, 48),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  context.l10n.lockBody,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: Colors.grey),
-                ),
-                const SizedBox(height: 28),
-                FilledButton.icon(
-                  onPressed: () => ref.read(appLockProvider.notifier).unlock(),
-                  icon: const Icon(Icons.fingerprint),
-                  label: Text(context.l10n.lockUnlock),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(200, 48),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

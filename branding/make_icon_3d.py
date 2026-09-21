@@ -65,6 +65,7 @@ VARIANTS = {
         beam=(120, 231, 255),
         ribbon=(255, 179, 0),
         ribbon_dark=(199, 110, 12),
+        device=(46, 34, 88),
     ),
     # Brand-matched: the existing ADAK near-black + gold identity, lifted into
     # 3D. Most consistent with the current store art and wordmark.
@@ -79,6 +80,7 @@ VARIANTS = {
         beam=(255, 216, 115),
         ribbon=(255, 179, 0),
         ribbon_dark=(160, 88, 8),
+        device=(58, 56, 66),
     ),
     # Deep teal→emerald with an amber stroke. Reads as "trustworthy utility"
     # and is the most distinct from the blue-heavy scanner-app category.
@@ -93,6 +95,7 @@ VARIANTS = {
         beam=(186, 255, 236),
         ribbon=(255, 168, 38),
         ribbon_dark=(178, 92, 10),
+        device=(14, 46, 54),
     ),
 }
 
@@ -229,7 +232,124 @@ def drop_shadow(canvas, mask, *, dx, dy, radius, opacity, color=(0, 0, 0)):
 
 
 # ── the scene ────────────────────────────────────────────────────────────────
-def render(v: dict):
+#
+# Every concept shares the background, the lighting rig and the final gloss
+# pass; they differ only in the mark they paint in the middle. Each painter
+# takes the prepared context and returns (canvas, list-of-shape-masks) — the
+# masks are unioned into the Android adaptive foreground cut-out.
+
+
+def _scene_context(v: dict) -> dict:
+    """Background plus the coordinate grids every painter needs."""
+    yy, xx = np.mgrid[0:R, 0:R].astype(np.float32)
+    u, w = xx / R, yy / R
+
+    t = np.clip((u * 0.45 + w * 0.75), 0, 1)[..., None]
+    top = np.array(v["bg_top"], dtype=np.float32) / 255.0
+    bot = np.array(v["bg_bottom"], dtype=np.float32) / 255.0
+    canvas = top * (1 - t) + bot * t
+
+    gx, gy = v["bg_glow_at"]
+    d = np.sqrt((u - gx) ** 2 + (w - gy) ** 2)
+    canvas = np.clip(
+        canvas + np.exp(-(d / 0.42) ** 2)[..., None] * v["bg_glow_strength"]
+        * (np.array(v["bg_glow"], dtype=np.float32) / 255.0), 0, 1)
+
+    d2 = np.sqrt((u - 0.18) ** 2 + (w - 0.12) ** 2)
+    canvas = np.clip(canvas + np.exp(-(d2 / 0.38) ** 2)[..., None] * 0.16, 0, 1)
+
+    return {"canvas": canvas, "u": u, "w": w, "yy": yy, "xx": xx}
+
+
+def _finish(canvas: np.ndarray, u: np.ndarray, w: np.ndarray) -> np.ndarray:
+    """Global gloss sweep + vignette, applied after the mark."""
+    sweep = np.clip(1.0 - np.abs((u * 0.55 + w * 0.85) - 0.30) / 0.42, 0, 1)
+    canvas = np.clip(canvas + (sweep ** 3)[..., None] * 0.080, 0, 1)
+    rad = np.sqrt((u - 0.5) ** 2 + (w - 0.5) ** 2) / 0.72
+    return np.clip(
+        canvas * (1.0 - np.clip(rad, 0, 1)[..., None] ** 2.6 * 0.30), 0, 1)
+
+
+def _clay(canvas, mask, colour, *, soften, relief, ambient=0.60, diffuse=0.46,
+          spec=0.55, power=64, rim=0.20, rim_color=(1.0, 1.0, 1.0),
+          albedo_grad=None):
+    """Shade a mask as a moulded clay solid and composite it in."""
+    n = normals_from_height(height_field(mask, soften), relief=relief)
+    base = np.ones((R, R, 3), np.float32) * (
+        np.array(colour, np.float32) / 255.0)
+    if albedo_grad is not None:
+        base = base * albedo_grad
+    lit = shade(base, n, ambient=ambient, diffuse=diffuse,
+                spec_strength=spec, spec_power=power, rim_strength=rim,
+                rim_color=rim_color)
+    return composite(canvas, lit, f32(mask))
+
+
+def _edge_light(canvas, mask, colour, *, inner=0.0030, outer=0.0105,
+                strength=0.95, u=None, w=None):
+    """Crisp accent along a shape's own border, brightest on the lit side.
+
+    Clipped to the mask so the light never bleeds outside the silhouette —
+    that bleed is what made the Fresnel rim read as a fuzzy amber halo.
+    """
+    edge = np.clip(f32(blur(mask, inner * R)) - f32(blur(mask, outer * R)), 0, 1)
+    edge = edge * f32(mask)
+    if u is not None:
+        # Strong on the upper-left where the key light is, a faint bounce
+        # opposite it, so the shell reads as a solid with a lit rim.
+        facing = np.clip(1.0 - (u * 0.5 + w * 0.5), 0, 1)
+        edge = edge * (0.25 + 0.75 * facing)
+    col = np.array(colour, np.float32) / 255.0
+    return np.clip(canvas + edge[..., None] * col * strength, 0, 1)
+
+
+def _signature(canvas, cx, cy, half_w, v, *, thickness=0.0195):
+    """The gold pen stroke — the "Sign" third of the name. Returns (canvas, mask)."""
+    pts = bezier_points([
+        (cx - half_w, cy + R * 0.026),
+        (cx - half_w * 0.58, cy - R * 0.062),
+        (cx - half_w * 0.24, cy + R * 0.070),
+        (cx + R * 0.004, cy - R * 0.004),
+        (cx + half_w * 0.30, cy - R * 0.062),
+        (cx + half_w * 0.60, cy + R * 0.072),
+        (cx + half_w, cy - R * 0.036),
+    ])
+    ribbon = stroke_mask(
+        pts, lambda t: R * thickness * math.sin(math.pi * min(max(t, 0.0), 1.0)) ** 0.50)
+    canvas = drop_shadow(canvas, ribbon, dx=0, dy=R * 0.009,
+                         radius=R * 0.015, opacity=0.36)
+    h = height_field(ribbon, R * 0.009)
+    n = normals_from_height(h, relief=R * 1.15)
+    col = np.array(v["ribbon"], np.float32) / 255.0
+    dark = np.array(v["ribbon_dark"], np.float32) / 255.0
+    mix = np.clip(h, 0, 1)[..., None]
+    lit = shade(dark * (1 - mix) + col * mix, n, ambient=0.55, diffuse=0.55,
+                spec_strength=1.00, spec_power=54, rim_strength=0.30,
+                rim_color=(1.0, 0.92, 0.70))
+    return composite(canvas, lit, f32(ribbon)), ribbon
+
+
+def _light_bar(canvas, box, radius, v, *, halo=0.032, strength=0.60):
+    """A glowing scan bar sitting inside its own halo. Returns (canvas, mask)."""
+    bar = rounded_rect(box, radius)
+    col = np.array(v["beam"], np.float32) / 255.0
+    # Two-stage bloom: a wide soft falloff plus a tight one, so the glow reads
+    # as light spilling out of the slot instead of a flat coloured band.
+    canvas = np.clip(
+        canvas + f32(blur(bar, halo * R))[..., None] * col * strength, 0, 1)
+    canvas = np.clip(
+        canvas + f32(blur(bar, halo * R * 0.35))[..., None] * col * strength * 0.8,
+        0, 1)
+    # The core runs hot toward white, the way a real emitter clips.
+    hot = np.clip(col * 0.45 + 0.55, 0, 1)
+    n = normals_from_height(height_field(bar, R * 0.005), relief=R * 0.6)
+    lit = shade(np.ones((R, R, 3), np.float32) * hot, n, ambient=0.92,
+                diffuse=0.16, spec_strength=0.7, spec_power=80)
+    return composite(canvas, lit, f32(bar)), bar
+
+
+# ── the scene ────────────────────────────────────────────────────────────────
+def _mark_sheet(v: dict, ctx=None):
     """Returns (icon RGB at OUT×OUT, mark alpha at OUT×OUT).
 
     The alpha is the union of the mark's own shapes — no background,
@@ -430,6 +550,170 @@ def render(v: dict):
     return icon, alpha
 
 
+
+
+# ── concept: scanner — a signed page rising out of a lit slot ────────────────
+def _mark_scanner(v: dict, ctx: dict):
+    canvas, u, w = ctx["canvas"], ctx["u"], ctx["w"]
+    cx = cy = R / 2
+    masks = []
+    gold = np.array(v["ribbon"], np.float32) / 255.0
+
+    body_top = cy + R * 0.070
+    body = rounded_rect(
+        (cx - R * 0.310, body_top, cx + R * 0.310, body_top + R * 0.286),
+        R * 0.064)
+
+    # The page is drawn first so the shell occludes its base — that overlap is
+    # what makes it read as passing *through* the device rather than sitting in
+    # front of it.
+    page_top = cy - R * 0.336
+    page = rounded_rect(
+        (cx - R * 0.224, page_top, cx + R * 0.224, body_top + R * 0.080),
+        R * 0.030)
+    canvas = drop_shadow(canvas, page, dx=0, dy=R * 0.016,
+                         radius=R * 0.030, opacity=0.42)
+    grad = (1.0 - (w - 0.18) * 0.22)[..., None]
+    canvas = _clay(canvas, page, v["sheet"], soften=R * 0.015, relief=R * 0.60,
+                   albedo_grad=grad)
+    masks.append(page)
+
+    canvas, sig = _signature(canvas, cx, page_top + R * 0.176, R * 0.146, v,
+                             thickness=0.0178)
+    masks.append(sig)
+
+    # Dark shell, edge-lit in the accent colour. A light-on-light device blends
+    # into the page; the value break is what separates them at 48px.
+    canvas = drop_shadow(canvas, body, dx=0, dy=R * 0.030,
+                         radius=R * 0.046, opacity=0.55)
+    shell_grad = (1.0 - (w - 0.52) * 0.45)[..., None]
+    canvas = _clay(canvas, body, v["device"], soften=R * 0.024, relief=R * 0.70,
+                   ambient=0.58, diffuse=0.56, spec=0.50, power=44, rim=0.06,
+                   albedo_grad=shell_grad)
+    canvas = _edge_light(canvas, body, v["ribbon"], u=u, w=w, strength=0.85)
+    masks.append(body)
+
+    # Slot: a recess cut into the shell, with the scan light inside it.
+    slot = rounded_rect(
+        (cx - R * 0.244, body_top + R * 0.036,
+         cx + R * 0.244, body_top + R * 0.086), R * 0.025)
+    canvas = composite(canvas, np.zeros_like(canvas), f32(slot) * 0.62)
+    masks.append(slot)
+
+    canvas, bar = _light_bar(
+        canvas,
+        (cx - R * 0.210, body_top + R * 0.055,
+         cx + R * 0.210, body_top + R * 0.067),
+        R * 0.006, v, halo=0.024, strength=0.50)
+    masks.append(bar)
+
+    # Status pip, low on the shell face.
+    pip = rounded_rect(
+        (cx + R * 0.212, body_top + R * 0.192,
+         cx + R * 0.248, body_top + R * 0.228), R * 0.018)
+    canvas = _clay(canvas, pip, v["ribbon"], soften=R * 0.006, relief=R * 0.9,
+                   ambient=0.82, diffuse=0.28, spec=0.8, power=60, rim=0.0)
+    masks.append(pip)
+
+    return _finish(canvas, u, w), masks
+
+
+# ── concept: printer — a signed page feeding out of a front tray ─────────────
+def _mark_printer(v: dict, ctx: dict):
+    canvas, u, w = ctx["canvas"], ctx["u"], ctx["w"]
+    cx = cy = R / 2
+    masks = []
+    gold = np.array(v["ribbon"], np.float32) / 255.0
+
+    # Blank stock in the top feed — cream, not grey, so it reads as paper
+    # rather than as a smudge behind the device.
+    feed = rounded_rect(
+        (cx - R * 0.196, cy - R * 0.308, cx + R * 0.196, cy - R * 0.160),
+        R * 0.026)
+    canvas = drop_shadow(canvas, feed, dx=0, dy=R * 0.012,
+                         radius=R * 0.024, opacity=0.38)
+    canvas = _clay(canvas, feed, v["sheet"], soften=R * 0.013, relief=R * 0.55,
+                   ambient=0.50, diffuse=0.40, spec=0.34, power=48, rim=0.14,
+                   albedo_grad=np.full((R, R, 1), 0.86, np.float32))
+    masks.append(feed)
+
+    body_top = cy - R * 0.202
+    body = rounded_rect(
+        (cx - R * 0.302, body_top, cx + R * 0.302, body_top + R * 0.282),
+        R * 0.066)
+    canvas = drop_shadow(canvas, body, dx=0, dy=R * 0.028,
+                         radius=R * 0.044, opacity=0.52)
+    shell_grad = (1.0 - (w - 0.30) * 0.45)[..., None]
+    canvas = _clay(canvas, body, v["device"], soften=R * 0.026, relief=R * 0.70,
+                   ambient=0.58, diffuse=0.56, spec=0.50, power=44, rim=0.06,
+                   albedo_grad=shell_grad)
+    canvas = _edge_light(canvas, body, v["ribbon"], u=u, w=w, strength=0.85)
+    masks.append(body)
+
+    # Output slit, lit from inside.
+    slot_y = body_top + R * 0.196
+    slot = rounded_rect(
+        (cx - R * 0.246, slot_y, cx + R * 0.246, slot_y + R * 0.050),
+        R * 0.025)
+    canvas = composite(canvas, np.zeros_like(canvas), f32(slot) * 0.62)
+    masks.append(slot)
+
+    canvas, bar = _light_bar(
+        canvas,
+        (cx - R * 0.228, slot_y + R * 0.019,
+         cx + R * 0.228, slot_y + R * 0.031),
+        R * 0.006, v, halo=0.022, strength=0.46)
+    masks.append(bar)
+
+    # Status pip on the shell's upper face, mirroring the scanner concept.
+    pip = rounded_rect(
+        (cx + R * 0.206, body_top + R * 0.056,
+         cx + R * 0.242, body_top + R * 0.092), R * 0.018)
+    canvas = _clay(canvas, pip, v["ribbon"], soften=R * 0.006, relief=R * 0.9,
+                   ambient=0.82, diffuse=0.28, spec=0.8, power=60, rim=0.0)
+    masks.append(pip)
+
+    # The signed sheet feeding out — centred under the shell, barely tilted, so
+    # the whole mark keeps one clean silhouette.
+    out_top = slot_y + R * 0.026
+    page = rounded_rect(
+        (cx - R * 0.262, out_top, cx + R * 0.262, out_top + R * 0.270),
+        R * 0.028)
+    canvas = drop_shadow(canvas, page, dx=0, dy=R * 0.014,
+                         radius=R * 0.028, opacity=0.46)
+    grad = (1.0 - (w - 0.55) * 0.16)[..., None]
+    canvas = _clay(canvas, page, v["sheet"], soften=R * 0.014, relief=R * 0.58,
+                   albedo_grad=grad)
+    masks.append(page)
+
+    canvas, sig = _signature(canvas, cx, out_top + R * 0.164, R * 0.170, v,
+                             thickness=0.0180)
+    masks.append(sig)
+
+    return _finish(canvas, u, w), masks
+
+
+CONCEPTS = {
+    "sheet": _mark_sheet,
+    "scanner": _mark_scanner,
+    "printer": _mark_printer,
+}
+
+
+def render(v: dict, concept: str = "sheet"):
+    """Returns (icon RGB at OUT x OUT, mark alpha at OUT x OUT)."""
+    painter = CONCEPTS[concept]
+    if concept == "sheet":
+        return painter(v)          # legacy painter builds its own scene
+    ctx = _scene_context(v)
+    canvas, masks = painter(v, ctx)
+    mark = np.clip(np.maximum.reduce([f32(m) for m in masks]), 0, 1)
+    icon = to_img(canvas).resize((OUT, OUT), Image.LANCZOS)
+    alpha = Image.fromarray((mark * 255).astype(np.uint8), "L") \
+        .resize((OUT, OUT), Image.LANCZOS)
+    return icon, alpha
+
+
 # ── android adaptive pieces ──────────────────────────────────────────────────
 def adaptive_pair(v: dict, full: Image.Image, mark_alpha: Image.Image):
     """Android draws the foreground inside a 66% safe zone and masks the rest,
@@ -481,20 +765,28 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--variant", choices=sorted(VARIANTS) + ["all"],
                     default="all")
+    ap.add_argument("--concept", choices=sorted(CONCEPTS) + ["all"],
+                    default="sheet",
+                    help="which mark to draw: sheet (document), scanner "
+                         "(page out of a lit slot), printer (page feeding out)")
     ap.add_argument("--install", action="store_true",
                     help="promote this variant to the flutter_launcher_icons "
                          "source files")
     args = ap.parse_args()
 
     names = sorted(VARIANTS) if args.variant == "all" else [args.variant]
+    concepts = sorted(CONCEPTS) if args.concept == "all" else [args.concept]
     rendered = {}
     for name in names:
-        print(f"rendering {name} at {R}×{R} → {OUT}×{OUT} …")
-        img, alpha = render(VARIANTS[name])
-        path = os.path.join(HERE, f"icon_3d_{name}.png")
-        img.save(path)
-        rendered[name] = (img, alpha)
-        print(f"  wrote {path}")
+        for concept in concepts:
+            key = name if concept == "sheet" else f"{name}_{concept}"
+            print(f"rendering {name}/{concept} at {R}×{R} → {OUT}×{OUT} …")
+            img, alpha = render(VARIANTS[name], concept)
+            path = os.path.join(HERE, f"icon_3d_{key}.png")
+            img.save(path)
+            rendered[key] = (img, alpha)
+            print(f"  wrote {path}")
+    names = list(rendered)
 
     if len(rendered) > 1:
         sheet = Image.new("RGB", (OUT * len(rendered), OUT), (14, 14, 18))
@@ -505,10 +797,12 @@ def main() -> None:
         print(f"  wrote {cmp_path}")
 
     if args.install:
-        if args.variant == "all":
-            raise SystemExit("--install needs a single --variant")
+        if args.variant == "all" or args.concept == "all":
+            raise SystemExit("--install needs a single --variant and --concept")
         v = VARIANTS[args.variant]
-        img, alpha = rendered[args.variant]
+        key = (args.variant if args.concept == "sheet"
+               else f"{args.variant}_{args.concept}")
+        img, alpha = rendered[key]
         img.save(os.path.join(HERE, "icon_master.png"))
         # Play's listing icon slot is 512×512 exactly.
         img.resize((512, 512), Image.LANCZOS).save(

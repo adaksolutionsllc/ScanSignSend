@@ -136,17 +136,19 @@ class _MainApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    return AppLockGate(
-      child: MaterialApp.router(
-        title: 'Scan Sign Send',
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.system,
-        routerConfig: router,
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: kLocalizationsDelegates,
-        supportedLocales: kSupportedLocales,
-      ),
+    return MaterialApp.router(
+      title: 'Scan Sign Send',
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
+      routerConfig: router,
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: kLocalizationsDelegates,
+      supportedLocales: kSupportedLocales,
+      // AppLockGate reads context.l10n and needs a Localizations/Directionality
+      // ancestor, which only MaterialApp.router itself provides — so it must sit
+      // inside this builder, not wrap the MaterialApp from outside.
+      builder: (context, child) => AppLockGate(child: child!),
     );
   }
 }
