@@ -187,60 +187,83 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     }
   }
 
-  Future<String?> _showTextInput(BuildContext context, db.Field field) async {
-    final ctrl = TextEditingController(text: field.value);
-    try {
-      return await showModalBottomSheet<String>(
+  Future<String?> _showTextInput(BuildContext context, db.Field field) {
+    return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            16, 16, 16, MediaQuery.of(ctx).viewInsets.bottom + 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              field.label.isNotEmpty
-                  ? field.label
-                  : switch (field.type.toFieldType()) {
-                      FieldType.date => context.l10n.fieldTypeDate,
-                      FieldType.checkbox => context.l10n.fieldTypeCheckbox,
-                      FieldType.signature => context.l10n.fieldTypeSignature,
-                      FieldType.text => context.l10n.fillTextFieldFallback,
-                    },
-              style: Theme.of(ctx).textTheme.titleMedium,
+      builder: (ctx) => _TextInputSheet(field: field),
+    );
+  }
+}
+
+// Owns its TextEditingController via normal State lifecycle so it's disposed
+// only once the sheet's exit animation actually finishes removing it from the
+// tree — disposing manually right after the pop future resolves races the
+// still-animating TextField and corrupts the widget tree.
+class _TextInputSheet extends StatefulWidget {
+  const _TextInputSheet({required this.field});
+  final db.Field field;
+
+  @override
+  State<_TextInputSheet> createState() => _TextInputSheetState();
+}
+
+class _TextInputSheetState extends State<_TextInputSheet> {
+  late final TextEditingController _ctrl =
+      TextEditingController(text: widget.field.value);
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.field.label.isNotEmpty
+                ? widget.field.label
+                : switch (widget.field.type.toFieldType()) {
+                    FieldType.date => context.l10n.fieldTypeDate,
+                    FieldType.checkbox => context.l10n.fieldTypeCheckbox,
+                    FieldType.signature => context.l10n.fieldTypeSignature,
+                    FieldType.text => context.l10n.fillTextFieldFallback,
+                  },
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _ctrl,
+            autofocus: true,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: context.l10n.fillEnterValueHint,
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: ctrl,
-              autofocus: true,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: context.l10n.fillEnterValueHint,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(context.l10n.actionCancel),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(context.l10n.actionCancel),
-                ),
-                const Spacer(),
-                FilledButton(
-                  onPressed: () => Navigator.pop(ctx, ctrl.text),
-                  child: Text(context.l10n.actionSave),
-                ),
-              ],
-            ),
-          ],
-        ),
+              const Spacer(),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, _ctrl.text),
+                child: Text(context.l10n.actionSave),
+              ),
+            ],
+          ),
+        ],
       ),
-      );
-    } finally {
-      ctrl.dispose();
-    }
+    );
   }
 }
 

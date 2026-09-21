@@ -10,6 +10,7 @@ import '../../../core/services/document_repository.dart';
 import '../../../core/services/template_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/text_edit_dialog.dart';
 import '../../../core/utils/l10n_ext.dart';
 
 enum _LibraryTab { all, draft, pressed, template }
@@ -198,27 +199,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   }
 
   Future<void> _renameDoc(Document doc) async {
-    final ctrl = TextEditingController(text: doc.title);
     final result = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.libraryRenameTitle),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          decoration: InputDecoration(hintText: context.l10n.libraryDocumentNameHint),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(context.l10n.actionCancel)),
-          FilledButton(
-              onPressed: () => Navigator.pop(ctx, ctrl.text),
-              child: Text(context.l10n.actionSave)),
-        ],
+      builder: (ctx) => TextEditDialog(
+        title: context.l10n.libraryRenameTitle,
+        initialValue: doc.title,
+        hint: context.l10n.libraryDocumentNameHint,
       ),
     );
-    ctrl.dispose();
     if (result != null && result.trim().isNotEmpty) {
       await ref.read(documentRepositoryProvider).updateDocument(
             DocumentsCompanion(

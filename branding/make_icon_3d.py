@@ -60,12 +60,13 @@ VARIANTS = {
         bg_glow=(255, 138, 61),
         bg_glow_at=(0.78, 0.86),
         bg_glow_strength=0.55,
-        sheet=(252, 250, 255),
-        sheet_shade=(196, 186, 226),
+        sheet=(255, 254, 255),
+        sheet_shade=(206, 198, 232),
         beam=(120, 231, 255),
         ribbon=(255, 179, 0),
         ribbon_dark=(199, 110, 12),
-        device=(46, 34, 88),
+        device=(108, 96, 160),
+        outline=(236, 240, 255),
     ),
     # Brand-matched: the existing ADAK near-black + gold identity, lifted into
     # 3D. Most consistent with the current store art and wordmark.
@@ -75,12 +76,13 @@ VARIANTS = {
         bg_glow=(255, 179, 0),
         bg_glow_at=(0.72, 0.80),
         bg_glow_strength=0.50,
-        sheet=(251, 247, 234),
-        sheet_shade=(188, 176, 148),
+        sheet=(255, 252, 244),
+        sheet_shade=(196, 186, 162),
         beam=(255, 216, 115),
         ribbon=(255, 179, 0),
         ribbon_dark=(160, 88, 8),
-        device=(58, 56, 66),
+        device=(142, 136, 129),
+        outline=(255, 246, 226),
     ),
     # Deep teal→emerald with an amber stroke. Reads as "trustworthy utility"
     # and is the most distinct from the blue-heavy scanner-app category.
@@ -90,12 +92,13 @@ VARIANTS = {
         bg_glow=(255, 214, 102),
         bg_glow_at=(0.76, 0.84),
         bg_glow_strength=0.48,
-        sheet=(250, 253, 252),
-        sheet_shade=(176, 205, 199),
+        sheet=(255, 255, 254),
+        sheet_shade=(188, 214, 208),
         beam=(186, 255, 236),
         ribbon=(255, 168, 38),
         ribbon_dark=(178, 92, 10),
-        device=(14, 46, 54),
+        device=(76, 118, 124),
+        outline=(232, 255, 248),
     ),
 }
 
@@ -301,6 +304,38 @@ def _edge_light(canvas, mask, colour, *, inner=0.0030, outer=0.0105,
         edge = edge * (0.25 + 0.75 * facing)
     col = np.array(colour, np.float32) / 255.0
     return np.clip(canvas + edge[..., None] * col * strength, 0, 1)
+
+
+def _outline_light(canvas, masks, v, *, tight=0.0024, glow=0.014,
+                   tight_strength=0.52, glow_strength=0.11):
+    """A defining light hugging the *outside* of the combined silhouette.
+
+    A lighter shell has less value break against the background, so the mark's
+    outer border stops carrying itself at small sizes. This adds it back: a
+    narrow bright outline for definition plus a wider, weaker bloom so the
+    outline doesn't read as a sticker cut-out.
+
+    `blur(mask) - mask` is ~0 inside the shape, so both bands fall entirely
+    outside it and no interior detail is touched.
+    """
+    union = np.clip(np.maximum.reduce([f32(m) for m in masks]), 0, 1)
+    union_img = Image.fromarray((union * 255).astype(np.uint8), "L")
+
+    edge = np.clip(f32(blur(union_img, tight * R)) - union, 0, 1)
+    bloom = np.clip(f32(blur(union_img, glow * R)) - union, 0, 1)
+
+    line_col = np.array(v["outline"], np.float32) / 255.0
+    glow_col = np.array(v["beam"], np.float32) / 255.0
+    canvas = canvas + edge[..., None] * line_col * tight_strength
+    canvas = canvas + bloom[..., None] * glow_col * glow_strength
+
+    # Hand back silhouette-plus-outline as a mask. The outline is painted
+    # *outside* the shapes, so if it isn't folded into the mark alpha the
+    # Android adaptive cut-out clips it off and the adaptive icon loses the
+    # definition the outline exists to provide.
+    halo = Image.fromarray(
+        (np.clip(union + edge, 0, 1) * 255).astype(np.uint8), "L")
+    return np.clip(canvas, 0, 1), halo
 
 
 def _signature(canvas, cx, cy, half_w, v, *, thickness=0.0195):
@@ -586,18 +621,18 @@ def _mark_scanner(v: dict, ctx: dict):
     # into the page; the value break is what separates them at 48px.
     canvas = drop_shadow(canvas, body, dx=0, dy=R * 0.030,
                          radius=R * 0.046, opacity=0.55)
-    shell_grad = (1.0 - (w - 0.52) * 0.45)[..., None]
+    shell_grad = (1.0 - (w - 0.52) * 0.30)[..., None]
     canvas = _clay(canvas, body, v["device"], soften=R * 0.024, relief=R * 0.70,
-                   ambient=0.58, diffuse=0.56, spec=0.50, power=44, rim=0.06,
+                   ambient=0.54, diffuse=0.50, spec=0.46, power=48, rim=0.08,
                    albedo_grad=shell_grad)
-    canvas = _edge_light(canvas, body, v["ribbon"], u=u, w=w, strength=0.85)
+    canvas = _edge_light(canvas, body, v["ribbon"], u=u, w=w, strength=0.55)
     masks.append(body)
 
     # Slot: a recess cut into the shell, with the scan light inside it.
     slot = rounded_rect(
         (cx - R * 0.244, body_top + R * 0.036,
          cx + R * 0.244, body_top + R * 0.086), R * 0.025)
-    canvas = composite(canvas, np.zeros_like(canvas), f32(slot) * 0.62)
+    canvas = composite(canvas, np.zeros_like(canvas), f32(slot) * 0.48)
     masks.append(slot)
 
     canvas, bar = _light_bar(
@@ -615,6 +650,8 @@ def _mark_scanner(v: dict, ctx: dict):
                    ambient=0.82, diffuse=0.28, spec=0.8, power=60, rim=0.0)
     masks.append(pip)
 
+    canvas, halo = _outline_light(canvas, masks, v)
+    masks.append(halo)
     return _finish(canvas, u, w), masks
 
 
@@ -643,11 +680,11 @@ def _mark_printer(v: dict, ctx: dict):
         R * 0.066)
     canvas = drop_shadow(canvas, body, dx=0, dy=R * 0.028,
                          radius=R * 0.044, opacity=0.52)
-    shell_grad = (1.0 - (w - 0.30) * 0.45)[..., None]
+    shell_grad = (1.0 - (w - 0.30) * 0.30)[..., None]
     canvas = _clay(canvas, body, v["device"], soften=R * 0.026, relief=R * 0.70,
-                   ambient=0.58, diffuse=0.56, spec=0.50, power=44, rim=0.06,
+                   ambient=0.54, diffuse=0.50, spec=0.46, power=48, rim=0.08,
                    albedo_grad=shell_grad)
-    canvas = _edge_light(canvas, body, v["ribbon"], u=u, w=w, strength=0.85)
+    canvas = _edge_light(canvas, body, v["ribbon"], u=u, w=w, strength=0.55)
     masks.append(body)
 
     # Output slit, lit from inside.
@@ -655,7 +692,7 @@ def _mark_printer(v: dict, ctx: dict):
     slot = rounded_rect(
         (cx - R * 0.246, slot_y, cx + R * 0.246, slot_y + R * 0.050),
         R * 0.025)
-    canvas = composite(canvas, np.zeros_like(canvas), f32(slot) * 0.62)
+    canvas = composite(canvas, np.zeros_like(canvas), f32(slot) * 0.48)
     masks.append(slot)
 
     canvas, bar = _light_bar(
@@ -690,6 +727,8 @@ def _mark_printer(v: dict, ctx: dict):
                              thickness=0.0180)
     masks.append(sig)
 
+    canvas, halo = _outline_light(canvas, masks, v)
+    masks.append(halo)
     return _finish(canvas, u, w), masks
 
 

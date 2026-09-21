@@ -8,6 +8,7 @@ import '../../../core/services/iap_service.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
+import '../../../shared/widgets/text_edit_dialog.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/l10n_ext.dart';
 
@@ -213,31 +214,15 @@ class _ProfileField extends StatelessWidget {
       subtitle: Text(value.isEmpty ? context.l10n.settingsTapToSet : value),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
-        final ctrl = TextEditingController(text: value);
-        try {
-          final result = await showDialog<String>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text(context.l10n.settingsEditLabel(label)),
-              content: TextField(
-                controller: ctrl,
-                autofocus: true,
-                decoration: InputDecoration(hintText: label),
-              ),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    child: Text(context.l10n.actionCancel)),
-                FilledButton(
-                    onPressed: () => Navigator.pop(ctx, ctrl.text),
-                    child: Text(context.l10n.actionSave)),
-              ],
-            ),
-          );
-          if (result != null) await onSave(result);
-        } finally {
-          ctrl.dispose();
-        }
+        final result = await showDialog<String>(
+          context: context,
+          builder: (ctx) => TextEditDialog(
+            title: context.l10n.settingsEditLabel(label),
+            initialValue: value,
+            hint: label,
+          ),
+        );
+        if (result != null) await onSave(result);
       },
     );
   }
