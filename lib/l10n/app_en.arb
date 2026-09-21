@@ -1,0 +1,424 @@
+{
+  "@@locale": "en",
+  "appTitle": "Scan Sign Send",
+  "@appTitle": {
+    "description": "Product name. Kept untranslated in every locale."
+  },
+  "actionCancel": "Cancel",
+  "actionSave": "Save",
+  "actionDelete": "Delete",
+  "actionRemove": "Remove",
+  "actionConfirm": "Confirm",
+  "actionBack": "Back",
+  "actionSkip": "Skip",
+  "actionNext": "Next",
+  "actionOpen": "Open",
+  "actionEdit": "Edit",
+  "actionShare": "Share",
+  "actionTryAgain": "Try Again",
+  "actionClear": "Clear",
+  "documentFallbackTitle": "Document",
+  "@documentFallbackTitle": {
+    "description": "Placeholder name for a document with no title."
+  },
+  "errorGenericTitle": "Something went wrong here.",
+  "errorGenericBody": "Try going back and reopening this document.",
+  "lockTitle": "Scan Sign Send is locked",
+  "lockBody": "Unlock with Face ID or your fingerprint to continue.",
+  "lockUnlock": "Unlock",
+  "onboardScanTitle": "Scan",
+  "onboardScanBody": "Use your camera to scan any paper document. Auto-detects edges and cleans up the image automatically.",
+  "onboardSignTitle": "Sign",
+  "onboardSignBody": "Tap fields to fill them in. Add your signature with your finger. Your data never leaves your device.",
+  "onboardSendTitle": "Send",
+  "onboardSendBody": "Share the signed PDF via Mail, Messages, AirDrop, or any app. One-time purchase — unlimited documents forever.",
+  "onboardGetStarted": "Get Started",
+  "librarySearchHint": "Search documents…",
+  "libraryTabAll": "All",
+  "libraryTabDraft": "Draft",
+  "libraryTabCompleted": "Completed",
+  "libraryTabTemplate": "Template",
+  "libraryImportTooltip": "Import PDF / Image",
+  "libraryNewScan": "New Scan",
+  "libraryRenameTooltip": "Rename",
+  "libraryUseTemplate": "Use Template",
+  "libraryDeleteTitle": "Delete Document?",
+  "libraryDeleteBody": "Delete \"{title}\"? This cannot be undone.",
+  "@libraryDeleteBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryRenameTitle": "Rename Document",
+  "libraryDocumentNameHint": "Document name",
+  "libraryUseTemplateFailed": "Failed to use template: {error}",
+  "@libraryUseTemplateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "statusCompleted": "Completed",
+  "statusEditable": "Editable",
+  "statusTemplate": "Template",
+  "statusDraft": "Draft",
+  "emptyDraftsTitle": "No drafts",
+  "emptyDraftsBody": "Start a new scan to create a draft.",
+  "emptyPressedTitle": "No pressed documents",
+  "emptyPressedBody": "Fill and press a draft to see it here.",
+  "emptyTemplatesTitle": "No templates yet",
+  "emptyTemplatesBody": "When you press a document, a reusable\ntemplate is saved here automatically.",
+  "emptyAllTitle": "No documents yet",
+  "emptyAllBody": "Tap \"New Scan\" to get started.\nScan → Sign → Send.",
+  "searchNoResults": "No results for \"{query}\"",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "captureTitle": "Scan Document",
+  "captureLaunching": "Launching scanner…",
+  "captureSavingPages": "Saving pages…",
+  "captureImporting": "Importing…",
+  "captureScanFailed": "Scan failed: {error}",
+  "@captureScanFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "captureImportFailed": "Import failed: {error}",
+  "@captureImportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "captureScanWithCamera": "Scan with Camera",
+  "captureImportPdfImage": "Import PDF / Image",
+  "captureUpTo20Pages": "Up to 20 pages per scan",
+  "captureDefaultDocumentName": "Document {date}",
+  "@captureDefaultDocumentName": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewTitle": "Review Pages",
+  "reviewSaveOrder": "Save Order",
+  "reviewNoPagesFound": "No pages found.",
+  "reviewDetectFields": "Detect Fields →",
+  "reviewRotateFailed": "Rotate failed: {error}",
+  "@reviewRotateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewDeletePageTitle": "Delete Page?",
+  "reviewDeletePageBody": "Remove page {number}?",
+  "@reviewDeletePageBody": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewPageOf": "Page {current} of {total}",
+  "@reviewPageOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewRotateTooltip": "Rotate 90°",
+  "reviewDeletePageTooltip": "Delete page",
+  "filterOriginal": "Original",
+  "filterEnhanced": "Enhanced",
+  "filterBw": "B&W",
+  "@filterBw": {
+    "description": "Black and white image filter. Abbreviate if the locale has a common short form."
+  },
+  "detectTitle": "Detect Fields",
+  "detectFormFieldsFoundTitle": "Form fields detected",
+  "detectFormFieldsFoundBody": "This PDF already contains form fields.\nYou can add your own fields manually or continue directly to fill.",
+  "detectContinueToFill": "Continue to Fill",
+  "detectConfirmAll": "Confirm All",
+  "detectStarting": "Starting…",
+  "detectReading": "Reading your document…",
+  "detectAnalysingPage": "Analysing page {current} of {total}…",
+  "@detectAnalysingPage": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "detectUnknownError": "Unknown error",
+  "detectOnDeviceNote": "All processing happens on-device.",
+  "detectFailed": "Detection failed",
+  "detectNoPages": "No pages.",
+  "detectSkipToFill": "Skip to Fill →",
+  "detectFillFieldsCount": "Fill Fields ({count}) →",
+  "@detectFillFieldsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detectBadgeText": "TEXT",
+  "detectBadgeDate": "DATE",
+  "detectBadgeCheck": "CHECK",
+  "detectBadgeSign": "SIGN",
+  "@detectBadgeSign": {
+    "description": "Short uppercase badge on a signature field overlay. Keep very short."
+  },
+  "detectEditField": "Edit Field",
+  "detectFieldType": "Type",
+  "detectFieldLabelHint": "Label / field name",
+  "detectRequiredField": "Required field",
+  "detectAddField": "Add Field",
+  "detectAddTypedField": "Add {type} Field",
+  "@detectAddTypedField": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldTypeText": "Text",
+  "fieldTypeDate": "Date",
+  "fieldTypeCheckbox": "Checkbox",
+  "fieldTypeSignature": "Signature",
+  "fieldTypeCheckShort": "Check",
+  "fieldTypeSignShort": "Sign",
+  "fillFallbackTitle": "Fill Document",
+  "fillReviewAndFinish": "Review & Finish",
+  "fillNoPages": "This document has no pages.",
+  "fillTextFieldFallback": "Text Field",
+  "fillEnterValueHint": "Enter value…",
+  "fillChipName": "Name",
+  "fillChipEmail": "Email",
+  "fillChipPhone": "Phone",
+  "fillChipAddress": "Address",
+  "fillChipCompany": "Company",
+  "fillChipToday": "Today",
+  "fillTapToFill": "Tap to fill…",
+  "fillTapForDate": "Tap for date…",
+  "fillTapToCheck": "Tap to check",
+  "fillTapToSign": "Tap to sign…",
+  "fillPdfNotFound": "PDF not found",
+  "fillImageNotFound": "Image not found",
+  "fillScanOrImport": "Scan or import a new document",
+  "pressTitle": "Review & Finish",
+  "pressFieldSummary": "Field Summary",
+  "pressFilled": "Filled",
+  "pressUnfilled": "Unfilled",
+  "pressSaveDraft": "Save Draft",
+  "pressFlattenAndSign": "Flatten & Sign (locks the document)",
+  "pressExportFailed": "Export failed: {error}",
+  "@pressExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pressConfirmTitle": "Flatten & lock this document?",
+  "pressConfirmBody": "Flattening bakes your entries into a new PDF. The result is permanent — no one can edit it afterward, including you.",
+  "pressConfirmLiveFields": "This document has interactive form fields. Flattening removes them — to keep them editable, choose “Save Draft” instead.",
+  "pressConfirmNote": "Note: a drawn signature here is a visual mark, not a certified digital e-signature.",
+  "pressFlattenAndLock": "Flatten & Lock",
+  "pressFailed": "Press failed: {error}",
+  "@pressFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pressWorking": "Working…",
+  "pressNotFilled": "Not filled",
+  "pressChecked": "Checked ✓",
+  "pressUnchecked": "Unchecked",
+  "pressSignatureCaptured": "Signature captured",
+  "signTitle": "Sign Here",
+  "signSwitchInk": "Switch ink colour",
+  "signSaveAsMine": "Save as my signature",
+  "signReuseSubtitle": "Reuse across future documents",
+  "signSaving": "Saving…",
+  "signUseThis": "Use This Signature",
+  "signDrawFirst": "Please draw your signature first.",
+  "signDefaultLabel": "My Signature",
+  "signSaveFailed": "Failed to save signature: {error}",
+  "@signSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "signaturesTitle": "Saved Signatures",
+  "signaturesEmpty": "No saved signatures yet",
+  "signaturesAdd": "Add Signature",
+  "signaturesDefaultBadge": "Default",
+  "signaturesSetDefault": "Set as Default",
+  "signaturesDeleteTitle": "Delete Signature?",
+  "signaturesDeleteBody": "Delete \"{label}\"?",
+  "@signaturesDeleteBody": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sendTitle": "Send Document",
+  "sendBackToLibrary": "Back to Library",
+  "sendDocumentSent": "Document sent!",
+  "sendReadyToSend": "Ready to send",
+  "sendSharedBody": "The pressed PDF has been shared.",
+  "sendReadyBody": "Share your pressed PDF via Mail, Messages, AirDrop, or any app.",
+  "sendOpeningShareSheet": "Opening share sheet…",
+  "sendSharePressed": "Share Pressed Document",
+  "sendPreviewDocument": "Preview Document",
+  "sendShareAgain": "Share Again",
+  "sendNotYetPressed": "Document not yet pressed.",
+  "sendPressedPdfNotFound": "Pressed PDF file not found.",
+  "sendShareMessage": "Signed with Scan Sign Send",
+  "@sendShareMessage": {
+    "description": "Body text attached to the outgoing share. Keep the product name untranslated."
+  },
+  "sendShareFailed": "Share failed: {error}",
+  "@sendShareFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "viewerPdfNotFound": "PDF file not found.",
+  "viewerSearchHint": "Search in document…",
+  "viewerSearchTooltip": "Search",
+  "viewerNoExportedPdf": "No exported PDF to view yet",
+  "viewerNoExportedPdfBody": "Fill and export this document (draft or flattened) to view it here.",
+  "settingsTitle": "Settings",
+  "settingsSectionProfile": "My Profile",
+  "settingsSectionSignatures": "Signatures",
+  "settingsSectionSecurity": "Security",
+  "settingsSectionAi": "AI Detection (v1.1)",
+  "settingsSectionPurchase": "Purchase",
+  "settingsFullName": "Full Name",
+  "settingsEmail": "Email",
+  "settingsPhone": "Phone",
+  "settingsAddress": "Address",
+  "settingsCity": "City",
+  "settingsState": "State",
+  "settingsZip": "ZIP",
+  "@settingsZip": {
+    "description": "Postal code label. Use the local term (e.g. Code postal, CP, PIN)."
+  },
+  "settingsCompany": "Company",
+  "settingsManageSignatures": "Manage Signatures",
+  "settingsBiometricLock": "Biometric App Lock",
+  "settingsBiometricLockSubtitle": "Require Face ID / fingerprint on launch",
+  "settingsNoBiometrics": "No biometrics enrolled on this device. Set up Face ID / fingerprint first.",
+  "settingsAiDetection": "Enhanced AI Detection",
+  "settingsAiDetectionSubtitle": "Uses on-device model for smarter field recognition",
+  "settingsUnlockFullAccess": "Unlock Full Access",
+  "settingsUnlockSubtitle": "One-time purchase — see price",
+  "settingsRestorePurchase": "Restore Purchase",
+  "settingsFullAccessUnlocked": "Full Access Unlocked",
+  "settingsThankYou": "Thank you for your purchase!",
+  "settingsCheckingPurchases": "Checking for previous purchases…",
+  "settingsRestored": "Full access restored. Thank you!",
+  "settingsNoPreviousPurchase": "No previous purchase found on this account.",
+  "settingsRestoreFailed": "Restore failed: {error}",
+  "@settingsRestoreFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTapToSet": "Tap to set",
+  "settingsEditLabel": "Edit {label}",
+  "@settingsEditLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallTitle": "Unlock Full Access",
+  "paywallHeadline": "Scan Sign Send — Full Access",
+  "paywallSubhead": "One-time purchase. No subscription. No account.",
+  "paywallBenefitUnlimited": "Unlimited documents",
+  "paywallBenefitTemplates": "Reusable templates",
+  "paywallBenefitSignatures": "Multiple saved signatures",
+  "paywallBenefitAutofill": "Profile autofill",
+  "paywallBenefitLock": "Biometric app lock",
+  "paywallBenefitOffline": "Always offline — your data stays on device",
+  "paywallUnlockForPrice": "Unlock — {price}",
+  "@paywallUnlockForPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    },
+    "description": "Price comes pre-formatted from the store; never reformat it."
+  },
+  "paywallRestore": "Restore Purchase",
+  "paywallPaymentDisclosure": "Payment charged to your App Store / Play account at confirmation.",
+  "paywallNoPreviousPurchase": "No previous purchase found on this account.",
+  "dateFormatShort": "MMM d, yyyy",
+  "@dateFormatShort": {
+    "description": "intl skeleton for the Library card date. Reorder tokens for the locale; do not translate the letters."
+  },
+  "dateFormatInput": "MM/dd/yyyy",
+  "@dateFormatInput": {
+    "description": "intl pattern used when writing a date into a form field. Use the locale's conventional order, e.g. dd/MM/yyyy."
+  },
+  "biometricReason": "Unlock Scan Sign Send",
+  "certTitle": "Signing Certificate",
+  "certDocument": "Document",
+  "certSignedOn": "Signed on",
+  "certMethod": "Method",
+  "certMethodValue": "On-device (Scan Sign Send)",
+  "certNote": "Note",
+  "certNoteValue": "Signatures captured locally. No cloud processing.",
+  "certDateFormat": "MMMM d, yyyy — h:mm a",
+  "importErrorUnreadable": "This PDF couldn't be opened. It may be password-protected or damaged.",
+  "importErrorNoPages": "This PDF has no pages.",
+  "pressErrorNoPages": "This document has no pages to press.",
+  "exportErrorNoPages": "This document has no pages to export.",
+  "iapUnavailable": "In-app purchases are unavailable on this device.",
+  "iapProductNotFound": "Product not found in store.",
+  "@certDateFormat": {
+    "description": "intl pattern for the signing-certificate timestamp. Reorder tokens for the locale; use HH:mm where 24-hour time is conventional."
+  },
+  "detectFieldsFound": "{count, plural, =0{No fields found} =1{1 field found} other{{count} fields found}}",
+  "@detectFieldsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

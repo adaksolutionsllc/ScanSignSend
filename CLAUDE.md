@@ -39,6 +39,25 @@ lib/
     widgets/         # Reusable widgets
 ```
 
+## Localization
+7 locales: **en, fr, es, pt, hi, ta, te**. Source of truth is `lib/l10n/app_en.arb`;
+generated classes land in `lib/l10n/app_localizations*.dart` (committed).
+
+```bash
+flutter gen-l10n     # after editing any .arb
+```
+
+Rules:
+- Reach strings via `context.l10n.someKey` (extension in `core/utils/l10n_ext.dart`).
+- Resolve strings **before** an `await` — `context` is unsafe across async gaps.
+- Code with no BuildContext (services, isolates) must not hold user-facing text.
+  Throw a typed exception or take the translated string as a parameter — see
+  `ImportException`, `PressCertificateStrings`.
+- Adding a key means adding it to **all 7** files;
+  `test/l10n_completeness_test.dart` fails the build otherwise.
+- Syncfusion must stay on 28.x+ — 27.x caps `intl` below what
+  `flutter_localizations` pins.
+
 ## Codegen
 Always run after touching `app_database.dart` or any `@riverpod` annotation:
 ```bash

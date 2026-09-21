@@ -8,6 +8,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/utils/path_resolver.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 /// First-class PDF viewer: pinch-zoom, page navigation, and in-document text
 /// search. Opens the document's exported PDF (pressed/fillable) when present,
@@ -80,20 +81,20 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
                     controller: _searchController,
                     onSubmit: _runSearch,
                   )
-                : Text(doc?.title ?? 'Document'),
+                : Text(doc?.title ?? context.l10n.documentFallbackTitle),
             actions: _searching
                 ? _searchActions()
                 : [
                     IconButton(
-                      tooltip: 'Share',
+                      tooltip: context.l10n.actionShare,
                       icon: const Icon(Icons.share),
                       onPressed: (path != null)
                           ? () => _share(context, path,
-                              doc?.title ?? 'Document')
+                              doc?.title ?? context.l10n.documentFallbackTitle)
                           : null,
                     ),
                     IconButton(
-                      tooltip: 'Search',
+                      tooltip: context.l10n.viewerSearchTooltip,
                       icon: const Icon(Icons.search),
                       onPressed: (path != null)
                           ? () => setState(() => _searching = true)
@@ -171,11 +172,13 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
     final messenger = ScaffoldMessenger.of(context);
     if (!File(pdfPath).existsSync()) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('PDF file not found.')),
+        SnackBar(content: Text(context.l10n.viewerPdfNotFound)),
       );
       return;
     }
     // iOS needs a non-zero source rect to anchor the share popover.
+    // Resolve strings before the await — `context` is unsafe past the gap.
+    final l10n = context.l10n;
     final box = context.findRenderObject() as RenderBox?;
     final origin = (box != null && box.hasSize)
         ? box.localToGlobal(Offset.zero) & box.size
@@ -184,11 +187,11 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
       await Share.shareXFiles(
         [XFile(pdfPath, mimeType: 'application/pdf')],
         subject: title,
-        text: 'Signed with Scan Sign Send',
+        text: l10n.sendShareMessage,
         sharePositionOrigin: origin,
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Share failed: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.sendShareFailed('$e'))));
     }
   }
 
@@ -250,8 +253,8 @@ class _SearchField extends StatelessWidget {
       textInputAction: TextInputAction.search,
       style: const TextStyle(color: Colors.white),
       cursorColor: Colors.white,
-      decoration: const InputDecoration(
-        hintText: 'Search in document…',
+      decoration: InputDecoration(
+        hintText: context.l10n.viewerSearchHint,
         hintStyle: TextStyle(color: Colors.white70),
         border: InputBorder.none,
       ),
@@ -283,7 +286,7 @@ class _PageBar extends StatelessWidget {
           children: [
             IconButton(
                 icon: const Icon(Icons.chevron_left), onPressed: onPrev),
-            Text('Page $current of $total'),
+            Text(context.l10n.reviewPageOf(current, total)),
             IconButton(
                 icon: const Icon(Icons.chevron_right), onPressed: onNext),
           ],
@@ -307,11 +310,11 @@ class _NoPdf extends StatelessWidget {
             const Icon(Icons.picture_as_pdf_outlined,
                 size: 64, color: Colors.grey),
             const SizedBox(height: 12),
-            Text('No exported PDF to view yet',
+            Text(context.l10n.viewerNoExportedPdf,
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
-            const Text(
-              'Fill and export this document (draft or flattened) to view it here.',
+            Text(
+              context.l10n.viewerNoExportedPdfBody,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey),
             ),

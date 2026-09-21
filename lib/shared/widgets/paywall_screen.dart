@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/iap_service.dart';
+import '../../core/utils/l10n_ext.dart';
 
 /// Full-screen paywall shown when the user has exhausted free scans.
 class PaywallScreen extends ConsumerStatefulWidget {
@@ -31,7 +32,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Unlock Full Access'),
+        title: Text(context.l10n.paywallTitle),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
@@ -45,12 +46,12 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             const Icon(Icons.workspace_premium,
                 size: 80, color: Color(0xFF1A73E8)),
             const SizedBox(height: 24),
-            Text('Scan Sign Send — Full Access',
+            Text(context.l10n.paywallHeadline,
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              'One-time purchase. No subscription. No account.',
+              context.l10n.paywallSubhead,
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge
@@ -61,12 +62,12 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
             // Feature list
             ...[
-              (Icons.all_inclusive, 'Unlimited documents'),
-              (Icons.layers, 'Reusable templates'),
-              (Icons.draw, 'Multiple saved signatures'),
-              (Icons.person, 'Profile autofill'),
-              (Icons.lock_outline, 'Biometric app lock'),
-              (Icons.cloud_off, 'Always offline — your data stays on device'),
+              (Icons.all_inclusive, context.l10n.paywallBenefitUnlimited),
+              (Icons.layers, context.l10n.paywallBenefitTemplates),
+              (Icons.draw, context.l10n.paywallBenefitSignatures),
+              (Icons.person, context.l10n.paywallBenefitAutofill),
+              (Icons.lock_outline, context.l10n.paywallBenefitLock),
+              (Icons.cloud_off, context.l10n.paywallBenefitOffline),
             ].map((row) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Row(
@@ -107,11 +108,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             const SizedBox(height: 12),
             TextButton(
               onPressed: _loading ? null : _restore,
-              child: const Text('Restore Purchase'),
+              child: Text(context.l10n.paywallRestore),
             ),
             const SizedBox(height: 8),
             Text(
-              'Payment charged to your App Store / Play account at confirmation.',
+              context.l10n.paywallPaymentDisclosure,
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
@@ -152,7 +153,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         Navigator.of(context).pop();
       } else {
         setState(() =>
-            _error = 'No previous purchase found on this account.');
+            _error = context.l10n.paywallNoPreviousPurchase);
       }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());

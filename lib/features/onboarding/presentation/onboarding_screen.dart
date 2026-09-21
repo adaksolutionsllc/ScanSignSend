@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 const _kOnboardingDone = 'onboarding_done';
 
@@ -15,29 +16,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _page = 0;
 
-  static const _pages = [
-    _OnboardingPage(
-      icon: Icons.document_scanner,
-      color: Color(0xFF1A73E8),
-      title: 'Scan',
-      subtitle:
-          'Use your camera to scan any paper document. Auto-detects edges and cleans up the image automatically.',
-    ),
-    _OnboardingPage(
-      icon: Icons.draw,
-      color: Color(0xFF6A1B9A),
-      title: 'Sign',
-      subtitle:
-          'Tap fields to fill them in. Add your signature with your finger. Your data never leaves your device.',
-    ),
-    _OnboardingPage(
-      icon: Icons.send,
-      color: Color(0xFF2E7D32),
-      title: 'Send',
-      subtitle:
-          'Share the signed PDF via Mail, Messages, AirDrop, or any app. One-time purchase — unlimited documents forever.',
-    ),
-  ];
+  /// Built per-build rather than as a `static const` list: the copy is
+  /// localized, so it can only be resolved once a BuildContext exists.
+  List<_OnboardingPage> _buildPages(BuildContext context) => [
+        _OnboardingPage(
+          icon: Icons.document_scanner,
+          color: const Color(0xFF1A73E8),
+          title: context.l10n.onboardScanTitle,
+          subtitle: context.l10n.onboardScanBody,
+        ),
+        _OnboardingPage(
+          icon: Icons.draw,
+          color: const Color(0xFF6A1B9A),
+          title: context.l10n.onboardSignTitle,
+          subtitle: context.l10n.onboardSignBody,
+        ),
+        _OnboardingPage(
+          icon: Icons.send,
+          color: const Color(0xFF2E7D32),
+          title: context.l10n.onboardSendTitle,
+          subtitle: context.l10n.onboardSendBody,
+        ),
+      ];
+
 
   @override
   void dispose() {
@@ -47,6 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = _buildPages(context);
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -54,16 +56,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _controller,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 onPageChanged: (i) => setState(() => _page = i),
-                itemBuilder: (context, i) => _pages[i],
+                itemBuilder: (context, i) => pages[i],
               ),
             ),
 
             // Dots
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_pages.length, (i) {
+              children: List.generate(pages.length, (i) {
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -71,7 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   height: 8,
                   decoration: BoxDecoration(
                     color: _page == i
-                        ? _pages[_page].color
+                        ? pages[_page].color
                         : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -90,27 +92,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                       ),
-                      child: const Text('Back'),
+                      child: Text(context.l10n.actionBack),
                     )
                   else
                     TextButton(
                       onPressed: _finish,
-                      child: const Text('Skip'),
+                      child: Text(context.l10n.actionSkip),
                     ),
                   const Spacer(),
                   FilledButton(
-                    onPressed: _page == _pages.length - 1
+                    onPressed: _page == pages.length - 1
                         ? _finish
                         : () => _controller.nextPage(
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeInOut,
                             ),
                     style: FilledButton.styleFrom(
-                      backgroundColor: _pages[_page].color,
+                      backgroundColor: pages[_page].color,
                       minimumSize: const Size(120, 48),
                     ),
                     child: Text(
-                        _page == _pages.length - 1 ? 'Get Started' : 'Next'),
+                        _page == pages.length - 1 ? context.l10n.onboardGetStarted : context.l10n.actionNext),
                   ),
                 ],
               ),

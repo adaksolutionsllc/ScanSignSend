@@ -1,0 +1,7 @@
+# Flutter gen-l10n configuration.
+# Regenerate after editing any .arb file:  flutter gen-l10n   (or flutter pub get)
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

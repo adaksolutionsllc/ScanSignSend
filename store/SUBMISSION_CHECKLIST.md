@@ -19,6 +19,13 @@ Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
   `FLAG_SECURE` when the lock is on
 - ✅ Deleting a document deletes its files on disk, not just its DB rows
 - ✅ iOS deployment target 15.0 (Xcode 26+ refuses to build below 15.0)
+- ✅ Localized into 7 languages — EN, FR, ES, PT, HI, TA, TE (`lib/l10n/*.arb`,
+  `CFBundleLocalizations` in Info.plist, guarded by
+  `test/l10n_completeness_test.dart`)
+- ✅ Dates, the biometric prompt and the PDF signing certificate all follow the
+  active locale
+- ✅ Syncfusion on the 28.x line — 27.x caps `intl` below what
+  `flutter_localizations` pins, so localization is unresolvable there
 - ✅ `MainActivity` → `FlutterFragmentActivity` (required for biometric lock)
 - ✅ ML Kit document scanner bumped off `-beta1` to stable `16.0.0`
 - ✅ IAP wired to live store price ($14.99 fallback), product `com.adakVentures.fullaccess`
@@ -66,10 +73,33 @@ Both answers are the same: **no data collected, no tracking.**
 - Is all data encrypted in transit? N/A (no data leaves the device)
 - Data deletion: users can delete all data by uninstalling.
 
+## 4b. Pricing ⬜
+See **`store/PRICING.md`** for the full rationale. Summary:
+- ⬜ $14.99 in tier-1 markets (not higher at launch — raising later is easy)
+- ⬜ **Override auto-conversion** for India (₹499), Brazil (R$29.90), Mexico,
+  SE Asia, Turkey, Eastern Europe and LatAm. Default conversion would price the
+  app at ~₹1,250 in India, which is a decision not to sell there — and the app
+  now ships in Hindi, Tamil and Telugu specifically to reach those users.
+- ⬜ No subscription. It would trade away the only thing the incumbents can't copy.
+
+---
+
 ## 5. Store listing content ⬜
 - ⬜ Copy fields from `STORE_LISTING.md`
 - ⬜ Host `PRIVACY_POLICY.md` at a public URL; add it to both consoles (Play **requires** a privacy policy URL)
 - ⬜ Support URL / email live
+
+## 5b. Localized store listings ⬜
+The app is translated but the *listing* is not — that is a separate surface in
+both consoles, and an English listing in the Indian or Brazilian store undoes
+much of the benefit of the in-app translation.
+- ⬜ App Store Connect → add fr, es, pt, hi, ta, te localizations (name,
+  subtitle, description, keywords, screenshots)
+- ⬜ Play Console → Main store listing → add the same languages
+- ⬜ Keep the product name "Scan Sign Send" untranslated in every locale
+- ⬜ Localized keywords matter more than localized descriptions for discovery
+
+---
 
 ## 6. Screenshots & graphics ⬜
 Capture on a real device or simulator (status bar clean; use the built-in demo doc).

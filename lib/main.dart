@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/services/app_lock_provider.dart';
+import 'core/utils/l10n_ext.dart';
 import 'core/utils/path_resolver.dart';
 import 'core/utils/router.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
@@ -43,23 +44,30 @@ class _FriendlyErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // This renders because some other widget's build threw, so the surrounding
+    // Localizations scope may not be reachable. Fall back to English rather
+    // than replacing one failure with another.
+    final l10n =
+        Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Material(
       color: Theme.of(context).colorScheme.surface,
-      child: const Center(
+      child: Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.sentiment_dissatisfied_outlined,
+              const Icon(Icons.sentiment_dissatisfied_outlined,
                   size: 48, color: Colors.grey),
-              SizedBox(height: 12),
-              Text('Something went wrong here.',
+              const SizedBox(height: 12),
+              Text(l10n?.errorGenericTitle ?? 'Something went wrong here.',
                   textAlign: TextAlign.center),
-              SizedBox(height: 4),
-              Text('Try going back and reopening this document.',
+              const SizedBox(height: 4),
+              Text(
+                  l10n?.errorGenericBody ??
+                      'Try going back and reopening this document.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  style: const TextStyle(color: Colors.grey, fontSize: 13)),
             ],
           ),
         ),
@@ -96,6 +104,8 @@ class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
             darkTheme: AppTheme.dark,
             themeMode: ThemeMode.system,
             debugShowCheckedModeBanner: false,
+            localizationsDelegates: kLocalizationsDelegates,
+            supportedLocales: kSupportedLocales,
             home: const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
@@ -107,6 +117,8 @@ class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
             darkTheme: AppTheme.dark,
             themeMode: ThemeMode.system,
             debugShowCheckedModeBanner: false,
+            localizationsDelegates: kLocalizationsDelegates,
+            supportedLocales: kSupportedLocales,
             home: OnboardingScreen(
               onDone: () => setState(() {
                 _onboardingDoneFuture = Future.value(true);
@@ -132,6 +144,8 @@ class _MainApp extends ConsumerWidget {
         themeMode: ThemeMode.system,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
+        localizationsDelegates: kLocalizationsDelegates,
+        supportedLocales: kSupportedLocales,
       ),
     );
   }

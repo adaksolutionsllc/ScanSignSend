@@ -14,6 +14,7 @@ import '../../../core/services/scan_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 class CaptureScreen extends ConsumerStatefulWidget {
   const CaptureScreen({super.key});
@@ -24,9 +25,13 @@ class CaptureScreen extends ConsumerStatefulWidget {
 
 class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   bool _loading = false;
-  String _loadingMessage = 'Launching scanner…';
+  String? _loadingMessageKey; // resolved through AppLocalizations in build()
 
   Future<void> _startScan() async {
+    // Resolve the localized default title first: everything below runs past an
+    // async gap, where reading `context` is unsafe.
+    _defaultTitle = context.l10n.captureDefaultDocumentName(_dateStamp());
+
     final profileRepo = ref.read(profileRepositoryProvider);
     final canScan = await profileRepo.canScan();
     if (!canScan && mounted) {
@@ -36,7 +41,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
     setState(() {
       _loading = true;
-      _loadingMessage = 'Launching scanner…';
+      _loadingMessageKey = 'launching';
     });
 
     try {
@@ -48,7 +53,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         return;
       }
 
-      if (mounted) setState(() => _loadingMessage = 'Saving pages…');
+      if (mounted) setState(() => _loadingMessageKey = 'saving');
       final docId = await _saveScannedPages(paths);
       await profileRepo.incrementScanCount();
 
@@ -62,7 +67,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       if (mounted) {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Scan failed: $e')),
+          SnackBar(content: Text(context.l10n.captureScanFailed('$e'))),
         );
       }
     }
@@ -71,7 +76,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   Future<void> _importFile() async {
     setState(() {
       _loading = true;
-      _loadingMessage = 'Importing…';
+      _loadingMessageKey = 'importing';
     });
     try {
       final doc = await ref.read(importServiceProvider).pickAndImport();
@@ -88,12 +93,24 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Import failed: $e')),
-        );
+        // ImportService reports a typed cause so the message can be localized
+        // here; anything else falls back to the generic failure text.
+        final l10n = context.l10n;
+        final message = switch (e) {
+          ImportException(failure: ImportFailure.unreadablePdf) =>
+            l10n.importErrorUnreadable,
+          ImportException(failure: ImportFailure.emptyPdf) =>
+            l10n.importErrorNoPages,
+          _ => l10n.captureImportFailed('$e'),
+        };
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
       }
     }
   }
+
+  /// Captured in the caller (which has a BuildContext) before the async work.
+  String _defaultTitle = 'Document';
 
   Future<int> _saveScannedPages(List<String> tempPaths) async {
     final uuid = const Uuid().v4();
@@ -104,7 +121,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     final docRepo = ref.read(documentRepositoryProvider);
     final pageRepo = ref.read(pageRepositoryProvider);
 
-    final doc = await docRepo.createDocument('Document ${_dateStamp()}');
+    final doc = await docRepo.createDocument(_defaultTitle);
 
     for (var i = 0; i < tempPaths.length; i++) {
       final dest = p.join(pagesDir.path, 'page_$i.jpg');
@@ -149,7 +166,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: const Text('Scan Document'),
+        title: Text(context.l10n.captureTitle),
       ),
       body: _loading
           ? Center(
@@ -159,7 +176,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   const CircularProgressIndicator(color: Colors.white),
                   const SizedBox(height: 20),
                   Text(
-                    _loadingMessage,
+                    switch (_loadingMessageKey) {
+                      'saving' => context.l10n.captureSavingPages,
+                      'importing' => context.l10n.captureImporting,
+                      _ => context.l10n.captureLaunching,
+                    },
                     style: const TextStyle(color: Colors.white70),
                   ),
                 ],
@@ -175,7 +196,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   FilledButton.icon(
                     onPressed: _startScan,
                     icon: const Icon(Icons.camera_alt),
-                    label: const Text('Scan with Camera'),
+                    label: Text(context.l10n.captureScanWithCamera),
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(220, 52),
                     ),
@@ -185,7 +206,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                     onPressed: _importFile,
                     icon: const Icon(Icons.upload_file,
                         color: Colors.white70),
-                    label: const Text('Import PDF / Image',
+                    label: Text(context.l10n.captureImportPdfImage,
                         style: TextStyle(color: Colors.white70)),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.white30),
@@ -193,8 +214,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                     ),
                   ),
                   const SizedBox(height: 48),
-                  const Text(
-                    'Up to 20 pages per scan',
+                  Text(
+                    context.l10n.captureUpTo20Pages,
                     style: TextStyle(color: Colors.white38, fontSize: 12),
                   ),
                 ],

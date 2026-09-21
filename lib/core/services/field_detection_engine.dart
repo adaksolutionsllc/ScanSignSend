@@ -101,7 +101,9 @@ class FieldDetectionEngine {
             results.add(DetectedField(
               type: FieldType.date,
               bbox: _norm(fieldBox, W, H),
-              label: 'Date',
+              // No synthetic label: a stored English word would show
+              // untranslated forever. The UI names untitled fields by type.
+              label: '',
             ));
             seen.add(fieldBox);
           }

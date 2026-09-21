@@ -15,6 +15,7 @@ import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/signature_repository.dart';
 import '../../../core/utils/path_resolver.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 class SignatureCaptureScreen extends ConsumerStatefulWidget {
   const SignatureCaptureScreen({
@@ -42,7 +43,7 @@ class _SignatureCaptureScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign Here'),
+        title: Text(context.l10n.signTitle),
         actions: [
           // Ink colour toggle
           IconButton(
@@ -50,7 +51,7 @@ class _SignatureCaptureScreenState
                 color: _inkColor == Colors.black
                     ? Colors.black
                     : const Color(0xFF0D47A1)),
-            tooltip: 'Switch ink colour',
+            tooltip: context.l10n.signSwitchInk,
             onPressed: () => setState(() {
               _inkColor = _inkColor == Colors.black
                   ? const Color(0xFF0D47A1)
@@ -59,7 +60,7 @@ class _SignatureCaptureScreenState
           ),
           TextButton(
             onPressed: () => _padKey.currentState?.clear(),
-            child: const Text('Clear'),
+            child: Text(context.l10n.actionClear),
           ),
         ],
       ),
@@ -90,8 +91,8 @@ class _SignatureCaptureScreenState
           ),
           // Save-as-default toggle
           SwitchListTile(
-            title: const Text('Save as my signature'),
-            subtitle: const Text('Reuse across future documents'),
+            title: Text(context.l10n.signSaveAsMine),
+            subtitle: Text(context.l10n.signReuseSubtitle),
             value: _saveAsDefault,
             onChanged: (v) => setState(() => _saveAsDefault = v),
           ),
@@ -112,7 +113,9 @@ class _SignatureCaptureScreenState
                       )
                     : const Icon(Icons.check),
                 label:
-                    Text(_saving ? 'Saving…' : 'Use This Signature'),
+                    Text(_saving
+                        ? context.l10n.signSaving
+                        : context.l10n.signUseThis),
               ),
             ),
           ),
@@ -123,6 +126,8 @@ class _SignatureCaptureScreenState
 
   Future<void> _onSave() async {
     setState(() => _saving = true);
+    // Resolve before any await — `context` is unsafe past an async gap.
+    final l10n = context.l10n;
     try {
       // Capture the pad directly (high-res), then crop to the ink's bounding box
       // and knock out the white background so the signature fills its field on
@@ -146,7 +151,7 @@ class _SignatureCaptureScreenState
         setState(() => _saving = false);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please draw your signature first.')),
+            SnackBar(content: Text(context.l10n.signDrawFirst)),
           );
         }
         return;
@@ -165,7 +170,7 @@ class _SignatureCaptureScreenState
       final sigRepo = ref.read(signatureRepositoryProvider);
       final sigId = await sigRepo.addSignature(
         imagePath: storablePath,
-        label: 'My Signature',
+        label: l10n.signDefaultLabel,
         isDefault: _saveAsDefault,
       );
 
@@ -186,7 +191,7 @@ class _SignatureCaptureScreenState
       if (mounted) {
         setState(() => _saving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save signature: $e')),
+          SnackBar(content: Text(context.l10n.signSaveFailed('$e'))),
         );
       }
     }

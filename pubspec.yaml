@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # Navigation
   go_router: ^14.0.0
@@ -28,9 +30,11 @@ dependencies:
   local_auth: ^2.3.0
 
   # PDF generation & rendering
-  syncfusion_flutter_pdf: ^27.2.2
-  syncfusion_flutter_pdfviewer: ^27.2.2
-  syncfusion_flutter_signaturepad: ^27.2.2
+  # 28.x is the lowest line that allows intl 0.20.x, which flutter_localizations
+  # (Flutter SDK) pins. Staying on 27.x would make localization unresolvable.
+  syncfusion_flutter_pdf: ^28.2.12
+  syncfusion_flutter_pdfviewer: ^28.2.12
+  syncfusion_flutter_signaturepad: ^28.2.12
 
   # OCR — wraps VisionKit on iOS and ML Kit Text Recognition on Android
   google_mlkit_text_recognition: ^0.13.0
@@ -47,7 +51,8 @@ dependencies:
 
   # Misc utils
   uuid: ^4.4.0
-  intl: ^0.19.0
+  # Pinned by flutter_localizations (Flutter SDK) — must match its intl version.
+  intl: ^0.20.2
   shared_preferences: ^2.3.0
   cupertino_icons: ^1.0.8
 
@@ -62,6 +67,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Generates lib/l10n/app_localizations.dart from lib/l10n/*.arb (see l10n.yaml).
+  generate: true
 
 # App launcher icons — regenerate with:
 #   dart run flutter_launcher_icons

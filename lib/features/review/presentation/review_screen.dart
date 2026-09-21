@@ -11,6 +11,7 @@ import '../../../core/db/app_database.dart' as db;
 import '../../../core/services/document_repository.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 enum PageFilter { original, enhanced, bw }
 
@@ -37,12 +38,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Review Pages'),
+        title: Text(context.l10n.reviewTitle),
         actions: [
           if (_dirty)
             TextButton(
               onPressed: _saveOrder,
-              child: const Text('Save Order'),
+              child: Text(context.l10n.reviewSaveOrder),
             ),
         ],
       ),
@@ -56,7 +57,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           if (_pages.isEmpty || !_dirty) _pages = List.from(pages);
 
           if (pages.isEmpty) {
-            return const Center(child: Text('No pages found.'));
+            return Center(child: Text(context.l10n.reviewNoPagesFound));
           }
 
           return ReorderableListView.builder(
@@ -98,7 +99,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             child: FilledButton.icon(
               onPressed: _proceed,
               icon: const Icon(Icons.auto_awesome),
-              label: const Text('Detect Fields →'),
+              label: Text(context.l10n.reviewDetectFields),
             ),
           ),
         ),
@@ -150,7 +151,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Rotate failed: $e')),
+          SnackBar(content: Text(context.l10n.reviewRotateFailed('$e'))),
         );
       }
     }
@@ -160,15 +161,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Page?'),
-        content: Text('Remove page ${_pages.indexOf(page) + 1}?'),
+        title: Text(context.l10n.reviewDeletePageTitle),
+        content: Text(context.l10n
+            .reviewDeletePageBody(_pages.indexOf(page) + 1)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(context.l10n.actionCancel)),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete')),
+              child: Text(context.l10n.actionDelete)),
         ],
       ),
     );
@@ -232,17 +234,17 @@ class _PageCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 0),
             child: Row(
               children: [
-                Text('Page $pageNumber of $totalPages',
+                Text(context.l10n.reviewPageOf(pageNumber, totalPages),
                     style: Theme.of(context).textTheme.labelLarge),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.rotate_right),
-                  tooltip: 'Rotate 90°',
+                  tooltip: context.l10n.reviewRotateTooltip,
                   onPressed: onRotate,
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Delete page',
+                  tooltip: context.l10n.reviewDeletePageTooltip,
                   color: Theme.of(context).colorScheme.error,
                   onPressed: onDelete,
                 ),
@@ -260,7 +262,7 @@ class _PageCard extends StatelessWidget {
               spacing: 8,
               children: PageFilter.values.map((f) {
                 return ChoiceChip(
-                  label: Text(_filterLabel(f)),
+                  label: Text(_filterLabel(context, f)),
                   selected: filter == f,
                   onSelected: (_) => onFilterChanged(f),
                   visualDensity: VisualDensity.compact,
@@ -273,10 +275,10 @@ class _PageCard extends StatelessWidget {
     );
   }
 
-  String _filterLabel(PageFilter f) => switch (f) {
-        PageFilter.original => 'Original',
-        PageFilter.enhanced => 'Enhanced',
-        PageFilter.bw => 'B&W',
+  String _filterLabel(BuildContext context, PageFilter f) => switch (f) {
+        PageFilter.original => context.l10n.filterOriginal,
+        PageFilter.enhanced => context.l10n.filterEnhanced,
+        PageFilter.bw => context.l10n.filterBw,
       };
 }
 

@@ -15,6 +15,14 @@ import '../utils/path_resolver.dart';
 import 'document_repository.dart';
 import 'pdf_geometry.dart';
 
+/// Thrown when an export is attempted on a document with no pages. Typed so
+/// the UI can show a translated message.
+class ExportEmptyDocumentException implements Exception {
+  const ExportEmptyDocumentException();
+  @override
+  String toString() => 'ExportEmptyDocumentException';
+}
+
 final fillableFormExportServiceProvider =
     Provider<FillableFormExportService>((ref) {
   return FillableFormExportService(
@@ -47,7 +55,7 @@ class FillableFormExportService {
 
     final pages = await _pageRepo.watchPages(docId).first;
     if (pages.isEmpty) {
-      throw StateError('This document has no pages to export.');
+      throw const ExportEmptyDocumentException();
     }
     final fields = await _fieldRepo.watchFields(docId).first;
 

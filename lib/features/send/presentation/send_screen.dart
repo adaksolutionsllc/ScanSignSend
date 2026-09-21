@@ -9,6 +9,7 @@ import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 class SendScreen extends ConsumerStatefulWidget {
   const SendScreen({super.key, required this.docId});
@@ -38,10 +39,10 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Send Document'),
+          title: Text(context.l10n.sendTitle),
           leading: IconButton(
             icon: Icon(_shared ? Icons.check : Icons.arrow_back),
-            tooltip: 'Back to Library',
+            tooltip: context.l10n.sendBackToLibrary,
             onPressed: () => context.go(AppRoutes.library),
           ),
         ),
@@ -69,15 +70,15 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                     const SizedBox(height: 24),
                     Text(
                       _shared
-                          ? 'Document sent!'
-                          : 'Ready to send',
+                          ? context.l10n.sendDocumentSent
+                          : context.l10n.sendReadyToSend,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       _shared
-                          ? 'The pressed PDF has been shared.'
-                          : 'Share your pressed PDF via Mail, Messages, AirDrop, or any app.',
+                          ? context.l10n.sendSharedBody
+                          : context.l10n.sendReadyBody,
                       textAlign: TextAlign.center,
                       style: Theme.of(context)
                           .textTheme
@@ -95,7 +96,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                               (_sharing || pdfPath == null)
                                   ? null
                                   : () => _share(context, pdfPath,
-                                      doc?.title ?? 'Document'),
+                                      doc?.title ?? context.l10n.documentFallbackTitle),
                           icon: _sharing
                               ? const SizedBox(
                                   width: 18,
@@ -106,8 +107,8 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                 )
                               : const Icon(Icons.share),
                           label: Text(_sharing
-                              ? 'Opening share sheet…'
-                              : 'Share Pressed Document'),
+                              ? context.l10n.sendOpeningShareSheet
+                              : context.l10n.sendSharePressed),
                         ),
                       ),
 
@@ -122,7 +123,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                 .replaceAll(':docId', '${widget.docId}'),
                           ),
                           icon: const Icon(Icons.visibility_outlined),
-                          label: const Text('Preview Document'),
+                          label: Text(context.l10n.sendPreviewDocument),
                         ),
                       ),
                     ],
@@ -134,17 +135,17 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                         child: FilledButton.icon(
                           onPressed: () => context.go(AppRoutes.library),
                           icon: const Icon(Icons.home),
-                          label: const Text('Back to Library'),
+                          label: Text(context.l10n.sendBackToLibrary),
                         ),
                       ),
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
                         onPressed: pdfPath != null
                             ? () => _share(context, pdfPath,
-                                doc?.title ?? 'Document')
+                                doc?.title ?? context.l10n.documentFallbackTitle)
                             : null,
                         icon: const Icon(Icons.share),
-                        label: const Text('Share Again'),
+                        label: Text(context.l10n.sendShareAgain),
                       ),
                     ],
 
@@ -152,7 +153,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 16),
                         child: Text(
-                          'Document not yet pressed.',
+                          context.l10n.sendNotYetPressed,
                           style: TextStyle(
                               color:
                                   Theme.of(context).colorScheme.error),
@@ -172,7 +173,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       BuildContext context, String pdfPath, String title) async {
     if (!File(pdfPath).existsSync()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pressed PDF file not found.')),
+        SnackBar(content: Text(context.l10n.sendPressedPdfNotFound)),
       );
       return;
     }
@@ -180,6 +181,8 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     final messenger = ScaffoldMessenger.of(context);
     // iPad (and iOS in general) requires a non-zero source rect to anchor the
     // share popover; without it share_plus throws a PlatformException.
+    // Resolve strings before the await — `context` is unsafe past the gap.
+    final l10n = context.l10n;
     final box = context.findRenderObject() as RenderBox?;
     final origin = (box != null && box.hasSize)
         ? box.localToGlobal(Offset.zero) & box.size
@@ -188,7 +191,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       await Share.shareXFiles(
         [XFile(pdfPath, mimeType: 'application/pdf')],
         subject: title,
-        text: 'Signed with Scan Sign Send',
+        text: l10n.sendShareMessage,
         sharePositionOrigin: origin,
       );
       if (mounted) {
@@ -200,7 +203,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     } catch (e) {
       if (mounted) setState(() => _sharing = false);
       messenger.showSnackBar(
-        SnackBar(content: Text('Share failed: $e')),
+        SnackBar(content: Text(l10n.sendShareFailed('$e'))),
       );
     }
   }

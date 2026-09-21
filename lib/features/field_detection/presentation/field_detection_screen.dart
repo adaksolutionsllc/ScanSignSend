@@ -9,6 +9,7 @@ import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/utils/router.dart';
 import 'field_detection_notifier.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 // Sentinel written by ImportService when a PDF already has AcroForm fields
 const _kHasFormFields = '__has_form_fields__';
@@ -47,7 +48,7 @@ class _FieldDetectionScreenState
     // PDF already has form fields — skip detection entirely
     if (_hasFormFields) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Detect Fields')),
+        appBar: AppBar(title: Text(context.l10n.detectTitle)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
@@ -58,11 +59,11 @@ class _FieldDetectionScreenState
                     size: 72,
                     color: Theme.of(context).colorScheme.primary),
                 const SizedBox(height: 24),
-                Text('Form fields detected',
+                Text(context.l10n.detectFormFieldsFoundTitle,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Text(
-                  'This PDF already contains form fields.\nYou can add your own fields manually or continue directly to fill.',
+                  context.l10n.detectFormFieldsFoundBody,
                   textAlign: TextAlign.center,
                   style: Theme.of(context)
                       .textTheme
@@ -76,7 +77,7 @@ class _FieldDetectionScreenState
                   child: FilledButton.icon(
                     onPressed: () => _proceed(context),
                     icon: const Icon(Icons.arrow_forward),
-                    label: const Text('Continue to Fill'),
+                    label: Text(context.l10n.detectContinueToFill),
                   ),
                 ),
               ],
@@ -90,24 +91,28 @@ class _FieldDetectionScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detect Fields'),
+        title: Text(context.l10n.detectTitle),
         actions: state.phase == DetectionPhase.done
             ? [
                 TextButton(
                   onPressed: () => _confirmAll(context),
-                  child: const Text('Confirm All'),
+                  child: Text(context.l10n.detectConfirmAll),
                 ),
               ]
             : null,
       ),
       body: switch (state.phase) {
         DetectionPhase.idle || DetectionPhase.running => _RunningView(
-            message: state.statusMessage.isEmpty
-                ? 'Starting…'
-                : state.statusMessage,
+            message: switch (state) {
+              _ when state.phase == DetectionPhase.idle =>
+                context.l10n.detectStarting,
+              _ when state.progressTotal == 0 => context.l10n.detectReading,
+              _ => context.l10n.detectAnalysingPage(
+                  state.progressCurrent, state.progressTotal),
+            },
           ),
         DetectionPhase.error => _ErrorView(
-            message: state.errorMessage ?? 'Unknown error',
+            message: state.errorMessage ?? context.l10n.detectUnknownError,
             onRetry: () => ref
                 .read(fieldDetectionNotifierProvider(widget.docId).notifier)
                 .run(),
@@ -168,7 +173,7 @@ class _RunningView extends StatelessWidget {
               textAlign: TextAlign.center),
           const SizedBox(height: 8),
           Text(
-            'All processing happens on-device.',
+            context.l10n.detectOnDeviceNote,
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
@@ -198,7 +203,7 @@ class _ErrorView extends StatelessWidget {
             Icon(Icons.error_outline,
                 size: 56, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
-            Text('Detection failed',
+            Text(context.l10n.detectFailed,
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(message,
@@ -208,7 +213,7 @@ class _ErrorView extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              label: Text(context.l10n.actionTryAgain),
             ),
           ],
         ),
@@ -241,7 +246,7 @@ class _EditorView extends ConsumerWidget {
       builder: (context, snapshot) {
         final pageList = snapshot.data ?? [];
         if (pageList.isEmpty) {
-          return const Center(child: Text('No pages.'));
+          return Center(child: Text(context.l10n.detectNoPages));
         }
 
         final pageIndex = state.currentPageIndex
@@ -266,12 +271,12 @@ class _EditorView extends ConsumerWidget {
               child: Row(
                 children: [
                   Text(
-                    state.statusMessage,
+                    context.l10n.detectFieldsFound(state.foundCount),
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                   const Spacer(),
                   Text(
-                    '${state.fields.length} field${state.fields.length == 1 ? '' : 's'}',
+                    context.l10n.detectFieldsFound(state.fields.length),
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ],
@@ -323,7 +328,7 @@ class _EditorView extends ConsumerWidget {
                     icon: const Icon(Icons.edit_note),
                     label: Text(
                       state.fields.isEmpty
-                          ? 'Skip to Fill →'
+                          ? context.l10n.detectSkipToFill
                           : 'Fill Fields (${state.fields.length}) →',
                     ),
                   ),
@@ -544,7 +549,7 @@ class _PageOverlayEditorState extends State<_PageOverlayEditor> {
                       const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                   color: color,
                   child: Text(
-                    _typeLabel(field.type),
+                    _typeLabel(context, field.type),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 8,
@@ -620,11 +625,11 @@ class _PageOverlayEditorState extends State<_PageOverlayEditor> {
     return Image.file(file, fit: BoxFit.contain);
   }
 
-  String _typeLabel(FieldType t) => switch (t) {
-        FieldType.text => 'TEXT',
-        FieldType.date => 'DATE',
-        FieldType.checkbox => 'CHECK',
-        FieldType.signature => 'SIGN',
+  String _typeLabel(BuildContext context, FieldType t) => switch (t) {
+        FieldType.text => context.l10n.detectBadgeText,
+        FieldType.date => context.l10n.detectBadgeDate,
+        FieldType.checkbox => context.l10n.detectBadgeCheck,
+        FieldType.signature => context.l10n.detectBadgeSign,
       };
 }
 
@@ -677,18 +682,18 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Edit Field',
+          Text(context.l10n.detectEditField,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
 
           // Type selector
-          Text('Type', style: Theme.of(context).textTheme.labelLarge),
+          Text(context.l10n.detectFieldType, style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
             children: FieldType.values.map((t) {
               return ChoiceChip(
-                label: Text(_typeLabel(t)),
+                label: Text(_typeLabel(context, t)),
                 selected: widget.field.type == t,
                 onSelected: (_) => widget.onChangeType(t),
               );
@@ -699,8 +704,8 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
           // Label — also becomes the field name in an exported fillable form.
           TextField(
             controller: _labelCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Label / field name',
+            decoration: InputDecoration(
+              labelText: context.l10n.detectFieldLabelHint,
               border: OutlineInputBorder(),
               isDense: true,
             ),
@@ -711,7 +716,7 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             dense: true,
-            title: const Text('Required field'),
+            title: Text(context.l10n.detectRequiredField),
             value: _required,
             onChanged: (v) {
               setState(() => _required = v);
@@ -725,7 +730,7 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
               OutlinedButton.icon(
                 onPressed: widget.onDelete,
                 icon: const Icon(Icons.delete_outline),
-                label: const Text('Remove'),
+                label: Text(context.l10n.actionRemove),
                 style: OutlinedButton.styleFrom(
                     foregroundColor:
                         Theme.of(context).colorScheme.error),
@@ -734,7 +739,7 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
               FilledButton.icon(
                 onPressed: widget.onConfirm,
                 icon: const Icon(Icons.check),
-                label: const Text('Confirm'),
+                label: Text(context.l10n.actionConfirm),
               ),
             ],
           ),
@@ -743,11 +748,11 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
     );
   }
 
-  String _typeLabel(FieldType t) => switch (t) {
-        FieldType.text => 'Text',
-        FieldType.date => 'Date',
-        FieldType.checkbox => 'Checkbox',
-        FieldType.signature => 'Signature',
+  String _typeLabel(BuildContext context, FieldType t) => switch (t) {
+        FieldType.text => context.l10n.fieldTypeText,
+        FieldType.date => context.l10n.fieldTypeDate,
+        FieldType.checkbox => context.l10n.fieldTypeCheckbox,
+        FieldType.signature => context.l10n.fieldTypeSignature,
       };
 }
 
@@ -780,14 +785,14 @@ class _AddFieldSheetState extends State<_AddFieldSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Add Field',
+          Text(context.l10n.detectAddField,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             children: FieldType.values.map((t) {
               return ChoiceChip(
-                label: Text(_typeLabel(t)),
+                label: Text(_typeLabel(context, t)),
                 selected: _selected == t,
                 onSelected: (_) => setState(() => _selected = t),
               );
@@ -799,7 +804,8 @@ class _AddFieldSheetState extends State<_AddFieldSheet> {
             child: FilledButton.icon(
               onPressed: () => widget.onAdd(_selected),
               icon: const Icon(Icons.add),
-              label: Text('Add ${_typeLabel(_selected)} Field'),
+              label: Text(context.l10n
+                  .detectAddTypedField(_typeLabel(context, _selected))),
             ),
           ),
         ],
@@ -807,11 +813,11 @@ class _AddFieldSheetState extends State<_AddFieldSheet> {
     );
   }
 
-  String _typeLabel(FieldType t) => switch (t) {
-        FieldType.text => 'Text',
-        FieldType.date => 'Date',
-        FieldType.checkbox => 'Checkbox',
-        FieldType.signature => 'Signature',
+  String _typeLabel(BuildContext context, FieldType t) => switch (t) {
+        FieldType.text => context.l10n.fieldTypeText,
+        FieldType.date => context.l10n.fieldTypeDate,
+        FieldType.checkbox => context.l10n.fieldTypeCheckbox,
+        FieldType.signature => context.l10n.fieldTypeSignature,
       };
 }
 
@@ -836,19 +842,19 @@ class _ManualAddToolbar extends StatelessWidget {
         children: [
           _ToolbarBtn(
               icon: Icons.text_fields,
-              label: 'Text',
+              label: context.l10n.fieldTypeText,
               onTap: () => onAdd(FieldType.text)),
           _ToolbarBtn(
               icon: Icons.check_box_outline_blank,
-              label: 'Check',
+              label: context.l10n.fieldTypeCheckShort,
               onTap: () => onAdd(FieldType.checkbox)),
           _ToolbarBtn(
               icon: Icons.calendar_today,
-              label: 'Date',
+              label: context.l10n.fieldTypeDate,
               onTap: () => onAdd(FieldType.date)),
           _ToolbarBtn(
               icon: Icons.draw,
-              label: 'Sign',
+              label: context.l10n.fieldTypeSignShort,
               onTap: () => onAdd(FieldType.signature)),
         ],
       ),

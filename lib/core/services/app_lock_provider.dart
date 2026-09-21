@@ -7,6 +7,7 @@ import '../../shared/theme/app_theme.dart';
 import 'biometric_service.dart';
 import 'privacy_screen_service.dart';
 import 'profile_repository.dart';
+import '../utils/l10n_ext.dart';
 
 /// True = locked, false = unlocked.
 final appLockProvider = StateNotifierProvider<AppLockNotifier, bool>((ref) {
@@ -27,6 +28,13 @@ class AppLockNotifier extends StateNotifier<bool> {
   final PrivacyScreenService _privacy;
 
   bool _authInFlight = false;
+  /// The OS biometric sheet needs a localized prompt, but this notifier lives
+  /// outside the widget tree. [AppLockGate] pushes the translated string in on
+  /// every build, which always happens before the user can trigger an unlock.
+  String _authReason = 'Unlock Scan Sign Send';
+
+  /// ignore: use_setters_to_change_properties
+  void setAuthReason(String reason) => _authReason = reason;
   /// Mirror of `profile.biometricLockEnabled`, kept live so toggling the
   /// setting takes effect without a restart.
   bool _lockEnabled = false;
@@ -79,7 +87,7 @@ class AppLockNotifier extends StateNotifier<bool> {
     if (_authInFlight) return; // guard against double taps stacking prompts
     _authInFlight = true;
     try {
-      final ok = await _bio.authenticate();
+      final ok = await _bio.authenticate(reason: _authReason);
       if (ok) state = false;
     } catch (_) {
       // Auth plugin threw (no hardware, cancelled, etc.) — stay locked but
@@ -133,6 +141,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
 
   @override
   Widget build(BuildContext context) {
+    ref.read(appLockProvider.notifier).setAuthReason(context.l10n.biometricReason);
     final locked = ref.watch(appLockProvider);
     if (!locked) return widget.child;
 
@@ -153,12 +162,12 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
                     color: Theme.of(context).colorScheme.primary),
                 const SizedBox(height: 20),
                 Text(
-                  'Scan Sign Send is locked',
+                  context.l10n.lockTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Unlock with Face ID or your fingerprint to continue.',
+                  context.l10n.lockBody,
                   textAlign: TextAlign.center,
                   style: Theme.of(context)
                       .textTheme
@@ -169,7 +178,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
                 FilledButton.icon(
                   onPressed: () => ref.read(appLockProvider.notifier).unlock(),
                   icon: const Icon(Icons.fingerprint),
-                  label: const Text('Unlock'),
+                  label: Text(context.l10n.lockUnlock),
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(200, 48),
                   ),

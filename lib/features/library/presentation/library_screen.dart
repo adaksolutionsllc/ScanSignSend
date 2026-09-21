@@ -10,6 +10,7 @@ import '../../../core/services/document_repository.dart';
 import '../../../core/services/template_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 enum _LibraryTab { all, draft, pressed, template }
 
@@ -56,7 +57,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan Sign Send'),
+        title: Text(context.l10n.appTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -71,7 +72,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: SearchBar(
                   controller: _searchController,
-                  hintText: 'Search documents…',
+                  hintText: context.l10n.librarySearchHint,
                   leading: const Icon(Icons.search),
                   trailing: [
                     if (_query.isNotEmpty)
@@ -88,11 +89,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               ),
               TabBar(
                 controller: _tabController,
-                tabs: const [
-                  Tab(text: 'All'),
-                  Tab(text: 'Draft'),
-                  Tab(text: 'Completed'),
-                  Tab(text: 'Template'),
+                tabs: [
+                  Tab(text: context.l10n.libraryTabAll),
+                  Tab(text: context.l10n.libraryTabDraft),
+                  Tab(text: context.l10n.libraryTabCompleted),
+                  Tab(text: context.l10n.libraryTabTemplate),
                 ],
                 onTap: (_) => setState(() {}),
               ),
@@ -141,7 +142,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           FloatingActionButton.small(
             heroTag: 'import',
             onPressed: () => context.push(AppRoutes.capture),
-            tooltip: 'Import PDF / Image',
+            tooltip: context.l10n.libraryImportTooltip,
             child: const Icon(Icons.upload_file),
           ),
           const SizedBox(height: 12),
@@ -149,7 +150,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             heroTag: 'scan',
             onPressed: () => context.push(AppRoutes.capture),
             icon: const Icon(Icons.document_scanner),
-            label: const Text('New Scan'),
+            label: Text(context.l10n.libraryNewScan),
           ),
         ],
       ),
@@ -160,17 +161,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Document?'),
-        content: Text('Delete "${doc.title}"? This cannot be undone.'),
+        title: Text(context.l10n.libraryDeleteTitle),
+        content: Text(context.l10n.libraryDeleteBody(doc.title)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(context.l10n.actionCancel)),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(ctx).colorScheme.error),
-            child: const Text('Delete'),
+            child: Text(context.l10n.actionDelete),
           ),
         ],
       ),
@@ -189,7 +190,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to use template: $e')),
+          SnackBar(
+              content: Text(context.l10n.libraryUseTemplateFailed('$e'))),
         );
       }
     }
@@ -200,19 +202,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Rename Document'),
+        title: Text(context.l10n.libraryRenameTitle),
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Document name'),
+          decoration: InputDecoration(hintText: context.l10n.libraryDocumentNameHint),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+              child: Text(context.l10n.actionCancel)),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, ctrl.text),
-              child: const Text('Save')),
+              child: Text(context.l10n.actionSave)),
         ],
       ),
     );
@@ -253,11 +255,12 @@ class _DocumentCard extends StatelessWidget {
         DocumentStatus.draft => AppTheme.statusDraft,
       };
 
-  static String _statusLabel(DocumentStatus s) => switch (s) {
-        DocumentStatus.pressed => 'Completed',
-        DocumentStatus.fillable => 'Editable',
-        DocumentStatus.template => 'Template',
-        DocumentStatus.draft => 'Draft',
+  static String _statusLabel(BuildContext context, DocumentStatus s) =>
+      switch (s) {
+        DocumentStatus.pressed => context.l10n.statusCompleted,
+        DocumentStatus.fillable => context.l10n.statusEditable,
+        DocumentStatus.template => context.l10n.statusTemplate,
+        DocumentStatus.draft => context.l10n.statusDraft,
       };
 
   static IconData _statusIcon(DocumentStatus s) => switch (s) {
@@ -270,7 +273,11 @@ class _DocumentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = doc.statusEnum;
-    final dateStr = DateFormat('MMM d, yyyy').format(doc.updatedAt);
+    // Pattern and locale both come from the active translation so dates read
+    // naturally (e.g. "3 déc. 2026", not "Dec 3, 2026") in every language.
+    final locale = Localizations.localeOf(context).toString();
+    final dateStr = DateFormat(context.l10n.dateFormatShort, locale)
+        .format(doc.updatedAt);
     final isTemplate = status == DocumentStatus.template;
     // Exported docs (pressed/fillable) open in the viewer; drafts open in fill
     // mode; templates spawn a new draft.
@@ -335,7 +342,7 @@ class _DocumentCard extends StatelessWidget {
                                 size: 10, color: Colors.white),
                             const SizedBox(width: 3),
                             Text(
-                              _statusLabel(status),
+                              _statusLabel(context, status),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
@@ -372,7 +379,7 @@ class _DocumentCard extends StatelessWidget {
                     constraints: const BoxConstraints(),
                     visualDensity: VisualDensity.compact,
                     color: Colors.grey,
-                    tooltip: 'Rename',
+                    tooltip: context.l10n.libraryRenameTooltip,
                     onPressed: onRename,
                   ),
                 ],
@@ -401,7 +408,7 @@ class _DocumentCard extends StatelessWidget {
                       icon: isExported
                           ? Icons.visibility_outlined
                           : Icons.edit_outlined,
-                      label: isExported ? 'Open' : 'Edit',
+                      label: isExported ? context.l10n.actionOpen : context.l10n.actionEdit,
                       onTap: () {
                         if (isTemplate) {
                           onUseTemplate?.call();
@@ -422,7 +429,7 @@ class _DocumentCard extends StatelessWidget {
                   Expanded(
                     child: _ActionButton(
                       icon: Icons.delete_outline,
-                      label: 'Delete',
+                      label: context.l10n.actionDelete,
                       color: Theme.of(context).colorScheme.error,
                       onTap: onDelete,
                     ),
@@ -440,7 +447,7 @@ class _DocumentCard extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: onUseTemplate,
                     icon: const Icon(Icons.copy_outlined, size: 14),
-                    label: const Text('Use Template'),
+                    label: Text(context.l10n.libraryUseTemplate),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppTheme.statusTemplate,
                       visualDensity: VisualDensity.compact,
@@ -516,23 +523,23 @@ class _EmptyState extends StatelessWidget {
     final (icon, title, subtitle) = switch (tab) {
       _LibraryTab.draft => (
           Icons.edit_document,
-          'No drafts',
-          'Start a new scan to create a draft.',
+          context.l10n.emptyDraftsTitle,
+          context.l10n.emptyDraftsBody,
         ),
       _LibraryTab.pressed => (
           Icons.lock_outlined,
-          'No pressed documents',
-          'Fill and press a draft to see it here.',
+          context.l10n.emptyPressedTitle,
+          context.l10n.emptyPressedBody,
         ),
       _LibraryTab.template => (
           Icons.layers_outlined,
-          'No templates yet',
-          'When you press a document, a reusable\ntemplate is saved here automatically.',
+          context.l10n.emptyTemplatesTitle,
+          context.l10n.emptyTemplatesBody,
         ),
       _LibraryTab.all => (
           Icons.document_scanner_outlined,
-          'No documents yet',
-          'Tap "New Scan" to get started.\nScan → Sign → Send.',
+          context.l10n.emptyAllTitle,
+          context.l10n.emptyAllBody,
         ),
     };
 

@@ -14,6 +14,17 @@ import '../models/field_model.dart';
 import 'document_repository.dart';
 import 'pdf_geometry.dart';
 
+/// Why an import failed. The service has no BuildContext, so it reports a
+/// cause and the calling screen renders the localized message.
+enum ImportFailure { unreadablePdf, emptyPdf }
+
+class ImportException implements Exception {
+  ImportException(this.failure);
+  final ImportFailure failure;
+  @override
+  String toString() => 'ImportException(${failure.name})';
+}
+
 /// Serializable intermediate for one parsed AcroForm widget.
 class _ParsedField {
   final String pdfFieldName;
@@ -113,14 +124,13 @@ class ImportService {
       try {
         await Directory(p.dirname(dest)).delete(recursive: true);
       } catch (_) {}
-      throw Exception(
-          "This PDF couldn't be opened. It may be password-protected or damaged.");
+      throw ImportException(ImportFailure.unreadablePdf);
     }
     if (pageCount == 0) {
       try {
         await Directory(p.dirname(dest)).delete(recursive: true);
       } catch (_) {}
-      throw Exception('This PDF has no pages.');
+      throw ImportException(ImportFailure.emptyPdf);
     }
 
     final doc = await _docRepo.createDocument(title);

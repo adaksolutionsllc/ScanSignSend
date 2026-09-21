@@ -14,10 +14,12 @@ class BiometricService {
     return canCheck && isSupported;
   }
 
-  Future<bool> authenticate() async {
+  /// [reason] is shown by the OS in its own biometric sheet, so it must be
+  /// localized by the caller — this service has no BuildContext.
+  Future<bool> authenticate({required String reason}) async {
     try {
       return await _auth.authenticate(
-        localizedReason: 'Unlock Scan Sign Send',
+        localizedReason: reason,
         options: const AuthenticationOptions(
           biometricOnly: false,
           stickyAuth: true,

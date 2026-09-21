@@ -9,6 +9,7 @@ import '../../../core/services/profile_repository.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -18,7 +19,7 @@ class SettingsScreen extends ConsumerWidget {
     final profileRepo = ref.watch(profileRepositoryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(context.l10n.settingsTitle)),
       body: FutureBuilder<UserProfileData>(
         future: profileRepo.getOrCreate(),
         builder: (context, snapshot) {
@@ -28,66 +29,66 @@ class SettingsScreen extends ConsumerWidget {
           final profile = snapshot.data!;
           return ListView(
             children: [
-              _SectionHeader('My Profile'),
+              _SectionHeader(context.l10n.settingsSectionProfile),
               _ProfileField(
-                label: 'Full Name',
+                label: context.l10n.settingsFullName,
                 value: profile.fullName,
                 onSave: (v) => profileRepo
                     .update(UserProfileCompanion(fullName: Value(v))),
               ),
               _ProfileField(
-                label: 'Email',
+                label: context.l10n.settingsEmail,
                 value: profile.email,
                 onSave: (v) =>
                     profileRepo.update(UserProfileCompanion(email: Value(v))),
               ),
               _ProfileField(
-                label: 'Phone',
+                label: context.l10n.settingsPhone,
                 value: profile.phone,
                 onSave: (v) =>
                     profileRepo.update(UserProfileCompanion(phone: Value(v))),
               ),
               _ProfileField(
-                label: 'Address',
+                label: context.l10n.settingsAddress,
                 value: profile.address,
                 onSave: (v) =>
                     profileRepo.update(UserProfileCompanion(address: Value(v))),
               ),
               _ProfileField(
-                label: 'City',
+                label: context.l10n.settingsCity,
                 value: profile.city,
                 onSave: (v) =>
                     profileRepo.update(UserProfileCompanion(city: Value(v))),
               ),
               _ProfileField(
-                label: 'State',
+                label: context.l10n.settingsState,
                 value: profile.state,
                 onSave: (v) =>
                     profileRepo.update(UserProfileCompanion(state: Value(v))),
               ),
               _ProfileField(
-                label: 'ZIP',
+                label: context.l10n.settingsZip,
                 value: profile.zip,
                 onSave: (v) =>
                     profileRepo.update(UserProfileCompanion(zip: Value(v))),
               ),
               _ProfileField(
-                label: 'Company',
+                label: context.l10n.settingsCompany,
                 value: profile.company,
                 onSave: (v) =>
                     profileRepo.update(UserProfileCompanion(company: Value(v))),
               ),
-              _SectionHeader('Signatures'),
+              _SectionHeader(context.l10n.settingsSectionSignatures),
               ListTile(
                 leading: const Icon(Icons.draw_outlined),
-                title: const Text('Manage Signatures'),
+                title: Text(context.l10n.settingsManageSignatures),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(AppRoutes.signaturesManager),
               ),
-              _SectionHeader('Security'),
+              _SectionHeader(context.l10n.settingsSectionSecurity),
               SwitchListTile(
-                title: const Text('Biometric App Lock'),
-                subtitle: const Text('Require Face ID / fingerprint on launch'),
+                title: Text(context.l10n.settingsBiometricLock),
+                subtitle: Text(context.l10n.settingsBiometricLockSubtitle),
                 value: profile.biometricLockEnabled,
                 onChanged: (v) async {
                   // Never let the user enable a lock they can't satisfy —
@@ -98,9 +99,9 @@ class SettingsScreen extends ConsumerWidget {
                     if (!available) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text(
-                                'No biometrics enrolled on this device. Set up Face ID / fingerprint first.'),
+                                context.l10n.settingsNoBiometrics),
                           ),
                         );
                       }
@@ -111,22 +112,22 @@ class SettingsScreen extends ConsumerWidget {
                       UserProfileCompanion(biometricLockEnabled: Value(v)));
                 },
               ),
-              _SectionHeader('AI Detection (v1.1)'),
+              _SectionHeader(context.l10n.settingsSectionAi),
               SwitchListTile(
-                title: const Text('Enhanced AI Detection'),
-                subtitle: const Text(
-                    'Uses on-device model for smarter field recognition'),
+                title: Text(context.l10n.settingsAiDetection),
+                subtitle: Text(
+                    context.l10n.settingsAiDetectionSubtitle),
                 value: profile.aiEnhancedDetection,
                 onChanged: (v) => profileRepo.update(
                     UserProfileCompanion(aiEnhancedDetection: Value(v))),
               ),
-              _SectionHeader('Purchase'),
+              _SectionHeader(context.l10n.settingsSectionPurchase),
               if (!profile.isPurchased)
                 ListTile(
                   leading: const Icon(Icons.workspace_premium,
                       color: Color(0xFF1A73E8)),
-                  title: const Text('Unlock Full Access'),
-                  subtitle: const Text('One-time purchase — see price'),
+                  title: Text(context.l10n.settingsUnlockFullAccess),
+                  subtitle: Text(context.l10n.settingsUnlockSubtitle),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (_) => const PaywallScreen()),
@@ -134,14 +135,14 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ListTile(
                 leading: const Icon(Icons.restore),
-                title: const Text('Restore Purchase'),
+                title: Text(context.l10n.settingsRestorePurchase),
                 onTap: () => _restore(context, ref),
               ),
               if (profile.isPurchased)
-                const ListTile(
+                ListTile(
                   leading: Icon(Icons.check_circle, color: Colors.green),
-                  title: Text('Full Access Unlocked'),
-                  subtitle: Text('Thank you for your purchase!'),
+                  title: Text(context.l10n.settingsFullAccessUnlocked),
+                  subtitle: Text(context.l10n.settingsThankYou),
                 ),
             ],
           );
@@ -153,8 +154,11 @@ class SettingsScreen extends ConsumerWidget {
 
 Future<void> _restore(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
+  // Resolve both the messenger and the strings up front: everything after the
+  // await runs past an async gap, where reading `context` is unsafe.
+  final l10n = context.l10n;
   messenger.showSnackBar(
-    const SnackBar(content: Text('Checking for previous purchases…')),
+    SnackBar(content: Text(l10n.settingsCheckingPurchases)),
   );
   try {
     final restored = await ref.read(iapServiceProvider).restore();
@@ -162,14 +166,14 @@ Future<void> _restore(BuildContext context, WidgetRef ref) async {
     messenger.showSnackBar(
       SnackBar(
         content: Text(restored
-            ? 'Full access restored. Thank you!'
-            : 'No previous purchase found on this account.'),
+            ? l10n.settingsRestored
+            : l10n.settingsNoPreviousPurchase),
       ),
     );
   } catch (e) {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      SnackBar(content: Text('Restore failed: $e')),
+      SnackBar(content: Text(l10n.settingsRestoreFailed('$e'))),
     );
   }
 }
@@ -206,7 +210,7 @@ class _ProfileField extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(label),
-      subtitle: Text(value.isEmpty ? 'Tap to set' : value),
+      subtitle: Text(value.isEmpty ? context.l10n.settingsTapToSet : value),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
         final ctrl = TextEditingController(text: value);
@@ -214,7 +218,7 @@ class _ProfileField extends StatelessWidget {
           final result = await showDialog<String>(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: Text('Edit $label'),
+              title: Text(context.l10n.settingsEditLabel(label)),
               content: TextField(
                 controller: ctrl,
                 autofocus: true,
@@ -223,10 +227,10 @@ class _ProfileField extends StatelessWidget {
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text('Cancel')),
+                    child: Text(context.l10n.actionCancel)),
                 FilledButton(
                     onPressed: () => Navigator.pop(ctx, ctrl.text),
-                    child: const Text('Save')),
+                    child: Text(context.l10n.actionSave)),
               ],
             ),
           );

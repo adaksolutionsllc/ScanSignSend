@@ -14,14 +14,22 @@ enum DetectionPhase { idle, running, done, error }
 
 class FieldDetectionState {
   final DetectionPhase phase;
-  final String statusMessage;
+  /// Structured progress instead of a baked sentence: the notifier has no
+  /// BuildContext, so the screen renders these numbers through AppLocalizations.
+  /// [progressTotal] == 0 means "no page-by-page progress yet".
+  final int progressCurrent;
+  final int progressTotal;
+  /// Number of fields found once [phase] is done.
+  final int foundCount;
   final List<EditableField> fields;
   final int currentPageIndex;
   final String? errorMessage;
 
   const FieldDetectionState({
     this.phase = DetectionPhase.idle,
-    this.statusMessage = '',
+    this.progressCurrent = 0,
+    this.progressTotal = 0,
+    this.foundCount = 0,
     this.fields = const [],
     this.currentPageIndex = 0,
     this.errorMessage,
@@ -29,14 +37,18 @@ class FieldDetectionState {
 
   FieldDetectionState copyWith({
     DetectionPhase? phase,
-    String? statusMessage,
+    int? progressCurrent,
+    int? progressTotal,
+    int? foundCount,
     List<EditableField>? fields,
     int? currentPageIndex,
     String? errorMessage,
   }) =>
       FieldDetectionState(
         phase: phase ?? this.phase,
-        statusMessage: statusMessage ?? this.statusMessage,
+        progressCurrent: progressCurrent ?? this.progressCurrent,
+        progressTotal: progressTotal ?? this.progressTotal,
+        foundCount: foundCount ?? this.foundCount,
         fields: fields ?? this.fields,
         currentPageIndex: currentPageIndex ?? this.currentPageIndex,
         errorMessage: errorMessage ?? this.errorMessage,
@@ -102,7 +114,8 @@ class FieldDetectionNotifier
   Future<void> run() async {
     state = state.copyWith(
       phase: DetectionPhase.running,
-      statusMessage: 'Reading your document…',
+      progressCurrent: 0,
+      progressTotal: 0,
     );
     try {
       final pages = await pageRepo.watchPages(docId).first;
@@ -110,8 +123,8 @@ class FieldDetectionNotifier
 
       for (var i = 0; i < pages.length; i++) {
         state = state.copyWith(
-          statusMessage:
-              'Analysing page ${i + 1} of ${pages.length}…',
+          progressCurrent: i + 1,
+          progressTotal: pages.length,
         );
         final page = pages[i];
         // Skip PDF-fragment pages for OCR (no raster available yet)
@@ -142,8 +155,7 @@ class FieldDetectionNotifier
 
       state = state.copyWith(
         phase: DetectionPhase.done,
-        statusMessage:
-            '${allFields.length} field${allFields.length == 1 ? '' : 's'} found',
+        foundCount: allFields.length,
         fields: allFields,
       );
     } catch (e) {

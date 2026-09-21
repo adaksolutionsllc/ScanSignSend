@@ -13,6 +13,7 @@ import '../../../core/services/document_repository.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 class FillModeScreen extends ConsumerStatefulWidget {
   const FillModeScreen({super.key, required this.docId});
@@ -48,7 +49,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         final doc = docSnap.data;
         return Scaffold(
           appBar: AppBar(
-            title: Text(doc?.title ?? 'Fill Document'),
+            title: Text(doc?.title ?? context.l10n.fillFallbackTitle),
           ),
           // Primary next-step action: prominent, bottom-centre, always reachable.
           bottomNavigationBar: SafeArea(
@@ -62,7 +63,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                     AppRoutes.press.replaceAll(':docId', '${widget.docId}'),
                   ),
                   icon: const Icon(Icons.task_alt),
-                  label: const Text('Review & Finish'),
+                  label: Text(context.l10n.fillReviewAndFinish),
                 ),
               ),
             ),
@@ -76,10 +77,10 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 // Doc has no pages (e.g. all deleted) — don't spin forever.
-                return const Center(
+                return Center(
                   child: Padding(
                     padding: EdgeInsets.all(32),
-                    child: Text('This document has no pages.',
+                    child: Text(context.l10n.fillNoPages,
                         textAlign: TextAlign.center),
                   ),
                 );
@@ -153,6 +154,9 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         return;
 
       case FieldType.date:
+        // Capture the pattern + locale before awaiting the picker.
+        final datePattern = context.l10n.dateFormatInput;
+        final dateLocale = Localizations.localeOf(context).toString();
         final picked = await showDatePicker(
           context: context,
           initialDate: DateTime.now(),
@@ -160,7 +164,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
           lastDate: DateTime(2100),
         );
         if (picked == null) return;
-        final formatted = DateFormat('MM/dd/yyyy').format(picked);
+        final formatted = DateFormat(datePattern, dateLocale).format(picked);
         await ref.read(fieldRepositoryProvider).updateField(
               db.FieldsCompanion(
                 id: Value(field.id),
@@ -197,16 +201,23 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              field.label.isNotEmpty ? field.label : 'Text Field',
+              field.label.isNotEmpty
+                  ? field.label
+                  : switch (field.type.toFieldType()) {
+                      FieldType.date => context.l10n.fieldTypeDate,
+                      FieldType.checkbox => context.l10n.fieldTypeCheckbox,
+                      FieldType.signature => context.l10n.fieldTypeSignature,
+                      FieldType.text => context.l10n.fillTextFieldFallback,
+                    },
               style: Theme.of(ctx).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: ctrl,
               autofocus: true,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: 'Enter value…',
+                hintText: context.l10n.fillEnterValueHint,
               ),
             ),
             const SizedBox(height: 12),
@@ -214,12 +225,12 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.actionCancel),
                 ),
                 const Spacer(),
                 FilledButton(
                   onPressed: () => Navigator.pop(ctx, ctrl.text),
-                  child: const Text('Save'),
+                  child: Text(context.l10n.actionSave),
                 ),
               ],
             ),
@@ -248,19 +259,21 @@ class _SmartFillBar extends ConsumerWidget {
         final profile = snap.data;
         if (profile == null) return const SizedBox.shrink();
 
-        final today = DateFormat('MM/dd/yyyy').format(DateTime.now());
+        final today = DateFormat(context.l10n.dateFormatInput,
+                Localizations.localeOf(context).toString())
+            .format(DateTime.now());
         final chips = <_ChipData>[
           if (profile.fullName.isNotEmpty)
-            _ChipData('Name', profile.fullName, FieldType.text),
+            _ChipData(context.l10n.fillChipName, profile.fullName, FieldType.text),
           if (profile.email.isNotEmpty)
-            _ChipData('Email', profile.email, FieldType.text),
+            _ChipData(context.l10n.fillChipEmail, profile.email, FieldType.text),
           if (profile.phone.isNotEmpty)
-            _ChipData('Phone', profile.phone, FieldType.text),
+            _ChipData(context.l10n.fillChipPhone, profile.phone, FieldType.text),
           if (profile.address.isNotEmpty)
-            _ChipData('Address', profile.address, FieldType.text),
+            _ChipData(context.l10n.fillChipAddress, profile.address, FieldType.text),
           if (profile.company.isNotEmpty)
-            _ChipData('Company', profile.company, FieldType.text),
-          _ChipData('Today', today, FieldType.date),
+            _ChipData(context.l10n.fillChipCompany, profile.company, FieldType.text),
+          _ChipData(context.l10n.fillChipToday, today, FieldType.date),
         ];
 
         if (chips.isEmpty) return const SizedBox.shrink();
@@ -618,10 +631,10 @@ class _DraggableFieldState extends State<_DraggableField> {
   }
 
   String _placeholder(FieldType type) => switch (type) {
-        FieldType.text => 'Tap to fill…',
-        FieldType.date => 'Tap for date…',
-        FieldType.checkbox => 'Tap to check',
-        FieldType.signature => 'Tap to sign…',
+        FieldType.text => context.l10n.fillTapToFill,
+        FieldType.date => context.l10n.fillTapForDate,
+        FieldType.checkbox => context.l10n.fillTapToCheck,
+        FieldType.signature => context.l10n.fillTapToSign,
       };
 }
 
@@ -643,7 +656,8 @@ class _PageBackground extends StatelessWidget {
       final pageNum = int.tryParse(parts[1]) ?? 1;
       final pdfFile = File(pdfPath);
       if (!pdfFile.existsSync()) {
-        return _placeholder(Icons.picture_as_pdf_outlined, 'PDF not found');
+        return _placeholder(
+            context, Icons.picture_as_pdf_outlined, context.l10n.fillPdfNotFound);
       }
       return SfPdfViewer.file(
         pdfFile,
@@ -658,12 +672,13 @@ class _PageBackground extends StatelessWidget {
     // Regular image
     final file = File(resolved);
     if (!file.existsSync()) {
-      return _placeholder(Icons.broken_image_outlined, 'Image not found');
+      return _placeholder(
+          context, Icons.broken_image_outlined, context.l10n.fillImageNotFound);
     }
     return Image.file(file, fit: BoxFit.contain);
   }
 
-  Widget _placeholder(IconData icon, String label) {
+  Widget _placeholder(BuildContext context, IconData icon, String label) {
     return Container(
       color: Colors.grey.shade100,
       child: Center(
@@ -674,8 +689,8 @@ class _PageBackground extends StatelessWidget {
             const SizedBox(height: 8),
             Text(label, style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 4),
-            const Text(
-              'Scan or import a new document',
+            Text(
+              context.l10n.fillScanOrImport,
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ],

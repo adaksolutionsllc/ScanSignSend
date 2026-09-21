@@ -17,6 +17,14 @@ import '../models/field_model.dart';
 import '../utils/path_resolver.dart';
 import 'document_repository.dart';
 
+/// Thrown when a press is attempted on a document with no pages. Typed so the
+/// UI can show a translated message (this service has no BuildContext).
+class PressEmptyDocumentException implements Exception {
+  const PressEmptyDocumentException();
+  @override
+  String toString() => 'PressEmptyDocumentException';
+}
+
 final pressServiceProvider = Provider<PressService>((ref) {
   return PressService(
     ref.watch(documentRepositoryProvider),
@@ -54,8 +62,39 @@ class _PressJob {
   final String docTitle;
   final String outPath;
   final DateTime signedAt;
-  const _PressJob(this.pages, this.docTitle, this.outPath, this.signedAt);
+  /// Certificate-page copy, already translated. The isolate can't reach
+  /// AppLocalizations, so the strings are resolved on the caller's side and
+  /// travel with the job.
+  final _CertStrings cert;
+  const _PressJob(
+      this.pages, this.docTitle, this.outPath, this.signedAt, this.cert);
 }
+
+/// Translated labels for the signing certificate appended to every press.
+class PressCertificateStrings {
+  const PressCertificateStrings({
+    required this.title,
+    required this.documentLabel,
+    required this.signedOnLabel,
+    required this.methodLabel,
+    required this.methodValue,
+    required this.noteLabel,
+    required this.noteValue,
+    required this.dateFormat,
+    required this.localeName,
+  });
+  final String title;
+  final String documentLabel;
+  final String signedOnLabel;
+  final String methodLabel;
+  final String methodValue;
+  final String noteLabel;
+  final String noteValue;
+  final String dateFormat;
+  final String localeName;
+}
+
+typedef _CertStrings = PressCertificateStrings;
 
 class PressService {
   PressService(this._docRepo, this._pageRepo, this._fieldRepo);
@@ -68,13 +107,13 @@ class PressService {
   ///
   /// The PDF assembly (image decode, page import, save) is CPU-heavy, so it
   /// runs in a background isolate via [compute] to keep the UI responsive.
-  Future<String> press(int docId) async {
+  Future<String> press(int docId, PressCertificateStrings cert) async {
     final doc = await _docRepo.getById(docId);
     if (doc == null) throw StateError('Document $docId not found');
 
     final pages = await _pageRepo.watchPages(docId).first;
     if (pages.isEmpty) {
-      throw StateError('This document has no pages to press.');
+      throw const PressEmptyDocumentException();
     }
     final fields = await _fieldRepo.watchFields(docId).first;
 
@@ -109,7 +148,7 @@ class PressService {
     await pressDir.create(recursive: true);
     final outPath = p.join(pressDir.path, '${const Uuid().v4()}.pdf');
 
-    final job = _PressJob(pagePlans, doc.title, outPath, DateTime.now());
+    final job = _PressJob(pagePlans, doc.title, outPath, DateTime.now(), cert);
 
     // Run the flatten in a background isolate. compute() re-throws any error
     // on the caller side, so failures surface to the UI as normal.
@@ -155,7 +194,7 @@ Future<void> _buildPressedPdf(_PressJob job) async {
       _drawFields(gfx, plan.fields, pw, ph);
     }
 
-    _appendCertPage(pdfDoc, job.docTitle, job.signedAt);
+    _appendCertPage(pdfDoc, job.docTitle, job.signedAt, job.cert);
 
     final bytes = await pdfDoc.save();
     await File(job.outPath).writeAsBytes(bytes);
@@ -323,7 +362,8 @@ Rect _fitRect(PdfBitmap image, Rect dest) {
   );
 }
 
-void _appendCertPage(PdfDocument pdfDoc, String docTitle, DateTime signedAt) {
+void _appendCertPage(PdfDocument pdfDoc, String docTitle, DateTime signedAt,
+    _CertStrings cert) {
   final page = pdfDoc.pages.add();
   final gfx = page.graphics;
   final pw = page.size.width;
@@ -335,7 +375,7 @@ void _appendCertPage(PdfDocument pdfDoc, String docTitle, DateTime signedAt) {
   final black = PdfSolidBrush(PdfColor(0, 0, 0));
   final grey = PdfSolidBrush(PdfColor(120, 120, 120));
 
-  gfx.drawString('Signing Certificate', bold,
+  gfx.drawString(cert.title, bold,
       brush: black, bounds: Rect.fromLTWH(40, y, pw - 80, 30));
   y += 40;
 
@@ -344,10 +384,13 @@ void _appendCertPage(PdfDocument pdfDoc, String docTitle, DateTime signedAt) {
   y += 16;
 
   for (final row in [
-    ['Document', docTitle],
-    ['Signed on', DateFormat('MMMM d, yyyy — h:mm a').format(signedAt)],
-    ['Method', 'On-device (Scan Sign Send)'],
-    ['Note', 'Signatures captured locally. No cloud processing.'],
+    [cert.documentLabel, docTitle],
+    [
+      cert.signedOnLabel,
+      DateFormat(cert.dateFormat, cert.localeName).format(signedAt),
+    ],
+    [cert.methodLabel, cert.methodValue],
+    [cert.noteLabel, cert.noteValue],
   ]) {
     gfx.drawString(row[0], body,
         brush: grey, bounds: Rect.fromLTWH(40, y, 120, 18));

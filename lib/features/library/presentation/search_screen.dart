@@ -7,6 +7,7 @@ import '../../../core/models/document_model.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -37,8 +38,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         title: TextField(
           controller: _ctrl,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Search documents…',
+          decoration: InputDecoration(
+            hintText: context.l10n.librarySearchHint,
             border: InputBorder.none,
           ),
           onChanged: (v) => setState(() => _query = v),
@@ -60,7 +61,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           final docs = snapshot.data ?? [];
           if (docs.isEmpty && _query.isNotEmpty) {
             return Center(
-              child: Text('No results for "$_query"'),
+              child: Text(context.l10n.searchNoResults(_query)),
             );
           }
           return ListView.builder(

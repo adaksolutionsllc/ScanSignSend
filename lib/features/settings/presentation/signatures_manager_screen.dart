@@ -8,6 +8,7 @@ import '../../../core/db/app_database.dart';
 import '../../../core/services/signature_repository.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
+import '../../../core/utils/l10n_ext.dart';
 
 class SignaturesManagerScreen extends ConsumerWidget {
   const SignaturesManagerScreen({super.key});
@@ -16,7 +17,7 @@ class SignaturesManagerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sigRepo = ref.watch(signatureRepositoryProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Saved Signatures')),
+      appBar: AppBar(title: Text(context.l10n.signaturesTitle)),
       body: StreamBuilder<List<Signature>>(
         stream: sigRepo.watchAll(),
         builder: (context, snapshot) {
@@ -29,12 +30,12 @@ class SignaturesManagerScreen extends ConsumerWidget {
                   const Icon(Icons.draw_outlined,
                       size: 64, color: Colors.grey),
                   const SizedBox(height: 16),
-                  const Text('No saved signatures yet'),
+                  Text(context.l10n.signaturesEmpty),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => _addNew(context),
                     icon: const Icon(Icons.add),
-                    label: const Text('Add Signature'),
+                    label: Text(context.l10n.signaturesAdd),
                   ),
                 ],
               ),
@@ -59,7 +60,7 @@ class SignaturesManagerScreen extends ConsumerWidget {
                   ),
                   title: Text(sig.label),
                   subtitle: sig.isDefault
-                      ? const Text('Default',
+                      ? Text(context.l10n.signaturesDefaultBadge,
                           style: TextStyle(
                               color: Colors.green,
                               fontWeight: FontWeight.w600))
@@ -69,13 +70,13 @@ class SignaturesManagerScreen extends ConsumerWidget {
                         _handleAction(context, ref, sig, action),
                     itemBuilder: (ctx) => [
                       if (!sig.isDefault)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: _SigAction.setDefault,
-                          child: Text('Set as Default'),
+                          child: Text(context.l10n.signaturesSetDefault),
                         ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: _SigAction.delete,
-                        child: Text('Delete'),
+                        child: Text(context.l10n.actionDelete),
                       ),
                     ],
                   ),
@@ -88,7 +89,7 @@ class SignaturesManagerScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addNew(context),
         icon: const Icon(Icons.add),
-        label: const Text('Add Signature'),
+        label: Text(context.l10n.signaturesAdd),
       ),
     );
   }
@@ -117,15 +118,15 @@ class SignaturesManagerScreen extends ConsumerWidget {
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Delete Signature?'),
-            content: Text('Delete "${sig.label}"?'),
+            title: Text(context.l10n.signaturesDeleteTitle),
+            content: Text(context.l10n.signaturesDeleteBody(sig.label)),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Cancel')),
+                  child: Text(context.l10n.actionCancel)),
               FilledButton(
                   onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text('Delete')),
+                  child: Text(context.l10n.actionDelete)),
             ],
           ),
         );
