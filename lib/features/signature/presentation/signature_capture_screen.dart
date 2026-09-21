@@ -145,7 +145,10 @@ class _SignatureCaptureScreenState
         return;
       }
       final rawPng = byteData.buffer.asUint8List();
+      debugPrint(
+          'SIGDEBUG rendered=${rendered.width}x${rendered.height} rawPngBytes=${rawPng.length}');
       final pngBytes = _cropAndMakeTransparent(rawPng) ?? rawPng;
+      debugPrint('SIGDEBUG croppedBytes=${pngBytes.length}');
       if (pngBytes.isEmpty) {
         // Empty pad — nothing drawn.
         setState(() => _saving = false);

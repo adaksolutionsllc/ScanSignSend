@@ -66,6 +66,15 @@ class AppLockNotifier extends StateNotifier<bool> {
     _privacy.setSecure(enabled);
   }
 
+  /// Re-asserts the platform privacy flag for the current setting.
+  ///
+  /// [_applyLockEnabled] only calls through on a *change*, so a setSecure()
+  /// issued before the platform channel was ready would be swallowed and never
+  /// retried, silently leaving FLAG_SECURE off for a user who asked for the
+  /// lock. [AppLockGate] calls this once it is mounted, by which point the
+  /// engine is definitely up.
+  void syncPrivacyScreen() => _privacy.setSecure(_lockEnabled);
+
   /// Re-arms the lock when the app leaves the foreground.
   ///
   /// Without this the lock was a cold-start-only gate: background the app,
@@ -122,9 +131,13 @@ class _AppLockGateState extends ConsumerState<AppLockGate>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Touch the provider so the notifier is constructed (and the privacy
-    // screen flag applied) even before anything else reads the lock state.
+    // Touch the provider so the notifier is constructed even before anything
+    // else reads the lock state, then re-assert the platform privacy flag now
+    // that the engine (and its method channel) is definitely up.
     ref.read(appLockProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(appLockProvider.notifier).syncPrivacyScreen();
+    });
   }
 
   @override
