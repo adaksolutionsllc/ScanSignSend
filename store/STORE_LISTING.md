@@ -1,8 +1,14 @@
 # Store Listing — Scan Sign Send
 
+> **Localized copy lives in `store/listings/` — one file per language
+> (en, fr, es, pt, hi, ta, te), already within every console character limit.**
+> This file is the English reference plus the settings that aren't per-language
+> (category, URLs, age rating). Validate any edit with
+> `python3 store/listings/check_limits.py`; CI runs it too.
+
 Publisher: **ADAK Ventures**
 Category: Productivity (secondary: Business)
-Price: Free to download • One-time in-app purchase **$14.99** for Full Access
+Price: Free to download • One-time in-app purchase **$9.99** for Full Access
 Product ID (both stores): `com.adakVentures.fullaccess` (non-consumable)
 
 ---
@@ -69,5 +75,7 @@ Built by ADAK Ventures.
 - Google Play: Everyone
 
 ## In-app purchase display name / description (enter in console)
-- Display name: **Full Access**
-- Description: `Unlock unlimited documents, templates, and signatures forever. One-time purchase.`
+- Display name: **Full Access** (30-char limit)
+- Description: `Unlimited documents, templates, signatures.` (**45-char limit** — the
+  original copy here was 80 chars and would have been rejected)
+- Localized display names and descriptions: see `store/listings/<locale>.md`

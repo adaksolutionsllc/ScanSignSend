@@ -44,6 +44,12 @@ jobs:
       - name: Run tests
         run: flutter test --coverage
 
+      # Both consoles reject an upload when a listing field is one character
+      # over, per language — so a Tamil overflow would only surface after six
+      # other languages had been filled in by hand.
+      - name: Check store listing character limits
+        run: python3 store/listings/check_limits.py
+
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4

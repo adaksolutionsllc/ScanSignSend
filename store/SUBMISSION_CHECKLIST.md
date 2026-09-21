@@ -28,7 +28,8 @@ Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
   `flutter_localizations` pins, so localization is unresolvable there
 - ✅ `MainActivity` → `FlutterFragmentActivity` (required for biometric lock)
 - ✅ ML Kit document scanner bumped off `-beta1` to stable `16.0.0`
-- ✅ IAP wired to live store price ($14.99 fallback), product `com.adakVentures.fullaccess`
+- ✅ IAP reads the live localized store price — no price is hardcoded in the app,
+  so repricing is a console-only change (product `com.adakVentures.fullaccess`)
 - ✅ Version `1.0.0+4`
 
 ---
@@ -54,7 +55,7 @@ cp android/key.properties.example android/key.properties
 Create the **same non-consumable** in BOTH consoles:
 - Product ID: `com.adakVentures.fullaccess`
 - Type: Non-consumable (iOS) / One-time product (Android)
-- Price tier: **$14.99 USD**
+- Price tier: **$9.99 USD** base, with per-country overrides (see PRICING.md §3)
 - Display name: `Full Access`
 - ⬜ App Store: fill IAP metadata + screenshot, submit IAP **with** the first app version
 - ⬜ Play: activate the product; upload at least one build to a track first so billing works
@@ -75,10 +76,10 @@ Both answers are the same: **no data collected, no tracking.**
 
 ## 4b. Pricing ⬜
 See **`store/PRICING.md`** for the full rationale. Summary:
-- ⬜ $14.99 in tier-1 markets (not higher at launch — raising later is easy)
-- ⬜ **Override auto-conversion** for India (₹499), Brazil (R$29.90), Mexico,
+- ⬜ **$9.99** in tier-1 markets. Revisit $14.99 once there are reviews — see PRICING.md §2
+- ⬜ **Override auto-conversion** for India (₹399), Brazil (R$19.90), Mexico,
   SE Asia, Turkey, Eastern Europe and LatAm. Default conversion would price the
-  app at ~₹1,250 in India, which is a decision not to sell there — and the app
+  app at ~₹850 in India, which is a decision not to sell there — and the app
   now ships in Hindi, Tamil and Telugu specifically to reach those users.
 - ⬜ No subscription. It would trade away the only thing the incumbents can't copy.
 
@@ -89,15 +90,19 @@ See **`store/PRICING.md`** for the full rationale. Summary:
 - ⬜ Host `PRIVACY_POLICY.md` at a public URL; add it to both consoles (Play **requires** a privacy policy URL)
 - ⬜ Support URL / email live
 
-## 5b. Localized store listings ⬜
-The app is translated but the *listing* is not — that is a separate surface in
-both consoles, and an English listing in the Indian or Brazilian store undoes
-much of the benefit of the in-app translation.
-- ⬜ App Store Connect → add fr, es, pt, hi, ta, te localizations (name,
-  subtitle, description, keywords, screenshots)
-- ⬜ Play Console → Main store listing → add the same languages
-- ⬜ Keep the product name "Scan Sign Send" untranslated in every locale
-- ⬜ Localized keywords matter more than localized descriptions for discovery
+## 5b. Localized store listings ✅ written / ⬜ entered
+Copy for all 7 languages is written and length-checked in **`store/listings/`**
+(one file per locale). Still has to be pasted into the consoles:
+- ⬜ App Store Connect → App Information → Localizations (name, subtitle), then
+  the version page → Localizations (promo text, description, keywords, What's New)
+- ⬜ Play Console → Main store listing → language selector → add fr, es, pt, hi, ta, te
+- ⬜ Localized IAP display name + description per locale (45-char description limit)
+- ⬜ Screenshots per language — the only remaining per-locale asset
+- ✅ Product name "Scan Sign Send" kept untranslated everywhere (it's the brand
+  and the primary search term)
+- ✅ Keywords are locale-native search terms, not translations of the English
+  list — including Latin-script spellings Indian users actually type
+- ✅ `python3 store/listings/check_limits.py` passes; CI runs it on every push
 
 ---
 
@@ -140,7 +145,7 @@ flutter build appbundle --release
 
 ## 9. App Review notes ⬜
 Add to the review-notes field:
-> This app is fully offline. To test: tap New Scan (or Import), fill a field, add a signature, then Press & Send. Full Access is a one-time non-consumable unlock ($14.99) that removes the 3-document free-trial limit.
+> This app is fully offline. To test: tap New Scan (or Import), fill a field, add a signature, then Press & Send. Full Access is a one-time non-consumable unlock ($9.99) that removes the 3-document free-trial limit.
 
 ---
 

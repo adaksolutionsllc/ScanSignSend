@@ -15,7 +15,11 @@ class PaywallScreen extends ConsumerStatefulWidget {
 class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   bool _loading = false;
   String? _error;
-  String _price = '\$14.99'; // fallback until the live store price loads
+  /// The live, store-localized price. Null until the store responds — and it
+  /// stays null if the store is unreachable. Never substitute a hardcoded
+  /// number here: showing a price the user won't actually be charged is both
+  /// wrong and an App Store review risk.
+  String? _price;
 
   @override
   void initState() {
@@ -99,7 +103,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 child: _loading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : Text(
-                        'Unlock — $_price',
+                        _price == null
+                            ? context.l10n.paywallTitle
+                            : context.l10n.paywallUnlockForPrice(_price!),
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),

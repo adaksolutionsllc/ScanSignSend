@@ -2,7 +2,8 @@
 
 ## What this is
 Offline document scanner + e-signature iOS/Android app. Flutter + platform channels.
-One-time purchase ($14.99). No server, no accounts, no subscription.
+One-time purchase ($9.99 base; per-country pricing — see store/PRICING.md).
+No server, no accounts, no subscription.
 
 ## Stack
 | Layer | Tech |
