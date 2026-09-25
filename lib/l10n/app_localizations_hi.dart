@@ -365,6 +365,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get fillFallbackTitle => 'दस्तावेज़ भरें';
 
   @override
+  String get fillEditFields => 'फ़ील्ड संपादित करें';
+
+  @override
   String get fillReviewAndFinish => 'जाँचें और पूरा करें';
 
   @override

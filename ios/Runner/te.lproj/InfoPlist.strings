@@ -1,0 +1,5 @@
+/* iOS permission prompts. Keep keys in sync across every *.lproj
+   (test/l10n_completeness_test.dart). Info.plist holds the English fallback. */
+"NSCameraUsageDescription" = "కాగిత పత్రాలను PDFగా స్కాన్ చేయడానికి Scan Sign Send కెమెరాను ఉపయోగిస్తుంది. ఫోటోలు మీ పరికరంలోనే ప్రాసెస్ అవుతాయి, ఎప్పటికీ అప్‌లోడ్ కావు.";
+"NSPhotoLibraryUsageDescription" = "ఇప్పటికే ఉన్న ఫోటోలు లేదా చిత్రాలను పత్రం పేజీలుగా దిగుమతి చేసుకోవడానికి Scan Sign Send వీలు కల్పిస్తుంది. ఎంచుకున్న చిత్రాలు మీ పరికరంలోనే ఉంటాయి.";
+"NSFaceIDUsageDescription" = "యాప్‌ను అన్‌లాక్ చేయడానికి మరియు మీ పత్రాలను ప్రైవేట్‌గా ఉంచడానికి Scan Sign Send, Face IDను ఉపయోగిస్తుంది.";

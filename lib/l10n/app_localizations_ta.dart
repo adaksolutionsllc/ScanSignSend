@@ -366,6 +366,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get fillFallbackTitle => 'ஆவணத்தை நிரப்பு';
 
   @override
+  String get fillEditFields => 'புலங்களைத் திருத்து';
+
+  @override
   String get fillReviewAndFinish => 'சரிபார்த்து முடி';
 
   @override

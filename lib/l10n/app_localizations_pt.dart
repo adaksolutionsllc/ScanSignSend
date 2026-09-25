@@ -367,6 +367,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fillFallbackTitle => 'Preencher documento';
 
   @override
+  String get fillEditFields => 'Editar campos';
+
+  @override
   String get fillReviewAndFinish => 'Rever e concluir';
 
   @override

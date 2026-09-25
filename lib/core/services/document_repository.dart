@@ -79,10 +79,11 @@ class DocumentRepository {
   /// Never throws: a file that has already vanished must not turn a successful
   /// delete into a user-visible error.
   Future<void> _purgeFilesFor(Document? doc, List<Page> pages) async {
-    // The pressed / fillable export is uniquely named per document.
-    final exported = doc?.pressedPdfPath;
-    if (exported != null && exported.isNotEmpty) {
-      await _deleteFileQuietly(PathResolver.resolve(exported));
+    // The pressed and fillable exports are each uniquely named per document.
+    for (final exported in [doc?.pressedPdfPath, doc?.fillablePdfPath]) {
+      if (exported != null && exported.isNotEmpty) {
+        await _deleteFileQuietly(PathResolver.resolve(exported));
+      }
     }
 
     // Page assets live in `pages/<uuid>/`. A template clone re-uses the

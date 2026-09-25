@@ -108,6 +108,7 @@
   "fieldTypeCheckShort": "Casilla",
   "fieldTypeSignShort": "Firma",
   "fillFallbackTitle": "Rellenar documento",
+  "fillEditFields": "Editar campos",
   "fillReviewAndFinish": "Revisar y finalizar",
   "fillNoPages": "Este documento no tiene páginas.",
   "fillTextFieldFallback": "Campo de texto",

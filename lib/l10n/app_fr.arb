@@ -108,6 +108,7 @@
   "fieldTypeCheckShort": "Coche",
   "fieldTypeSignShort": "Signer",
   "fillFallbackTitle": "Remplir le document",
+  "fillEditFields": "Modifier les champs",
   "fillReviewAndFinish": "Vérifier et terminer",
   "fillNoPages": "Ce document ne contient aucune page.",
   "fillTextFieldFallback": "Champ de texte",

@@ -166,6 +166,34 @@ class FieldDetectionNotifier
     }
   }
 
+  /// Loads already-saved 'app' fields into the editor instead of re-running
+  /// OCR detection. Used when re-entering this screen for a document that's
+  /// been through detection (or manual authoring) before — re-running `run()`
+  /// would throw away confirmed labels/positions and any manually-added
+  /// fields, since [saveAll] used to always delete-and-reinsert everything.
+  /// AcroForm-sourced fields aren't loaded here: they're fill-only and never
+  /// editable in this screen (see [saveAll]).
+  Future<void> loadExisting() async {
+    final existing = await fieldRepo.watchFields(docId).first;
+    final appFields = existing
+        .where((f) => f.sourceKind == 'app')
+        .map((f) => EditableField(
+              dbId: f.id,
+              type: f.type.toFieldType(),
+              bbox: BoundingBox.fromJsonString(f.boundingBoxJson),
+              label: f.label,
+              pageIndex: f.pageIndex,
+              confirmed: true,
+              isRequired: f.isRequired,
+            ))
+        .toList();
+    state = state.copyWith(
+      phase: DetectionPhase.done,
+      foundCount: appFields.length,
+      fields: appFields,
+    );
+  }
+
   void setPageIndex(int i) =>
       state = state.copyWith(currentPageIndex: i);
 
@@ -226,29 +254,56 @@ class FieldDetectionNotifier
 
   /// Persist all editor fields to the DB.
   ///
-  /// Only app-authored fields are rewritten — real AcroForm fields imported
-  /// from a PDF (`sourceKind='acroform'`) are left untouched so a detection
-  /// pass can never wipe the source form's fields.
+  /// Only app-authored fields are touched — real AcroForm fields imported
+  /// from a PDF (`sourceKind='acroform'`) are left untouched so this can never
+  /// wipe the source form's fields. Fields the editor already knew about
+  /// ([EditableField.dbId] set, e.g. via [loadExisting]) are updated in place
+  /// rather than deleted-and-reinserted, so their filled `value`/`isFilled`/
+  /// `isChecked`/`signatureId` — none of which this editor ever touches —
+  /// survive a re-edit instead of coming back blank.
   Future<void> saveAll() async {
     final existing = await fieldRepo.watchFields(docId).first;
-    for (final f in existing) {
-      if (f.sourceKind == 'acroform') continue; // preserve real form fields
-      await fieldRepo.deleteField(f.id);
-    }
+    final existingIds = existing.map((f) => f.id).toSet();
+    final keptIds = <int>{};
+
     for (final f in state.fields) {
       // Use a non-empty label as the AcroForm field name so authored forms
       // export with meaningful, fillable field names.
       final name = f.label.trim().isEmpty ? null : f.label.trim();
-      await fieldRepo.addField(FieldsCompanion.insert(
-        documentId: docId,
-        pageIndex: f.pageIndex,
-        type: f.type.name,
-        boundingBoxJson: f.bbox.toJsonString(),
-        label: Value(f.label),
-        isRequired: Value(f.isRequired),
-        pdfFieldName: Value(name),
-        sourceKind: const Value('app'),
-      ));
+      if (f.dbId != null && existingIds.contains(f.dbId)) {
+        keptIds.add(f.dbId!);
+        await fieldRepo.updateField(FieldsCompanion(
+          id: Value(f.dbId!),
+          pageIndex: Value(f.pageIndex),
+          type: Value(f.type.name),
+          boundingBoxJson: Value(f.bbox.toJsonString()),
+          label: Value(f.label),
+          isRequired: Value(f.isRequired),
+          pdfFieldName: Value(name),
+        ));
+      } else {
+        final newId = await fieldRepo.addField(FieldsCompanion.insert(
+          documentId: docId,
+          pageIndex: f.pageIndex,
+          type: f.type.name,
+          boundingBoxJson: f.bbox.toJsonString(),
+          label: Value(f.label),
+          isRequired: Value(f.isRequired),
+          pdfFieldName: Value(name),
+          sourceKind: const Value('app'),
+        ));
+        keptIds.add(newId);
+      }
+    }
+
+    // Anything app-sourced that didn't survive into state.fields was removed
+    // in the editor (deleteField) — drop it. AcroForm rows are never in
+    // state.fields, so they're never in keptIds and always preserved here.
+    for (final f in existing) {
+      if (f.sourceKind == 'acroform') continue;
+      if (!keptIds.contains(f.id)) {
+        await fieldRepo.deleteField(f.id);
+      }
     }
   }
 }

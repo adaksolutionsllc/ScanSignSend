@@ -64,6 +64,7 @@ dev_dependencies:
   riverpod_generator: ^2.4.3
   drift_dev: ^2.20.0
   flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.7
 
 flutter:
   uses-material-design: true
@@ -85,3 +86,16 @@ flutter_launcher_icons:
   ios: true
   remove_alpha_ios: true
   background_color_ios: "#0B0B10"
+
+# Native launch screen — regenerate with:
+#   dart run flutter_native_splash:create
+# The mark is branding/icon_foreground.png cropped to its bounds; the Android 12+
+# copy is padded into the 2/3-diameter circle the system masks splash icons to.
+# One dark background in both themes so the splash matches the launcher icon.
+flutter_native_splash:
+  color: "#322f3c"
+  image: branding/splash_mark.png
+  android_12:
+    color: "#322f3c"
+    image: branding/splash_android12.png
+  fullscreen: false

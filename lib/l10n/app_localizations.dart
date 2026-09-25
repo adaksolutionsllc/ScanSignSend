@@ -756,6 +756,12 @@ abstract class AppLocalizations {
   /// **'Fill Document'**
   String get fillFallbackTitle;
 
+  /// No description provided for @fillEditFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Fields'**
+  String get fillEditFields;
+
   /// No description provided for @fillReviewAndFinish.
   ///
   /// In en, this message translates to:

@@ -19,8 +19,15 @@ class Documents extends Table {
   TextColumn get ocrText => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
-  // Path to the pressed/flattened PDF; null until pressed
+  // Path to the pressed/flattened PDF; null until pressed. Setting this is
+  // what locks the document (status becomes 'pressed') — it must never be
+  // reused for the fillable export below, or exporting a shareable copy would
+  // also (wrongly) freeze the live document out of further editing.
   TextColumn get pressedPdfPath => text().nullable()();
+  // Path to the last "Save as Fillable" AcroForm export (schema v3). Purely a
+  // shareable snapshot — writing this does NOT change `status` or lock the
+  // document; the original stays editable through further fill/sign/press.
+  TextColumn get fillablePdfPath => text().nullable()();
   BoolColumn get isTemplate => boolean().withDefault(const Constant(false))();
 }
 
@@ -108,7 +115,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -121,6 +128,14 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(fields, fields.isRequired);
             await m.addColumn(fields, fields.sourceKind);
             await m.addColumn(fields, fields.optionsJson);
+          }
+          // v2 → v3: separate column for the "Save as Fillable" export path,
+          // previously (wrongly) sharing pressedPdfPath with the flatten/lock
+          // artifact. Existing rows with status='fillable' keep that path in
+          // pressedPdfPath — it still resolves fine as a fillable-export
+          // viewer fallback — new exports land in the new column instead.
+          if (from < 3) {
+            await m.addColumn(documents, documents.fillablePdfPath);
           }
         },
       );

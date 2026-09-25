@@ -367,6 +367,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get fillFallbackTitle => 'Remplir le document';
 
   @override
+  String get fillEditFields => 'Modifier les champs';
+
+  @override
   String get fillReviewAndFinish => 'Vérifier et terminer';
 
   @override

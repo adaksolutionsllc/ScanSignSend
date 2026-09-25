@@ -367,6 +367,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get fillFallbackTitle => 'పత్రాన్ని పూరించు';
 
   @override
+  String get fillEditFields => 'ఫీల్డ్‌లను సవరించండి';
+
+  @override
   String get fillReviewAndFinish => 'సమీక్షించి పూర్తి చేయి';
 
   @override

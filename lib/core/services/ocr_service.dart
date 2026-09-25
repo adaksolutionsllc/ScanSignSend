@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/painting.dart' show Rect;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:image/image.dart' as img;
 
 final ocrServiceProvider = Provider<OcrService>((ref) {
   final service = OcrService();
@@ -46,13 +49,33 @@ class OcrService {
     final inputImage = InputImage.fromFilePath(imagePath);
     final recognized = await _recognizer.processImage(inputImage);
 
-    // Derive image size from the union of all block bounding boxes
-    // (InputImage metadata not always available without decoding the bitmap).
-    double maxX = 1, maxY = 1;
-    for (final b in recognized.blocks) {
-      final r = b.boundingBox;
-      if (r.right > maxX) maxX = r.right;
-      if (r.bottom > maxY) maxY = r.bottom;
+    // Field bboxes are normalised against this width/height, then later
+    // rendered against the real page/image widget size — the two MUST agree.
+    // The union of OCR text-block boxes is not a substitute for the actual
+    // image size: any page with margins, whitespace, or a header/footer the
+    // recognizer didn't box makes that union smaller than the real page,
+    // which drags every detected field off its true position once rendered.
+    var imageWidth = 1;
+    var imageHeight = 1;
+    try {
+      final decoded = img.decodeImage(await File(imagePath).readAsBytes());
+      if (decoded != null && decoded.width > 0 && decoded.height > 0) {
+        imageWidth = decoded.width;
+        imageHeight = decoded.height;
+      }
+    } catch (_) {
+      // Fall through to the text-extent fallback below.
+    }
+    if (imageWidth <= 1 || imageHeight <= 1) {
+      // Decode failed — better an approximate size than none.
+      double maxX = 1, maxY = 1;
+      for (final b in recognized.blocks) {
+        final r = b.boundingBox;
+        if (r.right > maxX) maxX = r.right;
+        if (r.bottom > maxY) maxY = r.bottom;
+      }
+      imageWidth = maxX.ceil();
+      imageHeight = maxY.ceil();
     }
 
     final blocks = recognized.blocks.map((b) {
@@ -70,8 +93,8 @@ class OcrService {
     return OcrResult(
       fullText: recognized.text,
       blocks: blocks,
-      imageWidth: maxX.ceil(),
-      imageHeight: maxY.ceil(),
+      imageWidth: imageWidth,
+      imageHeight: imageHeight,
     );
   }
 

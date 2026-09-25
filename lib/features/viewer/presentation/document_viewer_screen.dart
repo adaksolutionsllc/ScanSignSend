@@ -209,14 +209,15 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
     return _ViewerData(doc, sourcePdf);
   }
 
-  /// Prefer the exported PDF (pressed or fillable); otherwise fall back to the
-  /// imported source PDF so an imported-but-not-yet-exported document still
-  /// renders instead of showing a blank page. Scanned-only (image) docs with no
-  /// export have no single PDF here (they live in the fill/review flows).
+  /// Prefer the exported PDF (pressed, then fillable); otherwise fall back to
+  /// the imported source PDF so an imported-but-not-yet-exported document
+  /// still renders instead of showing a blank page. Scanned-only (image) docs
+  /// with no export have no single PDF here (they live in the fill/review
+  /// flows).
   String? _resolvePath(Document? doc) {
     if (doc == null) return null;
-    final exported = doc.pressedPdfPath;
-    if (exported != null) {
+    for (final exported in [doc.pressedPdfPath, doc.fillablePdfPath]) {
+      if (exported == null) continue;
       final abs = PathResolver.resolve(exported);
       if (File(abs).existsSync()) return abs;
     }

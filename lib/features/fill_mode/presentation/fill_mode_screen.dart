@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart' as syncpdf;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/db/app_database.dart' as db;
@@ -50,6 +51,16 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         return Scaffold(
           appBar: AppBar(
             title: Text(doc?.title ?? context.l10n.fillFallbackTitle),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit_note),
+                tooltip: context.l10n.fillEditFields,
+                onPressed: () => context.push(
+                  AppRoutes.fieldDetection
+                      .replaceAll(':docId', '${widget.docId}'),
+                ),
+              ),
+            ],
           ),
           // Primary next-step action: prominent, bottom-centre, always reachable.
           bottomNavigationBar: SafeArea(
@@ -111,6 +122,16 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                           fields: pageFields,
                           onFieldTap: (field) =>
                               _openFieldInput(context, field),
+                          // PdfPageLayoutMode.single lets the user swipe
+                          // left/right to a different page *inside* the PDF
+                          // viewer itself, bypassing the page-picker chips
+                          // below — without this, our own _currentPage state
+                          // (and therefore which fields get overlaid) falls
+                          // out of sync with whatever page is actually on
+                          // screen. Mirror the viewer's own page back into
+                          // our state instead of fighting the gesture.
+                          onPageChanged: (i) => setState(
+                              () => _currentPage = i.clamp(0, pages.length - 1)),
                         ),
                       ),
                       // ── Page picker ───────────────────────────────────────
@@ -358,11 +379,16 @@ class _FillOverlay extends ConsumerStatefulWidget {
     required this.page,
     required this.fields,
     required this.onFieldTap,
+    this.onPageChanged,
   });
 
   final db.Page page;
   final List<db.Field> fields;
   final ValueChanged<db.Field> onFieldTap;
+  // Fires when the PDF viewer's own swipe-between-pages gesture moves it off
+  // this page (0-indexed) — see the call site in FillModeScreen for why this
+  // exists.
+  final ValueChanged<int>? onPageChanged;
 
   @override
   ConsumerState<_FillOverlay> createState() => _FillOverlayState();
@@ -384,6 +410,94 @@ class _FillOverlayState extends ConsumerState<_FillOverlay> {
   static const double _minH = 24;
   static const double _handleSize = 18;
 
+  // ── PDF scroll/zoom tracking ─────────────────────────────────────────────
+  // SfPdfViewer manages its own internal scroll+zoom for a PDF-backed page,
+  // independently of the Positioned overlay below — without this, panning or
+  // pinching the page leaves every field box stuck at its original screen
+  // position while the document moves underneath it. Owning the controller
+  // here lets the overlay math re-derive each field's on-screen rect from
+  // the viewer's live zoomLevel/scrollOffset instead of assuming the page is
+  // always static at 1:1 with the viewport (true only for image-backed pages).
+  PdfViewerController? _pdfController;
+  // Native PDF page size in points — needed because SfPdfViewer fits a
+  // page's WIDTH to the viewport at zoomLevel 1.0 but preserves its own
+  // aspect ratio for height, which we can't derive from the viewport alone.
+  Size? _pdfNativeSize;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncPdfController();
+  }
+
+  @override
+  void didUpdateWidget(covariant _FillOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.page.imagePath != widget.page.imagePath) {
+      _syncPdfController();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pdfController?.removeListener(_onPdfControllerChanged);
+    _pdfController?.dispose();
+    super.dispose();
+  }
+
+  void _syncPdfController() {
+    _pdfController?.removeListener(_onPdfControllerChanged);
+    _pdfController?.dispose();
+    _pdfController = null;
+    _pdfNativeSize = null;
+
+    final resolved = PathResolver.resolve(widget.page.imagePath);
+    if (!resolved.contains('#page=')) return; // image-backed page — no viewer
+
+    _pdfController = PdfViewerController()
+      ..addListener(_onPdfControllerChanged);
+    _loadNativePageSize(resolved);
+  }
+
+  void _onPdfControllerChanged() {
+    // zoomLevel notifies on pinch; scrollOffset does not (see
+    // _onPdfPointerActivity) — this catches the zoom half of that gap.
+    if (mounted) setState(() {});
+  }
+
+  /// Every pointer move/up during an interaction with a PDF-backed page.
+  /// PdfViewerController.scrollOffset has no change notification, so a pan
+  /// gesture is otherwise invisible to this widget — polling it here, tied
+  /// to actual touch events rather than a timer, keeps the overlay honest
+  /// while the user is dragging. One known gap: a post-release fling keeps
+  /// gliding after the last pointer event, so the overlay freezes at the
+  /// release position until the next touch — acceptable for a form-filling
+  /// screen where users scroll deliberately rather than flinging.
+  void _onPdfPointerActivity(PointerEvent _) {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadNativePageSize(String resolved) async {
+    final parts = resolved.split('#page=');
+    final pageIndex = int.tryParse(parts[1]) ?? 0;
+    try {
+      final bytes = await File(parts[0]).readAsBytes();
+      final doc = syncpdf.PdfDocument(inputBytes: bytes);
+      if (pageIndex >= 0 && pageIndex < doc.pages.count) {
+        final size = doc.pages[pageIndex].size;
+        // The page may have changed again while this load was in flight.
+        if (mounted && PathResolver.resolve(widget.page.imagePath) == resolved) {
+          setState(() => _pdfNativeSize = Size(size.width, size.height));
+        }
+      }
+      doc.dispose();
+    } catch (_) {
+      // Leave _pdfNativeSize null — build() falls back to the viewport's own
+      // aspect ratio, which is usually close enough for the brief gap until
+      // this either succeeds on retry or the page is abandoned.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
@@ -394,24 +508,53 @@ class _FillOverlayState extends ConsumerState<_FillOverlay> {
       // smaller than a field's minimum — bail rather than feed invalid values
       // to clamp() / Positioned (both throw on inverted or negative ranges).
       if (!cw.isFinite || !ch.isFinite || cw < _minW || ch < _minH) {
-        return _PageBackground(imagePath: widget.page.imagePath);
+        return _PageBackground(
+            imagePath: widget.page.imagePath, controller: _pdfController);
       }
 
-      return Stack(
+      final pdfCtrl = _pdfController;
+      // Defaults (zoom 1, no scroll) match a controller that hasn't attached
+      // to a live viewer yet, which is exactly the state on the first build.
+      final zoom = pdfCtrl?.zoomLevel ?? 1.0;
+      final scroll = pdfCtrl?.scrollOffset ?? Offset.zero;
+      final pageAspect = (_pdfNativeSize != null && _pdfNativeSize!.height > 0)
+          ? _pdfNativeSize!.width / _pdfNativeSize!.height
+          : (cw / ch);
+      // SfPdfViewer fits a single page's WIDTH to the viewport at zoomLevel
+      // 1.0 — so the viewport width doubles as "page width in pixels at
+      // zoom 1", and height follows from the page's own aspect ratio.
+      final pdfFitW = cw;
+      final pdfFitH = cw / pageAspect;
+
+      Widget content = Stack(
         fit: StackFit.expand,
         children: [
-          _PageBackground(imagePath: widget.page.imagePath),
+          _PageBackground(
+            imagePath: widget.page.imagePath,
+            controller: pdfCtrl,
+            onPageChanged: widget.onPageChanged,
+          ),
 
           ...widget.fields.map((field) {
             final bbox = BoundingBox.fromJsonString(field.boundingBoxJson);
             final type = field.type.toFieldType();
             final color = _typeColors[type] ?? Colors.blue;
 
-            // Compute current position/size — start from bbox, apply any drag delta
-            final baseLeft = bbox.x * cw;
-            final baseTop = bbox.y * ch;
-            final baseW = bbox.w * cw;
-            final baseH = bbox.h * ch;
+            // Compute current position/size — start from bbox (re-derived
+            // against the PDF viewer's live zoom/scroll when this is a
+            // PDF-backed page), apply any drag delta.
+            final double baseLeft, baseTop, baseW, baseH;
+            if (pdfCtrl != null) {
+              baseLeft = bbox.x * pdfFitW * zoom - scroll.dx;
+              baseTop = bbox.y * pdfFitH * zoom - scroll.dy;
+              baseW = bbox.w * pdfFitW * zoom;
+              baseH = bbox.h * pdfFitH * zoom;
+            } else {
+              baseLeft = bbox.x * cw;
+              baseTop = bbox.y * ch;
+              baseW = bbox.w * cw;
+              baseH = bbox.h * ch;
+            }
 
             final offset = _offsets[field.id] ?? Offset.zero;
             final size = _sizes[field.id] ?? Size(baseW, baseH);
@@ -479,6 +622,20 @@ class _FillOverlayState extends ConsumerState<_FillOverlay> {
           }),
         ],
       );
+
+      if (pdfCtrl != null) {
+        // Not a gesture arena participant — just observes pointer activity so
+        // the overlay can re-poll scrollOffset (see _onPdfPointerActivity)
+        // without stealing the pan/pinch gesture SfPdfViewer needs to see.
+        content = Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerMove: _onPdfPointerActivity,
+          onPointerUp: _onPdfPointerActivity,
+          onPointerCancel: _onPdfPointerActivity,
+          child: content,
+        );
+      }
+      return content;
     });
   }
 
@@ -491,12 +648,33 @@ class _FillOverlayState extends ConsumerState<_FillOverlay> {
     double cw,
     double ch,
   ) async {
-    final newBbox = BoundingBox(
-      x: (left / cw).clamp(0.0, 1.0),
-      y: (top / ch).clamp(0.0, 1.0),
-      w: (w / cw).clamp(0.001, 1.0),
-      h: (h / ch).clamp(0.001, 1.0),
-    );
+    final pdfCtrl = _pdfController;
+    final BoundingBox newBbox;
+    if (pdfCtrl != null) {
+      // Invert the same transform used to render the field, so a drag/resize
+      // made while scrolled/zoomed persists the correct page-relative bbox
+      // rather than baking in whatever scroll/zoom happened to be active.
+      final zoom = pdfCtrl.zoomLevel;
+      final scroll = pdfCtrl.scrollOffset;
+      final pageAspect = (_pdfNativeSize != null && _pdfNativeSize!.height > 0)
+          ? _pdfNativeSize!.width / _pdfNativeSize!.height
+          : (cw / ch);
+      final denomW = cw * zoom;
+      final denomH = (cw / pageAspect) * zoom;
+      newBbox = BoundingBox(
+        x: ((left + scroll.dx) / denomW).clamp(0.0, 1.0),
+        y: ((top + scroll.dy) / denomH).clamp(0.0, 1.0),
+        w: (w / denomW).clamp(0.001, 1.0),
+        h: (h / denomH).clamp(0.001, 1.0),
+      );
+    } else {
+      newBbox = BoundingBox(
+        x: (left / cw).clamp(0.0, 1.0),
+        y: (top / ch).clamp(0.0, 1.0),
+        w: (w / cw).clamp(0.001, 1.0),
+        h: (h / ch).clamp(0.001, 1.0),
+      );
+    }
     await ref.read(fieldRepositoryProvider).updateField(
           db.FieldsCompanion(
             id: Value(field.id),
@@ -664,8 +842,13 @@ class _DraggableFieldState extends State<_DraggableField> {
 // ── Page background (image or PDF page) ──────────────────────────────────────
 
 class _PageBackground extends StatelessWidget {
-  const _PageBackground({required this.imagePath});
+  const _PageBackground(
+      {required this.imagePath, this.controller, this.onPageChanged});
   final String imagePath;
+  // Shared with _FillOverlayState so the overlay's position math can read the
+  // same live zoomLevel/scrollOffset this viewer instance is actually using.
+  final PdfViewerController? controller;
+  final ValueChanged<int>? onPageChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -676,7 +859,10 @@ class _PageBackground extends StatelessWidget {
     if (resolved.contains('#page=')) {
       final parts = resolved.split('#page=');
       final pdfPath = parts[0];
-      final pageNum = int.tryParse(parts[1]) ?? 1;
+      // The `#page=N` fragment is 0-indexed; SfPdfViewer.initialPageNumber is
+      // 1-indexed (see field_detection_screen.dart's _buildBackground, which
+      // does the same +1).
+      final pageNum = (int.tryParse(parts[1]) ?? 0) + 1;
       final pdfFile = File(pdfPath);
       if (!pdfFile.existsSync()) {
         return _placeholder(
@@ -684,11 +870,24 @@ class _PageBackground extends StatelessWidget {
       }
       return SfPdfViewer.file(
         pdfFile,
+        // `initialPageNumber` is only honoured when the widget is first
+        // created — SfPdfViewer's State otherwise survives a rebuild that
+        // just changes this prop (same file, same tree slot), so tapping a
+        // different page chip did nothing. Keying on the resolved path
+        // (which embeds `#page=N`) forces a fresh element per page.
+        key: ValueKey(resolved),
+        controller: controller,
         initialPageNumber: pageNum,
         canShowScrollHead: false,
         canShowScrollStatus: false,
         enableDoubleTapZooming: false,
         pageLayoutMode: PdfPageLayoutMode.single,
+        // PdfPageLayoutMode.single lets the user swipe to the next/previous
+        // page of the underlying PDF without going through our page-picker
+        // chips — mirror that back into app state (see FillModeScreen).
+        onPageChanged: onPageChanged == null
+            ? null
+            : (details) => onPageChanged!(details.newPageNumber - 1),
       );
     }
 

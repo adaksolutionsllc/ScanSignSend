@@ -366,6 +366,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fillFallbackTitle => 'Rellenar documento';
 
   @override
+  String get fillEditFields => 'Editar campos';
+
+  @override
   String get fillReviewAndFinish => 'Revisar y finalizar';
 
   @override

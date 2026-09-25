@@ -29,7 +29,16 @@ Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
 - ✅ `MainActivity` → `FlutterFragmentActivity` (required for biometric lock)
 - ✅ ML Kit document scanner bumped off `-beta1` to stable `16.0.0`
 - ✅ IAP reads the live localized store price — no price is hardcoded in the app,
-  so repricing is a console-only change (product `com.adakVentures.fullaccess`)
+  so repricing is a console-only change (product `com.adakventures.fullaccess`)
+- ✅ IAP product ID is all-lowercase — Play Console rejects uppercase in product
+  IDs, so the old `com.adakVentures.fullaccess` could never have been created there
+- ✅ iOS permission prompts (camera, photos, Face ID) localized in all 7 languages
+  via `ios/Runner/<locale>.lproj/InfoPlist.strings`, guarded by the l10n test
+- ✅ Branded native splash on both platforms (`flutter_native_splash`, config in
+  `pubspec.yaml`; Android 12+ uses the padded `branding/splash_android12.png`)
+- ✅ Release builds verified 2026-09-24: signed AAB (upload key, targetSdk 36,
+  all native libs 16 KB page-aligned) and App Store IPA (automatic signing,
+  team `T995T8G6Z2`) both build clean
 - ✅ Version `1.0.0+4`
 
 ---
@@ -53,7 +62,7 @@ cp android/key.properties.example android/key.properties
 
 ## 3. In-app purchase product ⬜
 Create the **same non-consumable** in BOTH consoles:
-- Product ID: `com.adakVentures.fullaccess`
+- Product ID: `com.adakventures.fullaccess`
 - Type: Non-consumable (iOS) / One-time product (Android)
 - Price tier: **$9.99 USD** base, with per-country overrides (see PRICING.md §3)
 - Display name: `Full Access`
@@ -150,7 +159,6 @@ Add to the review-notes field:
 ---
 
 ## Known non-blocking follow-ups (optional polish)
-- Consider a branded launch/splash screen using `branding/adak_ventures_logo_full.png`.
 - No sweep exists for files orphaned by builds released *before* the delete-cleanup
   fix. Not a shipping blocker (the app is pre-launch), but a one-shot janitor at
   startup would reclaim them if any test installs are ever upgraded in place.

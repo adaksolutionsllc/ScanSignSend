@@ -122,4 +122,32 @@ void main() {
           reason: '$locale still holds the English text for these keys');
     }
   });
+
+  test('every locale translates the iOS permission prompts', () {
+    // iOS reads these from <locale>.lproj/InfoPlist.strings, outside gen-l10n,
+    // so a missing file shows the camera / Face ID prompt in English.
+    final plist = File('ios/Runner/Info.plist').readAsStringSync();
+    final usageKeys = RegExp(r'<key>(NS\w+UsageDescription)</key>')
+        .allMatches(plist)
+        .map((m) => m.group(1)!)
+        .toSet();
+    expect(usageKeys, isNotEmpty);
+    final english = File('ios/Runner/en.lproj/InfoPlist.strings')
+        .readAsStringSync();
+    for (final locale in _expectedLocales) {
+      final strings = File('ios/Runner/$locale.lproj/InfoPlist.strings')
+          .readAsStringSync();
+      final entries = {
+        for (final m in RegExp(r'"(\w+)"\s*=\s*"(.*)";').allMatches(strings))
+          m.group(1)!: m.group(2)!,
+      };
+      expect(entries.keys.toSet(), usageKeys,
+          reason: '$locale InfoPlist.strings is out of sync with Info.plist');
+      if (locale == 'en') continue;
+      for (final key in usageKeys) {
+        expect(english.contains('"${entries[key]}"'), isFalse,
+            reason: '$locale/$key is still the English prompt');
+      }
+    }
+  });
 }

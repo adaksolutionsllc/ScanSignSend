@@ -88,7 +88,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     '${doc.pageCount} page${doc.pageCount == 1 ? '' : 's'}'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(
-                  AppRoutes.fillMode.replaceAll(':docId', '${doc.id}'),
+                  status == DocumentStatus.pressed
+                      ? AppRoutes.viewer.replaceAll(':docId', '${doc.id}')
+                      : AppRoutes.fillMode.replaceAll(':docId', '${doc.id}'),
                 ),
               );
             },

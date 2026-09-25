@@ -107,6 +107,17 @@ class $DocumentsTable extends Documents
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _fillablePdfPathMeta = const VerificationMeta(
+    'fillablePdfPath',
+  );
+  @override
+  late final GeneratedColumn<String> fillablePdfPath = GeneratedColumn<String>(
+    'fillable_pdf_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isTemplateMeta = const VerificationMeta(
     'isTemplate',
   );
@@ -133,6 +144,7 @@ class $DocumentsTable extends Documents
     createdAt,
     updatedAt,
     pressedPdfPath,
+    fillablePdfPath,
     isTemplate,
   ];
   @override
@@ -209,6 +221,15 @@ class $DocumentsTable extends Documents
         ),
       );
     }
+    if (data.containsKey('fillable_pdf_path')) {
+      context.handle(
+        _fillablePdfPathMeta,
+        fillablePdfPath.isAcceptableOrUnknown(
+          data['fillable_pdf_path']!,
+          _fillablePdfPathMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_template')) {
       context.handle(
         _isTemplateMeta,
@@ -260,6 +281,10 @@ class $DocumentsTable extends Documents
         DriftSqlType.string,
         data['${effectivePrefix}pressed_pdf_path'],
       ),
+      fillablePdfPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fillable_pdf_path'],
+      ),
       isTemplate: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_template'],
@@ -283,6 +308,7 @@ class Document extends DataClass implements Insertable<Document> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? pressedPdfPath;
+  final String? fillablePdfPath;
   final bool isTemplate;
   const Document({
     required this.id,
@@ -294,6 +320,7 @@ class Document extends DataClass implements Insertable<Document> {
     required this.createdAt,
     required this.updatedAt,
     this.pressedPdfPath,
+    this.fillablePdfPath,
     required this.isTemplate,
   });
   @override
@@ -309,6 +336,9 @@ class Document extends DataClass implements Insertable<Document> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || pressedPdfPath != null) {
       map['pressed_pdf_path'] = Variable<String>(pressedPdfPath);
+    }
+    if (!nullToAbsent || fillablePdfPath != null) {
+      map['fillable_pdf_path'] = Variable<String>(fillablePdfPath);
     }
     map['is_template'] = Variable<bool>(isTemplate);
     return map;
@@ -327,6 +357,9 @@ class Document extends DataClass implements Insertable<Document> {
       pressedPdfPath: pressedPdfPath == null && nullToAbsent
           ? const Value.absent()
           : Value(pressedPdfPath),
+      fillablePdfPath: fillablePdfPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fillablePdfPath),
       isTemplate: Value(isTemplate),
     );
   }
@@ -346,6 +379,7 @@ class Document extends DataClass implements Insertable<Document> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       pressedPdfPath: serializer.fromJson<String?>(json['pressedPdfPath']),
+      fillablePdfPath: serializer.fromJson<String?>(json['fillablePdfPath']),
       isTemplate: serializer.fromJson<bool>(json['isTemplate']),
     );
   }
@@ -362,6 +396,7 @@ class Document extends DataClass implements Insertable<Document> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'pressedPdfPath': serializer.toJson<String?>(pressedPdfPath),
+      'fillablePdfPath': serializer.toJson<String?>(fillablePdfPath),
       'isTemplate': serializer.toJson<bool>(isTemplate),
     };
   }
@@ -376,6 +411,7 @@ class Document extends DataClass implements Insertable<Document> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<String?> pressedPdfPath = const Value.absent(),
+    Value<String?> fillablePdfPath = const Value.absent(),
     bool? isTemplate,
   }) => Document(
     id: id ?? this.id,
@@ -389,6 +425,9 @@ class Document extends DataClass implements Insertable<Document> {
     pressedPdfPath: pressedPdfPath.present
         ? pressedPdfPath.value
         : this.pressedPdfPath,
+    fillablePdfPath: fillablePdfPath.present
+        ? fillablePdfPath.value
+        : this.fillablePdfPath,
     isTemplate: isTemplate ?? this.isTemplate,
   );
   Document copyWithCompanion(DocumentsCompanion data) {
@@ -404,6 +443,9 @@ class Document extends DataClass implements Insertable<Document> {
       pressedPdfPath: data.pressedPdfPath.present
           ? data.pressedPdfPath.value
           : this.pressedPdfPath,
+      fillablePdfPath: data.fillablePdfPath.present
+          ? data.fillablePdfPath.value
+          : this.fillablePdfPath,
       isTemplate: data.isTemplate.present
           ? data.isTemplate.value
           : this.isTemplate,
@@ -422,6 +464,7 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('pressedPdfPath: $pressedPdfPath, ')
+          ..write('fillablePdfPath: $fillablePdfPath, ')
           ..write('isTemplate: $isTemplate')
           ..write(')'))
         .toString();
@@ -438,6 +481,7 @@ class Document extends DataClass implements Insertable<Document> {
     createdAt,
     updatedAt,
     pressedPdfPath,
+    fillablePdfPath,
     isTemplate,
   );
   @override
@@ -453,6 +497,7 @@ class Document extends DataClass implements Insertable<Document> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.pressedPdfPath == this.pressedPdfPath &&
+          other.fillablePdfPath == this.fillablePdfPath &&
           other.isTemplate == this.isTemplate);
 }
 
@@ -466,6 +511,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String?> pressedPdfPath;
+  final Value<String?> fillablePdfPath;
   final Value<bool> isTemplate;
   const DocumentsCompanion({
     this.id = const Value.absent(),
@@ -477,6 +523,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.pressedPdfPath = const Value.absent(),
+    this.fillablePdfPath = const Value.absent(),
     this.isTemplate = const Value.absent(),
   });
   DocumentsCompanion.insert({
@@ -489,6 +536,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.pressedPdfPath = const Value.absent(),
+    this.fillablePdfPath = const Value.absent(),
     this.isTemplate = const Value.absent(),
   }) : uuid = Value(uuid),
        title = Value(title),
@@ -504,6 +552,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? pressedPdfPath,
+    Expression<String>? fillablePdfPath,
     Expression<bool>? isTemplate,
   }) {
     return RawValuesInsertable({
@@ -516,6 +565,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (pressedPdfPath != null) 'pressed_pdf_path': pressedPdfPath,
+      if (fillablePdfPath != null) 'fillable_pdf_path': fillablePdfPath,
       if (isTemplate != null) 'is_template': isTemplate,
     });
   }
@@ -530,6 +580,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<String?>? pressedPdfPath,
+    Value<String?>? fillablePdfPath,
     Value<bool>? isTemplate,
   }) {
     return DocumentsCompanion(
@@ -542,6 +593,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       pressedPdfPath: pressedPdfPath ?? this.pressedPdfPath,
+      fillablePdfPath: fillablePdfPath ?? this.fillablePdfPath,
       isTemplate: isTemplate ?? this.isTemplate,
     );
   }
@@ -576,6 +628,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (pressedPdfPath.present) {
       map['pressed_pdf_path'] = Variable<String>(pressedPdfPath.value);
     }
+    if (fillablePdfPath.present) {
+      map['fillable_pdf_path'] = Variable<String>(fillablePdfPath.value);
+    }
     if (isTemplate.present) {
       map['is_template'] = Variable<bool>(isTemplate.value);
     }
@@ -594,6 +649,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('pressedPdfPath: $pressedPdfPath, ')
+          ..write('fillablePdfPath: $fillablePdfPath, ')
           ..write('isTemplate: $isTemplate')
           ..write(')'))
         .toString();
@@ -2988,6 +3044,7 @@ typedef $$DocumentsTableCreateCompanionBuilder =
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<String?> pressedPdfPath,
+      Value<String?> fillablePdfPath,
       Value<bool> isTemplate,
     });
 typedef $$DocumentsTableUpdateCompanionBuilder =
@@ -3001,6 +3058,7 @@ typedef $$DocumentsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String?> pressedPdfPath,
+      Value<String?> fillablePdfPath,
       Value<bool> isTemplate,
     });
 
@@ -3098,6 +3156,11 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<String> get pressedPdfPath => $composableBuilder(
     column: $table.pressedPdfPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fillablePdfPath => $composableBuilder(
+    column: $table.fillablePdfPath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3211,6 +3274,11 @@ class $$DocumentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get fillablePdfPath => $composableBuilder(
+    column: $table.fillablePdfPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isTemplate => $composableBuilder(
     column: $table.isTemplate,
     builder: (column) => ColumnOrderings(column),
@@ -3252,6 +3320,11 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<String> get pressedPdfPath => $composableBuilder(
     column: $table.pressedPdfPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get fillablePdfPath => $composableBuilder(
+    column: $table.fillablePdfPath,
     builder: (column) => column,
   );
 
@@ -3348,6 +3421,7 @@ class $$DocumentsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String?> pressedPdfPath = const Value.absent(),
+                Value<String?> fillablePdfPath = const Value.absent(),
                 Value<bool> isTemplate = const Value.absent(),
               }) => DocumentsCompanion(
                 id: id,
@@ -3359,6 +3433,7 @@ class $$DocumentsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 pressedPdfPath: pressedPdfPath,
+                fillablePdfPath: fillablePdfPath,
                 isTemplate: isTemplate,
               ),
           createCompanionCallback:
@@ -3372,6 +3447,7 @@ class $$DocumentsTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<String?> pressedPdfPath = const Value.absent(),
+                Value<String?> fillablePdfPath = const Value.absent(),
                 Value<bool> isTemplate = const Value.absent(),
               }) => DocumentsCompanion.insert(
                 id: id,
@@ -3383,6 +3459,7 @@ class $$DocumentsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 pressedPdfPath: pressedPdfPath,
+                fillablePdfPath: fillablePdfPath,
                 isTemplate: isTemplate,
               ),
           withReferenceMapper: (p0) => p0

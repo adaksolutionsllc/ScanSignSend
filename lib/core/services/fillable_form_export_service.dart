@@ -105,12 +105,13 @@ class FillableFormExportService {
 
     await compute(_buildFillablePdf, job);
 
+    // This is a shareable snapshot, not a lock: `status`/`pressedPdfPath` are
+    // deliberately untouched so the document stays reachable through fill/
+    // sign/press. Only PressService.press() (flatten & sign) locks a document.
     await _docRepo.updateDocument(DocumentsCompanion(
       id: Value(docId),
-      // Distinct status so the Library can show "Fillable" vs "Completed".
-      status: const Value('fillable'),
       // Store container-relative so it survives reinstalls (see PathResolver).
-      pressedPdfPath: Value(PathResolver.toStorable(outPath)),
+      fillablePdfPath: Value(PathResolver.toStorable(outPath)),
       updatedAt: Value(DateTime.now()),
     ));
 

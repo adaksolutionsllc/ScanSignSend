@@ -37,9 +37,19 @@ class _FieldDetectionScreenState
         if (mounted) setState(() => _hasFormFields = true);
         return;
       }
-      ref
-          .read(fieldDetectionNotifierProvider(widget.docId).notifier)
-          .run();
+      final notifier =
+          ref.read(fieldDetectionNotifierProvider(widget.docId).notifier);
+      // Re-entering (e.g. via "Edit Fields" from Fill mode) for a document
+      // that already has app-authored fields — load them instead of
+      // re-running OCR, which would discard confirmed labels/positions and
+      // any manually-added fields.
+      final existingFields =
+          await ref.read(fieldRepositoryProvider).watchFields(widget.docId).first;
+      if (existingFields.any((f) => f.sourceKind == 'app')) {
+        await notifier.loadExisting();
+        return;
+      }
+      notifier.run();
     });
   }
 
@@ -605,6 +615,11 @@ class _PageOverlayEditorState extends State<_PageOverlayEditor> {
       return IgnorePointer(
         child: SfPdfViewer.file(
           pdfFile,
+          // Same fix as fill_mode_screen.dart's _PageBackground: without a
+          // key tied to the page, SfPdfViewer's State survives the rebuild
+          // and ignores the new initialPageNumber, so the page picker looked
+          // like it did nothing.
+          key: ValueKey(widget.imagePath),
           initialPageNumber: pageNum,
           canShowScrollHead: false,
           canShowScrollStatus: false,

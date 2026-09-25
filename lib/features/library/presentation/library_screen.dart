@@ -267,10 +267,12 @@ class _DocumentCard extends StatelessWidget {
     final dateStr = DateFormat(context.l10n.dateFormatShort, locale)
         .format(doc.updatedAt);
     final isTemplate = status == DocumentStatus.template;
-    // Exported docs (pressed/fillable) open in the viewer; drafts open in fill
-    // mode; templates spawn a new draft.
-    final isExported = status == DocumentStatus.pressed ||
-        status == DocumentStatus.fillable;
+    // Only a pressed (flattened & signed) document is actually locked — it
+    // opens read-only in the viewer. Everything else, including a document
+    // that's been exported once as a fillable form, stays reachable through
+    // fill/sign/press so exporting a shareable snapshot never locks the
+    // original out of further editing. Templates spawn a new draft.
+    final isLocked = status == DocumentStatus.pressed;
     final showStatusPill = tab == _LibraryTab.all;
 
     return Card(
@@ -278,7 +280,7 @@ class _DocumentCard extends StatelessWidget {
       child: InkWell(
         onTap: isTemplate
             ? onUseTemplate
-            : isExported
+            : isLocked
                 ? () => context.push(
                       AppRoutes.viewer.replaceAll(':docId', '${doc.id}'),
                     )
@@ -385,22 +387,23 @@ class _DocumentCard extends StatelessWidget {
             ),
 
             // ── Inline actions: Edit + Delete on every card ─────────────────
-            // "Edit" adapts to the doc type: drafts → fill mode, exported
-            // (pressed/fillable) → viewer, templates → spawn a draft to fill.
+            // "Edit" adapts to the doc type: not-yet-pressed → fill mode
+            // (fill/sign/re-sign, even if a fillable copy was shared before),
+            // pressed (locked) → read-only viewer, templates → spawn a draft.
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
               child: Row(
                 children: [
                   Expanded(
                     child: _ActionButton(
-                      icon: isExported
+                      icon: isLocked
                           ? Icons.visibility_outlined
                           : Icons.edit_outlined,
-                      label: isExported ? context.l10n.actionOpen : context.l10n.actionEdit,
+                      label: isLocked ? context.l10n.actionOpen : context.l10n.actionEdit,
                       onTap: () {
                         if (isTemplate) {
                           onUseTemplate?.call();
-                        } else if (isExported) {
+                        } else if (isLocked) {
                           context.push(
                             AppRoutes.viewer.replaceAll(':docId', '${doc.id}'),
                           );

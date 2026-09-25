@@ -1,0 +1,5 @@
+/* iOS permission prompts. Keep keys in sync across every *.lproj
+   (test/l10n_completeness_test.dart). Info.plist holds the English fallback. */
+"NSCameraUsageDescription" = "Scan Sign Send कागज़ी दस्तावेज़ों को PDF में स्कैन करने के लिए कैमरे का उपयोग करता है। फ़ोटो आपके डिवाइस पर ही प्रोसेस होती हैं और कभी अपलोड नहीं होतीं।";
+"NSPhotoLibraryUsageDescription" = "Scan Sign Send से आप मौजूदा फ़ोटो या इमेज को दस्तावेज़ के पेज के रूप में इम्पोर्ट कर सकते हैं। चुनी गई इमेज आपके डिवाइस पर ही रहती हैं।";
+"NSFaceIDUsageDescription" = "Scan Sign Send ऐप को अनलॉक करने और आपके दस्तावेज़ों को निजी रखने के लिए Face ID का उपयोग करता है।";

@@ -108,6 +108,7 @@
   "fieldTypeCheckShort": "Caixa",
   "fieldTypeSignShort": "Assinar",
   "fillFallbackTitle": "Preencher documento",
+  "fillEditFields": "Editar campos",
   "fillReviewAndFinish": "Rever e concluir",
   "fillNoPages": "Este documento não tem páginas.",
   "fillTextFieldFallback": "Campo de texto",

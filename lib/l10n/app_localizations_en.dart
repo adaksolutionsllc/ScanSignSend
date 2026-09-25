@@ -363,6 +363,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fillFallbackTitle => 'Fill Document';
 
   @override
+  String get fillEditFields => 'Edit Fields';
+
+  @override
   String get fillReviewAndFinish => 'Review & Finish';
 
   @override

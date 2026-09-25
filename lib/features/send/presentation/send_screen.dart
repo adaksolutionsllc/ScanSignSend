@@ -50,7 +50,10 @@ class _SendScreenState extends ConsumerState<SendScreen> {
           future: _docFuture,
           builder: (context, snapshot) {
             final doc = snapshot.data;
-            final storedPdf = doc?.pressedPdfPath;
+            // Prefer the locked/flattened PDF; fall back to the fillable
+            // export (this screen is reached from either "Flatten & Sign" or
+            // "Save as Fillable").
+            final storedPdf = doc?.pressedPdfPath ?? doc?.fillablePdfPath;
             final pdfPath =
                 storedPdf == null ? null : PathResolver.resolve(storedPdf);
 

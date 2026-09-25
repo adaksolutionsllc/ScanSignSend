@@ -1,0 +1,5 @@
+/* iOS permission prompts. Keep keys in sync across every *.lproj
+   (test/l10n_completeness_test.dart). Info.plist holds the English fallback. */
+"NSCameraUsageDescription" = "Scan Sign Send uses the camera to scan paper documents into PDFs. Photos are processed on your device and never uploaded.";
+"NSPhotoLibraryUsageDescription" = "Scan Sign Send lets you import existing photos or images as document pages. Selected images stay on your device.";
+"NSFaceIDUsageDescription" = "Scan Sign Send uses Face ID to unlock the app and keep your documents private.";
