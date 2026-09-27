@@ -2,7 +2,7 @@ name: scan_sign_send
 description: "Scan, sign, and send documents. Offline. One-time purchase."
 publish_to: 'none'
 
-version: 1.0.0+4
+version: 1.0.0+5
 
 environment:
   sdk: ^3.11.5
@@ -71,6 +71,13 @@ flutter:
   uses-material-design: true
   # Generates lib/l10n/app_localizations.dart from lib/l10n/*.arb (see l10n.yaml).
   generate: true
+  # Noto Sans for Hindi, Tamil and Telugu values in exported fillable PDFs
+  # (the PDF's standard fonts are Latin-only). SIL OFL 1.1 — see OFL.txt.
+  assets:
+    - assets/fonts/NotoSansDevanagari-Regular.ttf
+    - assets/fonts/NotoSansTamil-Regular.ttf
+    - assets/fonts/NotoSansTelugu-Regular.ttf
+    - assets/fonts/OFL.txt
 
 # App launcher icons — regenerate with:
 #   dart run flutter_launcher_icons

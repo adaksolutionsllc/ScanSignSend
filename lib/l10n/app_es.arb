@@ -265,5 +265,12 @@
   "libraryImport": "Importar",
   "settingsForgetLearned": "Olvidar los campos aprendidos",
   "settingsForgetLearnedSubtitle": "La detección aprende de los campos que añades, cambias y eliminas, solo en este dispositivo.",
-  "settingsForgetLearnedDone": "Campos aprendidos borrados"
+  "settingsForgetLearnedDone": "Campos aprendidos borrados",
+  "paywallReasonAllowance": "Has usado tus {count} documentos gratuitos.",
+  "paywallReasonPages": "Los documentos gratuitos pueden tener hasta {count} páginas.",
+  "paywallBenefitAnyLength": "Documentos de cualquier extensión",
+  "pageLimitTitle": "Documentos gratuitos: hasta {count} páginas",
+  "pageLimitBody": "Este documento tiene {pages} páginas. Desbloquea el acceso completo para documentos de cualquier extensión, o conserva las primeras {limit} páginas.",
+  "pageLimitKeepFirst": "Conservar las primeras {count} páginas",
+  "pressFreeRemaining": "{left, plural, =0{Has usado tus {total} documentos gratuitos} =1{Finalizar usa tu último documento gratuito} other{Finalizar usa 1 de tus {total} documentos gratuitos (quedan {left})}}"
 }

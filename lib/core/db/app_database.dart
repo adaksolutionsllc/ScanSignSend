@@ -34,6 +34,9 @@ class Documents extends Table {
   // text is drawn at it, so what the user types matches the printed form.
   // Null until measured (or for a page with no text).
   RealColumn get textSize => real().nullable()();
+  // Schema v7. This document has used one of the free allowance's finished
+  // documents, so flattening or exporting it again doesn't use another.
+  BoolColumn get countedFree => boolean().withDefault(const Constant(false))();
 }
 
 class Pages extends Table {
@@ -144,7 +147,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -179,6 +182,10 @@ class AppDatabase extends _$AppDatabase {
       // v5 → v6: on-device learning from the user's field edits.
       if (from < 6) {
         await m.createTable(fieldHints);
+      }
+      // v6 → v7: per-document free-allowance flag.
+      if (from < 7) {
+        await m.addColumn(documents, documents.countedFree);
       }
     },
   );

@@ -144,6 +144,21 @@ class $DocumentsTable extends Documents
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _countedFreeMeta = const VerificationMeta(
+    'countedFree',
+  );
+  @override
+  late final GeneratedColumn<bool> countedFree = GeneratedColumn<bool>(
+    'counted_free',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("counted_free" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -158,6 +173,7 @@ class $DocumentsTable extends Documents
     fillablePdfPath,
     isTemplate,
     textSize,
+    countedFree,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -254,6 +270,15 @@ class $DocumentsTable extends Documents
         textSize.isAcceptableOrUnknown(data['text_size']!, _textSizeMeta),
       );
     }
+    if (data.containsKey('counted_free')) {
+      context.handle(
+        _countedFreeMeta,
+        countedFree.isAcceptableOrUnknown(
+          data['counted_free']!,
+          _countedFreeMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -311,6 +336,10 @@ class $DocumentsTable extends Documents
         DriftSqlType.double,
         data['${effectivePrefix}text_size'],
       ),
+      countedFree: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}counted_free'],
+      )!,
     );
   }
 
@@ -333,6 +362,7 @@ class Document extends DataClass implements Insertable<Document> {
   final String? fillablePdfPath;
   final bool isTemplate;
   final double? textSize;
+  final bool countedFree;
   const Document({
     required this.id,
     required this.uuid,
@@ -346,6 +376,7 @@ class Document extends DataClass implements Insertable<Document> {
     this.fillablePdfPath,
     required this.isTemplate,
     this.textSize,
+    required this.countedFree,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -368,6 +399,7 @@ class Document extends DataClass implements Insertable<Document> {
     if (!nullToAbsent || textSize != null) {
       map['text_size'] = Variable<double>(textSize);
     }
+    map['counted_free'] = Variable<bool>(countedFree);
     return map;
   }
 
@@ -391,6 +423,7 @@ class Document extends DataClass implements Insertable<Document> {
       textSize: textSize == null && nullToAbsent
           ? const Value.absent()
           : Value(textSize),
+      countedFree: Value(countedFree),
     );
   }
 
@@ -412,6 +445,7 @@ class Document extends DataClass implements Insertable<Document> {
       fillablePdfPath: serializer.fromJson<String?>(json['fillablePdfPath']),
       isTemplate: serializer.fromJson<bool>(json['isTemplate']),
       textSize: serializer.fromJson<double?>(json['textSize']),
+      countedFree: serializer.fromJson<bool>(json['countedFree']),
     );
   }
   @override
@@ -430,6 +464,7 @@ class Document extends DataClass implements Insertable<Document> {
       'fillablePdfPath': serializer.toJson<String?>(fillablePdfPath),
       'isTemplate': serializer.toJson<bool>(isTemplate),
       'textSize': serializer.toJson<double?>(textSize),
+      'countedFree': serializer.toJson<bool>(countedFree),
     };
   }
 
@@ -446,6 +481,7 @@ class Document extends DataClass implements Insertable<Document> {
     Value<String?> fillablePdfPath = const Value.absent(),
     bool? isTemplate,
     Value<double?> textSize = const Value.absent(),
+    bool? countedFree,
   }) => Document(
     id: id ?? this.id,
     uuid: uuid ?? this.uuid,
@@ -463,6 +499,7 @@ class Document extends DataClass implements Insertable<Document> {
         : this.fillablePdfPath,
     isTemplate: isTemplate ?? this.isTemplate,
     textSize: textSize.present ? textSize.value : this.textSize,
+    countedFree: countedFree ?? this.countedFree,
   );
   Document copyWithCompanion(DocumentsCompanion data) {
     return Document(
@@ -484,6 +521,9 @@ class Document extends DataClass implements Insertable<Document> {
           ? data.isTemplate.value
           : this.isTemplate,
       textSize: data.textSize.present ? data.textSize.value : this.textSize,
+      countedFree: data.countedFree.present
+          ? data.countedFree.value
+          : this.countedFree,
     );
   }
 
@@ -501,7 +541,8 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('pressedPdfPath: $pressedPdfPath, ')
           ..write('fillablePdfPath: $fillablePdfPath, ')
           ..write('isTemplate: $isTemplate, ')
-          ..write('textSize: $textSize')
+          ..write('textSize: $textSize, ')
+          ..write('countedFree: $countedFree')
           ..write(')'))
         .toString();
   }
@@ -520,6 +561,7 @@ class Document extends DataClass implements Insertable<Document> {
     fillablePdfPath,
     isTemplate,
     textSize,
+    countedFree,
   );
   @override
   bool operator ==(Object other) =>
@@ -536,7 +578,8 @@ class Document extends DataClass implements Insertable<Document> {
           other.pressedPdfPath == this.pressedPdfPath &&
           other.fillablePdfPath == this.fillablePdfPath &&
           other.isTemplate == this.isTemplate &&
-          other.textSize == this.textSize);
+          other.textSize == this.textSize &&
+          other.countedFree == this.countedFree);
 }
 
 class DocumentsCompanion extends UpdateCompanion<Document> {
@@ -552,6 +595,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<String?> fillablePdfPath;
   final Value<bool> isTemplate;
   final Value<double?> textSize;
+  final Value<bool> countedFree;
   const DocumentsCompanion({
     this.id = const Value.absent(),
     this.uuid = const Value.absent(),
@@ -565,6 +609,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.fillablePdfPath = const Value.absent(),
     this.isTemplate = const Value.absent(),
     this.textSize = const Value.absent(),
+    this.countedFree = const Value.absent(),
   });
   DocumentsCompanion.insert({
     this.id = const Value.absent(),
@@ -579,6 +624,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.fillablePdfPath = const Value.absent(),
     this.isTemplate = const Value.absent(),
     this.textSize = const Value.absent(),
+    this.countedFree = const Value.absent(),
   }) : uuid = Value(uuid),
        title = Value(title),
        createdAt = Value(createdAt),
@@ -596,6 +642,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Expression<String>? fillablePdfPath,
     Expression<bool>? isTemplate,
     Expression<double>? textSize,
+    Expression<bool>? countedFree,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -610,6 +657,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       if (fillablePdfPath != null) 'fillable_pdf_path': fillablePdfPath,
       if (isTemplate != null) 'is_template': isTemplate,
       if (textSize != null) 'text_size': textSize,
+      if (countedFree != null) 'counted_free': countedFree,
     });
   }
 
@@ -626,6 +674,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Value<String?>? fillablePdfPath,
     Value<bool>? isTemplate,
     Value<double?>? textSize,
+    Value<bool>? countedFree,
   }) {
     return DocumentsCompanion(
       id: id ?? this.id,
@@ -640,6 +689,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       fillablePdfPath: fillablePdfPath ?? this.fillablePdfPath,
       isTemplate: isTemplate ?? this.isTemplate,
       textSize: textSize ?? this.textSize,
+      countedFree: countedFree ?? this.countedFree,
     );
   }
 
@@ -682,6 +732,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (textSize.present) {
       map['text_size'] = Variable<double>(textSize.value);
     }
+    if (countedFree.present) {
+      map['counted_free'] = Variable<bool>(countedFree.value);
+    }
     return map;
   }
 
@@ -699,7 +752,8 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('pressedPdfPath: $pressedPdfPath, ')
           ..write('fillablePdfPath: $fillablePdfPath, ')
           ..write('isTemplate: $isTemplate, ')
-          ..write('textSize: $textSize')
+          ..write('textSize: $textSize, ')
+          ..write('countedFree: $countedFree')
           ..write(')'))
         .toString();
   }
@@ -3554,6 +3608,7 @@ typedef $$DocumentsTableCreateCompanionBuilder =
       Value<String?> fillablePdfPath,
       Value<bool> isTemplate,
       Value<double?> textSize,
+      Value<bool> countedFree,
     });
 typedef $$DocumentsTableUpdateCompanionBuilder =
     DocumentsCompanion Function({
@@ -3569,6 +3624,7 @@ typedef $$DocumentsTableUpdateCompanionBuilder =
       Value<String?> fillablePdfPath,
       Value<bool> isTemplate,
       Value<double?> textSize,
+      Value<bool> countedFree,
     });
 
 final class $$DocumentsTableReferences
@@ -3680,6 +3736,11 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<double> get textSize => $composableBuilder(
     column: $table.textSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get countedFree => $composableBuilder(
+    column: $table.countedFree,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3802,6 +3863,11 @@ class $$DocumentsTableOrderingComposer
     column: $table.textSize,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get countedFree => $composableBuilder(
+    column: $table.countedFree,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -3854,6 +3920,11 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<double> get textSize =>
       $composableBuilder(column: $table.textSize, builder: (column) => column);
+
+  GeneratedColumn<bool> get countedFree => $composableBuilder(
+    column: $table.countedFree,
+    builder: (column) => column,
+  );
 
   Expression<T> pagesRefs<T extends Object>(
     Expression<T> Function($$PagesTableAnnotationComposer a) f,
@@ -3946,6 +4017,7 @@ class $$DocumentsTableTableManager
                 Value<String?> fillablePdfPath = const Value.absent(),
                 Value<bool> isTemplate = const Value.absent(),
                 Value<double?> textSize = const Value.absent(),
+                Value<bool> countedFree = const Value.absent(),
               }) => DocumentsCompanion(
                 id: id,
                 uuid: uuid,
@@ -3959,6 +4031,7 @@ class $$DocumentsTableTableManager
                 fillablePdfPath: fillablePdfPath,
                 isTemplate: isTemplate,
                 textSize: textSize,
+                countedFree: countedFree,
               ),
           createCompanionCallback:
               ({
@@ -3974,6 +4047,7 @@ class $$DocumentsTableTableManager
                 Value<String?> fillablePdfPath = const Value.absent(),
                 Value<bool> isTemplate = const Value.absent(),
                 Value<double?> textSize = const Value.absent(),
+                Value<bool> countedFree = const Value.absent(),
               }) => DocumentsCompanion.insert(
                 id: id,
                 uuid: uuid,
@@ -3987,6 +4061,7 @@ class $$DocumentsTableTableManager
                 fillablePdfPath: fillablePdfPath,
                 isTemplate: isTemplate,
                 textSize: textSize,
+                countedFree: countedFree,
               ),
           withReferenceMapper: (p0) => p0
               .map(

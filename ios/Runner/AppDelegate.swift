@@ -18,5 +18,6 @@ import UIKit
     DocumentScannerPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "DocumentScannerPlugin")!)
     AiFieldEnhancerPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "AiFieldEnhancerPlugin")!)
     BackupPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "BackupPlugin")!)
+    EntitlementPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "EntitlementPlugin")!)
   }
 }

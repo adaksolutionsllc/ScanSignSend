@@ -265,5 +265,12 @@
   "libraryImport": "దిగుమతి",
   "settingsForgetLearned": "నేర్చుకున్న ఫీల్డ్ నమూనాలను మరచిపో",
   "settingsForgetLearnedSubtitle": "మీరు జోడించే, మార్చే, తొలగించే ఫీల్డ్‌ల నుండి గుర్తింపు నేర్చుకుంటుంది — ఈ పరికరంలో మాత్రమే.",
-  "settingsForgetLearnedDone": "నేర్చుకున్న ఫీల్డ్ నమూనాలు తొలగించబడ్డాయి"
+  "settingsForgetLearnedDone": "నేర్చుకున్న ఫీల్డ్ నమూనాలు తొలగించబడ్డాయి",
+  "paywallReasonAllowance": "మీ {count} ఉచిత పత్రాలను ఉపయోగించేశారు.",
+  "paywallReasonPages": "ఉచిత పత్రాలలో గరిష్ఠంగా {count} పేజీలు ఉండవచ్చు.",
+  "paywallBenefitAnyLength": "ఏ పొడవు పత్రాలైనా",
+  "pageLimitTitle": "ఉచిత పత్రాలు: గరిష్ఠంగా {count} పేజీలు",
+  "pageLimitBody": "ఈ పత్రంలో {pages} పేజీలు ఉన్నాయి. ఏ పొడవు పత్రాలకైనా పూర్తి యాక్సెస్ అన్‌లాక్ చేయండి, లేదా మొదటి {limit} పేజీలను ఉంచుకోండి.",
+  "pageLimitKeepFirst": "మొదటి {count} పేజీలను ఉంచుకోండి",
+  "pressFreeRemaining": "{left, plural, =0{మీ {total} ఉచిత పత్రాలను ఉపయోగించేశారు} =1{పూర్తి చేయడం మీ చివరి ఉచిత పత్రాన్ని ఉపయోగిస్తుంది} other{పూర్తి చేయడం మీ {total} ఉచిత పత్రాలలో 1ని ఉపయోగిస్తుంది ({left} మిగిలి ఉన్నాయి)}}"
 }

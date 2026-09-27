@@ -7,11 +7,9 @@ import 'package:intl/intl.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/models/document_model.dart';
 import '../../../core/services/document_repository.dart';
-import '../../../core/services/profile_repository.dart';
 import '../../../core/services/template_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../shared/widgets/paywall_screen.dart';
 import '../../../shared/widgets/text_edit_dialog.dart';
 import '../../../core/utils/l10n_ext.dart';
 
@@ -204,17 +202,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   }
 
   Future<void> _useTemplate(Document doc) async {
-    // A template use starts a new document, so it's gated like a new scan.
-    if (!await ref.read(profileRepositoryProvider).canScan()) {
-      if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => const PaywallScreen(),
-        ),
-      );
-      return;
-    }
     try {
       final newId = await ref.read(templateServiceProvider).useTemplate(doc.id);
       if (mounted) {

@@ -903,4 +903,45 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get settingsForgetLearnedDone =>
       'నేర్చుకున్న ఫీల్డ్ నమూనాలు తొలగించబడ్డాయి';
+
+  @override
+  String paywallReasonAllowance(int count) {
+    return 'మీ $count ఉచిత పత్రాలను ఉపయోగించేశారు.';
+  }
+
+  @override
+  String paywallReasonPages(int count) {
+    return 'ఉచిత పత్రాలలో గరిష్ఠంగా $count పేజీలు ఉండవచ్చు.';
+  }
+
+  @override
+  String get paywallBenefitAnyLength => 'ఏ పొడవు పత్రాలైనా';
+
+  @override
+  String pageLimitTitle(int count) {
+    return 'ఉచిత పత్రాలు: గరిష్ఠంగా $count పేజీలు';
+  }
+
+  @override
+  String pageLimitBody(int pages, int limit) {
+    return 'ఈ పత్రంలో $pages పేజీలు ఉన్నాయి. ఏ పొడవు పత్రాలకైనా పూర్తి యాక్సెస్ అన్‌లాక్ చేయండి, లేదా మొదటి $limit పేజీలను ఉంచుకోండి.';
+  }
+
+  @override
+  String pageLimitKeepFirst(int count) {
+    return 'మొదటి $count పేజీలను ఉంచుకోండి';
+  }
+
+  @override
+  String pressFreeRemaining(int left, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other:
+          'పూర్తి చేయడం మీ $total ఉచిత పత్రాలలో 1ని ఉపయోగిస్తుంది ($left మిగిలి ఉన్నాయి)',
+      one: 'పూర్తి చేయడం మీ చివరి ఉచిత పత్రాన్ని ఉపయోగిస్తుంది',
+      zero: 'మీ $total ఉచిత పత్రాలను ఉపయోగించేశారు',
+    );
+    return '$_temp0';
+  }
 }

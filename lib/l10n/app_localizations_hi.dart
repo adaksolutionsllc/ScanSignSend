@@ -900,4 +900,45 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get settingsForgetLearnedDone => 'सीखे गए फ़ील्ड पैटर्न हटा दिए गए';
+
+  @override
+  String paywallReasonAllowance(int count) {
+    return 'आपने अपने $count मुफ़्त दस्तावेज़ इस्तेमाल कर लिए हैं।';
+  }
+
+  @override
+  String paywallReasonPages(int count) {
+    return 'मुफ़्त दस्तावेज़ों में अधिकतम $count पेज हो सकते हैं।';
+  }
+
+  @override
+  String get paywallBenefitAnyLength => 'किसी भी लंबाई के दस्तावेज़';
+
+  @override
+  String pageLimitTitle(int count) {
+    return 'मुफ़्त दस्तावेज़: अधिकतम $count पेज';
+  }
+
+  @override
+  String pageLimitBody(int pages, int limit) {
+    return 'इस दस्तावेज़ में $pages पेज हैं। किसी भी लंबाई के दस्तावेज़ों के लिए फ़ुल एक्सेस अनलॉक करें, या पहले $limit पेज रखें।';
+  }
+
+  @override
+  String pageLimitKeepFirst(int count) {
+    return 'पहले $count पेज रखें';
+  }
+
+  @override
+  String pressFreeRemaining(int left, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other:
+          'पूरा करने पर आपके $total मुफ़्त दस्तावेज़ों में से 1 इस्तेमाल होगा ($left बाक़ी)',
+      one: 'पूरा करने पर आपका आख़िरी मुफ़्त दस्तावेज़ इस्तेमाल होगा',
+      zero: 'आपने अपने $total मुफ़्त दस्तावेज़ इस्तेमाल कर लिए हैं',
+    );
+    return '$_temp0';
+  }
 }

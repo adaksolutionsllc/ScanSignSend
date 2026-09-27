@@ -902,4 +902,45 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get settingsForgetLearnedDone => 'கற்ற புல முறைகள் அழிக்கப்பட்டன';
+
+  @override
+  String paywallReasonAllowance(int count) {
+    return 'உங்கள் $count இலவச ஆவணங்களைப் பயன்படுத்திவிட்டீர்கள்.';
+  }
+
+  @override
+  String paywallReasonPages(int count) {
+    return 'இலவச ஆவணங்களில் அதிகபட்சம் $count பக்கங்கள் இருக்கலாம்.';
+  }
+
+  @override
+  String get paywallBenefitAnyLength => 'எந்த நீளமுள்ள ஆவணங்களும்';
+
+  @override
+  String pageLimitTitle(int count) {
+    return 'இலவச ஆவணங்கள்: அதிகபட்சம் $count பக்கங்கள்';
+  }
+
+  @override
+  String pageLimitBody(int pages, int limit) {
+    return 'இந்த ஆவணத்தில் $pages பக்கங்கள் உள்ளன. எந்த நீளமுள்ள ஆவணங்களுக்கும் முழு அணுகலைத் திறக்கவும், அல்லது முதல் $limit பக்கங்களை வைத்துக்கொள்ளவும்.';
+  }
+
+  @override
+  String pageLimitKeepFirst(int count) {
+    return 'முதல் $count பக்கங்களை வைத்துக்கொள்';
+  }
+
+  @override
+  String pressFreeRemaining(int left, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other:
+          'முடிப்பது உங்கள் $total இலவச ஆவணங்களில் 1-ஐப் பயன்படுத்தும் ($left மீதம்)',
+      one: 'முடிப்பது உங்கள் கடைசி இலவச ஆவணத்தைப் பயன்படுத்தும்',
+      zero: 'உங்கள் $total இலவச ஆவணங்களைப் பயன்படுத்திவிட்டீர்கள்',
+    );
+    return '$_temp0';
+  }
 }

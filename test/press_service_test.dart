@@ -196,4 +196,58 @@ void main() {
       pdf.dispose();
     },
   );
+
+  test('Hindi, Tamil and Telugu values and certificate press as shaped images',
+      () async {
+    await initializeDateFormatting('hi');
+    final docs = DocumentRepository(db);
+    final pages = PageRepository(db);
+    final fields = FieldRepository(db);
+    final pageDir = Directory(p.join(docsDir.path, 'pages', 'u'))
+      ..createSync(recursive: true);
+    final image = File(p.join(pageDir.path, 'page_0.jpg'))
+      ..writeAsBytesSync(img.encodeJpg(img.Image(width: 620, height: 877)
+        ..clear(img.ColorRgb8(255, 255, 255))));
+    final doc = await docs.createDocument('शपथ पत्र');
+    await pages.addPage(documentId: doc.id, pageIndex: 0, imagePath: image.path);
+    var y = 0.2;
+    for (final value in ['मदुरै', 'மதுரை', 'మదురై', 'Madurai']) {
+      await fields.addField(FieldsCompanion.insert(
+        documentId: doc.id,
+        pageIndex: 0,
+        type: FieldType.text.name,
+        boundingBoxJson:
+            BoundingBox(x: 0.2, y: y, w: 0.4, h: 0.03).toJsonString(),
+        value: Value(value),
+        isFilled: const Value(true),
+      ));
+      y += 0.1;
+    }
+
+    final out = await PressService(docs, pages, fields).press(
+      doc.id,
+      const PressCertificateStrings(
+        title: 'हस्ताक्षर प्रमाणपत्र',
+        documentLabel: 'दस्तावेज़',
+        signedOnLabel: 'हस्ताक्षर तिथि',
+        methodLabel: 'तरीका',
+        methodValue: 'हाथ से बनाया गया',
+        noteLabel: 'नोट',
+        noteValue: 'ऑफ़लाइन',
+        dateFormat: 'd MMMM y',
+        localeName: 'hi',
+      ),
+    );
+
+    final pdf = PdfDocument(inputBytes: File(out).readAsBytesSync());
+    final text = PdfTextExtractor(pdf).extractText();
+    // Latin stays real text; Indic is drawn as shaped images, so it never
+    // appears as (unshaped, garbled) PDF text.
+    expect(text, contains('Madurai'));
+    for (final s in ['मदुरै', 'மதுரை', 'మదురై', 'हस्ताक्षर']) {
+      expect(text.contains(s), isFalse, reason: '$s should be an image');
+    }
+    expect(pdf.pages.count, 2);
+    pdf.dispose();
+  });
 }

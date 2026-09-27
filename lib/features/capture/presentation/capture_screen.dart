@@ -9,7 +9,7 @@ import 'dart:io';
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/import_service.dart';
-import '../../../core/services/profile_repository.dart';
+import '../../../core/services/free_usage_service.dart';
 import '../../../core/services/scan_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
@@ -64,12 +64,12 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     // async gap, where reading `context` is unsafe.
     _defaultTitle = context.l10n.captureDefaultDocumentName(_dateStamp());
 
-    final profileRepo = ref.read(profileRepositoryProvider);
-    final canScan = await profileRepo.canScan();
-    if (!canScan && mounted) {
-      _showPaywall();
-      return;
-    }
+    // Scanning is always free; the free tier is enforced when a document is
+    // finished (FreeUsageService). Free users' scans are capped at the free
+    // page limit where the platform scanner supports it (Android).
+    final usage = ref.read(freeUsageServiceProvider);
+    final premium = await usage.isPremium();
+    if (!mounted) return;
 
     setState(() {
       _loading = true;
@@ -80,7 +80,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       final scanService = ref.read(scanServiceProvider);
       final paths = await ref
           .read(appLockProvider.notifier)
-          .whileExternal(scanService.scan);
+          .whileExternal(
+            () => scanService.scan(
+              pageLimit: premium ? null : FreeUsageService.freePageLimit,
+            ),
+          );
       if (paths.isEmpty) {
         // User cancelled
         if (mounted) setState(() => _loading = false);
@@ -90,7 +94,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
       if (mounted) setState(() => _loadingMessageKey = 'saving');
       final docId = await _saveScannedPages(paths);
-      await profileRepo.incrementScanCount();
+      await _enforcePageLimit(docId);
 
       if (mounted) {
         setState(() => _loading = false);
@@ -109,16 +113,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   }
 
   Future<void> _importFile() async {
-    // An import starts a document just like a scan does, so it counts toward
-    // the free limit. It used to skip both the check and the count, which let
-    // a free user import and complete documents without ever reaching the
-    // paywall.
-    final profileRepo = ref.read(profileRepositoryProvider);
-    if (!await profileRepo.canScan()) {
-      if (mounted) _showPaywall();
-      return;
-    }
-    if (!mounted) return;
+    // Importing is always free; the free tier is enforced when a document is
+    // finished (FreeUsageService).
     setState(() {
       _loading = true;
       _loadingMessageKey = 'importing';
@@ -132,7 +128,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         _leaveIfAutoStarted();
         return;
       }
-      await profileRepo.incrementScanCount();
+      await _enforcePageLimit(doc.id);
       if (mounted) {
         setState(() => _loading = false);
         // A PDF that already carries a fillable form goes straight to Fill
@@ -216,13 +212,57 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
-  void _showPaywall() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => const PaywallScreen(),
-      ),
-    );
+  /// Free documents are limited to [FreeUsageService.freePageLimit] pages.
+  /// Tell the user right away (not after they've filled page 5): unlock Full
+  /// Access, or keep the first pages. Asks again if they close the paywall
+  /// without buying, so the document never silently stays over the limit.
+  Future<void> _enforcePageLimit(int docId) async {
+    final usage = ref.read(freeUsageServiceProvider);
+    final pageRepo = ref.read(pageRepositoryProvider);
+    while (mounted) {
+      final pages = await pageRepo.watchPages(docId).first;
+      if (await usage.pagesAllowed(pages.length) || !mounted) return;
+      final keep = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          title: Text(ctx.l10n.pageLimitTitle(FreeUsageService.freePageLimit)),
+          content: Text(
+            ctx.l10n.pageLimitBody(
+              pages.length,
+              FreeUsageService.freePageLimit,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                ctx.l10n.pageLimitKeepFirst(FreeUsageService.freePageLimit),
+              ),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(ctx.l10n.paywallTitle),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (keep == true) {
+        // Deleting through the repository also removes those pages' fields.
+        for (final page in pages.skip(FreeUsageService.freePageLimit)) {
+          await pageRepo.deletePage(page.id);
+        }
+        return;
+      }
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) =>
+              const PaywallScreen(reason: PaywallReason.tooManyPages),
+        ),
+      );
+    }
   }
 
   @override

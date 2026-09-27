@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../db/app_database.dart';
@@ -41,15 +40,4 @@ class ProfileRepository {
         .write(companion);
   }
 
-  Future<void> incrementScanCount() async {
-    final profile = await getOrCreate();
-    await update(UserProfileCompanion(
-      scanCount: Value(profile.scanCount + 1),
-    ));
-  }
-
-  Future<bool> canScan() async {
-    final profile = await getOrCreate();
-    return profile.isPurchased || profile.scanCount < 3;
-  }
 }

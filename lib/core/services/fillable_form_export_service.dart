@@ -1,9 +1,11 @@
+import 'dart:typed_data';
 import 'dart:math' as math;
 import 'dart:io';
 import 'dart:ui' show Offset, Rect;
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show compute;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -80,8 +82,19 @@ class FillableFormExportService {
     await outDir.create(recursive: true);
     final outPath = p.join(outDir.path, '${const Uuid().v4()}.pdf');
 
+    // Fonts for Hindi / Tamil / Telugu values, loaded here: the export
+    // isolate can't reach the asset bundle.
+    final fonts = <String, Uint8List>{};
+    for (final f in fields) {
+      final script = _scriptOf(f.value);
+      if (script == null || fonts.containsKey(script)) continue;
+      final data = await rootBundle.load(_scriptFonts[script]!);
+      fonts[script] = data.buffer.asUint8List();
+    }
+
     final job = _ExportJob(
       textSize: doc.textSize,
+      fonts: fonts,
       outPath: outPath,
       sourcePdfPath: sourcePdfPath,
       pages: [
@@ -131,12 +144,16 @@ class FillableFormExportService {
 class _ExportJob {
   /// The document's body text size (fraction of page height), or null.
   final double? textSize;
+
+  /// TrueType fonts for non-Latin values, by script (see [_scriptOf]).
+  final Map<String, Uint8List> fonts;
   final String outPath;
   final String? sourcePdfPath;
   final List<_PagePlan> pages;
   final List<_FieldPlan> fields;
   const _ExportJob({
     this.textSize,
+    this.fonts = const {},
     required this.outPath,
     required this.sourcePdfPath,
     required this.pages,
@@ -223,7 +240,15 @@ Future<void> _buildFillablePdf(_ExportJob job) async {
         final content = Offset.zero & page.size;
         if (f.sourceKind == 'app') {
           if (f.type.toFieldType() != FieldType.radio) {
-            _addWidget(pdfDoc, page, f, content, names, job.textSize);
+            _addWidget(
+              pdfDoc,
+              page,
+              f,
+              content,
+              names,
+              job.textSize,
+              job.fonts,
+            );
           }
         } else if (f.type.toFieldType() == FieldType.signature &&
             f.isFilled &&
@@ -349,7 +374,7 @@ void _buildPages(
     final onPage = job.fields.where((f) => f.pageIndex == i).toList();
     for (final f in onPage) {
       if (f.type.toFieldType() != FieldType.radio) {
-        _addWidget(pdfDoc, page, f, content, names, job.textSize);
+        _addWidget(pdfDoc, page, f, content, names, job.textSize, job.fonts);
       }
     }
     _addRadioGroups(pdfDoc, page, onPage, content, names);
@@ -412,8 +437,9 @@ void _addWidget(
   _FieldPlan f,
   Rect content,
   _UniqueNames names,
-  double? textSize,
-) {
+  double? textSize, [
+  Map<String, Uint8List> fonts = const {},
+]) {
   final rect = BoundingBox.fromJsonString(
     f.boundingBoxJson,
   ).inPageRect(content);
@@ -428,13 +454,21 @@ void _addWidget(
     case FieldType.date:
       final field = _borderless(PdfTextBoxField(page, name, rect));
       // Typed text at the document's own size, so it matches the form.
-      if (textSize != null) {
-        final pt = (textSize * content.height).clamp(
-          5.0,
-          math.max(5.0, rect.height * 0.9),
-        );
-        field.font = PdfStandardFont(PdfFontFamily.helvetica, pt.toDouble());
-      }
+      final pt = textSize == null
+          ? math.min(rect.height * 0.7, 12.0)
+          : (textSize * content.height)
+                .clamp(5.0, math.max(5.0, rect.height * 0.9))
+                .toDouble();
+      // Hindi / Tamil / Telugu need a font that has their letters; the
+      // standard PDF fonts are Latin-only and showed nothing. (The PDF
+      // library doesn't shape Indic scripts, so a viewer that draws the
+      // stamped appearance may misplace some vowel signs; viewers that
+      // redraw fields themselves render it correctly.)
+      final script = _scriptOf(f.value);
+      final fontBytes = script == null ? null : fonts[script];
+      field.font = fontBytes != null
+          ? PdfTrueTypeFont(fontBytes, pt)
+          : PdfStandardFont(PdfFontFamily.helvetica, pt);
       if (f.value.isNotEmpty) field.text = f.value;
       pdfDoc.form.fields.add(field);
     case FieldType.checkbox:
@@ -527,4 +561,21 @@ T _borderless<T extends PdfField>(T field) {
       ..backColor = PdfColor.empty;
   }
   return field;
+}
+
+/// Bundled fonts for scripts the standard PDF fonts can't show.
+const _scriptFonts = {
+  'deva': 'assets/fonts/NotoSansDevanagari-Regular.ttf',
+  'taml': 'assets/fonts/NotoSansTamil-Regular.ttf',
+  'telu': 'assets/fonts/NotoSansTelugu-Regular.ttf',
+};
+
+/// The Indic script [text] is written in, if any.
+String? _scriptOf(String text) {
+  for (final r in text.runes) {
+    if (r >= 0x0900 && r <= 0x097F) return 'deva';
+    if (r >= 0x0B80 && r <= 0x0BFF) return 'taml';
+    if (r >= 0x0C00 && r <= 0x0C7F) return 'telu';
+  }
+  return null;
 }

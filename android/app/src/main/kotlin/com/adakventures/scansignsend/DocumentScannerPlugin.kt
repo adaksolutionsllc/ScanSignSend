@@ -76,7 +76,9 @@ class DocumentScannerPlugin :
 
                 val options = GmsDocumentScannerOptions.Builder()
                     .setGalleryImportAllowed(true)
-                    .setPageLimit(20)
+                    // Free users are capped at the free page allowance (sent
+                    // from Dart); otherwise the long-standing 20-page limit.
+                    .setPageLimit((call.argument<Int>("pageLimit") ?: 20).coerceIn(1, 20))
                     .setResultFormats(RESULT_FORMAT_JPEG)
                     .setScannerMode(SCANNER_MODE_FULL)
                     .build()

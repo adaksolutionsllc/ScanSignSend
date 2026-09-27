@@ -895,4 +895,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsForgetLearnedDone => 'Learned field patterns cleared';
+
+  @override
+  String paywallReasonAllowance(int count) {
+    return 'You\'ve used your $count free documents.';
+  }
+
+  @override
+  String paywallReasonPages(int count) {
+    return 'Free documents can have up to $count pages.';
+  }
+
+  @override
+  String get paywallBenefitAnyLength => 'Documents of any length';
+
+  @override
+  String pageLimitTitle(int count) {
+    return 'Free documents: up to $count pages';
+  }
+
+  @override
+  String pageLimitBody(int pages, int limit) {
+    return 'This document has $pages pages. Unlock Full Access for documents of any length, or keep the first $limit pages.';
+  }
+
+  @override
+  String pageLimitKeepFirst(int count) {
+    return 'Keep first $count pages';
+  }
+
+  @override
+  String pressFreeRemaining(int left, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other: 'Finishing uses 1 of your $total free documents ($left left)',
+      one: 'Finishing uses your last free document',
+      zero: 'You\'ve used your $total free documents',
+    );
+    return '$_temp0';
+  }
 }

@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/free_usage_service.dart';
 import '../../core/services/iap_service.dart';
 import '../../core/utils/l10n_ext.dart';
 import '../../core/services/app_lock_provider.dart';
 
 /// Full-screen paywall shown when the user has exhausted free scans.
 class PaywallScreen extends ConsumerStatefulWidget {
-  const PaywallScreen({super.key});
+  const PaywallScreen({super.key, this.reason});
+
+  /// Why the paywall appeared, shown as a line at the top; null when the
+  /// user opened it themselves.
+  final PaywallReason? reason;
 
   @override
   ConsumerState<PaywallScreen> createState() => _PaywallScreenState();
@@ -48,6 +53,31 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
+            if (widget.reason != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  switch (widget.reason!) {
+                    PaywallReason.allowanceUsed =>
+                      context.l10n.paywallReasonAllowance(
+                        FreeUsageService.freeDocuments,
+                      ),
+                    PaywallReason.tooManyPages =>
+                      context.l10n.paywallReasonPages(
+                        FreeUsageService.freePageLimit,
+                      ),
+                  },
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                ),
+              ),
             const SizedBox(height: 16),
             const Icon(
               Icons.workspace_premium,
@@ -73,6 +103,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             // Feature list
             ...[
               (Icons.all_inclusive, context.l10n.paywallBenefitUnlimited),
+              (Icons.auto_stories, context.l10n.paywallBenefitAnyLength),
               (Icons.layers, context.l10n.paywallBenefitTemplates),
               (Icons.draw, context.l10n.paywallBenefitSignatures),
               (Icons.person, context.l10n.paywallBenefitAutofill),
@@ -194,3 +225,5 @@ String iapErrorText(BuildContext context, Object error) {
     _ => l10n.iapErrorPurchaseFailed,
   };
 }
+
+enum PaywallReason { allowanceUsed, tooManyPages }

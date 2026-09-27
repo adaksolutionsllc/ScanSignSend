@@ -17,6 +17,8 @@ Nothing. The app has no analytics, no advertising SDKs, no crash-reporting that 
 ## Purchases
 The one-time "Full Access" purchase is processed by Apple's App Store or Google Play. We do not receive or store your payment information. Purchase validation is handled by the platform's in-app purchase system.
 
+The free version includes 2 finished documents. To keep that allowance from resetting when the app is reinstalled, the app stores one number — how many free documents have been used — in your device's secure storage (the iOS Keychain, or Google Play services Block Store on Android). It contains nothing about you or your documents, stays on your device, and is never sent to us.
+
 ## Data storage & deletion
 Your documents, signatures, and profile details are stored in a private database on your device. Deleting a document inside the app removes its stored pages and exported PDFs from your device's storage, not just its entry in the list. Deleting the app removes everything. We cannot access or recover any of it because we never receive it.
 

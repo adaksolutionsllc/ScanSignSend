@@ -18,9 +18,16 @@ class ScanService {
   }
 
   /// Launches the native document camera. Returns image paths.
-  Future<List<String>> scan() async {
+  ///
+  /// [pageLimit] caps pages where the platform scanner supports it (Android
+  /// ML Kit). iOS's VisionKit can't be capped, so the caller still checks
+  /// the page count afterwards.
+  Future<List<String>> scan({int? pageLimit}) async {
     try {
-      final result = await _channel.invokeListMethod<String>('scan');
+      final result = await _channel.invokeListMethod<String>(
+        'scan',
+        pageLimit == null ? null : {'pageLimit': pageLimit},
+      );
       return result ?? [];
     } on PlatformException catch (e) {
       if (e.code == 'UNAVAILABLE') return [];

@@ -158,7 +158,7 @@ flutter build appbundle --release
 
 ## 9. App Review notes ⬜
 Add to the review-notes field:
-> This app is fully offline. To test: tap New Scan (or Import), fill a field, add a signature, then Press & Send. Full Access is a one-time non-consumable unlock ($9.99) that removes the 3-document free-trial limit.
+> This app is fully offline. To test: tap New Scan (or Import), fill a field, add a signature, then Press & Send. Full Access is a one-time non-consumable unlock ($9.99). Without it, 2 documents (up to 2 pages each) can be finished for free; scanning, importing and filling are always free. The paywall appears when finishing a third document or a document longer than 2 pages.
 
 ---
 

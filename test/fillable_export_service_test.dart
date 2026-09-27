@@ -62,6 +62,7 @@ void main() {
     for (final (label, type, value) in [
       ('residing at', FieldType.text, 'Virudhunagar'),
       ('born on', FieldType.date, '09/09/1985'),
+      ('place', FieldType.text, 'மதுரை'),
     ]) {
       await fields.addField(
         FieldsCompanion.insert(
@@ -114,6 +115,9 @@ void main() {
       expect(tb.text, value, reason: 'still a live, filled field');
       expect(tb.borderWidth, 0, reason: 'no border box around $name');
     }
+    final tamil = byName['place'] as PdfTextBoxField;
+    expect(tamil.text, 'மதுரை', reason: 'Tamil value kept exactly');
+    expect(tamil.borderWidth, 0);
     final cb = byName.values.whereType<PdfCheckBoxField>().single;
     expect(
       cb.borderWidth,

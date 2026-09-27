@@ -10,6 +10,9 @@ import '../../../core/services/press_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/field_type_labels.dart';
+import '../../../core/services/free_usage_service.dart';
+import '../../../core/services/iap_service.dart' show isPurchasedProvider;
+import '../../../shared/widgets/paywall_screen.dart';
 
 class PressScreen extends ConsumerStatefulWidget {
   const PressScreen({super.key, required this.docId});
@@ -89,6 +92,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const _FreeAllowanceNote(),
                     // Primary, safe default: keep fields editable.
                     SizedBox(
                       width: double.infinity,
@@ -133,8 +137,38 @@ class _PressScreenState extends ConsumerState<PressScreen> {
   }
 
   /// Save-as-Fillable exit: exports a live AcroForm PDF (fields stay editable).
+  /// Free tier: may this document be finished? Opens the paywall (and
+  /// returns false) when not. See FreeUsageService.
+  Future<bool> _mayFinish(BuildContext context) async {
+    final usage = ref.read(freeUsageServiceProvider);
+    final doc = await ref
+        .read(documentRepositoryProvider)
+        .getById(widget.docId);
+    final pages = await ref
+        .read(pageRepositoryProvider)
+        .watchPages(widget.docId)
+        .first;
+    if (doc == null) return false;
+    final check = await usage.checkFinish(doc, pageCount: pages.length);
+    if (check == FinishCheck.allowed) return true;
+    if (!context.mounted) return false;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => PaywallScreen(
+          reason: check == FinishCheck.tooManyPages
+              ? PaywallReason.tooManyPages
+              : PaywallReason.allowanceUsed,
+        ),
+      ),
+    );
+    // Bought it on the paywall → carry on; otherwise stay here.
+    return usage.isPremium();
+  }
+
   Future<void> _exportFillable(BuildContext context) async {
     if (_busy) return; // a second tap must not export twice
+    if (!await _mayFinish(context) || !context.mounted) return;
     setState(() => _busy = true);
     final router = GoRouter.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -142,6 +176,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
     final l10n = context.l10n;
     try {
       await ref.read(fillableFormExportServiceProvider).export(widget.docId);
+      await ref.read(freeUsageServiceProvider).recordFinish(widget.docId);
       if (mounted) {
         router.pushReplacement(
           AppRoutes.send.replaceAll(':docId', '${widget.docId}'),
@@ -176,6 +211,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
   }
 
   Future<void> _confirmPressOnce(BuildContext context) async {
+    if (!await _mayFinish(context) || !context.mounted) return;
     // D3 guardrail: if this document carries live (AcroForm) fields, warn that
     // flattening throws away their interactivity.
     final fields = await ref
@@ -249,6 +285,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
       final pressedPath = await ref
           .read(pressServiceProvider)
           .press(widget.docId, cert);
+      await ref.read(freeUsageServiceProvider).recordFinish(widget.docId);
       debugPrint('Pressed PDF: $pressedPath');
       if (mounted) {
         router.pushReplacement(
@@ -384,4 +421,34 @@ class _FieldTile extends StatelessWidget {
         FieldType.initials => context.l10n.pressSignatureCaptured,
         _ => f.value,
       };
+}
+
+/// "Finishing uses 1 of your 2 free documents (2 left)" for free users, so
+/// the allowance is never a surprise. Nothing with Full Access.
+class _FreeAllowanceNote extends ConsumerWidget {
+  const _FreeAllowanceNote();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final premium = ref.watch(isPurchasedProvider).valueOrNull ?? true;
+    if (premium) return const SizedBox.shrink();
+    return FutureBuilder<int>(
+      future: ref.read(freeUsageServiceProvider).remaining(),
+      builder: (context, snap) {
+        final left = snap.data;
+        if (left == null) return const SizedBox(height: 8);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            context.l10n.pressFreeRemaining(
+              left,
+              FreeUsageService.freeDocuments,
+            ),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        );
+      },
+    );
+  }
 }

@@ -17,6 +17,7 @@ import '../db/app_database.dart';
 import '../models/field_model.dart';
 import '../utils/path_resolver.dart';
 import 'pdf_geometry.dart';
+import 'shaped_text.dart';
 import 'document_repository.dart';
 
 /// Thrown when a press is attempted on a document with no pages. Typed so the
@@ -77,6 +78,10 @@ class _PressJob {
 
   /// The document's body text size (fraction of page height), or null.
   final double? textSize;
+
+  /// Pre-rendered images of every string the PDF font can't shape (Hindi,
+  /// Tamil, Telugu…), keyed by the string. See shaped_text.dart.
+  final Map<String, ShapedText> shaped;
   const _PressJob(
     this.pages,
     this.docTitle,
@@ -84,8 +89,15 @@ class _PressJob {
     this.signedAt,
     this.cert,
     this.textSize,
+    this.shaped,
   );
 }
+
+/// Font size the pre-rendered text was set at, in logical px, and the scale
+/// it was rendered at — together, how many image pixels one point of text
+/// takes.
+const _shapedFontSize = 40.0;
+const _shapedScale = 3.0;
 
 /// Translated labels for the signing certificate appended to every press.
 class PressCertificateStrings {
@@ -173,6 +185,40 @@ class PressService {
       cert.dateFormat,
       cert.localeName,
     ).format(DateTime.now());
+    // Shape non-Latin text on this (UI) isolate — the PDF isolate can't.
+    final shaped = <String, ShapedText>{};
+    Future<void> shape(String text, {bool bold = false}) async {
+      if (text.isEmpty || shaped.containsKey(text) || !needsShaping(text)) {
+        return;
+      }
+      shaped[text] = await renderShapedText(
+        text,
+        fontSize: _shapedFontSize,
+        scale: _shapedScale,
+        bold: bold,
+      );
+    }
+
+    for (final plan in pagePlans) {
+      for (final f in plan.fields) {
+        final t = f.type.toFieldType();
+        if (t == FieldType.text || t == FieldType.date) await shape(f.value);
+      }
+    }
+    await shape(cert.title, bold: true);
+    for (final text in [
+      cert.documentLabel,
+      doc.title,
+      cert.signedOnLabel,
+      signedAt,
+      cert.methodLabel,
+      cert.methodValue,
+      cert.noteLabel,
+      cert.noteValue,
+    ]) {
+      await shape(text);
+    }
+
     final job = _PressJob(
       pagePlans,
       doc.title,
@@ -180,6 +226,7 @@ class PressService {
       signedAt,
       cert,
       doc.textSize,
+      shaped,
     );
 
     // Run the flatten in a background isolate. compute() re-throws any error
@@ -234,10 +281,10 @@ Future<void> _buildPressedPdf(_PressJob job) async {
       final content =
           await _drawBackground(gfx, plan, pw, ph, sourceCache) ??
           Rect.fromLTWH(0, 0, pw, ph);
-      _drawFields(gfx, plan.fields, content, job.textSize);
+      _drawFields(gfx, plan.fields, content, job.textSize, job.shaped);
     }
 
-    _appendCertPage(pdfDoc, job.docTitle, job.signedAt, job.cert);
+    _appendCertPage(pdfDoc, job.docTitle, job.signedAt, job.cert, job.shaped);
 
     final bytes = await pdfDoc.save();
     await File(job.outPath).writeAsBytes(bytes);
@@ -352,6 +399,7 @@ void _drawFields(
   List<_FieldPlan> fields,
   Rect content,
   double? textSize,
+  Map<String, ShapedText> shaped,
 ) {
   for (final field in fields) {
     if (!field.isFilled) continue;
@@ -363,12 +411,19 @@ void _drawFields(
     switch (type) {
       case FieldType.text:
       case FieldType.date:
-        _drawText(
-          gfx,
-          field.value,
-          rect,
-          textSize == null ? null : textSize * content.height,
-        );
+        final preferredPt = textSize == null ? null : textSize * content.height;
+        final image = shaped[field.value];
+        if (image != null) {
+          _drawShaped(
+            gfx,
+            image,
+            rect,
+            _fieldFontPt(rect, preferredPt),
+            centreVertically: true,
+          );
+        } else {
+          _drawText(gfx, field.value, rect, preferredPt);
+        }
       case FieldType.checkbox:
         if (field.isChecked) _drawCheckmark(gfx, rect);
       case FieldType.radio:
@@ -386,6 +441,36 @@ void _drawFields(
         }
     }
   }
+}
+
+/// The point size a field value is set at (same rule as [fittedFont], before
+/// width-fitting): the document's text size, else ~70% of the field height
+/// capped at ordinary form text.
+double _fieldFontPt(Rect rect, double? preferredPt) =>
+    (preferredPt ?? math.min(rect.height * 0.7, 12.0))
+        .clamp(5.0, math.max(5.0, rect.height * 0.9))
+        .toDouble();
+
+/// Draws pre-shaped text (see shaped_text.dart) at [fontPt] inside [bounds],
+/// left-aligned, shrunk to fit the width if needed.
+void _drawShaped(
+  PdfGraphics gfx,
+  ShapedText image,
+  Rect bounds,
+  double fontPt, {
+  bool centreVertically = false,
+}) {
+  final perPx = fontPt / (_shapedFontSize * _shapedScale);
+  var w = image.width * perPx, h = image.height * perPx;
+  if (w > bounds.width && w > 0) {
+    final k = bounds.width / w;
+    w *= k;
+    h *= k;
+  }
+  final top = centreVertically
+      ? bounds.top + (bounds.height - h) / 2
+      : bounds.top;
+  gfx.drawImage(PdfBitmap(image.png), Rect.fromLTWH(bounds.left, top, w, h));
 }
 
 void _drawText(PdfGraphics gfx, String text, Rect rect, double? preferredPt) {
@@ -440,6 +525,7 @@ void _appendCertPage(
   String docTitle,
   String signedAt,
   _CertStrings cert,
+  Map<String, ShapedText> shaped,
 ) {
   final page = addEdgeToEdgePage(pdfDoc, PdfPageSize.a4);
   final gfx = page.graphics;
@@ -455,12 +541,18 @@ void _appendCertPage(
   final black = PdfSolidBrush(PdfColor(0, 0, 0));
   final grey = PdfSolidBrush(PdfColor(120, 120, 120));
 
-  gfx.drawString(
-    cert.title,
-    bold,
-    brush: black,
-    bounds: Rect.fromLTWH(40, y, pw - 80, 30),
-  );
+  // Localized certificate copy (Hindi, Tamil, Telugu…) uses the shaped
+  // images; Latin text stays real text.
+  void write(String text, PdfFont font, PdfBrush brush, Rect bounds) {
+    final image = shaped[text];
+    if (image != null) {
+      _drawShaped(gfx, image, bounds, font.size);
+    } else {
+      gfx.drawString(text, font, brush: brush, bounds: bounds);
+    }
+  }
+
+  write(cert.title, bold, black, Rect.fromLTWH(40, y, pw - 80, 30));
   y += 40;
 
   gfx.drawLine(
@@ -476,18 +568,8 @@ void _appendCertPage(
     [cert.methodLabel, cert.methodValue],
     [cert.noteLabel, cert.noteValue],
   ]) {
-    gfx.drawString(
-      row[0],
-      body,
-      brush: grey,
-      bounds: Rect.fromLTWH(40, y, 120, 18),
-    );
-    gfx.drawString(
-      row[1],
-      body,
-      brush: black,
-      bounds: Rect.fromLTWH(170, y, pw - 210, 18),
-    );
+    write(row[0], body, grey, Rect.fromLTWH(40, y, 120, 18));
+    write(row[1], body, black, Rect.fromLTWH(170, y, pw - 210, 18));
     y += 22;
   }
 }

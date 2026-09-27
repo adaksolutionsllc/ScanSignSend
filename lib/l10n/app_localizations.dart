@@ -1703,6 +1703,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Learned field patterns cleared'**
   String get settingsForgetLearnedDone;
+
+  /// No description provided for @paywallReasonAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve used your {count} free documents.'**
+  String paywallReasonAllowance(int count);
+
+  /// No description provided for @paywallReasonPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Free documents can have up to {count} pages.'**
+  String paywallReasonPages(int count);
+
+  /// No description provided for @paywallBenefitAnyLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents of any length'**
+  String get paywallBenefitAnyLength;
+
+  /// No description provided for @pageLimitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free documents: up to {count} pages'**
+  String pageLimitTitle(int count);
+
+  /// No description provided for @pageLimitBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This document has {pages} pages. Unlock Full Access for documents of any length, or keep the first {limit} pages.'**
+  String pageLimitBody(int pages, int limit);
+
+  /// No description provided for @pageLimitKeepFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep first {count} pages'**
+  String pageLimitKeepFirst(int count);
+
+  /// No description provided for @pressFreeRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{left, plural, =0{You\'ve used your {total} free documents} =1{Finishing uses your last free document} other{Finishing uses 1 of your {total} free documents ({left} left)}}'**
+  String pressFreeRemaining(int left, int total);
 }
 
 class _AppLocalizationsDelegate

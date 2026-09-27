@@ -75,4 +75,7 @@ flutter {
 
 dependencies {
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")
+    // Keeps the free-allowance counter across uninstall/reinstall (with the
+    // user's Google Backup on). See MainActivity's entitlement channel.
+    implementation("com.google.android.gms:play-services-auth-blockstore:16.4.0")
 }

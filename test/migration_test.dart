@@ -111,6 +111,13 @@ void main() {
         reason: 'backup must stay opt-in for users upgrading from v3',
       );
 
+      // v4 → v5: text size is unknown until the document is re-detected.
+      expect(row.textSize, isNull);
+      // v5 → v6: the learning table exists and starts empty.
+      expect(await db.select(db.fieldHints).get(), isEmpty);
+      // v6 → v7: existing documents haven't used a free-allowance slot.
+      expect(row.countedFree, isFalse);
+
       await db.close();
       if (dbFile.existsSync()) dbFile.deleteSync();
     },

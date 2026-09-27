@@ -265,5 +265,12 @@
   "libraryImport": "इम्पोर्ट",
   "settingsForgetLearned": "सीखे गए फ़ील्ड पैटर्न भूलें",
   "settingsForgetLearnedSubtitle": "फ़ील्ड पहचान आपके जोड़े, बदले और हटाए गए फ़ील्ड से सीखती है, सिर्फ़ इस डिवाइस पर।",
-  "settingsForgetLearnedDone": "सीखे गए फ़ील्ड पैटर्न हटा दिए गए"
+  "settingsForgetLearnedDone": "सीखे गए फ़ील्ड पैटर्न हटा दिए गए",
+  "paywallReasonAllowance": "आपने अपने {count} मुफ़्त दस्तावेज़ इस्तेमाल कर लिए हैं।",
+  "paywallReasonPages": "मुफ़्त दस्तावेज़ों में अधिकतम {count} पेज हो सकते हैं।",
+  "paywallBenefitAnyLength": "किसी भी लंबाई के दस्तावेज़",
+  "pageLimitTitle": "मुफ़्त दस्तावेज़: अधिकतम {count} पेज",
+  "pageLimitBody": "इस दस्तावेज़ में {pages} पेज हैं। किसी भी लंबाई के दस्तावेज़ों के लिए फ़ुल एक्सेस अनलॉक करें, या पहले {limit} पेज रखें।",
+  "pageLimitKeepFirst": "पहले {count} पेज रखें",
+  "pressFreeRemaining": "{left, plural, =0{आपने अपने {total} मुफ़्त दस्तावेज़ इस्तेमाल कर लिए हैं} =1{पूरा करने पर आपका आख़िरी मुफ़्त दस्तावेज़ इस्तेमाल होगा} other{पूरा करने पर आपके {total} मुफ़्त दस्तावेज़ों में से 1 इस्तेमाल होगा ({left} बाक़ी)}}"
 }

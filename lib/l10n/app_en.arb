@@ -453,5 +453,60 @@
   "libraryImport": "Import",
   "settingsForgetLearned": "Forget learned field patterns",
   "settingsForgetLearnedSubtitle": "Field detection learns from the fields you add, retype and delete, on this device only.",
-  "settingsForgetLearnedDone": "Learned field patterns cleared"
+  "settingsForgetLearnedDone": "Learned field patterns cleared",
+  "paywallReasonAllowance": "You've used your {count} free documents.",
+  "@paywallReasonAllowance": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallReasonPages": "Free documents can have up to {count} pages.",
+  "@paywallReasonPages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAnyLength": "Documents of any length",
+  "pageLimitTitle": "Free documents: up to {count} pages",
+  "@pageLimitTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pageLimitBody": "This document has {pages} pages. Unlock Full Access for documents of any length, or keep the first {limit} pages.",
+  "@pageLimitBody": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "pageLimitKeepFirst": "Keep first {count} pages",
+  "@pageLimitKeepFirst": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pressFreeRemaining": "{left, plural, =0{You've used your {total} free documents} =1{Finishing uses your last free document} other{Finishing uses 1 of your {total} free documents ({left} left)}}",
+  "@pressFreeRemaining": {
+    "placeholders": {
+      "left": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

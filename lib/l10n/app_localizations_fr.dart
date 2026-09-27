@@ -899,4 +899,45 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsForgetLearnedDone => 'Champs appris effacés';
+
+  @override
+  String paywallReasonAllowance(int count) {
+    return 'Vous avez utilisé vos $count documents gratuits.';
+  }
+
+  @override
+  String paywallReasonPages(int count) {
+    return 'Les documents gratuits peuvent contenir jusqu’à $count pages.';
+  }
+
+  @override
+  String get paywallBenefitAnyLength => 'Documents de toute longueur';
+
+  @override
+  String pageLimitTitle(int count) {
+    return 'Documents gratuits : jusqu’à $count pages';
+  }
+
+  @override
+  String pageLimitBody(int pages, int limit) {
+    return 'Ce document contient $pages pages. Débloquez l’accès complet pour des documents de toute longueur, ou gardez les $limit premières pages.';
+  }
+
+  @override
+  String pageLimitKeepFirst(int count) {
+    return 'Garder les $count premières pages';
+  }
+
+  @override
+  String pressFreeRemaining(int left, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other:
+          'Terminer utilise 1 de vos $total documents gratuits ($left restants)',
+      one: 'Terminer utilise votre dernier document gratuit',
+      zero: 'Vous avez utilisé vos $total documents gratuits',
+    );
+    return '$_temp0';
+  }
 }

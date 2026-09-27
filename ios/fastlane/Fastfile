@@ -62,6 +62,30 @@ platform :ios do
     )
   end
 
+  # ── Local releases from the developer's Mac (scripts/release.sh) ────────
+  # Signing uses the Mac's own keychain (Apple Distribution certificate for
+  # team T995T8G6Z2, automatic signing); the IPA is built beforehand by
+  # `flutter build ipa`. App Store Connect API key from the environment:
+  #   ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH (path to AuthKey_<id>.p8)
+  desc "Upload an IPA built on this Mac to TestFlight (internal testers)"
+  lane :local_testflight do
+    upload_to_testflight(
+      api_key: local_api_key,
+      ipa: ENV["IPA_PATH"],
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+    )
+  end
+
+  private_lane :local_api_key do
+    app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: ENV.fetch("ASC_KEY_PATH"),
+      in_house: false,
+    )
+  end
+
   # Imports the distribution certificate and provisioning profile from the
   # base64 secrets into an ephemeral keychain so gym can sign with them.
   private_lane :import_signing_material do
