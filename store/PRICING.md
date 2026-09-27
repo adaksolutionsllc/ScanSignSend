@@ -73,9 +73,11 @@ Set explicit per-country prices rather than accepting auto-conversion:
 | Japan | **¥1,500** | ~9.90 |
 | **India** | **₹499** (set 2026-09-26; ₹399 kept in reserve for launch/festival sales) | ~5.90 |
 | **Brazil** | **R$ 34.90** (set 2026-09-26; R$19.90 kept in reserve for sales) | ~6.30 |
-| Mexico | **MX$ 89** | ~4.90 |
+| **Mexico** | **MX$ 129** (set 2026-09-26) | ~7.00 |
 | **Indonesia** | **Rp 99.000** (set 2026-09-26) | ~6.00 |
-| SE Asia (PH/VN/TH) | ~**$3.99** equivalent | 3.99 |
+| **Philippines** | **₱349** (set 2026-09-26) | ~6.10 |
+| **Vietnam** | **₫149.000** (set 2026-09-26) | ~5.90 |
+| **Thailand** | **฿199** (set 2026-09-26) | ~6.00 |
 | Turkey, Eastern Europe | ~**$4.99** equivalent | 4.99 |
 | LatAm (ex-BR/MX) | ~**$5.49** equivalent | 5.49 |
 | Middle East (AE/SA) | **$9.99** equivalent | 9.99 |
