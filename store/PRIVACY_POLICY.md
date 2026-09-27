@@ -1,7 +1,8 @@
 # Privacy Policy — Scan Sign Send
 
-**Effective date:** [FILL IN before publishing]
-**Publisher:** ADAK Ventures
+Effective: 26 September 2026
+
+Publisher: ADAK Ventures LLC
 
 ## The short version
 Scan Sign Send does not collect, transmit, or share any of your data. Everything you scan, type, and sign stays on your device, unless you choose to include it in your phone's own backup. We have no servers and no accounts.
@@ -47,4 +48,4 @@ The app is suitable for all ages and collects no personal information from anyon
 If this policy changes, the updated version will be posted at the Privacy Policy URL listed in the app stores.
 
 ## Contact
-ADAK Ventures — [support email / URL]
+ADAK Ventures LLC — adakventuresllc@gmail.com · https://adakventures.com/scansignsend/support
