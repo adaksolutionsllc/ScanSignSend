@@ -39,10 +39,18 @@ upload_ios() {
     if (cd "$root/ios" && IPA_PATH="$ipa" fastlane local_testflight) 2>&1 | tee "$log"; then
       return 0
     fi
+    # fastlane reports failure whenever altool logged a retried part, even
+    # when altool itself finished the upload. Trust altool's own verdict.
+    if LC_ALL=C grep -aq "UPLOAD SUCCEEDED" "$log"; then
+      echo "✓ Upload succeeded (fastlane's error was only retried network parts)"
+      return 0
+    fi
     # A dropped connection can hide a successful upload; Apple then refuses
-    # the retry as a duplicate of this very build number. That's success.
-    if grep -q "previously uploaded version: ‘$build’" "$log"; then
-      echo "✓ Build $build is already on App Store Connect (earlier attempt succeeded)"
+    # the retry as a duplicate of this very build number. That's success too.
+    # (\${build} braces matter: a curly quote right after \$build was read by
+    # bash as part of the variable name.)
+    if LC_ALL=C grep -aq "previously uploaded version: .${build}." "$log"; then
+      echo "✓ Build ${build} is already on App Store Connect (earlier attempt succeeded)"
       return 0
     fi
     sleep 20
