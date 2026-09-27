@@ -87,6 +87,23 @@ python3 store/listings/check_limits.py
 
 if [[ "$target" == ios || "$target" == all ]]; then
   : "${ASC_KEY_ID:?}" "${ASC_ISSUER_ID:?}" "${ASC_KEY_PATH:?}"
+  # Apple rejects an upload whose asset catalog lacks the 1024x1024 App Store
+  # icon (it happened: the file was deleted and slipped into a commit). Check
+  # every icon the catalog lists exists, and the marketing icon has no alpha.
+  icons="$root/ios/Runner/Assets.xcassets/AppIcon.appiconset"
+  python3 - "$icons" <<'PY'
+import json, os, subprocess, sys
+d = sys.argv[1]
+names = [i["filename"] for i in json.load(open(os.path.join(d, "Contents.json")))["images"] if "filename" in i]
+missing = [n for n in names if not os.path.exists(os.path.join(d, n))]
+if missing:
+    sys.exit("Missing app icons: " + ", ".join(missing))
+big = os.path.join(d, "Icon-App-1024x1024@1x.png")
+info = subprocess.run(["sips", "-g", "pixelWidth", "-g", "hasAlpha", big], capture_output=True, text=True).stdout
+if "pixelWidth: 1024" not in info or "hasAlpha: yes" in info:
+    sys.exit("App Store icon must be 1024x1024 with no transparency")
+print("✓ App icons present")
+PY
   echo "▶ iOS: building IPA"
   flutter build ipa --release
   upload_ios "$(ls "$root"/build/ios/ipa/*.ipa | head -1)"
