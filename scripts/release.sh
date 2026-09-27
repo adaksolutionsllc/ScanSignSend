@@ -31,9 +31,18 @@ esac
 # alone — the build is fine — before failing.
 upload_ios() {
   local ipa="$1" attempt
+  local build="${version##*+}" log
+  log="$(mktemp)"
   for attempt in 1 2 3; do
     echo "▶ iOS: uploading $ipa to TestFlight (attempt $attempt/3)"
-    if (cd "$root/ios" && IPA_PATH="$ipa" fastlane local_testflight); then
+    # pipefail (set above) makes this fail when fastlane fails, not tee.
+    if (cd "$root/ios" && IPA_PATH="$ipa" fastlane local_testflight) 2>&1 | tee "$log"; then
+      return 0
+    fi
+    # A dropped connection can hide a successful upload; Apple then refuses
+    # the retry as a duplicate of this very build number. That's success.
+    if grep -q "previously uploaded version: ‘$build’" "$log"; then
+      echo "✓ Build $build is already on App Store Connect (earlier attempt succeeded)"
       return 0
     fi
     sleep 20
