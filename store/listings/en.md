@@ -15,35 +15,38 @@ No accounts. No subscriptions. No cloud. Scan any document, fill and sign it on 
 scan,pdf,sign,signature,document,scanner,fill,form,esign,offline,contract,paperwork,sign pdf
 
 ## full_description
-**Scan Sign Send turns paper into signed PDFs — entirely on your device.**
+Scan Sign Send turns paper into signed PDFs — entirely on your phone.
 
-Scan any document with your camera, tap to fill in the fields, add your signature with your finger, and share the finished PDF. No accounts, no subscriptions, and nothing is ever uploaded to a server. Your documents stay on your phone.
+Scan any document with your camera or import a PDF, let the app find the blanks, fill them in, sign with your finger, and share the finished PDF. No account, no subscription, and nothing is ever uploaded. Your documents stay on your device.
 
-**Scan**
-• High-quality scanning with automatic edge detection
-• Multi-page batches — up to 20 pages per scan
+SCAN
+• Clear scans with automatic edge detection, several pages at a time
+• Import existing PDFs and photos
 • Reorder, rotate and clean up pages before you sign
-• Import existing PDFs and images too
 
-**Sign & fill**
-• Automatic field detection finds text, date, checkbox and signature spots
-• Drag and resize any field to fit your form exactly
-• Draw your signature once and reuse it on every document
-• Autofill your name, email, phone and address
+FILL & SIGN
+• Finds the blanks for you — lines, gaps, signature and date spots — and learns from your corrections
+• Text, dates, checkboxes, radio buttons, initials and signatures
+• Drag to move, pinch to resize — fields fit your form exactly
+• Draw your signature once and reuse it; autofill your name, email and address
+• Signing fills in today's date where the form asks for it
 
-**Send**
-• Flatten everything into a final PDF with a signing certificate page
-• Or export a still-fillable PDF that stays editable in any reader
-• Share via Mail, Messages, AirDrop or any app
-• Reusable templates are saved automatically, so you never re-scan the same form
+SEND
+• A flattened, signed PDF with a signing certificate page
+• Or a fillable PDF others can complete in any PDF reader
+• Share by email, messaging or any app
+• Save any form as a template to reuse it
 
-**Private by design**
-• Your documents are never uploaded — all processing happens on your device
-• Optional Face ID / fingerprint lock that re-arms every time you leave the app
-• Contents are hidden in the app switcher
-• Deleting a document really deletes its files, not just the entry
+PRIVATE BY DESIGN
+• Nothing is uploaded — all processing happens on your device
+• Optional fingerprint / face unlock that re-locks when you leave the app
+• Deleting a document really deletes its files
 
-**One-time purchase. Own it forever. No subscription.**
+WORKS IN YOUR LANGUAGE
+English, Français, Español, Português, हिन्दी, தமிழ், తెలుగు — including Hindi, Tamil and Telugu text in your finished PDFs.
+
+TRY IT FREE
+Finish 2 documents (up to 2 pages each) free. Full Access is a one-time purchase for unlimited documents of any length — own it forever, no subscription.
 
 Built by ADAK Ventures.
 
@@ -54,4 +57,4 @@ First release. Scan, sign and send documents completely offline. One-time purcha
 Full Access
 
 ## iap_description
-Unlimited documents, templates, signatures.
+Unlimited documents of any length, forever.
