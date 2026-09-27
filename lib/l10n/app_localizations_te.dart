@@ -808,4 +808,99 @@ class AppLocalizationsTe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String detectFillFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ఫీల్డ్‌లను నింపండి →',
+      one: '1 ఫీల్డ్‌ను నింపండి →',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get detectPinchHint =>
+      'ఫీల్డ్ జోడించడానికి క్రింద ఉన్న సాధనాన్ని నొక్కండి · ఎంచుకోవడానికి ఫీల్డ్‌ను నొక్కండి';
+
+  @override
+  String get importErrorUnreadableImage =>
+      'ఈ చిత్రాన్ని తెరవడం సాధ్యం కాలేదు. JPEG, PNG లేదా HEIC ఫోటోను ప్రయత్నించండి.';
+
+  @override
+  String get iapErrorUnavailable =>
+      'ఈ పరికరంలో ప్రస్తుతం కొనుగోళ్లు అందుబాటులో లేవు.';
+
+  @override
+  String get iapErrorProductNotFound =>
+      'స్టోర్‌ను చేరుకోలేకపోయాము. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get iapErrorPurchaseFailed =>
+      'కొనుగోలు పూర్తి కాలేదు. మీ నుండి ఎలాంటి రుసుము వసూలు చేయలేదు.';
+
+  @override
+  String get settingsBackupTitle => 'పరికర బ్యాకప్‌లో చేర్చండి';
+
+  @override
+  String get settingsBackupSubtitleIos =>
+      'ఆఫ్: పత్రాలు, సంతకాలు ఈ iPhoneలో మాత్రమే ఉంటాయి. ఆన్: అవి మీ iCloud బ్యాకప్‌లో చేర్చబడతాయి.';
+
+  @override
+  String get settingsBackupSubtitleAndroid =>
+      'ఆఫ్: పత్రాలు, సంతకాలు ఈ ఫోన్‌లో మాత్రమే ఉంటాయి. ఆన్: అవి మీ ఎన్‌క్రిప్ట్ చేసిన Google బ్యాకప్‌లో మరియు కొత్త ఫోన్‌కి మారేటప్పుడు చేర్చబడతాయి.';
+
+  @override
+  String get fieldTypeRadio => 'రేడియో బటన్';
+
+  @override
+  String get fieldTypeRadioShort => 'రేడియో';
+
+  @override
+  String get fieldTypeInitials => 'సంక్షిప్త సంతకం';
+
+  @override
+  String get fillTapToInitial => 'సంక్షిప్త సంతకం కోసం నొక్కండి';
+
+  @override
+  String get signInitialsTitle => 'మీ సంక్షిప్త సంతకాన్ని గీయండి';
+
+  @override
+  String get pressRadioSelected => 'ఎంచుకోబడింది';
+
+  @override
+  String get pressRadioNotSelected => 'ఎంచుకోబడలేదు';
+
+  @override
+  String get detectSelectedHint =>
+      'జరపడానికి లాగండి · పరిమాణం మార్చడానికి పించ్ చేయండి లేదా మూలను లాగండి · సవరించడానికి మళ్లీ నొక్కండి';
+
+  @override
+  String get detectRadioAddChoiceHint =>
+      'ఈ ప్రశ్నకు మరో ఎంపికను జోడించడానికి మళ్లీ రేడియోను నొక్కండి';
+
+  @override
+  String get detectFieldDeleted => 'ఫీల్డ్ తొలగించబడింది';
+
+  @override
+  String get actionUndo => 'రద్దు చేయి';
+
+  @override
+  String get detectFormFieldLocked =>
+      'ఈ ఫీల్డ్ PDF యొక్క స్వంత ఫారమ్‌లో భాగం. తదుపరి దశలో దీన్ని నింపండి.';
+
+  @override
+  String get libraryImport => 'దిగుమతి';
+
+  @override
+  String get settingsForgetLearned => 'నేర్చుకున్న ఫీల్డ్ నమూనాలను మరచిపో';
+
+  @override
+  String get settingsForgetLearnedSubtitle =>
+      'మీరు జోడించే, మార్చే, తొలగించే ఫీల్డ్‌ల నుండి గుర్తింపు నేర్చుకుంటుంది — ఈ పరికరంలో మాత్రమే.';
+
+  @override
+  String get settingsForgetLearnedDone =>
+      'నేర్చుకున్న ఫీల్డ్ నమూనాలు తొలగించబడ్డాయి';
 }

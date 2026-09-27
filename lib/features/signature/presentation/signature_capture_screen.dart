@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 
 import 'package:drift/drift.dart' show Value;
 import 'package:image/image.dart' as img;
+import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -22,9 +24,14 @@ class SignatureCaptureScreen extends ConsumerStatefulWidget {
     super.key,
     required this.docId,
     required this.fieldId,
+    this.initials = false,
   });
   final int docId;
   final int fieldId;
+
+  /// Capturing initials rather than a full signature: different title, and
+  /// the result is saved as initials in the signatures library.
+  final bool initials;
 
   @override
   ConsumerState<SignatureCaptureScreen> createState() =>
@@ -43,14 +50,20 @@ class _SignatureCaptureScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.signTitle),
+        title: Text(
+          widget.initials
+              ? context.l10n.signInitialsTitle
+              : context.l10n.signTitle,
+        ),
         actions: [
           // Ink colour toggle
           IconButton(
-            icon: Icon(Icons.circle,
-                color: _inkColor == Colors.black
-                    ? Colors.black
-                    : const Color(0xFF0D47A1)),
+            icon: Icon(
+              Icons.circle,
+              color: _inkColor == Colors.black
+                  ? Colors.black
+                  : const Color(0xFF0D47A1),
+            ),
             tooltip: context.l10n.signSwitchInk,
             onPressed: () => setState(() {
               _inkColor = _inkColor == Colors.black
@@ -109,13 +122,14 @@ class _SignatureCaptureScreenState
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.check),
-                label:
-                    Text(_saving
-                        ? context.l10n.signSaving
-                        : context.l10n.signUseThis),
+                label: Text(
+                  _saving ? context.l10n.signSaving : context.l10n.signUseThis,
+                ),
               ),
             ),
           ),
@@ -128,6 +142,12 @@ class _SignatureCaptureScreenState
     setState(() => _saving = true);
     // Resolve before any await — `context` is unsafe past an async gap.
     final l10n = context.l10n;
+    // Today's date in the user's format, for the date fields that go with
+    // this signature (resolved now: `context` is unsafe after the awaits).
+    final today = DateFormat(
+      l10n.dateFormatInput,
+      Localizations.localeOf(context).toString(),
+    ).format(DateTime.now());
     try {
       // Capture the pad directly (high-res), then crop to the ink's bounding box
       // and knock out the white background so the signature fills its field on
@@ -138,24 +158,22 @@ class _SignatureCaptureScreenState
         return;
       }
       final ui.Image rendered = await padState.toImage(pixelRatio: 3.0);
-      final byteData =
-          await rendered.toByteData(format: ui.ImageByteFormat.png);
+      final byteData = await rendered.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       if (byteData == null) {
         setState(() => _saving = false);
         return;
       }
       final rawPng = byteData.buffer.asUint8List();
-      debugPrint(
-          'SIGDEBUG rendered=${rendered.width}x${rendered.height} rawPngBytes=${rawPng.length}');
-      final pngBytes = _cropAndMakeTransparent(rawPng) ?? rawPng;
-      debugPrint('SIGDEBUG croppedBytes=${pngBytes.length}');
+      final pngBytes = await compute(_cropAndMakeTransparent, rawPng) ?? rawPng;
       if (pngBytes.isEmpty) {
         // Empty pad — nothing drawn.
         setState(() => _saving = false);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.signDrawFirst)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(context.l10n.signDrawFirst)));
         }
         return;
       }
@@ -173,13 +191,16 @@ class _SignatureCaptureScreenState
       final sigRepo = ref.read(signatureRepositoryProvider);
       final sigId = await sigRepo.addSignature(
         imagePath: storablePath,
-        label: l10n.signDefaultLabel,
+        label: widget.initials ? l10n.fieldTypeInitials : l10n.signDefaultLabel,
         isDefault: _saveAsDefault,
+        isInitials: widget.initials,
       );
 
       // Link to the Field row (fieldId=0 means save-only from manager)
       if (widget.fieldId != 0) {
-        await ref.read(fieldRepositoryProvider).updateField(
+        await ref
+            .read(fieldRepositoryProvider)
+            .updateField(
               FieldsCompanion(
                 id: Value(widget.fieldId),
                 value: Value(storablePath),
@@ -187,6 +208,10 @@ class _SignatureCaptureScreenState
                 isFilled: const Value(true),
               ),
             );
+        // Signing dates the page: fill its signature-linked date fields.
+        await ref
+            .read(fieldRepositoryProvider)
+            .fillTodayDatesFor(widget.fieldId, today);
       }
 
       if (mounted) Navigator.of(context).pop();
@@ -199,53 +224,60 @@ class _SignatureCaptureScreenState
       }
     }
   }
+}
 
-  /// Crops [rawPng] to the ink's bounding box and makes near-white pixels
-  /// transparent, so the signature fills its field on the document (no big white
-  /// margin) and composites cleanly onto the page. Returns null on decode
-  /// failure; an empty list if the pad had no ink.
-  Uint8List? _cropAndMakeTransparent(Uint8List rawPng) {
-    final src = img.decodeImage(rawPng);
-    if (src == null) return null;
+/// compute() entry — a per-pixel pass over a 3× capture, too slow for the UI
+/// thread. Crops [rawPng] to the ink's bounding box and makes near-white pixels
+/// transparent, so the signature fills its field on the document (no big white
+/// margin) and composites cleanly onto the page. Returns null on decode
+/// failure; an empty list if the pad had no ink.
+Uint8List? _cropAndMakeTransparent(Uint8List rawPng) {
+  final src = img.decodeImage(rawPng);
+  if (src == null) return null;
 
-    const int whiteThreshold = 235; // pixels this bright count as background
-    int minX = src.width, minY = src.height, maxX = -1, maxY = -1;
+  const int whiteThreshold = 235; // pixels this bright count as background
+  int minX = src.width, minY = src.height, maxX = -1, maxY = -1;
 
-    for (var y = 0; y < src.height; y++) {
-      for (var x = 0; x < src.width; x++) {
-        final px = src.getPixel(x, y);
-        final isInk = px.r < whiteThreshold ||
-            px.g < whiteThreshold ||
-            px.b < whiteThreshold;
-        if (isInk) {
-          if (x < minX) minX = x;
-          if (y < minY) minY = y;
-          if (x > maxX) maxX = x;
-          if (y > maxY) maxY = y;
-        }
+  for (var y = 0; y < src.height; y++) {
+    for (var x = 0; x < src.width; x++) {
+      final px = src.getPixel(x, y);
+      final isInk =
+          px.r < whiteThreshold ||
+          px.g < whiteThreshold ||
+          px.b < whiteThreshold;
+      if (isInk) {
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
       }
     }
-    if (maxX < 0) return Uint8List(0); // nothing drawn
-
-    // Pad the crop slightly so strokes aren't clipped at the edge.
-    const pad = 12;
-    minX = (minX - pad).clamp(0, src.width - 1);
-    minY = (minY - pad).clamp(0, src.height - 1);
-    maxX = (maxX + pad).clamp(0, src.width - 1);
-    maxY = (maxY + pad).clamp(0, src.height - 1);
-
-    final cropped = img.copyCrop(src,
-        x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1);
-
-    // Knock out the white background → transparent.
-    final out = cropped.convert(numChannels: 4);
-    for (final px in out) {
-      if (px.r >= whiteThreshold &&
-          px.g >= whiteThreshold &&
-          px.b >= whiteThreshold) {
-        px.a = 0;
-      }
-    }
-    return Uint8List.fromList(img.encodePng(out));
   }
+  if (maxX < 0) return Uint8List(0); // nothing drawn
+
+  // Pad the crop slightly so strokes aren't clipped at the edge.
+  const pad = 12;
+  minX = (minX - pad).clamp(0, src.width - 1);
+  minY = (minY - pad).clamp(0, src.height - 1);
+  maxX = (maxX + pad).clamp(0, src.width - 1);
+  maxY = (maxY + pad).clamp(0, src.height - 1);
+
+  final cropped = img.copyCrop(
+    src,
+    x: minX,
+    y: minY,
+    width: maxX - minX + 1,
+    height: maxY - minY + 1,
+  );
+
+  // Knock out the white background → transparent.
+  final out = cropped.convert(numChannels: 4);
+  for (final px in out) {
+    if (px.r >= whiteThreshold &&
+        px.g >= whiteThreshold &&
+        px.b >= whiteThreshold) {
+      px.a = 0;
+    }
+  }
+  return Uint8List.fromList(img.encodePng(out));
 }

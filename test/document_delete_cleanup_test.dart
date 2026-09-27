@@ -15,6 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
+import 'package:scan_sign_send/core/utils/path_resolver.dart';
 
 void main() {
   late Directory root;
@@ -24,6 +25,9 @@ void main() {
 
   setUp(() async {
     root = await Directory.systemTemp.createTemp('sss_delete_');
+    // As at app launch (main → PathResolver.init): stored paths are relative
+    // to the Documents root and resolved against it.
+    PathResolver.debugSetDocsDir(root);
     db = AppDatabase.forTesting(NativeDatabase.memory());
     docs = DocumentRepository(db);
     pages = PageRepository(db);
@@ -50,18 +54,25 @@ void main() {
 
     final doc = await docs.createDocument('Lease');
     await pages.addPage(
-        documentId: doc.id, pageIndex: 0, imagePath: pageFile.path);
-    await docs.updateDocument(DocumentsCompanion(
-      id: Value(doc.id),
-      pressedPdfPath: Value(pressed.path),
-    ));
+      documentId: doc.id,
+      pageIndex: 0,
+      imagePath: pageFile.path,
+    );
+    await docs.updateDocument(
+      DocumentsCompanion(
+        id: Value(doc.id),
+        pressedPdfPath: Value(pressed.path),
+      ),
+    );
 
     await docs.deleteDocument(doc.id);
 
     expect(pageFile.existsSync(), isFalse, reason: 'page image must be gone');
     expect(pressed.existsSync(), isFalse, reason: 'pressed PDF must be gone');
-    expect(Directory(p.join(root.path, 'pages', 'batch-a')).existsSync(),
-        isFalse);
+    expect(
+      Directory(p.join(root.path, 'pages', 'batch-a')).existsSync(),
+      isFalse,
+    );
     expect(await docs.getById(doc.id), isNull);
   });
 
@@ -72,36 +83,56 @@ void main() {
 
     final template = await docs.createDocument('W-9 (Template)');
     await pages.addPage(
-        documentId: template.id, pageIndex: 0, imagePath: shared.path);
+      documentId: template.id,
+      pageIndex: 0,
+      imagePath: shared.path,
+    );
 
     final clone = await docs.createDocument('W-9');
     await pages.addPage(
-        documentId: clone.id, pageIndex: 0, imagePath: shared.path);
+      documentId: clone.id,
+      pageIndex: 0,
+      imagePath: shared.path,
+    );
 
     await docs.deleteDocument(clone.id);
 
-    expect(shared.existsSync(), isTrue,
-        reason: 'the template still points at this file');
+    expect(
+      shared.existsSync(),
+      isTrue,
+      reason: 'the template still points at this file',
+    );
 
     // Once the template goes too, the file is finally unreferenced.
     await docs.deleteDocument(template.id);
     expect(shared.existsSync(), isFalse);
   });
 
-  test('deletePage keeps a shared imported-PDF file until its last page goes',
-      () async {
-    final pdf = makePageFile('batch-pdf', 'form.pdf');
-    final doc = await docs.createDocument('Imported form');
-    final first = await pages.addPage(
-        documentId: doc.id, pageIndex: 0, imagePath: '${pdf.path}#page=0');
-    final second = await pages.addPage(
-        documentId: doc.id, pageIndex: 1, imagePath: '${pdf.path}#page=1');
+  test(
+    'deletePage keeps a shared imported-PDF file until its last page goes',
+    () async {
+      final pdf = makePageFile('batch-pdf', 'form.pdf');
+      final doc = await docs.createDocument('Imported form');
+      final first = await pages.addPage(
+        documentId: doc.id,
+        pageIndex: 0,
+        imagePath: '${pdf.path}#page=0',
+      );
+      final second = await pages.addPage(
+        documentId: doc.id,
+        pageIndex: 1,
+        imagePath: '${pdf.path}#page=1',
+      );
 
-    await pages.deletePage(first);
-    expect(pdf.existsSync(), isTrue,
-        reason: 'page 2 still renders from this file');
+      await pages.deletePage(first);
+      expect(
+        pdf.existsSync(),
+        isTrue,
+        reason: 'page 2 still renders from this file',
+      );
 
-    await pages.deletePage(second);
-    expect(pdf.existsSync(), isFalse);
-  });
+      await pages.deletePage(second);
+      expect(pdf.existsSync(), isFalse);
+    },
+  );
 }

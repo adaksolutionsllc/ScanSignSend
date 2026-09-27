@@ -1,5 +1,6 @@
+import 'dart:math' as math;
 import 'dart:io';
-import 'dart:ui' show Rect;
+import 'dart:ui' show Offset, Rect;
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show compute;
@@ -23,8 +24,9 @@ class ExportEmptyDocumentException implements Exception {
   String toString() => 'ExportEmptyDocumentException';
 }
 
-final fillableFormExportServiceProvider =
-    Provider<FillableFormExportService>((ref) {
+final fillableFormExportServiceProvider = Provider<FillableFormExportService>((
+  ref,
+) {
   return FillableFormExportService(
     ref.watch(documentRepositoryProvider),
     ref.watch(pageRepositoryProvider),
@@ -66,8 +68,9 @@ class FillableFormExportService {
     String? sourcePdfPath;
     for (final pg in pages) {
       if (pg.imagePath.contains('#page=')) {
-        sourcePdfPath =
-            PathResolver.resolve(pg.imagePath.split('#page=').first);
+        sourcePdfPath = PathResolver.resolve(
+          pg.imagePath.split('#page=').first,
+        );
         break;
       }
     }
@@ -78,6 +81,7 @@ class FillableFormExportService {
     final outPath = p.join(outDir.path, '${const Uuid().v4()}.pdf');
 
     final job = _ExportJob(
+      textSize: doc.textSize,
       outPath: outPath,
       sourcePdfPath: sourcePdfPath,
       pages: [
@@ -92,13 +96,14 @@ class FillableFormExportService {
             boundingBoxJson: f.boundingBoxJson,
             // Signature values are file paths — resolve to the current
             // container here (the compute() isolate can't). See PressService.
-            value: f.type == FieldType.signature.name && f.value.isNotEmpty
+            value: f.type.toFieldType().isInk && f.value.isNotEmpty
                 ? PathResolver.resolve(f.value)
                 : f.value,
             isChecked: f.isChecked,
             isFilled: f.isFilled,
             pdfFieldName: f.pdfFieldName,
             sourceKind: f.sourceKind,
+            optionsJson: f.optionsJson,
           ),
       ],
     );
@@ -108,12 +113,14 @@ class FillableFormExportService {
     // This is a shareable snapshot, not a lock: `status`/`pressedPdfPath` are
     // deliberately untouched so the document stays reachable through fill/
     // sign/press. Only PressService.press() (flatten & sign) locks a document.
-    await _docRepo.updateDocument(DocumentsCompanion(
-      id: Value(docId),
-      // Store container-relative so it survives reinstalls (see PathResolver).
-      fillablePdfPath: Value(PathResolver.toStorable(outPath)),
-      updatedAt: Value(DateTime.now()),
-    ));
+    await _docRepo.updateDocument(
+      DocumentsCompanion(
+        id: Value(docId),
+        // Store container-relative so it survives reinstalls (see PathResolver).
+        fillablePdfPath: Value(PathResolver.toStorable(outPath)),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
 
     return outPath;
   }
@@ -122,11 +129,14 @@ class FillableFormExportService {
 // ── Serializable job ────────────────────────────────────────────────────────
 
 class _ExportJob {
+  /// The document's body text size (fraction of page height), or null.
+  final double? textSize;
   final String outPath;
   final String? sourcePdfPath;
   final List<_PagePlan> pages;
   final List<_FieldPlan> fields;
   const _ExportJob({
+    this.textSize,
     required this.outPath,
     required this.sourcePdfPath,
     required this.pages,
@@ -147,6 +157,7 @@ class _FieldPlan {
   final bool isChecked;
   final bool isFilled;
   final String? pdfFieldName;
+  final String? optionsJson;
   final String sourceKind;
   const _FieldPlan({
     required this.pageIndex,
@@ -157,40 +168,110 @@ class _FieldPlan {
     required this.isFilled,
     required this.pdfFieldName,
     required this.sourceKind,
+    this.optionsJson,
   });
 }
 
 // ── Isolate entry point ─────────────────────────────────────────────────────
 
 Future<void> _buildFillablePdf(_ExportJob job) async {
-  final PdfDocument pdfDoc;
-  final bool imported = job.sourcePdfPath != null &&
-      File(job.sourcePdfPath!).existsSync();
-
-  if (imported) {
-    // Re-open the original PDF so its real AcroForm is preserved.
-    pdfDoc = PdfDocument(inputBytes: File(job.sourcePdfPath!).readAsBytesSync());
-  } else {
-    pdfDoc = PdfDocument();
+  final srcPath = job.sourcePdfPath;
+  PdfDocument? source;
+  if (srcPath != null && File(srcPath).existsSync()) {
+    try {
+      source = PdfDocument(inputBytes: File(srcPath).readAsBytesSync());
+    } catch (_) {
+      source = null;
+    }
   }
-
+  // Re-use the original PDF (keeping its real AcroForm) only when the
+  // document's pages are still exactly that PDF's pages, in order. After a
+  // reorder, a deleted page, or when scans are mixed in, "page N" of the
+  // document is no longer page N of the file, so the export is rebuilt page by
+  // page instead — otherwise fields land on the wrong pages.
+  final keepOriginal = source != null && _pagesAreSource(job, source);
+  final pdfDoc = keepOriginal ? source : PdfDocument();
+  final sources = <String, PdfDocument?>{};
   try {
     // Stamp appearance streams for field values so filled text/checkboxes are
     // visible in viewers that don't honour NeedAppearances (Preview, Chrome).
     pdfDoc.form.setDefaultAppearance(true);
+    final names = _UniqueNames();
 
-    if (imported) {
+    if (keepOriginal) {
+      for (var i = 0; i < pdfDoc.form.fields.count; i++) {
+        final n = pdfDoc.form.fields[i].name;
+        if (n != null) names.reserve(n);
+      }
       _fillExistingForm(pdfDoc, job.fields);
-      _addAppFieldsToLoadedPages(pdfDoc, job.fields);
-      _drawSignaturesOnLoadedPages(pdfDoc, job.fields);
+      for (var i = 0; i < pdfDoc.pages.count; i++) {
+        final page = pdfDoc.pages[i];
+        _addRadioGroups(
+          pdfDoc,
+          page,
+          [
+            for (final f in job.fields)
+              if (f.pageIndex == i && f.sourceKind == 'app') f,
+          ],
+          Offset.zero & page.size,
+          names,
+        );
+      }
+      for (final f in job.fields) {
+        if (f.pageIndex < 0 || f.pageIndex >= pdfDoc.pages.count) continue;
+        final page = pdfDoc.pages[f.pageIndex];
+        final content = Offset.zero & page.size;
+        if (f.sourceKind == 'app') {
+          if (f.type.toFieldType() != FieldType.radio) {
+            _addWidget(pdfDoc, page, f, content, names, job.textSize);
+          }
+        } else if (f.type.toFieldType() == FieldType.signature &&
+            f.isFilled &&
+            f.value.isNotEmpty) {
+          // A drawn signature is an image, not an AcroForm value.
+          _drawSignature(
+            page.graphics,
+            f.value,
+            BoundingBox.fromJsonString(f.boundingBoxJson).inPageRect(content),
+          );
+        }
+      }
     } else {
-      _buildImagePagesWithFields(pdfDoc, job);
+      if (source != null && srcPath != null) sources[srcPath] = source;
+      _buildPages(pdfDoc, job, sources, names);
     }
 
     final bytes = await pdfDoc.save();
     await File(job.outPath).writeAsBytes(bytes);
   } finally {
     pdfDoc.dispose();
+    for (final d in sources.values) {
+      if (!identical(d, pdfDoc)) d?.dispose();
+    }
+  }
+}
+
+bool _pagesAreSource(_ExportJob job, PdfDocument source) {
+  if (source.pages.count != job.pages.length) return false;
+  for (var i = 0; i < job.pages.length; i++) {
+    if (job.pages[i].imagePath != '${job.sourcePdfPath}#page=$i') return false;
+  }
+  return true;
+}
+
+/// AcroForm names must be unique per document, or viewers merge the widgets
+/// into one field (typing in one fills the other). Labels are user-chosen, so
+/// two fields both labelled "Name" are normal and get `Name`, `Name_2`.
+class _UniqueNames {
+  final _used = <String>{};
+  void reserve(String n) => _used.add(n);
+  String claim(String base) {
+    var name = base;
+    for (var i = 2; _used.contains(name); i++) {
+      name = '${base}_$i';
+    }
+    _used.add(name);
+    return name;
   }
 }
 
@@ -218,32 +299,6 @@ void _fillExistingForm(PdfDocument pdfDoc, List<_FieldPlan> fields) {
   }
 }
 
-/// Adds user-authored fields (sourceKind='app') as new widgets onto the already
-/// loaded pages of an imported PDF.
-void _addAppFieldsToLoadedPages(PdfDocument pdfDoc, List<_FieldPlan> fields) {
-  for (final f in fields) {
-    if (f.sourceKind != 'app') continue;
-    if (f.pageIndex < 0 || f.pageIndex >= pdfDoc.pages.count) continue;
-    final page = pdfDoc.pages[f.pageIndex];
-    _addWidget(pdfDoc, page, f);
-  }
-}
-
-/// Draws captured signatures onto imported-PDF pages. A drawn signature is an
-/// image overlay, not an AcroForm value, so it's painted onto page graphics for
-/// every signature field (app- and acroform-sourced alike).
-void _drawSignaturesOnLoadedPages(PdfDocument pdfDoc, List<_FieldPlan> fields) {
-  for (final f in fields) {
-    if (f.type.toFieldType() != FieldType.signature) continue;
-    if (!f.isFilled || f.value.isEmpty) continue;
-    if (f.pageIndex < 0 || f.pageIndex >= pdfDoc.pages.count) continue;
-    final page = pdfDoc.pages[f.pageIndex];
-    final bbox = BoundingBox.fromJsonString(f.boundingBoxJson);
-    final rect = PdfGeometry.normToPdf(bbox, page.size.width, page.size.height);
-    _drawSignature(page.graphics, f.value, rect);
-  }
-}
-
 /// Paints a signature image file into [rect], preserving aspect ratio.
 void _drawSignature(PdfGraphics gfx, String path, Rect rect) {
   final file = File(path);
@@ -252,8 +307,9 @@ void _drawSignature(PdfGraphics gfx, String path, Rect rect) {
   final iw = bmp.width.toDouble();
   final ih = bmp.height.toDouble();
   if (iw <= 0 || ih <= 0) return;
-  final scale =
-      (iw / rect.width > ih / rect.height) ? rect.width / iw : rect.height / ih;
+  final scale = (iw / rect.width > ih / rect.height)
+      ? rect.width / iw
+      : rect.height / ih;
   final dw = iw * scale;
   final dh = ih * scale;
   gfx.drawImage(
@@ -267,50 +323,118 @@ void _drawSignature(PdfGraphics gfx, String path, Rect rect) {
   );
 }
 
-/// Builds image-backed pages (scanned docs) and adds every field as a widget.
-void _buildImagePagesWithFields(PdfDocument pdfDoc, _ExportJob job) {
-  final pw = PdfPageSize.a4.width;
-  final ph = PdfPageSize.a4.height;
+/// Builds every page onto A4 — a scanned image or an imported PDF page — and
+/// adds every field (app-authored or from the source form) as a live widget
+/// placed in the rect the page content actually occupies.
+void _buildPages(
+  PdfDocument pdfDoc,
+  _ExportJob job,
+  Map<String, PdfDocument?> sources,
+  _UniqueNames names,
+) {
+  PdfDocument? open(String path) => sources.putIfAbsent(path, () {
+    final f = File(path);
+    return f.existsSync() ? PdfDocument(inputBytes: f.readAsBytesSync()) : null;
+  });
 
   for (var i = 0; i < job.pages.length; i++) {
     final plan = job.pages[i];
-    final page = pdfDoc.pages.add();
-
-    // Background image (scanned page).
-    final file = File(plan.imagePath);
-    if (!plan.imagePath.contains('#page=') && file.existsSync()) {
-      final bmp = PdfBitmap(file.readAsBytesSync());
-      final iw = bmp.width.toDouble();
-      final ih = bmp.height.toDouble();
-      if (iw > 0 && ih > 0) {
-        final scale = (iw / pw > ih / ph) ? pw / iw : ph / ih;
-        final dw = iw * scale;
-        final dh = ih * scale;
-        page.graphics
-            .drawImage(bmp, Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh));
+    // An imported page keeps its own size; scans go on A4. No margins.
+    final size = outputPageSize(plan.imagePath, open);
+    final pw = size.width, ph = size.height;
+    final page = addEdgeToEdgePage(pdfDoc, size);
+    final content =
+        _drawPageContent(page.graphics, plan.imagePath, pw, ph, sources) ??
+        Rect.fromLTWH(0, 0, pw, ph);
+    final onPage = job.fields.where((f) => f.pageIndex == i).toList();
+    for (final f in onPage) {
+      if (f.type.toFieldType() != FieldType.radio) {
+        _addWidget(pdfDoc, page, f, content, names, job.textSize);
       }
     }
-
-    for (final f in job.fields.where((f) => f.pageIndex == i)) {
-      _addWidget(pdfDoc, page, f);
-    }
+    _addRadioGroups(pdfDoc, page, onPage, content, names);
   }
 }
 
-/// Creates a single live AcroForm widget for [f] on [page].
-void _addWidget(PdfDocument pdfDoc, PdfPage page, _FieldPlan f) {
-  final bbox = BoundingBox.fromJsonString(f.boundingBoxJson);
-  final rect = PdfGeometry.normToPdf(bbox, page.size.width, page.size.height);
+/// Draws [path] fitted (contain, centred) and returns the rect it occupies.
+Rect? _drawPageContent(
+  PdfGraphics gfx,
+  String path,
+  double pw,
+  double ph,
+  Map<String, PdfDocument?> sources,
+) {
+  Rect fit(double w, double h) {
+    final scale = (w / pw > h / ph) ? pw / w : ph / h;
+    return Rect.fromLTWH(
+      (pw - w * scale) / 2,
+      (ph - h * scale) / 2,
+      w * scale,
+      h * scale,
+    );
+  }
+
+  try {
+    final hash = path.indexOf('#page=');
+    if (hash >= 0) {
+      final pdfPath = path.substring(0, hash);
+      final n = int.tryParse(path.substring(hash + 6)) ?? 0;
+      final src = sources.putIfAbsent(pdfPath, () {
+        final f = File(pdfPath);
+        return f.existsSync()
+            ? PdfDocument(inputBytes: f.readAsBytesSync())
+            : null;
+      });
+      if (src == null || n < 0 || n >= src.pages.count) return null;
+      final template = src.pages[n].createTemplate();
+      if (template.size.width <= 0 || template.size.height <= 0) return null;
+      final dest = fit(template.size.width, template.size.height);
+      gfx.drawPdfTemplate(template, dest.topLeft, dest.size);
+      return dest;
+    }
+    final file = File(path);
+    if (!file.existsSync()) return null;
+    final bmp = PdfBitmap(file.readAsBytesSync());
+    if (bmp.width <= 0 || bmp.height <= 0) return null;
+    final dest = fit(bmp.width.toDouble(), bmp.height.toDouble());
+    gfx.drawImage(bmp, dest);
+    return dest;
+  } catch (_) {
+    // An unreadable page exports blank rather than failing the whole export.
+    return null;
+  }
+}
+
+/// Creates a single live AcroForm widget for [f] on [page], inside [content].
+void _addWidget(
+  PdfDocument pdfDoc,
+  PdfPage page,
+  _FieldPlan f,
+  Rect content,
+  _UniqueNames names,
+  double? textSize,
+) {
+  final rect = BoundingBox.fromJsonString(
+    f.boundingBoxJson,
+  ).inPageRect(content);
   final type = f.type.toFieldType();
-  // Unique-ish name so multiple widgets don't collide in the AcroForm.
-  final name = (f.pdfFieldName != null && f.pdfFieldName!.isNotEmpty)
-      ? f.pdfFieldName!
-      : '${type.name}_${page.hashCode}_${rect.left.toInt()}_${rect.top.toInt()}';
+  final label = f.pdfFieldName?.trim() ?? '';
+  final name = names.claim(
+    label.isNotEmpty ? label : '${type.name}_p${f.pageIndex + 1}',
+  );
 
   switch (type) {
     case FieldType.text:
     case FieldType.date:
-      final field = PdfTextBoxField(page, name, rect);
+      final field = _borderless(PdfTextBoxField(page, name, rect));
+      // Typed text at the document's own size, so it matches the form.
+      if (textSize != null) {
+        final pt = (textSize * content.height).clamp(
+          5.0,
+          math.max(5.0, rect.height * 0.9),
+        );
+        field.font = PdfStandardFont(PdfFontFamily.helvetica, pt.toDouble());
+      }
       if (f.value.isNotEmpty) field.text = f.value;
       pdfDoc.form.fields.add(field);
     case FieldType.checkbox:
@@ -323,10 +447,84 @@ void _addWidget(PdfDocument pdfDoc, PdfPage page, _FieldPlan f) {
       if (f.isFilled && f.value.isNotEmpty) {
         _drawSignature(page.graphics, f.value, rect);
       } else {
-        pdfDoc.form.fields.add(PdfSignatureField(page, name, bounds: rect));
+        pdfDoc.form.fields.add(
+          _borderless(PdfSignatureField(page, name, bounds: rect)),
+        );
       }
+    case FieldType.initials:
+      // Drawn initials are painted like a signature; blank ones become a
+      // small text box the recipient can type their initials into.
+      if (f.isFilled && f.value.isNotEmpty) {
+        _drawSignature(page.graphics, f.value, rect);
+      } else {
+        pdfDoc.form.fields.add(_borderless(PdfTextBoxField(page, name, rect)));
+      }
+    case FieldType.radio:
+      // Radios are exported per group by _addRadioGroups.
+      break;
   }
   // NOTE: a field's `isRequired` is persisted in our DB and used for in-app
   // validation, but this Syncfusion version exposes no setter to stamp the
   // AcroForm "required" flag into the PDF, so it isn't reflected in the export.
+}
+
+/// Exports each radio group on [page] as one AcroForm radio-button field with
+/// an option per button, so PDF viewers let the recipient pick exactly one.
+/// Radios without a group id each become their own single-option group.
+void _addRadioGroups(
+  PdfDocument pdfDoc,
+  PdfPage page,
+  List<_FieldPlan> fields,
+  Rect content,
+  _UniqueNames names,
+) {
+  final groups = <String, List<_FieldPlan>>{};
+  var loose = 0;
+  for (final f in fields) {
+    if (f.type.toFieldType() != FieldType.radio) continue;
+    final key = radioGroupOf(f.optionsJson) ?? '__loose_${loose++}';
+    groups.putIfAbsent(key, () => []).add(f);
+  }
+  for (final options in groups.values) {
+    final label = options
+        .map((f) => f.pdfFieldName?.trim() ?? '')
+        .firstWhere((l) => l.isNotEmpty, orElse: () => '');
+    final name = names.claim(
+      label.isNotEmpty ? label : 'radio_p${options.first.pageIndex + 1}',
+    );
+    final chosen = options.indexWhere((f) => f.isChecked);
+    final field = PdfRadioButtonListField(
+      page,
+      name,
+      items: [
+        // Export values are positions, not words, so nothing is persisted in
+        // one language.
+        for (var i = 0; i < options.length; i++)
+          PdfRadioButtonListItem(
+            '${i + 1}',
+            BoundingBox.fromJsonString(
+              options[i].boundingBoxJson,
+            ).inPageRect(content),
+          ),
+      ],
+      selectedIndex: chosen < 0 ? null : chosen,
+    );
+    pdfDoc.form.fields.add(field);
+  }
+}
+
+/// No border or background, so a filled value reads as text on the form
+/// rather than text in a box. Checkboxes and radios keep their outline: on an
+/// unfilled form it's the only visible sign of the control.
+T _borderless<T extends PdfField>(T field) {
+  if (field is PdfTextBoxField) {
+    field
+      ..borderWidth = 0
+      ..backColor = PdfColor.empty;
+  } else if (field is PdfSignatureField) {
+    field
+      ..borderWidth = 0
+      ..backColor = PdfColor.empty;
+  }
+  return field;
 }

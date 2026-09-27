@@ -807,4 +807,97 @@ class AppLocalizationsHi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String detectFillFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count फ़ील्ड भरें →',
+      one: '1 फ़ील्ड भरें →',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get detectPinchHint =>
+      'फ़ील्ड जोड़ने के लिए नीचे कोई टूल टैप करें · चुनने के लिए फ़ील्ड पर टैप करें';
+
+  @override
+  String get importErrorUnreadableImage =>
+      'यह इमेज नहीं खुल सकी। JPEG, PNG या HEIC फ़ोटो आज़माएँ।';
+
+  @override
+  String get iapErrorUnavailable => 'इस डिवाइस पर अभी ख़रीदारी उपलब्ध नहीं है।';
+
+  @override
+  String get iapErrorProductNotFound =>
+      'स्टोर से संपर्क नहीं हो सका। कृपया बाद में फिर से प्रयास करें।';
+
+  @override
+  String get iapErrorPurchaseFailed =>
+      'ख़रीदारी पूरी नहीं हो सकी। आपसे कोई शुल्क नहीं लिया गया है।';
+
+  @override
+  String get settingsBackupTitle => 'डिवाइस बैकअप में शामिल करें';
+
+  @override
+  String get settingsBackupSubtitleIos =>
+      'बंद: दस्तावेज़ और हस्ताक्षर सिर्फ़ इस iPhone पर रहते हैं। चालू: वे आपके iCloud बैकअप में शामिल होते हैं।';
+
+  @override
+  String get settingsBackupSubtitleAndroid =>
+      'बंद: दस्तावेज़ और हस्ताक्षर सिर्फ़ इस फ़ोन पर रहते हैं। चालू: वे आपके एन्क्रिप्टेड Google बैकअप में और नए फ़ोन पर जाते समय शामिल होते हैं।';
+
+  @override
+  String get fieldTypeRadio => 'रेडियो बटन';
+
+  @override
+  String get fieldTypeRadioShort => 'रेडियो';
+
+  @override
+  String get fieldTypeInitials => 'आद्याक्षर';
+
+  @override
+  String get fillTapToInitial => 'आद्याक्षर के लिए टैप करें';
+
+  @override
+  String get signInitialsTitle => 'अपने आद्याक्षर बनाएँ';
+
+  @override
+  String get pressRadioSelected => 'चुना गया';
+
+  @override
+  String get pressRadioNotSelected => 'नहीं चुना गया';
+
+  @override
+  String get detectSelectedHint =>
+      'खिसकाने के लिए खींचें · आकार बदलने के लिए पिंच करें या कोना खींचें · बदलने के लिए फिर टैप करें';
+
+  @override
+  String get detectRadioAddChoiceHint =>
+      'इस प्रश्न में दूसरा विकल्प जोड़ने के लिए फिर से रेडियो टैप करें';
+
+  @override
+  String get detectFieldDeleted => 'फ़ील्ड हटाया गया';
+
+  @override
+  String get actionUndo => 'पूर्ववत करें';
+
+  @override
+  String get detectFormFieldLocked =>
+      'यह फ़ील्ड PDF के अपने फ़ॉर्म का हिस्सा है। इसे अगले चरण में भरें।';
+
+  @override
+  String get libraryImport => 'इम्पोर्ट';
+
+  @override
+  String get settingsForgetLearned => 'सीखे गए फ़ील्ड पैटर्न भूलें';
+
+  @override
+  String get settingsForgetLearnedSubtitle =>
+      'फ़ील्ड पहचान आपके जोड़े, बदले और हटाए गए फ़ील्ड से सीखती है, सिर्फ़ इस डिवाइस पर।';
+
+  @override
+  String get settingsForgetLearnedDone => 'सीखे गए फ़ील्ड पैटर्न हटा दिए गए';
 }

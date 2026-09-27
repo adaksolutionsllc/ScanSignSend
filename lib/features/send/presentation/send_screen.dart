@@ -3,13 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart' show Share, XFile;
 
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../../core/services/app_lock_provider.dart';
+import '../../../shared/utils/share_pdf.dart';
 
 class SendScreen extends ConsumerStatefulWidget {
   const SendScreen({super.key, required this.docId});
@@ -25,8 +26,9 @@ class _SendScreenState extends ConsumerState<SendScreen> {
 
   // Fetch the doc once. Toggling _sharing/_shared calls setState; a fresh
   // getById() future per build would reload and can flicker.
-  late final Future<Document?> _docFuture =
-      ref.read(documentRepositoryProvider).getById(widget.docId);
+  late final Future<Document?> _docFuture = ref
+      .read(documentRepositoryProvider)
+      .getById(widget.docId);
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +56,9 @@ class _SendScreenState extends ConsumerState<SendScreen> {
             // export (this screen is reached from either "Flatten & Sign" or
             // "Save as Fillable").
             final storedPdf = doc?.pressedPdfPath ?? doc?.fillablePdfPath;
-            final pdfPath =
-                storedPdf == null ? null : PathResolver.resolve(storedPdf);
+            final pdfPath = storedPdf == null
+                ? null
+                : PathResolver.resolve(storedPdf);
 
             return Center(
               child: Padding(
@@ -83,10 +86,9 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                           ? context.l10n.sendSharedBody
                           : context.l10n.sendReadyBody,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: Colors.grey),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                     ),
                     const SizedBox(height: 32),
 
@@ -95,23 +97,29 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                         width: double.infinity,
                         height: 52,
                         child: FilledButton.icon(
-                          onPressed:
-                              (_sharing || pdfPath == null)
-                                  ? null
-                                  : () => _share(context, pdfPath,
-                                      doc?.title ?? context.l10n.documentFallbackTitle),
+                          onPressed: (_sharing || pdfPath == null)
+                              ? null
+                              : () => _share(
+                                  context,
+                                  pdfPath,
+                                  doc?.title ??
+                                      context.l10n.documentFallbackTitle,
+                                ),
                           icon: _sharing
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white),
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
                                 )
                               : const Icon(Icons.share),
-                          label: Text(_sharing
-                              ? context.l10n.sendOpeningShareSheet
-                              : context.l10n.sendSharePressed),
+                          label: Text(
+                            _sharing
+                                ? context.l10n.sendOpeningShareSheet
+                                : context.l10n.sendSharePressed,
+                          ),
                         ),
                       ),
 
@@ -122,8 +130,10 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                         height: 48,
                         child: OutlinedButton.icon(
                           onPressed: () => context.push(
-                            AppRoutes.viewer
-                                .replaceAll(':docId', '${widget.docId}'),
+                            AppRoutes.viewer.replaceAll(
+                              ':docId',
+                              '${widget.docId}',
+                            ),
                           ),
                           icon: const Icon(Icons.visibility_outlined),
                           label: Text(context.l10n.sendPreviewDocument),
@@ -144,8 +154,12 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
                         onPressed: pdfPath != null
-                            ? () => _share(context, pdfPath,
-                                doc?.title ?? context.l10n.documentFallbackTitle)
+                            ? () => _share(
+                                context,
+                                pdfPath,
+                                doc?.title ??
+                                    context.l10n.documentFallbackTitle,
+                              )
                             : null,
                         icon: const Icon(Icons.share),
                         label: Text(context.l10n.sendShareAgain),
@@ -158,8 +172,8 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                         child: Text(
                           context.l10n.sendNotYetPressed,
                           style: TextStyle(
-                              color:
-                                  Theme.of(context).colorScheme.error),
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
                       ),
                   ],
@@ -173,7 +187,10 @@ class _SendScreenState extends ConsumerState<SendScreen> {
   }
 
   Future<void> _share(
-      BuildContext context, String pdfPath, String title) async {
+    BuildContext context,
+    String pdfPath,
+    String title,
+  ) async {
     if (!File(pdfPath).existsSync()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.sendPressedPdfNotFound)),
@@ -191,16 +208,18 @@ class _SendScreenState extends ConsumerState<SendScreen> {
         ? box.localToGlobal(Offset.zero) & box.size
         : null;
     try {
-      await Share.shareXFiles(
-        [XFile(pdfPath, mimeType: 'application/pdf')],
-        subject: title,
-        text: l10n.sendShareMessage,
-        sharePositionOrigin: origin,
+      final sent = await shareDocumentPdf(
+        lock: ref.read(appLockProvider.notifier),
+        pdfPath: pdfPath,
+        title: title,
+        message: l10n.sendShareMessage,
+        origin: origin,
       );
+      // Only "sent" if it was: dismissing the share sheet isn't sending.
       if (mounted) {
         setState(() {
           _sharing = false;
-          _shared = true;
+          _shared = _shared || sent;
         });
       }
     } catch (e) {

@@ -801,4 +801,98 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String detectFillFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fill $count fields →',
+      one: 'Fill 1 field →',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get detectPinchHint =>
+      'Tap a tool below to add a field · tap a field to select it';
+
+  @override
+  String get importErrorUnreadableImage =>
+      'This image couldn\'t be opened. Try a JPEG, PNG or HEIC photo.';
+
+  @override
+  String get iapErrorUnavailable =>
+      'Purchases aren\'t available on this device right now.';
+
+  @override
+  String get iapErrorProductNotFound =>
+      'Couldn\'t reach the store. Please try again later.';
+
+  @override
+  String get iapErrorPurchaseFailed =>
+      'The purchase couldn\'t be completed. You haven\'t been charged.';
+
+  @override
+  String get settingsBackupTitle => 'Include in device backup';
+
+  @override
+  String get settingsBackupSubtitleIos =>
+      'Off: documents and signatures stay only on this iPhone. On: they\'re included in your iCloud Backup.';
+
+  @override
+  String get settingsBackupSubtitleAndroid =>
+      'Off: documents and signatures stay only on this phone. On: they\'re included in your encrypted Google backup and when moving to a new phone.';
+
+  @override
+  String get fieldTypeRadio => 'Radio button';
+
+  @override
+  String get fieldTypeRadioShort => 'Radio';
+
+  @override
+  String get fieldTypeInitials => 'Initials';
+
+  @override
+  String get fillTapToInitial => 'Tap to initial';
+
+  @override
+  String get signInitialsTitle => 'Draw your initials';
+
+  @override
+  String get pressRadioSelected => 'Selected';
+
+  @override
+  String get pressRadioNotSelected => 'Not selected';
+
+  @override
+  String get detectSelectedHint =>
+      'Drag to move · pinch or drag the corner to resize · tap again to edit';
+
+  @override
+  String get detectRadioAddChoiceHint =>
+      'Tap Radio again to add another choice to this question';
+
+  @override
+  String get detectFieldDeleted => 'Field deleted';
+
+  @override
+  String get actionUndo => 'Undo';
+
+  @override
+  String get detectFormFieldLocked =>
+      'This field is part of the PDF\'s own form. Fill it in on the next step.';
+
+  @override
+  String get libraryImport => 'Import';
+
+  @override
+  String get settingsForgetLearned => 'Forget learned field patterns';
+
+  @override
+  String get settingsForgetLearnedSubtitle =>
+      'Field detection learns from the fields you add, retype and delete, on this device only.';
+
+  @override
+  String get settingsForgetLearnedDone => 'Learned field patterns cleared';
 }

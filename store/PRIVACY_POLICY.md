@@ -4,7 +4,7 @@
 **Publisher:** ADAK Ventures
 
 ## The short version
-Scan Sign Send does not collect, transmit, or share any of your data. Everything you scan, type, and sign stays on your device. We have no servers and no accounts.
+Scan Sign Send does not collect, transmit, or share any of your data. Everything you scan, type, and sign stays on your device, unless you choose to include it in your phone's own backup. We have no servers and no accounts.
 
 ## What we access (and why)
 - **Camera** — to scan paper documents. Images are captured and processed only on your device.
@@ -20,7 +20,16 @@ The one-time "Full Access" purchase is processed by Apple's App Store or Google 
 ## Data storage & deletion
 Your documents, signatures, and profile details are stored in a private database on your device. Deleting a document inside the app removes its stored pages and exported PDFs from your device's storage, not just its entry in the list. Deleting the app removes everything. We cannot access or recover any of it because we never receive it.
 
-On Android, the app is excluded from Android Auto Backup and device-to-device transfer, so your documents are never copied to Google Drive or to another phone.
+### Device backup (off unless you turn it on)
+By default, the app keeps your documents out of your phone's backup:
+- **iPhone:** excluded from iCloud Backup.
+- **Android:** excluded from Google backup and from device-to-device transfer.
+
+Your documents are never copied off the device unless you switch on **Settings → Include in device backup**. If you do, your documents, signatures and profile become part of your phone's own backup:
+- **iPhone:** your iCloud Backup, stored and encrypted by Apple under your Apple Account.
+- **Android:** your Google backup, only when that backup is end-to-end encrypted with your screen lock, plus transfers to a new phone.
+
+That backup belongs to your Apple or Google account. We never receive it and cannot access it. Switching the setting off removes the app's data from subsequent backups.
 
 ## On-device protections
 - **App lock** — optional Face ID / fingerprint lock. When enabled, the lock re-engages every time the app leaves the foreground, not only at launch.

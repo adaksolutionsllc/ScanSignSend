@@ -12,10 +12,9 @@ class SignatureRepository {
   SignatureRepository(this._db);
   final AppDatabase _db;
 
-  Stream<List<Signature>> watchAll() =>
-      (_db.select(_db.signatures)
-            ..orderBy([(t) => OrderingTerm.desc(t.isDefault)]))
-          .watch();
+  Stream<List<Signature>> watchAll() => (_db.select(
+    _db.signatures,
+  )..orderBy([(t) => OrderingTerm.desc(t.isDefault)])).watch();
 
   Future<int> addSignature({
     required String imagePath,
@@ -24,10 +23,15 @@ class SignatureRepository {
     bool isInitials = false,
   }) async {
     if (isDefault) {
-      await (_db.update(_db.signatures))
+      // One default per kind: a new default set of initials must not
+      // un-default the user's signature, and vice versa.
+      await (_db.update(_db.signatures)
+            ..where((t) => t.isInitials.equals(isInitials)))
           .write(const SignaturesCompanion(isDefault: Value(false)));
     }
-    return _db.into(_db.signatures).insert(
+    return _db
+        .into(_db.signatures)
+        .insert(
           SignaturesCompanion.insert(
             imagePath: imagePath,
             label: Value(label),
@@ -38,17 +42,30 @@ class SignatureRepository {
         );
   }
 
-  Future<void> setDefault(int id) async {
-    await (_db.update(_db.signatures))
+  /// Makes [id] the default of its kind (signature or initials).
+  Future<void> setDefault(int id) => _db.transaction(() async {
+    final row = await (_db.select(
+      _db.signatures,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row == null) return;
+    await (_db.update(_db.signatures)
+          ..where((t) => t.isInitials.equals(row.isInitials)))
         .write(const SignaturesCompanion(isDefault: Value(false)));
-    await (_db.update(_db.signatures)..where((t) => t.id.equals(id)))
-        .write(const SignaturesCompanion(isDefault: Value(true)));
-  }
+    await (_db.update(_db.signatures)..where((t) => t.id.equals(id))).write(
+      const SignaturesCompanion(isDefault: Value(true)),
+    );
+  });
 
   Future<void> deleteSignature(int id) =>
       (_db.delete(_db.signatures)..where((t) => t.id.equals(id))).go();
 
-  Future<Signature?> getDefault() =>
-      (_db.select(_db.signatures)..where((t) => t.isDefault.equals(true)))
+  /// The default signature, or with [initials] the default initials. There's
+  /// one default per kind, so both can exist at once.
+  Future<Signature?> getDefault({bool initials = false}) =>
+      (_db.select(_db.signatures)
+            ..where(
+              (t) => t.isDefault.equals(true) & t.isInitials.equals(initials),
+            )
+            ..limit(1))
           .getSingleOrNull();
 }

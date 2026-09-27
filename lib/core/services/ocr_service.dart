@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/painting.dart' show Rect;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -25,12 +26,26 @@ class OcrTextBlock {
 class OcrTextLine {
   final String text;
   final Rect boundingBox;
-  const OcrTextLine({required this.text, required this.boundingBox});
+
+  /// The line's words, each with its own box.
+  final List<OcrTextElement> elements;
+  const OcrTextLine({
+    required this.text,
+    required this.boundingBox,
+    this.elements = const [],
+  });
+}
+
+class OcrTextElement {
+  final String text;
+  final Rect boundingBox;
+  const OcrTextElement({required this.text, required this.boundingBox});
 }
 
 class OcrResult {
   final String fullText;
   final List<OcrTextBlock> blocks;
+
   /// Image pixel dimensions returned by the recogniser
   final int imageWidth;
   final int imageHeight;
@@ -58,10 +73,12 @@ class OcrService {
     var imageWidth = 1;
     var imageHeight = 1;
     try {
-      final decoded = img.decodeImage(await File(imagePath).readAsBytes());
-      if (decoded != null && decoded.width > 0 && decoded.height > 0) {
-        imageWidth = decoded.width;
-        imageHeight = decoded.height;
+      // Header-only read in a background isolate: decoding a 12 MP scan on
+      // the UI thread just to learn its size froze the app during detection.
+      final size = await compute(_imageSize, imagePath);
+      if (size != null && size.$1 > 0 && size.$2 > 0) {
+        imageWidth = size.$1;
+        imageHeight = size.$2;
       }
     } catch (_) {
       // Fall through to the text-extent fallback below.
@@ -79,10 +96,18 @@ class OcrService {
     }
 
     final blocks = recognized.blocks.map((b) {
-      final lines = b.lines.map((l) => OcrTextLine(
-            text: l.text,
-            boundingBox: l.boundingBox,
-          )).toList();
+      final lines = b.lines
+          .map(
+            (l) => OcrTextLine(
+              text: l.text,
+              boundingBox: l.boundingBox,
+              elements: [
+                for (final e in l.elements)
+                  OcrTextElement(text: e.text, boundingBox: e.boundingBox),
+              ],
+            ),
+          )
+          .toList();
       return OcrTextBlock(
         text: b.text,
         boundingBox: b.boundingBox,
@@ -99,4 +124,13 @@ class OcrService {
   }
 
   void dispose() => _recognizer.close();
+}
+
+/// compute() entry: (width, height) of the image at [path], from its header.
+(int, int)? _imageSize(String path) {
+  final bytes = File(path).readAsBytesSync();
+  final info = img.findDecoderForData(bytes)?.startDecode(bytes);
+  if (info != null) return (info.width, info.height);
+  final decoded = img.decodeImage(bytes);
+  return decoded == null ? null : (decoded.width, decoded.height);
 }

@@ -808,4 +808,98 @@ class AppLocalizationsTa extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String detectFillFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count புலங்களை நிரப்பு →',
+      one: '1 புலத்தை நிரப்பு →',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get detectPinchHint =>
+      'புலத்தைச் சேர்க்க கீழே உள்ள கருவியைத் தட்டவும் · தேர்ந்தெடுக்க புலத்தைத் தட்டவும்';
+
+  @override
+  String get importErrorUnreadableImage =>
+      'இந்தப் படத்தைத் திறக்க முடியவில்லை. JPEG, PNG அல்லது HEIC புகைப்படத்தை முயற்சிக்கவும்.';
+
+  @override
+  String get iapErrorUnavailable =>
+      'இந்தச் சாதனத்தில் இப்போது வாங்குதல்கள் கிடைக்கவில்லை.';
+
+  @override
+  String get iapErrorProductNotFound =>
+      'ஸ்டோரை அணுக முடியவில்லை. பின்னர் மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get iapErrorPurchaseFailed =>
+      'வாங்குதலை முடிக்க முடியவில்லை. உங்களிடம் கட்டணம் வசூலிக்கப்படவில்லை.';
+
+  @override
+  String get settingsBackupTitle => 'சாதன காப்புப்பிரதியில் சேர்';
+
+  @override
+  String get settingsBackupSubtitleIos =>
+      'முடக்கம்: ஆவணங்களும் கையொப்பங்களும் இந்த iPhone-இல் மட்டுமே இருக்கும். இயக்கம்: அவை உங்கள் iCloud காப்புப்பிரதியில் சேர்க்கப்படும்.';
+
+  @override
+  String get settingsBackupSubtitleAndroid =>
+      'முடக்கம்: ஆவணங்களும் கையொப்பங்களும் இந்தத் தொலைபேசியில் மட்டுமே இருக்கும். இயக்கம்: அவை உங்கள் மறைகுறியாக்கப்பட்ட Google காப்புப்பிரதியிலும் புதிய தொலைபேசிக்கு மாறும்போதும் சேர்க்கப்படும்.';
+
+  @override
+  String get fieldTypeRadio => 'ரேடியோ பொத்தான்';
+
+  @override
+  String get fieldTypeRadioShort => 'ரேடியோ';
+
+  @override
+  String get fieldTypeInitials => 'சுருக்கொப்பம்';
+
+  @override
+  String get fillTapToInitial => 'சுருக்கொப்பமிட தட்டவும்';
+
+  @override
+  String get signInitialsTitle => 'உங்கள் சுருக்கொப்பத்தை வரையவும்';
+
+  @override
+  String get pressRadioSelected => 'தேர்ந்தெடுக்கப்பட்டது';
+
+  @override
+  String get pressRadioNotSelected => 'தேர்ந்தெடுக்கப்படவில்லை';
+
+  @override
+  String get detectSelectedHint =>
+      'நகர்த்த இழுக்கவும் · அளவை மாற்ற பிஞ்ச் செய்யவும் அல்லது மூலையை இழுக்கவும் · திருத்த மீண்டும் தட்டவும்';
+
+  @override
+  String get detectRadioAddChoiceHint =>
+      'இந்தக் கேள்விக்கு மற்றொரு தேர்வைச் சேர்க்க மீண்டும் ரேடியோவைத் தட்டவும்';
+
+  @override
+  String get detectFieldDeleted => 'புலம் நீக்கப்பட்டது';
+
+  @override
+  String get actionUndo => 'செயல்தவிர்';
+
+  @override
+  String get detectFormFieldLocked =>
+      'இந்தப் புலம் PDF-இன் சொந்தப் படிவத்தின் பகுதி. அடுத்த படியில் நிரப்பவும்.';
+
+  @override
+  String get libraryImport => 'இறக்குமதி';
+
+  @override
+  String get settingsForgetLearned => 'கற்ற புல முறைகளை மறந்துவிடு';
+
+  @override
+  String get settingsForgetLearnedSubtitle =>
+      'நீங்கள் சேர்க்கும், மாற்றும், நீக்கும் புலங்களிலிருந்து கண்டறிதல் கற்றுக்கொள்கிறது — இந்தச் சாதனத்தில் மட்டும்.';
+
+  @override
+  String get settingsForgetLearnedDone => 'கற்ற புல முறைகள் அழிக்கப்பட்டன';
 }

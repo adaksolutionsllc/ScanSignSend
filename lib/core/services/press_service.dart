@@ -1,6 +1,7 @@
+import 'dart:math' as math;
 import 'dart:io';
 import 'dart:typed_data' show Uint8List;
-import 'dart:ui' show Rect, Offset, Size;
+import 'dart:ui' show Rect, Offset;
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show compute;
@@ -15,6 +16,7 @@ import 'package:uuid/uuid.dart';
 import '../db/app_database.dart';
 import '../models/field_model.dart';
 import '../utils/path_resolver.dart';
+import 'pdf_geometry.dart';
 import 'document_repository.dart';
 
 /// Thrown when a press is attempted on a document with no pages. Typed so the
@@ -61,13 +63,28 @@ class _PressJob {
   final List<_PagePlan> pages;
   final String docTitle;
   final String outPath;
-  final DateTime signedAt;
+
+  /// The signing time, already formatted for the user's locale. Formatted on
+  /// the main isolate: a compute() isolate starts without intl's locale date
+  /// data, so DateFormat there threw LocaleDataException for every locale
+  /// but the built-in en_US.
+  final String signedAt;
+
   /// Certificate-page copy, already translated. The isolate can't reach
   /// AppLocalizations, so the strings are resolved on the caller's side and
   /// travel with the job.
   final _CertStrings cert;
+
+  /// The document's body text size (fraction of page height), or null.
+  final double? textSize;
   const _PressJob(
-      this.pages, this.docTitle, this.outPath, this.signedAt, this.cert);
+    this.pages,
+    this.docTitle,
+    this.outPath,
+    this.signedAt,
+    this.cert,
+    this.textSize,
+  );
 }
 
 /// Translated labels for the signing certificate appended to every press.
@@ -124,23 +141,27 @@ class PressService {
       final srcPage = pages[pageIdx];
       final pageFields = fields
           .where((f) => f.pageIndex == pageIdx && f.isFilled)
-          .map((f) => _FieldPlan(
-                type: f.type,
-                boundingBoxJson: f.boundingBoxJson,
-                // Signature values are file paths — resolve to the current
-                // container here (the compute() isolate can't).
-                value: f.type == FieldType.signature.name && f.value.isNotEmpty
-                    ? PathResolver.resolve(f.value)
-                    : f.value,
-                isChecked: f.isChecked,
-                isFilled: f.isFilled,
-              ))
+          .map(
+            (f) => _FieldPlan(
+              type: f.type,
+              boundingBoxJson: f.boundingBoxJson,
+              // Signature values are file paths — resolve to the current
+              // container here (the compute() isolate can't).
+              value: f.type.toFieldType().isInk && f.value.isNotEmpty
+                  ? PathResolver.resolve(f.value)
+                  : f.value,
+              isChecked: f.isChecked,
+              isFilled: f.isFilled,
+            ),
+          )
           .toList();
-      pagePlans.add(_PagePlan(
-        PathResolver.resolve(srcPage.imagePath),
-        srcPage.activeFilter,
-        pageFields,
-      ));
+      pagePlans.add(
+        _PagePlan(
+          PathResolver.resolve(srcPage.imagePath),
+          srcPage.activeFilter,
+          pageFields,
+        ),
+      );
     }
 
     final dir = await getApplicationDocumentsDirectory();
@@ -148,19 +169,32 @@ class PressService {
     await pressDir.create(recursive: true);
     final outPath = p.join(pressDir.path, '${const Uuid().v4()}.pdf');
 
-    final job = _PressJob(pagePlans, doc.title, outPath, DateTime.now(), cert);
+    final signedAt = DateFormat(
+      cert.dateFormat,
+      cert.localeName,
+    ).format(DateTime.now());
+    final job = _PressJob(
+      pagePlans,
+      doc.title,
+      outPath,
+      signedAt,
+      cert,
+      doc.textSize,
+    );
 
     // Run the flatten in a background isolate. compute() re-throws any error
     // on the caller side, so failures surface to the UI as normal.
     await compute(_buildPressedPdf, job);
 
     // Mark document as pressed
-    await _docRepo.updateDocument(DocumentsCompanion(
-      id: Value(docId),
-      status: const Value('pressed'),
-      pressedPdfPath: Value(PathResolver.toStorable(outPath)),
-      updatedAt: Value(DateTime.now()),
-    ));
+    await _docRepo.updateDocument(
+      DocumentsCompanion(
+        id: Value(docId),
+        status: const Value('pressed'),
+        pressedPdfPath: Value(PathResolver.toStorable(outPath)),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
 
     // NOTE: Flatten & Press no longer auto-saves a blank template copy — that
     // was creating unwanted duplicate entries. Users who want a reusable blank
@@ -183,15 +217,24 @@ Future<void> _buildPressedPdf(_PressJob job) async {
   // each source open for the run instead, and dispose them together.
   final sourceCache = <String, PdfDocument?>{};
   try {
-    final pw = PdfPageSize.a4.width;
-    final ph = PdfPageSize.a4.height;
-
     for (final plan in job.pages) {
-      final pdfPage = pdfDoc.pages.add();
+      // An imported page keeps its own size (a US Letter form stays Letter);
+      // scans go on A4.
+      final size = outputPageSize(
+        plan.imagePath,
+        (path) => _openSource(path, sourceCache),
+      );
+      final pw = size.width, ph = size.height;
+      final pdfPage = addEdgeToEdgePage(pdfDoc, size);
       final gfx = pdfPage.graphics;
 
-      await _drawBackground(gfx, plan, pw, ph, sourceCache);
-      _drawFields(gfx, plan.fields, pw, ph);
+      // Fields are normalised to the page *content*; place them in the rect
+      // the content landed in (the whole page for an imported page, the
+      // letterboxed image for a scan).
+      final content =
+          await _drawBackground(gfx, plan, pw, ph, sourceCache) ??
+          Rect.fromLTWH(0, 0, pw, ph);
+      _drawFields(gfx, plan.fields, content, job.textSize);
     }
 
     _appendCertPage(pdfDoc, job.docTitle, job.signedAt, job.cert);
@@ -224,8 +267,15 @@ PdfDocument? _openSource(String pdfPath, Map<String, PdfDocument?> cache) {
   return doc;
 }
 
-Future<void> _drawBackground(PdfGraphics gfx, _PagePlan plan, double pw,
-    double ph, Map<String, PdfDocument?> sourceCache) async {
+/// Draws the page content fitted (contain, centred) onto the A4 sheet and
+/// returns the rect it occupies, or null when there was nothing to draw.
+Future<Rect?> _drawBackground(
+  PdfGraphics gfx,
+  _PagePlan plan,
+  double pw,
+  double ph,
+  Map<String, PdfDocument?> sourceCache,
+) async {
   final path = plan.imagePath;
 
   // Imported-PDF page: import the source page as a vector template so its
@@ -236,41 +286,41 @@ Future<void> _drawBackground(PdfGraphics gfx, _PagePlan plan, double pw,
     final pageNum = int.tryParse(parts[1]) ?? 0; // 0-indexed in our model
     try {
       final src = _openSource(pdfPath, sourceCache);
-      if (src == null) return;
-      if (pageNum < 0 || pageNum >= src.pages.count) return;
+      if (src == null) return null;
+      if (pageNum < 0 || pageNum >= src.pages.count) return null;
       final template = src.pages[pageNum].createTemplate();
       // Scale the source page to fit the A4 output while preserving aspect.
       final tw = template.size.width;
       final th = template.size.height;
-      if (tw <= 0 || th <= 0) return;
+      if (tw <= 0 || th <= 0) return null;
       final scale = (tw / pw > th / ph) ? pw / tw : ph / th;
       final dw = tw * scale;
       final dh = th * scale;
-      gfx.drawPdfTemplate(
-        template,
-        Offset((pw - dw) / 2, (ph - dh) / 2),
-        Size(dw, dh),
-      );
+      final dest = Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh);
+      gfx.drawPdfTemplate(template, dest.topLeft, dest.size);
+      return dest;
     } catch (_) {
       // Unreadable source page — leave the background blank rather than crash
       // the whole press. Overlays still render on top.
+      return null;
     }
-    return;
   }
 
   // Scanned image page: apply the user's chosen filter, then draw.
   final imgFile = File(path);
-  if (!imgFile.existsSync()) return;
+  if (!imgFile.existsSync()) return null;
   final rawBytes = await imgFile.readAsBytes();
   final processed = _applyFilter(rawBytes, plan.activeFilter);
   final bgImage = PdfBitmap(processed);
   final iw = bgImage.width.toDouble();
   final ih = bgImage.height.toDouble();
-  if (iw <= 0 || ih <= 0) return;
+  if (iw <= 0 || ih <= 0) return null;
   final scale = (iw / pw > ih / ph) ? pw / iw : ph / ih;
   final dw = iw * scale;
   final dh = ih * scale;
-  gfx.drawImage(bgImage, Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh));
+  final dest = Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh);
+  gfx.drawImage(bgImage, dest);
+  return dest;
 }
 
 /// Applies the Review-screen filter to the raw image bytes so the pressed PDF
@@ -298,21 +348,35 @@ Uint8List _applyFilter(Uint8List rawBytes, String filter) {
 }
 
 void _drawFields(
-    PdfGraphics gfx, List<_FieldPlan> fields, double pw, double ph) {
+  PdfGraphics gfx,
+  List<_FieldPlan> fields,
+  Rect content,
+  double? textSize,
+) {
   for (final field in fields) {
     if (!field.isFilled) continue;
-    final bbox = BoundingBox.fromJsonString(field.boundingBoxJson);
-    final rect =
-        Rect.fromLTWH(bbox.x * pw, bbox.y * ph, bbox.w * pw, bbox.h * ph);
+    final rect = BoundingBox.fromJsonString(
+      field.boundingBoxJson,
+    ).inPageRect(content);
     final type = field.type.toFieldType();
 
     switch (type) {
       case FieldType.text:
       case FieldType.date:
-        _drawText(gfx, field.value, rect);
+        _drawText(
+          gfx,
+          field.value,
+          rect,
+          textSize == null ? null : textSize * content.height,
+        );
       case FieldType.checkbox:
         if (field.isChecked) _drawCheckmark(gfx, rect);
+      case FieldType.radio:
+        // Only the chosen option is marked; the rest of the group stays blank,
+        // just as on a paper form.
+        if (field.isChecked) _drawRadioDot(gfx, rect);
       case FieldType.signature:
+      case FieldType.initials:
         if (field.value.isNotEmpty) {
           final f = File(field.value);
           if (f.existsSync()) {
@@ -324,13 +388,21 @@ void _drawFields(
   }
 }
 
-void _drawText(PdfGraphics gfx, String text, Rect rect) {
+void _drawText(PdfGraphics gfx, String text, Rect rect, double? preferredPt) {
   gfx.drawString(
     text,
-    PdfStandardFont(PdfFontFamily.helvetica, 11),
+    fittedFont(text, rect, preferredPt: preferredPt),
     brush: PdfSolidBrush(PdfColor(0, 0, 0)),
     bounds: rect,
     format: PdfStringFormat(lineAlignment: PdfVerticalAlignment.middle),
+  );
+}
+
+void _drawRadioDot(PdfGraphics gfx, Rect rect) {
+  final d = math.min(rect.width, rect.height) * 0.55;
+  gfx.drawEllipse(
+    Rect.fromCenter(center: rect.center, width: d, height: d),
+    brush: PdfSolidBrush(PdfColor(0, 0, 0)),
   );
 }
 
@@ -350,8 +422,9 @@ void _drawCheckmark(PdfGraphics gfx, Rect rect) {
 Rect _fitRect(PdfBitmap image, Rect dest) {
   final iw = image.width.toDouble();
   final ih = image.height.toDouble();
-  final scale =
-      (iw / dest.width > ih / dest.height) ? dest.width / iw : dest.height / ih;
+  final scale = (iw / dest.width > ih / dest.height)
+      ? dest.width / iw
+      : dest.height / ih;
   final dw = iw * scale;
   final dh = ih * scale;
   return Rect.fromLTWH(
@@ -362,40 +435,77 @@ Rect _fitRect(PdfBitmap image, Rect dest) {
   );
 }
 
-void _appendCertPage(PdfDocument pdfDoc, String docTitle, DateTime signedAt,
-    _CertStrings cert) {
-  final page = pdfDoc.pages.add();
+void _appendCertPage(
+  PdfDocument pdfDoc,
+  String docTitle,
+  String signedAt,
+  _CertStrings cert,
+) {
+  final page = addEdgeToEdgePage(pdfDoc, PdfPageSize.a4);
   final gfx = page.graphics;
   final pw = page.size.width;
   var y = 60.0;
 
-  final bold =
-      PdfStandardFont(PdfFontFamily.helvetica, 16, style: PdfFontStyle.bold);
+  final bold = PdfStandardFont(
+    PdfFontFamily.helvetica,
+    16,
+    style: PdfFontStyle.bold,
+  );
   final body = PdfStandardFont(PdfFontFamily.helvetica, 11);
   final black = PdfSolidBrush(PdfColor(0, 0, 0));
   final grey = PdfSolidBrush(PdfColor(120, 120, 120));
 
-  gfx.drawString(cert.title, bold,
-      brush: black, bounds: Rect.fromLTWH(40, y, pw - 80, 30));
+  gfx.drawString(
+    cert.title,
+    bold,
+    brush: black,
+    bounds: Rect.fromLTWH(40, y, pw - 80, 30),
+  );
   y += 40;
 
   gfx.drawLine(
-      PdfPen(PdfColor(200, 200, 200)), Offset(40, y), Offset(pw - 40, y));
+    PdfPen(PdfColor(200, 200, 200)),
+    Offset(40, y),
+    Offset(pw - 40, y),
+  );
   y += 16;
 
   for (final row in [
     [cert.documentLabel, docTitle],
-    [
-      cert.signedOnLabel,
-      DateFormat(cert.dateFormat, cert.localeName).format(signedAt),
-    ],
+    [cert.signedOnLabel, signedAt],
     [cert.methodLabel, cert.methodValue],
     [cert.noteLabel, cert.noteValue],
   ]) {
-    gfx.drawString(row[0], body,
-        brush: grey, bounds: Rect.fromLTWH(40, y, 120, 18));
-    gfx.drawString(row[1], body,
-        brush: black, bounds: Rect.fromLTWH(170, y, pw - 210, 18));
+    gfx.drawString(
+      row[0],
+      body,
+      brush: grey,
+      bounds: Rect.fromLTWH(40, y, 120, 18),
+    );
+    gfx.drawString(
+      row[1],
+      body,
+      brush: black,
+      bounds: Rect.fromLTWH(170, y, pw - 210, 18),
+    );
     y += 22;
   }
+}
+
+/// Helvetica for a field value: the document's own text size when known
+/// ([preferredPt], so filled text matches the printed form), otherwise ~70% of
+/// the field's height; never taller than the field, shrunk until the text
+/// fits its width, and never below 5pt.
+PdfFont fittedFont(String text, Rect rect, {double? preferredPt}) {
+  // Without a measured text size, size to the field but no bigger than
+  // ordinary form text: a user-drawn tall box shouldn't produce 60pt digits.
+  var size = (preferredPt ?? math.min(rect.height * 0.7, 12.0))
+      .clamp(5.0, math.max(5.0, rect.height * 0.9))
+      .toDouble();
+  var font = PdfStandardFont(PdfFontFamily.helvetica, size);
+  while (size > 5 && font.measureString(text).width > rect.width - 2) {
+    size -= 0.5;
+    font = PdfStandardFont(PdfFontFamily.helvetica, size);
+  }
+  return font;
 }

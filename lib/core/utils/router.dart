@@ -40,13 +40,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.capture,
-        builder: (context, state) => const CaptureScreen(),
+        builder: (context, state) => CaptureScreen(
+          action: switch (state.uri.queryParameters['action']) {
+            'scan' => CaptureAction.scan,
+            'import' => CaptureAction.import,
+            _ => null,
+          },
+        ),
       ),
       GoRoute(
         path: AppRoutes.review,
-        builder: (context, state) => ReviewScreen(
-          docId: int.parse(state.pathParameters['docId']!),
-        ),
+        builder: (context, state) =>
+            ReviewScreen(docId: int.parse(state.pathParameters['docId']!)),
       ),
       GoRoute(
         path: AppRoutes.fieldDetection,
@@ -56,28 +61,26 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.fillMode,
-        builder: (context, state) => FillModeScreen(
-          docId: int.parse(state.pathParameters['docId']!),
-        ),
+        builder: (context, state) =>
+            FillModeScreen(docId: int.parse(state.pathParameters['docId']!)),
       ),
       GoRoute(
         path: AppRoutes.signatureCapture,
         builder: (context, state) => SignatureCaptureScreen(
           docId: int.parse(state.pathParameters['docId']!),
           fieldId: int.parse(state.pathParameters['fieldId']!),
+          initials: state.uri.queryParameters['initials'] == '1',
         ),
       ),
       GoRoute(
         path: AppRoutes.press,
-        builder: (context, state) => PressScreen(
-          docId: int.parse(state.pathParameters['docId']!),
-        ),
+        builder: (context, state) =>
+            PressScreen(docId: int.parse(state.pathParameters['docId']!)),
       ),
       GoRoute(
         path: AppRoutes.send,
-        builder: (context, state) => SendScreen(
-          docId: int.parse(state.pathParameters['docId']!),
-        ),
+        builder: (context, state) =>
+            SendScreen(docId: int.parse(state.pathParameters['docId']!)),
       ),
       GoRoute(
         path: AppRoutes.settings,

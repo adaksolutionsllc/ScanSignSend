@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/iap_service.dart';
 import '../../core/utils/l10n_ext.dart';
+import '../../core/services/app_lock_provider.dart';
 
 /// Full-screen paywall shown when the user has exhausted free scans.
 class PaywallScreen extends ConsumerStatefulWidget {
@@ -15,6 +16,7 @@ class PaywallScreen extends ConsumerStatefulWidget {
 class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   bool _loading = false;
   String? _error;
+
   /// The live, store-localized price. Null until the store responds — and it
   /// stays null if the store is unreachable. Never substitute a hardcoded
   /// number here: showing a price the user won't actually be charged is both
@@ -47,19 +49,23 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            const Icon(Icons.workspace_premium,
-                size: 80, color: Color(0xFF1A73E8)),
+            const Icon(
+              Icons.workspace_premium,
+              size: 80,
+              color: Color(0xFF1A73E8),
+            ),
             const SizedBox(height: 24),
-            Text(context.l10n.paywallHeadline,
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center),
+            Text(
+              context.l10n.paywallHeadline,
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
             Text(
               context.l10n.paywallSubhead,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge
-                  ?.copyWith(color: Colors.grey),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -72,27 +78,32 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               (Icons.person, context.l10n.paywallBenefitAutofill),
               (Icons.lock_outline, context.l10n.paywallBenefitLock),
               (Icons.cloud_off, context.l10n.paywallBenefitOffline),
-            ].map((row) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Row(
-                    children: [
-                      Icon(row.$1, size: 20,
-                          color: Theme.of(context).colorScheme.primary),
-                      const SizedBox(width: 12),
-                      Text(row.$2,
-                          style: Theme.of(context).textTheme.bodyMedium),
-                    ],
-                  ),
-                )),
+            ].map(
+              (row) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    Icon(
+                      row.$1,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(row.$2, style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ),
+              ),
+            ),
 
             const SizedBox(height: 32),
 
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Text(_error!,
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.error)),
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ),
 
             SizedBox(
@@ -107,7 +118,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                             ? context.l10n.paywallTitle
                             : context.l10n.paywallUnlockForPrice(_price!),
                         style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
               ),
             ),
@@ -119,10 +132,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             const SizedBox(height: 8),
             Text(
               context.l10n.paywallPaymentDisclosure,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.grey),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
           ],
@@ -137,11 +149,13 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       _error = null;
     });
     try {
-      await ref.read(iapServiceProvider).buy();
+      await ref
+          .read(appLockProvider.notifier)
+          .whileExternal(ref.read(iapServiceProvider).buy);
       // Purchase result handled by IapService stream → isPurchasedProvider
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = iapErrorText(context, e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -153,18 +167,30 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       _error = null;
     });
     try {
-      final restored = await ref.read(iapServiceProvider).restore();
+      final restored = await ref
+          .read(appLockProvider.notifier)
+          .whileExternal(ref.read(iapServiceProvider).restore);
       if (!mounted) return;
       if (restored) {
         Navigator.of(context).pop();
       } else {
-        setState(() =>
-            _error = context.l10n.paywallNoPreviousPurchase);
+        setState(() => _error = context.l10n.paywallNoPreviousPurchase);
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = iapErrorText(context, e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
+}
+
+/// A translated, user-facing message for a failed store call.
+String iapErrorText(BuildContext context, Object error) {
+  final l10n = context.l10n;
+  return switch (error) {
+    IapException(failure: IapFailure.unavailable) => l10n.iapErrorUnavailable,
+    IapException(failure: IapFailure.productNotFound) =>
+      l10n.iapErrorProductNotFound,
+    _ => l10n.iapErrorPurchaseFailed,
+  };
 }

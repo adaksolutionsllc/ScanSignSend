@@ -1553,6 +1553,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No fields found} =1{1 field found} other{{count} fields found}}'**
   String detectFieldsFound(int count);
+
+  /// No description provided for @detectFillFields.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Fill 1 field →} other{Fill {count} fields →}}'**
+  String detectFillFields(int count);
+
+  /// No description provided for @detectPinchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a tool below to add a field · tap a field to select it'**
+  String get detectPinchHint;
+
+  /// No description provided for @importErrorUnreadableImage.
+  ///
+  /// In en, this message translates to:
+  /// **'This image couldn\'t be opened. Try a JPEG, PNG or HEIC photo.'**
+  String get importErrorUnreadableImage;
+
+  /// No description provided for @iapErrorUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases aren\'t available on this device right now.'**
+  String get iapErrorUnavailable;
+
+  /// No description provided for @iapErrorProductNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the store. Please try again later.'**
+  String get iapErrorProductNotFound;
+
+  /// No description provided for @iapErrorPurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The purchase couldn\'t be completed. You haven\'t been charged.'**
+  String get iapErrorPurchaseFailed;
+
+  /// No description provided for @settingsBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Include in device backup'**
+  String get settingsBackupTitle;
+
+  /// No description provided for @settingsBackupSubtitleIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: documents and signatures stay only on this iPhone. On: they\'re included in your iCloud Backup.'**
+  String get settingsBackupSubtitleIos;
+
+  /// No description provided for @settingsBackupSubtitleAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: documents and signatures stay only on this phone. On: they\'re included in your encrypted Google backup and when moving to a new phone.'**
+  String get settingsBackupSubtitleAndroid;
+
+  /// No description provided for @fieldTypeRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio button'**
+  String get fieldTypeRadio;
+
+  /// No description provided for @fieldTypeRadioShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio'**
+  String get fieldTypeRadioShort;
+
+  /// No description provided for @fieldTypeInitials.
+  ///
+  /// In en, this message translates to:
+  /// **'Initials'**
+  String get fieldTypeInitials;
+
+  /// No description provided for @fillTapToInitial.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to initial'**
+  String get fillTapToInitial;
+
+  /// No description provided for @signInitialsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw your initials'**
+  String get signInitialsTitle;
+
+  /// No description provided for @pressRadioSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get pressRadioSelected;
+
+  /// No description provided for @pressRadioNotSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not selected'**
+  String get pressRadioNotSelected;
+
+  /// No description provided for @detectSelectedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to move · pinch or drag the corner to resize · tap again to edit'**
+  String get detectSelectedHint;
+
+  /// No description provided for @detectRadioAddChoiceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Radio again to add another choice to this question'**
+  String get detectRadioAddChoiceHint;
+
+  /// No description provided for @detectFieldDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Field deleted'**
+  String get detectFieldDeleted;
+
+  /// No description provided for @actionUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get actionUndo;
+
+  /// No description provided for @detectFormFieldLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is part of the PDF\'s own form. Fill it in on the next step.'**
+  String get detectFormFieldLocked;
+
+  /// No description provided for @libraryImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get libraryImport;
+
+  /// No description provided for @settingsForgetLearned.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget learned field patterns'**
+  String get settingsForgetLearned;
+
+  /// No description provided for @settingsForgetLearnedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field detection learns from the fields you add, retype and delete, on this device only.'**
+  String get settingsForgetLearnedSubtitle;
+
+  /// No description provided for @settingsForgetLearnedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Learned field patterns cleared'**
+  String get settingsForgetLearnedDone;
 }
 
 class _AppLocalizationsDelegate

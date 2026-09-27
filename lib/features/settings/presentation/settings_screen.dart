@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/db/app_database.dart';
+import '../../../core/services/app_lock_provider.dart';
+import '../../../core/services/backup_service.dart';
 import '../../../core/services/biometric_service.dart';
+import '../../../core/services/field_hints.dart';
 import '../../../core/services/iap_service.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/utils/router.dart';
@@ -34,8 +39,9 @@ class SettingsScreen extends ConsumerWidget {
               _ProfileField(
                 label: context.l10n.settingsFullName,
                 value: profile.fullName,
-                onSave: (v) => profileRepo
-                    .update(UserProfileCompanion(fullName: Value(v))),
+                onSave: (v) => profileRepo.update(
+                  UserProfileCompanion(fullName: Value(v)),
+                ),
               ),
               _ProfileField(
                 label: context.l10n.settingsEmail,
@@ -95,14 +101,14 @@ class SettingsScreen extends ConsumerWidget {
                   // Never let the user enable a lock they can't satisfy —
                   // verify the device actually supports biometrics first.
                   if (v) {
-                    final available =
-                        await ref.read(biometricServiceProvider).isAvailable();
+                    final available = await ref
+                        .read(biometricServiceProvider)
+                        .isAvailable();
                     if (!available) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                                context.l10n.settingsNoBiometrics),
+                            content: Text(context.l10n.settingsNoBiometrics),
                           ),
                         );
                       }
@@ -110,28 +116,60 @@ class SettingsScreen extends ConsumerWidget {
                     }
                   }
                   await profileRepo.update(
-                      UserProfileCompanion(biometricLockEnabled: Value(v)));
+                    UserProfileCompanion(biometricLockEnabled: Value(v)),
+                  );
+                },
+              ),
+              // Opt-in: documents stay on this device unless the user asks for
+              // them to be part of the phone's own backup.
+              SwitchListTile(
+                title: Text(context.l10n.settingsBackupTitle),
+                subtitle: Text(
+                  Platform.isIOS
+                      ? context.l10n.settingsBackupSubtitleIos
+                      : context.l10n.settingsBackupSubtitleAndroid,
+                ),
+                value: profile.includeInDeviceBackup,
+                onChanged: (v) async {
+                  await profileRepo.update(
+                    UserProfileCompanion(includeInDeviceBackup: Value(v)),
+                  );
+                  await ref.read(backupServiceProvider).apply(v);
                 },
               ),
               _SectionHeader(context.l10n.settingsSectionAi),
               SwitchListTile(
                 title: Text(context.l10n.settingsAiDetection),
-                subtitle: Text(
-                    context.l10n.settingsAiDetectionSubtitle),
+                subtitle: Text(context.l10n.settingsAiDetectionSubtitle),
                 value: profile.aiEnhancedDetection,
                 onChanged: (v) => profileRepo.update(
-                    UserProfileCompanion(aiEnhancedDetection: Value(v))),
+                  UserProfileCompanion(aiEnhancedDetection: Value(v)),
+                ),
+              ),
+              // Detection learns from the user's own field edits, on this device
+              // only; this is the way to start over.
+              ListTile(
+                leading: const Icon(Icons.auto_fix_off_outlined),
+                title: Text(context.l10n.settingsForgetLearned),
+                subtitle: Text(context.l10n.settingsForgetLearnedSubtitle),
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final done = context.l10n.settingsForgetLearnedDone;
+                  await ref.read(fieldHintRepositoryProvider).clear();
+                  messenger.showSnackBar(SnackBar(content: Text(done)));
+                },
               ),
               _SectionHeader(context.l10n.settingsSectionPurchase),
               if (!profile.isPurchased)
                 ListTile(
-                  leading: const Icon(Icons.workspace_premium,
-                      color: Color(0xFF1A73E8)),
+                  leading: const Icon(
+                    Icons.workspace_premium,
+                    color: Color(0xFF1A73E8),
+                  ),
                   title: Text(context.l10n.settingsUnlockFullAccess),
                   subtitle: Text(context.l10n.settingsUnlockSubtitle),
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const PaywallScreen()),
+                    MaterialPageRoute(builder: (_) => const PaywallScreen()),
                   ),
                 ),
               ListTile(
@@ -158,23 +196,39 @@ Future<void> _restore(BuildContext context, WidgetRef ref) async {
   // Resolve both the messenger and the strings up front: everything after the
   // await runs past an async gap, where reading `context` is unsafe.
   final l10n = context.l10n;
+  final unavailable = iapErrorText(
+    context,
+    const IapException(IapFailure.unavailable),
+  );
+  final failed = iapErrorText(
+    context,
+    const IapException(IapFailure.purchaseFailed),
+  );
   messenger.showSnackBar(
     SnackBar(content: Text(l10n.settingsCheckingPurchases)),
   );
   try {
-    final restored = await ref.read(iapServiceProvider).restore();
+    final restored = await ref
+        .read(appLockProvider.notifier)
+        .whileExternal(ref.read(iapServiceProvider).restore);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       SnackBar(
-        content: Text(restored
-            ? l10n.settingsRestored
-            : l10n.settingsNoPreviousPurchase),
+        content: Text(
+          restored ? l10n.settingsRestored : l10n.settingsNoPreviousPurchase,
+        ),
       ),
     );
   } catch (e) {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      SnackBar(content: Text(l10n.settingsRestoreFailed('$e'))),
+      SnackBar(
+        content: Text(
+          e is IapException && e.failure == IapFailure.unavailable
+              ? unavailable
+              : failed,
+        ),
+      ),
     );
   }
 }
@@ -190,8 +244,8 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }

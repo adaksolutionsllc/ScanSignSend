@@ -1,4 +1,6 @@
-import 'dart:ui' show Rect;
+import 'dart:ui' show Rect, Size;
+
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 import '../models/field_model.dart';
 
@@ -22,13 +24,12 @@ class PdfGeometry {
     BoundingBox b,
     double pageWidthPts,
     double pageHeightPts,
-  ) =>
-      Rect.fromLTWH(
-        b.x * pageWidthPts,
-        b.y * pageHeightPts,
-        b.w * pageWidthPts,
-        b.h * pageHeightPts,
-      );
+  ) => Rect.fromLTWH(
+    b.x * pageWidthPts,
+    b.y * pageHeightPts,
+    b.w * pageWidthPts,
+    b.h * pageHeightPts,
+  );
 
   /// A rect in PDF points → normalised box. Values are clamped to `[0,1]`
   /// (width/height kept strictly positive) so a malformed source widget can
@@ -48,4 +49,35 @@ class PdfGeometry {
       h: (r.height / pageHeightPts).clamp(0.001, 1.0),
     );
   }
+}
+
+/// Adds a page of [size] points with **no margins**.
+///
+/// Syncfusion gives every new page a 40pt margin on each side by default, and
+/// its graphics origin and clip are the area inside that margin. Drawing a
+/// full-page template onto such a page shifted everything 40pt right and down
+/// and cut off the right-hand side of the text. Each page gets its own section
+/// so pages of different sizes (an imported US Letter form, an A4 scan) keep
+/// their own size in one document.
+PdfPage addEdgeToEdgePage(PdfDocument doc, Size size) {
+  final section = doc.sections!.add();
+  section.pageSettings
+    ..size = size
+    ..margins.all = 0;
+  return section.pages.add();
+}
+
+/// The size an output page should have for the stored page [path]: an
+/// imported PDF page keeps its own size; a scan goes on A4.
+Size outputPageSize(String path, PdfDocument? Function(String) openSource) {
+  final hash = path.indexOf('#page=');
+  if (hash >= 0) {
+    final src = openSource(path.substring(0, hash));
+    final n = int.tryParse(path.substring(hash + 6)) ?? 0;
+    if (src != null && n >= 0 && n < src.pages.count) {
+      final s = src.pages[n].size;
+      if (s.width > 0 && s.height > 0) return s;
+    }
+  }
+  return PdfPageSize.a4;
 }

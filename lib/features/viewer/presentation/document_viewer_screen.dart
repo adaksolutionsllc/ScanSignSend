@@ -2,13 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart' show Share, XFile;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../../core/services/app_lock_provider.dart';
+import '../../../shared/utils/share_pdf.dart';
 
 /// First-class PDF viewer: pinch-zoom, page navigation, and in-document text
 /// search. Opens the document's exported PDF (pressed/fillable) when present,
@@ -89,8 +90,11 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
                       tooltip: context.l10n.actionShare,
                       icon: const Icon(Icons.share),
                       onPressed: (path != null)
-                          ? () => _share(context, path,
-                              doc?.title ?? context.l10n.documentFallbackTitle)
+                          ? () => _share(
+                              context,
+                              path,
+                              doc?.title ?? context.l10n.documentFallbackTitle,
+                            )
                           : null,
                     ),
                     IconButton(
@@ -168,7 +172,10 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
   }
 
   Future<void> _share(
-      BuildContext context, String pdfPath, String title) async {
+    BuildContext context,
+    String pdfPath,
+    String title,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     if (!File(pdfPath).existsSync()) {
       messenger.showSnackBar(
@@ -184,14 +191,17 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
         ? box.localToGlobal(Offset.zero) & box.size
         : null;
     try {
-      await Share.shareXFiles(
-        [XFile(pdfPath, mimeType: 'application/pdf')],
-        subject: title,
-        text: l10n.sendShareMessage,
-        sharePositionOrigin: origin,
+      await shareDocumentPdf(
+        lock: ref.read(appLockProvider.notifier),
+        pdfPath: pdfPath,
+        title: title,
+        message: l10n.sendShareMessage,
+        origin: origin,
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.sendShareFailed('$e'))));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.sendShareFailed('$e'))),
+      );
     }
   }
 
@@ -199,7 +209,10 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
     final repo = ref.read(documentRepositoryProvider);
     final doc = await repo.getById(widget.docId);
     String? sourcePdf;
-    final pages = await ref.read(pageRepositoryProvider).watchPages(widget.docId).first;
+    final pages = await ref
+        .read(pageRepositoryProvider)
+        .watchPages(widget.docId)
+        .first;
     for (final pg in pages) {
       if (pg.imagePath.contains('#page=')) {
         sourcePdf = pg.imagePath.split('#page=').first;
@@ -285,11 +298,12 @@ class _PageBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton(
-                icon: const Icon(Icons.chevron_left), onPressed: onPrev),
+            IconButton(icon: const Icon(Icons.chevron_left), onPressed: onPrev),
             Text(context.l10n.reviewPageOf(current, total)),
             IconButton(
-                icon: const Icon(Icons.chevron_right), onPressed: onNext),
+              icon: const Icon(Icons.chevron_right),
+              onPressed: onNext,
+            ),
           ],
         ),
       ),
@@ -308,11 +322,16 @@ class _NoPdf extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.picture_as_pdf_outlined,
-                size: 64, color: Colors.grey),
+            const Icon(
+              Icons.picture_as_pdf_outlined,
+              size: 64,
+              color: Colors.grey,
+            ),
             const SizedBox(height: 12),
-            Text(context.l10n.viewerNoExportedPdf,
-                style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.viewerNoExportedPdf,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 6),
             Text(
               context.l10n.viewerNoExportedPdfBody,

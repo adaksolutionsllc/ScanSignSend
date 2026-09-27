@@ -9,6 +9,7 @@ import '../../../core/services/fillable_form_export_service.dart';
 import '../../../core/services/press_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../../shared/widgets/field_type_labels.dart';
 
 class PressScreen extends ConsumerStatefulWidget {
   const PressScreen({super.key, required this.docId});
@@ -23,8 +24,9 @@ class _PressScreenState extends ConsumerState<PressScreen> {
 
   // Created once — building a fresh drift stream in build() re-subscribes every
   // frame and can spin a rebuild loop. See fill_mode_screen.dart.
-  late final Stream<List<Field>> _fieldsStream =
-      ref.read(fieldRepositoryProvider).watchFields(widget.docId);
+  late final Stream<List<Field>> _fieldsStream = ref
+      .read(fieldRepositoryProvider)
+      .watchFields(widget.docId);
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +36,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
         stream: _fieldsStream,
         builder: (context, snapshot) {
           final fields = snapshot.data ?? [];
-          final filled =
-              fields.where((f) => f.isFilled).length;
+          final filled = fields.where((f) => f.isFilled).length;
           final unfilled = fields.length - filled;
 
           return ListView(
@@ -48,20 +49,24 @@ class _PressScreenState extends ConsumerState<PressScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(context.l10n.pressFieldSummary,
-                          style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        context.l10n.pressFieldSummary,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 12),
                       _SummaryRow(
-                          icon: Icons.check_circle,
-                          color: Colors.green,
-                          label: context.l10n.pressFilled,
-                          count: filled),
+                        icon: Icons.check_circle,
+                        color: Colors.green,
+                        label: context.l10n.pressFilled,
+                        count: filled,
+                      ),
                       if (unfilled > 0)
                         _SummaryRow(
-                            icon: Icons.warning_amber_rounded,
-                            color: Colors.amber.shade700,
-                            label: context.l10n.pressUnfilled,
-                            count: unfilled),
+                          icon: Icons.warning_amber_rounded,
+                          color: Colors.amber.shade700,
+                          label: context.l10n.pressUnfilled,
+                          count: unfilled,
+                        ),
                     ],
                   ),
                 ),
@@ -101,19 +106,22 @@ class _PressScreenState extends ConsumerState<PressScreen> {
                       height: 48,
                       child: OutlinedButton.icon(
                         onPressed: () => _confirmPress(context),
-                        icon: Icon(Icons.lock_outline,
-                            color: Theme.of(context).colorScheme.error),
+                        icon: Icon(
+                          Icons.lock_outline,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                         label: Text(
                           context.l10n.pressFlattenAndSign,
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.error),
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .error
-                                  .withValues(alpha: 0.5)),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.error.withValues(alpha: 0.5),
+                          ),
                         ),
                       ),
                     ),
@@ -126,15 +134,14 @@ class _PressScreenState extends ConsumerState<PressScreen> {
 
   /// Save-as-Fillable exit: exports a live AcroForm PDF (fields stay editable).
   Future<void> _exportFillable(BuildContext context) async {
+    if (_busy) return; // a second tap must not export twice
     setState(() => _busy = true);
     final router = GoRouter.of(context);
     final messenger = ScaffoldMessenger.of(context);
     // Resolve strings up front — the catch below runs past an async gap.
     final l10n = context.l10n;
     try {
-      await ref
-          .read(fillableFormExportServiceProvider)
-          .export(widget.docId);
+      await ref.read(fillableFormExportServiceProvider).export(widget.docId);
       if (mounted) {
         router.pushReplacement(
           AppRoutes.send.replaceAll(':docId', '${widget.docId}'),
@@ -144,18 +151,37 @@ class _PressScreenState extends ConsumerState<PressScreen> {
       if (mounted) setState(() => _busy = false);
       messenger.showSnackBar(
         SnackBar(
-            content: Text(e is ExportEmptyDocumentException
+          content: Text(
+            e is ExportEmptyDocumentException
                 ? l10n.exportErrorNoPages
-                : l10n.pressExportFailed('$e'))),
+                : l10n.pressExportFailed('$e'),
+          ),
+        ),
       );
     }
   }
 
+  /// Set while the confirm dialog is being prepared/shown, so a quick
+  /// double tap can't open two dialogs and press the document twice.
+  bool _confirming = false;
+
   Future<void> _confirmPress(BuildContext context) async {
+    if (_busy || _confirming) return;
+    _confirming = true;
+    try {
+      await _confirmPressOnce(context);
+    } finally {
+      _confirming = false;
+    }
+  }
+
+  Future<void> _confirmPressOnce(BuildContext context) async {
     // D3 guardrail: if this document carries live (AcroForm) fields, warn that
     // flattening throws away their interactivity.
-    final fields =
-        await ref.read(fieldRepositoryProvider).watchFields(widget.docId).first;
+    final fields = await ref
+        .read(fieldRepositoryProvider)
+        .watchFields(widget.docId)
+        .first;
     final hasLiveFields = fields.any((f) => f.sourceKind == 'acroform');
     if (!context.mounted) return;
 
@@ -178,9 +204,9 @@ class _PressScreenState extends ConsumerState<PressScreen> {
             const SizedBox(height: 12),
             Text(
               context.l10n.pressConfirmNote,
-              style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
-                  ),
+              style: Theme.of(
+                ctx,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -192,25 +218,22 @@ class _PressScreenState extends ConsumerState<PressScreen> {
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(ctx).colorScheme.error,
-                foregroundColor: Theme.of(ctx).colorScheme.onError),
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Theme.of(ctx).colorScheme.onError,
+            ),
             child: Text(context.l10n.pressFlattenAndLock),
           ),
         ],
       ),
     );
-    if (confirm != true || !mounted) return;
+    if (confirm != true || !context.mounted) return;
 
     setState(() => _busy = true);
-    // ignore: use_build_context_synchronously
     final router = GoRouter.of(context);
-    // ignore: use_build_context_synchronously
     final messenger = ScaffoldMessenger.of(context);
-    // ignore: use_build_context_synchronously
     final l10n = context.l10n;
     // The certificate page is baked inside a background isolate that can't
     // reach AppLocalizations, so its copy is resolved here and passed in.
-    // ignore: use_build_context_synchronously
     final cert = PressCertificateStrings(
       title: l10n.certTitle,
       documentLabel: l10n.certDocument,
@@ -220,12 +243,12 @@ class _PressScreenState extends ConsumerState<PressScreen> {
       noteLabel: l10n.certNote,
       noteValue: l10n.certNoteValue,
       dateFormat: l10n.certDateFormat,
-      // ignore: use_build_context_synchronously
       localeName: Localizations.localeOf(context).toString(),
     );
     try {
-      final pressedPath =
-          await ref.read(pressServiceProvider).press(widget.docId, cert);
+      final pressedPath = await ref
+          .read(pressServiceProvider)
+          .press(widget.docId, cert);
       debugPrint('Pressed PDF: $pressedPath');
       if (mounted) {
         router.pushReplacement(
@@ -236,9 +259,12 @@ class _PressScreenState extends ConsumerState<PressScreen> {
       if (mounted) setState(() => _busy = false);
       messenger.showSnackBar(
         SnackBar(
-            content: Text(e is PressEmptyDocumentException
+          content: Text(
+            e is PressEmptyDocumentException
                 ? l10n.pressErrorNoPages
-                : l10n.pressFailed('$e'))),
+                : l10n.pressFailed('$e'),
+          ),
+        ),
       );
     }
   }
@@ -308,7 +334,9 @@ class _FieldTile extends StatelessWidget {
     return ListTile(
       dense: true,
       leading: Icon(
-        field.isFilled ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+        field.isFilled
+            ? Icons.check_circle_outline
+            : Icons.radio_button_unchecked,
         color: field.isFilled ? Colors.green : Colors.amber.shade700,
         size: 20,
       ),
@@ -319,41 +347,41 @@ class _FieldTile extends StatelessWidget {
       subtitle: field.isFilled
           ? Text(
               _displayValue(context, field, type),
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.grey),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey),
               overflow: TextOverflow.ellipsis,
             )
           : Text(
               context.l10n.pressNotFilled,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.amber.shade700),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.amber.shade700),
             ),
       trailing: Chip(
-        label: Text(_typeName(context, type),
-            style: const TextStyle(fontSize: 10)),
+        label: Text(
+          _typeName(context, type),
+          style: const TextStyle(fontSize: 10),
+        ),
         visualDensity: VisualDensity.compact,
         padding: EdgeInsets.zero,
       ),
     );
   }
 
-  String _typeName(BuildContext context, FieldType t) => switch (t) {
-        FieldType.text => context.l10n.fieldTypeText,
-        FieldType.date => context.l10n.fieldTypeDate,
-        FieldType.checkbox => context.l10n.fieldTypeCheckbox,
-        FieldType.signature => context.l10n.fieldTypeSignature,
-      };
+  String _typeName(BuildContext context, FieldType t) =>
+      fieldTypeName(context, t);
 
   String _displayValue(BuildContext context, Field f, FieldType t) =>
       switch (t) {
-        FieldType.checkbox => f.isChecked
-            ? context.l10n.pressChecked
-            : context.l10n.pressUnchecked,
-        FieldType.signature => context.l10n.pressSignatureCaptured,
+        FieldType.checkbox =>
+          f.isChecked ? context.l10n.pressChecked : context.l10n.pressUnchecked,
+        FieldType.radio =>
+          f.isChecked
+              ? context.l10n.pressRadioSelected
+              : context.l10n.pressRadioNotSelected,
+        FieldType.signature ||
+        FieldType.initials => context.l10n.pressSignatureCaptured,
         _ => f.value,
       };
 }

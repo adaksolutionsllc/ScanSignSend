@@ -15,9 +15,18 @@ import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../../core/services/app_lock_provider.dart';
+
+/// What the capture screen should start straight away when opened from a
+/// library button, so "New Scan" opens the camera and "Import" the file
+/// picker without an extra tap.
+enum CaptureAction { scan, import }
 
 class CaptureScreen extends ConsumerStatefulWidget {
-  const CaptureScreen({super.key});
+  const CaptureScreen({super.key, this.action});
+
+  /// Started on open; cancelling it returns to where the user came from.
+  final CaptureAction? action;
 
   @override
   ConsumerState<CaptureScreen> createState() => _CaptureScreenState();
@@ -26,6 +35,29 @@ class CaptureScreen extends ConsumerStatefulWidget {
 class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   bool _loading = false;
   String? _loadingMessageKey; // resolved through AppLocalizations in build()
+
+  @override
+  void initState() {
+    super.initState();
+    final action = widget.action;
+    if (action != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        switch (action) {
+          case CaptureAction.scan:
+            _startScan();
+          case CaptureAction.import:
+            _importFile();
+        }
+      });
+    }
+  }
+
+  /// A cancelled scan/import that was started for the user (from a library
+  /// button) leaves this screen too, instead of stranding them on it.
+  void _leaveIfAutoStarted() {
+    if (widget.action != null && mounted && context.canPop()) context.pop();
+  }
 
   Future<void> _startScan() async {
     // Resolve the localized default title first: everything below runs past an
@@ -46,10 +78,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
     try {
       final scanService = ref.read(scanServiceProvider);
-      final paths = await scanService.scan();
+      final paths = await ref
+          .read(appLockProvider.notifier)
+          .whileExternal(scanService.scan);
       if (paths.isEmpty) {
         // User cancelled
         if (mounted) setState(() => _loading = false);
+        _leaveIfAutoStarted();
         return;
       }
 
@@ -74,21 +109,39 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   }
 
   Future<void> _importFile() async {
+    // An import starts a document just like a scan does, so it counts toward
+    // the free limit. It used to skip both the check and the count, which let
+    // a free user import and complete documents without ever reaching the
+    // paywall.
+    final profileRepo = ref.read(profileRepositoryProvider);
+    if (!await profileRepo.canScan()) {
+      if (mounted) _showPaywall();
+      return;
+    }
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _loadingMessageKey = 'importing';
     });
     try {
-      final doc = await ref.read(importServiceProvider).pickAndImport();
+      final doc = await ref
+          .read(appLockProvider.notifier)
+          .whileExternal(ref.read(importServiceProvider).pickAndImport);
       if (doc == null) {
         if (mounted) setState(() => _loading = false);
+        _leaveIfAutoStarted();
         return;
       }
+      await profileRepo.incrementScanCount();
       if (mounted) {
         setState(() => _loading = false);
-        context.pushReplacement(
-          AppRoutes.review.replaceAll(':docId', '${doc.id}'),
-        );
+        // A PDF that already carries a fillable form goes straight to Fill
+        // mode — its fields are ready to use. "Edit fields" there still lets
+        // the user adjust or add to them.
+        final route = doc.ocrText == ImportService.formFieldsSentinel
+            ? AppRoutes.fillMode
+            : AppRoutes.review;
+        context.pushReplacement(route.replaceAll(':docId', '${doc.id}'));
       }
     } catch (e) {
       if (mounted) {
@@ -101,10 +154,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             l10n.importErrorUnreadable,
           ImportException(failure: ImportFailure.emptyPdf) =>
             l10n.importErrorNoPages,
+          ImportException(failure: ImportFailure.unreadableImage) =>
+            l10n.importErrorUnreadableImage,
           _ => l10n.captureImportFailed('$e'),
         };
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     }
   }
@@ -121,28 +177,38 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     final docRepo = ref.read(documentRepositoryProvider);
     final pageRepo = ref.read(pageRepositoryProvider);
 
-    final doc = await docRepo.createDocument(_defaultTitle);
-
+    // Files first, then every row in one transaction: a crash part-way can
+    // then never leave a document in the library with only some of its pages.
+    final dests = <String>[];
     for (var i = 0; i < tempPaths.length; i++) {
       final dest = p.join(pagesDir.path, 'page_$i.jpg');
       final src = File(tempPaths[i]);
       await src.copy(dest);
       // Remove the staging file now that it's safely copied
-      try { await src.delete(); } catch (_) {}
-      await pageRepo.addPage(
-        documentId: doc.id,
-        pageIndex: i,
-        imagePath: dest,
-      );
+      try {
+        await src.delete();
+      } catch (_) {}
+      dests.add(dest);
     }
 
-    await docRepo.updateDocument(DocumentsCompanion(
-      id: Value(doc.id),
-      pageCount: Value(tempPaths.length),
-      updatedAt: Value(DateTime.now()),
-    ));
-
-    return doc.id;
+    return docRepo.transaction(() async {
+      final doc = await docRepo.createDocument(_defaultTitle);
+      for (var i = 0; i < dests.length; i++) {
+        await pageRepo.addPage(
+          documentId: doc.id,
+          pageIndex: i,
+          imagePath: dests[i],
+        );
+      }
+      await docRepo.updateDocument(
+        DocumentsCompanion(
+          id: Value(doc.id),
+          pageCount: Value(dests.length),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      return doc.id;
+    });
   }
 
   String _dateStamp() {
@@ -175,14 +241,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 children: [
                   const CircularProgressIndicator(color: Colors.white),
                   const SizedBox(height: 20),
-                  Text(
-                    switch (_loadingMessageKey) {
-                      'saving' => context.l10n.captureSavingPages,
-                      'importing' => context.l10n.captureImporting,
-                      _ => context.l10n.captureLaunching,
-                    },
-                    style: const TextStyle(color: Colors.white70),
-                  ),
+                  Text(switch (_loadingMessageKey) {
+                    'saving' => context.l10n.captureSavingPages,
+                    'importing' => context.l10n.captureImporting,
+                    _ => context.l10n.captureLaunching,
+                  }, style: const TextStyle(color: Colors.white70)),
                 ],
               ),
             )
@@ -190,8 +253,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.document_scanner_outlined,
-                      size: 96, color: Colors.white30),
+                  const Icon(
+                    Icons.document_scanner_outlined,
+                    size: 96,
+                    color: Colors.white30,
+                  ),
                   const SizedBox(height: 32),
                   FilledButton.icon(
                     onPressed: _startScan,
@@ -204,10 +270,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: _importFile,
-                    icon: const Icon(Icons.upload_file,
-                        color: Colors.white70),
-                    label: Text(context.l10n.captureImportPdfImage,
-                        style: TextStyle(color: Colors.white70)),
+                    icon: const Icon(Icons.upload_file, color: Colors.white70),
+                    label: Text(
+                      context.l10n.captureImportPdfImage,
+                      style: TextStyle(color: Colors.white70),
+                    ),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.white30),
                       minimumSize: const Size(220, 52),

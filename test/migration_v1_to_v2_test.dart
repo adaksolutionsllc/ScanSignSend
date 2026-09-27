@@ -14,7 +14,8 @@ void main() {
     // genuine SQLite open + user_version check — that handshake is what drives
     // drift's onUpgrade. A shared in-memory handle would bypass it.
     final dbFile = File(
-        '${Directory.systemTemp.path}/sss_migration_${DateTime.now().microsecondsSinceEpoch}.db');
+      '${Directory.systemTemp.path}/sss_migration_${DateTime.now().microsecondsSinceEpoch}.db',
+    );
     if (dbFile.existsSync()) dbFile.deleteSync();
 
     // ── Phase 1: fake the v1 schema + seed a row, then close fully ────────────
@@ -47,11 +48,28 @@ void main() {
       )
     ''');
     await v1.customStatement(
-        "INSERT INTO documents (id, uuid, title, created_at, updated_at) "
-        "VALUES (1, 'u1', 'Old Doc', 0, 0)");
+      "INSERT INTO documents (id, uuid, title, created_at, updated_at) "
+      "VALUES (1, 'u1', 'Old Doc', 0, 0)",
+    );
     await v1.customStatement(
-        "INSERT INTO fields (document_id, page_index, type, bounding_box_json, value, is_filled) "
-        "VALUES (1, 0, 'text', '{\"x\":0.1}', 'legacy value', 1)");
+      "INSERT INTO fields (document_id, page_index, type, bounding_box_json, value, is_filled) "
+      "VALUES (1, 0, 'text', '{\"x\":0.1}', 'legacy value', 1)",
+    );
+    // Every real install has had user_profile since v1; later migrations
+    // (v4) add columns to it.
+    await v1.customStatement('''
+      CREATE TABLE user_profile (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        full_name TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '',
+        phone TEXT NOT NULL DEFAULT '', address TEXT NOT NULL DEFAULT '',
+        city TEXT NOT NULL DEFAULT '', state TEXT NOT NULL DEFAULT '',
+        zip TEXT NOT NULL DEFAULT '', company TEXT NOT NULL DEFAULT '',
+        biometric_lock_enabled INTEGER NOT NULL DEFAULT 0,
+        ai_enhanced_detection INTEGER NOT NULL DEFAULT 0,
+        scan_count INTEGER NOT NULL DEFAULT 0,
+        is_purchased INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
     await v1.customStatement('PRAGMA user_version = 1');
     await v1.close(); // flush + release the file so the next open is genuine
 

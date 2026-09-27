@@ -13,8 +13,12 @@ Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
 - ✅ Android permissions: camera, `USE_BIOMETRIC`, Play `BILLING` — **no storage/media
   permission is declared**, so the Play "Photo and Video Permissions" declaration
   does not apply (imports go through the Storage Access Framework)
-- ✅ Android Auto Backup + device-transfer disabled (`allowBackup=false`,
-  `data_extraction_rules.xml`) so scans never reach Google Drive
+- ✅ Device backup is **opt-in** on both platforms (Settings → Include in device
+  backup, off by default). iOS: `isExcludedFromBackup` on Documents
+  (`BackupPlugin.swift`). Android: `AppBackupAgent` writes nothing unless opted
+  in, and cloud backup additionally requires end-to-end encryption. The OS
+  backup is the user's own and isn't "data collected" by us, so the App Privacy /
+  Data Safety answers below are unchanged
 - ✅ App lock re-arms on backgrounding; iOS app-switcher blur; Android
   `FLAG_SECURE` when the lock is on
 - ✅ Deleting a document deletes its files on disk, not just its DB rows

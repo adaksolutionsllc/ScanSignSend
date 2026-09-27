@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/services/backup_service.dart';
+import 'core/services/iap_service.dart';
+import 'core/services/profile_repository.dart';
 import 'core/services/app_lock_provider.dart';
 import 'core/utils/l10n_ext.dart';
 import 'core/utils/path_resolver.dart';
@@ -47,8 +50,7 @@ class _FriendlyErrorWidget extends StatelessWidget {
     // This renders because some other widget's build threw, so the surrounding
     // Localizations scope may not be reachable. Fall back to English rather
     // than replacing one failure with another.
-    final l10n =
-        Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Material(
       color: Theme.of(context).colorScheme.surface,
       child: Center(
@@ -57,17 +59,23 @@ class _FriendlyErrorWidget extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.sentiment_dissatisfied_outlined,
-                  size: 48, color: Colors.grey),
+              const Icon(
+                Icons.sentiment_dissatisfied_outlined,
+                size: 48,
+                color: Colors.grey,
+              ),
               const SizedBox(height: 12),
-              Text(l10n?.errorGenericTitle ?? 'Something went wrong here.',
-                  textAlign: TextAlign.center),
+              Text(
+                l10n?.errorGenericTitle ?? 'Something went wrong here.',
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 4),
               Text(
-                  l10n?.errorGenericBody ??
-                      'Try going back and reopening this document.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                l10n?.errorGenericBody ??
+                    'Try going back and reopening this document.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
             ],
           ),
         ),
@@ -90,6 +98,26 @@ class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
   void initState() {
     super.initState();
     _onboardingDoneFuture = isOnboardingDone();
+    // Start listening to the store at launch, not when the paywall first
+    // opens. Purchases that complete while the app is closed (Ask to Buy,
+    // interrupted payments, Play "pending" purchases) are delivered on the
+    // next launch and must be acknowledged — Google Play refunds any purchase
+    // left unacknowledged for three days.
+    ref.read(iapServiceProvider);
+    _applyBackupSetting();
+  }
+
+  /// Re-asserts the "Include in device backup" choice on every launch, so the
+  /// OS-level flag always matches the setting (off by default).
+  Future<void> _applyBackupSetting() async {
+    try {
+      final profile = await ref.read(profileRepositoryProvider).getOrCreate();
+      await ref
+          .read(backupServiceProvider)
+          .apply(profile.includeInDeviceBackup);
+    } catch (e) {
+      debugPrint('Backup setting not applied: $e');
+    }
   }
 
   @override

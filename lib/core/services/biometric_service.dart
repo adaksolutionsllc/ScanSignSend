@@ -14,6 +14,17 @@ class BiometricService {
     return canCheck && isSupported;
   }
 
+  /// Whether the device can authenticate the user at all (biometrics or a
+  /// passcode). False when the passcode was removed after the lock was
+  /// turned on.
+  Future<bool> canAuthenticate() async {
+    try {
+      return await _auth.isDeviceSupported();
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// [reason] is shown by the OS in its own biometric sheet, so it must be
   /// localized by the caller — this service has no BuildContext.
   Future<bool> authenticate({required String reason}) async {

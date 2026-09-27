@@ -1,18 +1,20 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/db/app_database.dart' as db;
 import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/import_service.dart';
 import '../../../core/utils/router.dart';
-import 'field_detection_notifier.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../../shared/widgets/field_box.dart';
+import '../../../shared/widgets/field_type_labels.dart';
+import '../../../shared/widgets/page_canvas.dart';
+import 'field_detection_notifier.dart';
 
-// Sentinel written by ImportService when a PDF already has AcroForm fields
-const _kHasFormFields = '__has_form_fields__';
+const _kHasFormFields = ImportService.formFieldsSentinel;
 
 class FieldDetectionScreen extends ConsumerStatefulWidget {
   const FieldDetectionScreen({super.key, required this.docId});
@@ -23,29 +25,28 @@ class FieldDetectionScreen extends ConsumerStatefulWidget {
       _FieldDetectionScreenState();
 }
 
-class _FieldDetectionScreenState
-    extends ConsumerState<FieldDetectionScreen> {
-  bool _hasFormFields = false;
-
+class _FieldDetectionScreenState extends ConsumerState<FieldDetectionScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Check sentinel before running OCR
-      final doc = await ref.read(documentRepositoryProvider).getById(widget.docId);
-      if (doc != null && doc.ocrText == _kHasFormFields) {
-        if (mounted) setState(() => _hasFormFields = true);
-        return;
-      }
-      final notifier =
-          ref.read(fieldDetectionNotifierProvider(widget.docId).notifier);
-      // Re-entering (e.g. via "Edit Fields" from Fill mode) for a document
-      // that already has app-authored fields — load them instead of
-      // re-running OCR, which would discard confirmed labels/positions and
-      // any manually-added fields.
-      final existingFields =
-          await ref.read(fieldRepositoryProvider).watchFields(widget.docId).first;
-      if (existingFields.any((f) => f.sourceKind == 'app')) {
+      final doc = await ref
+          .read(documentRepositoryProvider)
+          .getById(widget.docId);
+      final notifier = ref.read(
+        fieldDetectionNotifierProvider(widget.docId).notifier,
+      );
+      final existingFields = await ref
+          .read(fieldRepositoryProvider)
+          .watchFields(widget.docId)
+          .first;
+      // Load instead of detecting when:
+      //  - the PDF brought its own form (its fields show locked, and the
+      //    user can add more around them), or
+      //  - the user has been here before (e.g. "Edit fields" from Fill
+      //    mode) — re-detecting would discard their positions and edits.
+      if ((doc != null && doc.ocrText == _kHasFormFields) ||
+          existingFields.any((f) => f.sourceKind == 'app')) {
         await notifier.loadExisting();
         return;
       }
@@ -55,48 +56,6 @@ class _FieldDetectionScreenState
 
   @override
   Widget build(BuildContext context) {
-    // PDF already has form fields — skip detection entirely
-    if (_hasFormFields) {
-      return Scaffold(
-        appBar: AppBar(title: Text(context.l10n.detectTitle)),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.picture_as_pdf,
-                    size: 72,
-                    color: Theme.of(context).colorScheme.primary),
-                const SizedBox(height: 24),
-                Text(context.l10n.detectFormFieldsFoundTitle,
-                    style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 12),
-                Text(
-                  context.l10n.detectFormFieldsFoundBody,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: Colors.grey),
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton.icon(
-                    onPressed: () => _proceed(context),
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(context.l10n.detectContinueToFill),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     final state = ref.watch(fieldDetectionNotifierProvider(widget.docId));
 
     return Scaffold(
@@ -113,49 +72,61 @@ class _FieldDetectionScreenState
       ),
       body: switch (state.phase) {
         DetectionPhase.idle || DetectionPhase.running => _RunningView(
-            message: switch (state) {
-              _ when state.phase == DetectionPhase.idle =>
-                context.l10n.detectStarting,
-              _ when state.progressTotal == 0 => context.l10n.detectReading,
-              _ => context.l10n.detectAnalysingPage(
-                  state.progressCurrent, state.progressTotal),
-            },
-          ),
+          message: switch (state) {
+            _ when state.phase == DetectionPhase.idle =>
+              context.l10n.detectStarting,
+            _ when state.progressTotal == 0 => context.l10n.detectReading,
+            _ => context.l10n.detectAnalysingPage(
+              state.progressCurrent,
+              state.progressTotal,
+            ),
+          },
+        ),
         DetectionPhase.error => _ErrorView(
-            message: state.errorMessage ?? context.l10n.detectUnknownError,
-            onRetry: () => ref
-                .read(fieldDetectionNotifierProvider(widget.docId).notifier)
-                .run(),
-          ),
+          message: state.errorMessage ?? context.l10n.detectUnknownError,
+          onRetry: () => ref
+              .read(fieldDetectionNotifierProvider(widget.docId).notifier)
+              .run(),
+        ),
         DetectionPhase.done => _EditorView(
-            docId: widget.docId,
-            state: state,
-            notifier: ref.read(
-                fieldDetectionNotifierProvider(widget.docId).notifier),
-            onProceed: () => _proceed(context),
+          docId: widget.docId,
+          state: state,
+          notifier: ref.read(
+            fieldDetectionNotifierProvider(widget.docId).notifier,
           ),
+          onProceed: () => _proceed(context),
+        ),
       },
     );
   }
 
+  bool _proceeding = false;
+
   Future<void> _confirmAll(BuildContext context) async {
-    final notifier =
-        ref.read(fieldDetectionNotifierProvider(widget.docId).notifier);
-    final state = ref.read(fieldDetectionNotifierProvider(widget.docId));
-    for (var i = 0; i < state.fields.length; i++) {
-      notifier.confirmField(i);
-    }
+    ref
+        .read(fieldDetectionNotifierProvider(widget.docId).notifier)
+        .confirmAll();
     await _proceed(context);
   }
 
   Future<void> _proceed(BuildContext context) async {
-    final notifier =
-        ref.read(fieldDetectionNotifierProvider(widget.docId).notifier);
-    await notifier.saveAll();
-    if (context.mounted) {
-      context.pushReplacement(
-        AppRoutes.fillMode.replaceAll(':docId', '${widget.docId}'),
+    // Fields are already saved as they're edited; this only waits for the
+    // last writes. The guard stops a double tap pushing Fill mode twice.
+    if (_proceeding) return;
+    _proceeding = true;
+    try {
+      final notifier = ref.read(
+        fieldDetectionNotifierProvider(widget.docId).notifier,
       );
+      notifier.commitLearning();
+      await notifier.flush();
+      if (context.mounted) {
+        context.pushReplacement(
+          AppRoutes.fillMode.replaceAll(':docId', '${widget.docId}'),
+        );
+      }
+    } finally {
+      _proceeding = false;
     }
   }
 }
@@ -178,16 +149,17 @@ class _RunningView extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 3),
           ),
           const SizedBox(height: 24),
-          Text(message,
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 8),
           Text(
             context.l10n.detectOnDeviceNote,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.grey),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
           ),
         ],
       ),
@@ -210,15 +182,22 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline,
-                size: 56, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 56,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
-            Text(context.l10n.detectFailed,
-                style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.detectFailed,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: onRetry,
@@ -234,7 +213,7 @@ class _ErrorView extends StatelessWidget {
 
 // ── Editor ────────────────────────────────────────────────────────────────────
 
-class _EditorView extends ConsumerWidget {
+class _EditorView extends ConsumerStatefulWidget {
   const _EditorView({
     required this.docId,
     required this.state,
@@ -248,73 +227,136 @@ class _EditorView extends ConsumerWidget {
   final VoidCallback onProceed;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final pages = ref.watch(pageRepositoryProvider).watchPages(docId);
+  ConsumerState<_EditorView> createState() => _EditorViewState();
+}
 
-    return StreamBuilder(
-      stream: pages,
+/// Assemble fields: tap a toolbar button to drop that field on the page; tap
+/// a field to select it (delete button + resize handle appear); tap it again
+/// to edit its name/type; drag to move; pinch to resize; tap the page to
+/// deselect.
+class _EditorViewState extends ConsumerState<_EditorView> {
+  // Created once — a fresh drift stream per build re-subscribes every frame.
+  late final Stream<List<db.Page>> _pages = ref
+      .read(pageRepositoryProvider)
+      .watchPages(widget.docId);
+
+  /// Width / height of the page on screen, captured from the last layout so
+  /// new checkboxes and radios come out square. A4 until the page is measured.
+  double _pageAspect = 0.707;
+
+  EditableField? _selected;
+
+  /// Staggers successive toolbar adds so they don't land exactly on top of
+  /// each other.
+  int _addCount = 0;
+
+  FieldDetectionState get state => widget.state;
+  FieldDetectionNotifier get notifier => widget.notifier;
+
+  void _select(EditableField? f) {
+    if (identical(_selected, f)) return;
+    setState(() => _selected = f);
+    if (f != null) HapticFeedback.selectionClick();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // A field deleted elsewhere (edit sheet) can't stay selected.
+    if (_selected != null && !state.fields.contains(_selected)) {
+      _selected = null;
+    }
+
+    return StreamBuilder<List<db.Page>>(
+      stream: _pages,
       builder: (context, snapshot) {
         final pageList = snapshot.data ?? [];
         if (pageList.isEmpty) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
           return Center(child: Text(context.l10n.detectNoPages));
         }
 
-        final pageIndex = state.currentPageIndex
-            .clamp(0, pageList.length - 1);
+        final pageIndex = state.currentPageIndex.clamp(0, pageList.length - 1);
         final currentPage = pageList[pageIndex];
         final pageFields = state.fields
-            .asMap()
-            .entries
-            .where((e) => e.value.pageIndex == pageIndex)
+            .where((f) => f.pageIndex == pageIndex)
             .toList();
+        final sel = _selected;
+        final radioSelected = sel != null && sel.type == FieldType.radio;
 
         return Column(
           children: [
-            // ── Status bar ─────────────────────────────────────────────────
-            Container(
-              color: Theme.of(context)
-                  .colorScheme
-                  .primaryContainer
-                  .withValues(alpha: 0.4),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Text(
-                    context.l10n.detectFieldsFound(state.foundCount),
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                  const Spacer(),
-                  Text(
-                    context.l10n.detectFieldsFound(state.fields.length),
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Page image + overlays ───────────────────────────────────────
+            // ── Page + overlays ────────────────────────────────────────────
             Expanded(
-              child: _PageOverlayEditor(
-                imagePath: currentPage.imagePath,
-                fields: pageFields,
-                onFieldTap: (globalIndex) =>
-                    _showFieldSheet(context, globalIndex),
-                onAddField: (bbox) => _showAddFieldSheet(
-                    context, pageIndex, bbox),
-                onFieldMoved: notifier.updateBbox,
-              ),
-            ),
-
-            // ── Manual add toolbar ─────────────────────────────────────────
-            _ManualAddToolbar(
-              onAdd: (type) => _showAddFieldSheet(
-                context,
-                pageIndex,
-                // Default placement at centre of current page
-                BoundingBox(
-                    x: 0.1, y: 0.45, w: 0.5, h: 0.05),
-                preselectedType: type,
+              child: PageCanvas(
+                storedPath: currentPage.imagePath,
+                onTapPage: (_) => _select(null),
+                overlayBuilder: (context, pageRect) {
+                  _pageAspect = pageRect.width / pageRect.height;
+                  return [
+                    // The PDF's own form fields: shown for context, locked.
+                    for (final f in state.formFields)
+                      if (f.pageIndex == pageIndex)
+                        FieldBox(
+                          key: ValueKey('form-${f.id}'),
+                          bbox: BoundingBox.fromJsonString(f.boundingBoxJson),
+                          pageRect: pageRect,
+                          color: Colors.blueGrey,
+                          shape: shapeFor(f.type.toFieldType()),
+                          movable: false,
+                          resizable: false,
+                          showHandles: false,
+                          onTap: () => ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  context.l10n.detectFormFieldLocked,
+                                ),
+                              ),
+                            ),
+                          onChanged: (_) {},
+                          child: f.type.toFieldType().isToggle
+                              ? const SizedBox.expand()
+                              : const Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Padding(
+                                    padding: EdgeInsets.only(right: 2),
+                                    child: Icon(
+                                      Icons.lock_outline,
+                                      size: 10,
+                                      color: Colors.blueGrey,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                    for (final f in pageFields)
+                      FieldBox(
+                        key: ObjectKey(f),
+                        bbox: f.bbox,
+                        pageRect: pageRect,
+                        color: colorFor(f.type),
+                        shape: shapeFor(f.type),
+                        selected: identical(f, sel),
+                        highlighted:
+                            radioSelected &&
+                            f.type == FieldType.radio &&
+                            f.radioGroup == sel.radioGroup,
+                        showHandles: identical(f, sel),
+                        onDelete: () => _delete(f),
+                        onGestureStart: () => _select(f),
+                        onTap: () => identical(f, _selected)
+                            ? _showFieldSheet(context, f)
+                            : _select(f),
+                        onChanged: (b) =>
+                            notifier.updateBbox(state.fields.indexOf(f), b),
+                        child: f.type.isToggle
+                            ? const SizedBox.expand()
+                            : _TypeBadge(type: f.type, label: f.label.trim()),
+                      ),
+                  ];
+                },
               ),
             ),
 
@@ -323,8 +365,32 @@ class _EditorView extends ConsumerWidget {
               _PagePicker(
                 pageCount: pageList.length,
                 currentIndex: pageIndex,
-                onSelect: notifier.setPageIndex,
+                onSelect: (i) {
+                  _select(null);
+                  notifier.setPageIndex(i);
+                },
               ),
+
+            // ── Hint ───────────────────────────────────────────────────────
+            Container(
+              width: double.infinity,
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: Text(
+                radioSelected
+                    ? context.l10n.detectRadioAddChoiceHint
+                    : sel != null
+                    ? context.l10n.detectSelectedHint
+                    : context.l10n.detectPinchHint,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+            ),
+
+            // ── Add-field toolbar: one tap drops the field on the page ──────
+            _AddFieldToolbar(onAdd: (type) => _addField(type, pageIndex)),
 
             // ── CTA ────────────────────────────────────────────────────────
             SafeArea(
@@ -334,12 +400,12 @@ class _EditorView extends ConsumerWidget {
                   width: double.infinity,
                   height: 52,
                   child: FilledButton.icon(
-                    onPressed: onProceed,
+                    onPressed: widget.onProceed,
                     icon: const Icon(Icons.edit_note),
                     label: Text(
                       state.fields.isEmpty
                           ? context.l10n.detectSkipToFill
-                          : 'Fill Fields (${state.fields.length}) →',
+                          : context.l10n.detectFillFields(state.fields.length),
                     ),
                   ),
                 ),
@@ -351,301 +417,188 @@ class _EditorView extends ConsumerWidget {
     );
   }
 
-  void _showFieldSheet(BuildContext context, int fieldIndex) {
-    final field = state.fields[fieldIndex];
+  void _addField(FieldType type, int pageIndex) {
+    final sel = _selected;
+    BoundingBox box;
+    String? group;
+    if (type == FieldType.radio &&
+        sel != null &&
+        sel.type == FieldType.radio &&
+        sel.pageIndex == pageIndex) {
+      // Another choice for the selected question: same group, same size,
+      // just below the selected option (or beside it at the page bottom).
+      group = sel.radioGroup;
+      final b = sel.bbox;
+      final below = b.y + b.h * 1.8;
+      box = below + b.h <= 1
+          ? BoundingBox(x: b.x, y: below, w: b.w, h: b.h)
+          : BoundingBox(
+              x: (b.x + b.w * 1.8).clamp(0.0, 1 - b.w).toDouble(),
+              y: b.y,
+              w: b.w,
+              h: b.h,
+            );
+    } else {
+      final stagger = (_addCount++ % 6) * 0.04;
+      box = defaultFieldBox(
+        type,
+        Offset(0.5, 0.3 + stagger),
+        _pageAspect,
+        textSize: state.textSize,
+      );
+    }
+    final added = notifier.addManualField(
+      type: type,
+      pageIndex: pageIndex,
+      bbox: box,
+      radioGroup: group,
+    );
+    HapticFeedback.lightImpact();
+    setState(() => _selected = added);
+  }
+
+  void _delete(EditableField f) {
+    final l10n = context.l10n;
+    final removed = notifier.removeField(f);
+    setState(() => _selected = null);
+    if (removed == null) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.detectFieldDeleted),
+          // Short-lived: it only needs to be there long enough to tap Undo.
+          duration: const Duration(seconds: 2),
+          // A SnackBar with an action persists until tapped by default;
+          // this one should get out of the way.
+          persist: false,
+          // Floating so it doesn't cover the toolbar and Fill button.
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: l10n.actionUndo,
+            onPressed: () {
+              final restored = notifier.restoreField(removed);
+              if (mounted) setState(() => _selected = restored);
+            },
+          ),
+        ),
+      );
+  }
+
+  void _showFieldSheet(BuildContext context, EditableField field) {
+    int index() => state.fields.indexOf(field);
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (ctx) => _FieldEditSheet(
         field: field,
         onConfirm: () {
-          notifier.confirmField(fieldIndex);
+          notifier.confirmField(index());
           Navigator.pop(ctx);
         },
         onDelete: () {
-          notifier.deleteField(fieldIndex);
           Navigator.pop(ctx);
+          _delete(field);
         },
         onChangeType: (t) {
-          notifier.changeType(fieldIndex, t);
+          notifier.changeType(index(), t);
           Navigator.pop(ctx);
         },
-        onUpdateLabel: (l) => notifier.updateLabel(fieldIndex, l),
-        onToggleRequired: (v) => notifier.setRequired(fieldIndex, v),
-      ),
-    );
-  }
-
-  void _showAddFieldSheet(
-    BuildContext context,
-    int pageIndex,
-    BoundingBox defaultBbox, {
-    FieldType? preselectedType,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => _AddFieldSheet(
-        preselectedType: preselectedType,
-        onAdd: (type) {
-          notifier.addManualField(
-            type: type,
-            pageIndex: pageIndex,
-            bbox: defaultBbox,
-          );
-          Navigator.pop(ctx);
-        },
+        onUpdateLabel: (l) => notifier.updateLabel(index(), l),
+        onToggleRequired: (v) => notifier.setRequired(index(), v),
       ),
     );
   }
 }
 
-// ── Page overlay editor ───────────────────────────────────────────────────────
-
-class _PageOverlayEditor extends StatefulWidget {
-  const _PageOverlayEditor({
-    required this.imagePath,
-    required this.fields,
-    required this.onFieldTap,
-    required this.onAddField,
-    required this.onFieldMoved,
-  });
-
-  final String imagePath;
-  final List<MapEntry<int, EditableField>> fields;
-  final ValueChanged<int> onFieldTap;
-  final ValueChanged<BoundingBox> onAddField;
-  final void Function(int index, BoundingBox bbox) onFieldMoved;
-
-  @override
-  State<_PageOverlayEditor> createState() => _PageOverlayEditorState();
-}
-
-class _PageOverlayEditorState extends State<_PageOverlayEditor> {
-  static const _fieldColors = {
-    FieldType.text: Color(0xFF1565C0),
-    FieldType.date: Color(0xFF6A1B9A),
-    FieldType.checkbox: Color(0xFF2E7D32),
-    FieldType.signature: Color(0xFFBF360C),
-  };
-
-  static const double _minW = 40;
-  static const double _minH = 24;
-  static const double _handleSize = 18;
-
-  // Live drag/resize deltas keyed by field index (pixels), cleared on end.
-  final Map<int, Offset> _dragPx = {};
-  final Map<int, Offset> _resizePx = {};
+/// Icon (and the field's name, when it has one and there's room) in the
+/// field's top-left corner, sized to the field so small fields stay clean.
+class _TypeBadge extends StatelessWidget {
+  const _TypeBadge({required this.type, required this.label});
+  final FieldType type;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final isPdf = widget.imagePath.contains('#page=');
-
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final cw = constraints.maxWidth;
-        final ch = constraints.maxHeight;
-        final valid = cw.isFinite && ch.isFinite && cw >= _minW && ch >= _minH;
-
-        return GestureDetector(
-          onTapUp: (details) {
-            if (!valid) return;
-            // Tap on blank area → add field
-            final rel = details.localPosition;
-            final bbox = BoundingBox(
-              x: (rel.dx / cw).clamp(0.0, 0.9),
-              y: (rel.dy / ch).clamp(0.0, 0.9),
-              w: 0.3,
-              h: 0.05,
-            );
-            widget.onAddField(bbox);
-          },
-          child: Stack(
-            fit: StackFit.expand,
+      builder: (context, c) {
+        final size = (c.maxHeight * 0.6).clamp(8.0, 14.0).toDouble();
+        final color = colorFor(type);
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: Row(
             children: [
-              _buildBackground(isPdf),
-
-              // Field overlays
-              if (valid)
-                ...widget.fields.map((entry) {
-                  final idx = entry.key;
-                  final field = entry.value;
-                  final color = _fieldColors[field.type] ?? Colors.blue;
-
-                  final drag = _dragPx[idx] ?? Offset.zero;
-                  final resize = _resizePx[idx] ?? Offset.zero;
-
-                  final left = (field.bbox.x * cw + drag.dx).clamp(0.0, cw - _minW);
-                  final top = (field.bbox.y * ch + drag.dy).clamp(0.0, ch - _minH);
-                  final w =
-                      (field.bbox.w * cw + resize.dx).clamp(_minW, cw - left);
-                  final h =
-                      (field.bbox.h * ch + resize.dy).clamp(_minH, ch - top);
-
-                  return Positioned(
-                    left: left,
-                    top: top,
-                    width: w,
-                    height: h,
-                    child: _buildField(
-                      idx: idx,
-                      field: field,
+              Icon(iconFor(type), size: size, color: color),
+              if (label.isNotEmpty && c.maxWidth > 60) ...[
+                const SizedBox(width: 3),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: size * 0.85,
                       color: color,
-                      left: left,
-                      top: top,
-                      w: w,
-                      h: h,
-                      cw: cw,
-                      ch: ch,
+                      fontWeight: FontWeight.w600,
                     ),
-                  );
-                }),
+                  ),
+                ),
+              ],
             ],
           ),
         );
       },
     );
   }
+}
 
-  Widget _buildField({
-    required int idx,
-    required EditableField field,
-    required Color color,
-    required double left,
-    required double top,
-    required double w,
-    required double h,
-    required double cw,
-    required double ch,
-  }) {
-    void persist() {
-      widget.onFieldMoved(
-        idx,
-        BoundingBox(
-          x: (left / cw).clamp(0.0, 1.0),
-          y: (top / ch).clamp(0.0, 1.0),
-          w: (w / cw).clamp(0.001, 1.0),
-          h: (h / ch).clamp(0.001, 1.0),
-        ),
-      );
-      setState(() {
-        _dragPx.remove(idx);
-        _resizePx.remove(idx);
-      });
-    }
+// ── Add-field toolbar ─────────────────────────────────────────────────────────
 
-    return GestureDetector(
-      onTap: () => widget.onFieldTap(idx),
-      onPanUpdate: (d) => setState(() {
-        _dragPx[idx] = (_dragPx[idx] ?? Offset.zero) + d.delta;
-      }),
-      onPanEnd: (_) => persist(),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.18),
-                border: Border.all(
-                  color: color,
-                  width: field.confirmed ? 2 : 1.5,
-                  strokeAlign: BorderSide.strokeAlignOutside,
-                ),
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                  color: color,
-                  child: Text(
-                    _typeLabel(context, field.type),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
+class _AddFieldToolbar extends StatelessWidget {
+  const _AddFieldToolbar({required this.onAdd});
+  final ValueChanged<FieldType> onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Row(
+          children: [
+            for (final type in FieldType.values)
+              Expanded(
+                child: Tooltip(
+                  message: fieldTypeName(context, type),
+                  child: InkWell(
+                    onTap: () => onAdd(type),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(iconFor(type), size: 24, color: colorFor(type)),
+                          const SizedBox(height: 3),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              fieldTypeShortName(context, type),
+                              maxLines: 1,
+                              style: Theme.of(context).textTheme.labelSmall,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-          // Resize handle — bottom-right corner
-          Positioned(
-            right: -_handleSize / 2,
-            bottom: -_handleSize / 2,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {}, // absorb so it doesn't trigger field tap
-              onPanUpdate: (d) => setState(() {
-                _resizePx[idx] = (_resizePx[idx] ?? Offset.zero) + d.delta;
-              }),
-              onPanEnd: (_) => persist(),
-              child: Container(
-                width: _handleSize,
-                height: _handleSize,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-                child: const Icon(Icons.open_in_full,
-                    color: Colors.white, size: 10),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
-  Widget _buildBackground(bool isPdf) {
-    if (isPdf) {
-      final parts = widget.imagePath.split('#page=');
-      final pdfFile = File(parts[0]);
-      final pageNum = (int.tryParse(parts[1]) ?? 0) + 1;
-      if (!pdfFile.existsSync()) {
-        return Container(
-          color: Colors.grey.shade100,
-          child: const Center(
-              child: Icon(Icons.picture_as_pdf_outlined,
-                  size: 64, color: Colors.grey)),
-        );
-      }
-      return IgnorePointer(
-        child: SfPdfViewer.file(
-          pdfFile,
-          // Same fix as fill_mode_screen.dart's _PageBackground: without a
-          // key tied to the page, SfPdfViewer's State survives the rebuild
-          // and ignores the new initialPageNumber, so the page picker looked
-          // like it did nothing.
-          key: ValueKey(widget.imagePath),
-          initialPageNumber: pageNum,
-          canShowScrollHead: false,
-          canShowScrollStatus: false,
-          enableDoubleTapZooming: false,
-          pageLayoutMode: PdfPageLayoutMode.single,
-        ),
-      );
-    }
-    final file = File(widget.imagePath);
-    if (!file.existsSync()) {
-      return Container(
-        color: Colors.grey.shade100,
-        child: const Center(
-            child: Icon(Icons.broken_image_outlined,
-                size: 64, color: Colors.grey)),
-      );
-    }
-    return Image.file(file, fit: BoxFit.contain);
-  }
-
-  String _typeLabel(BuildContext context, FieldType t) => switch (t) {
-        FieldType.text => context.l10n.detectBadgeText,
-        FieldType.date => context.l10n.detectBadgeDate,
-        FieldType.checkbox => context.l10n.detectBadgeCheck,
-        FieldType.signature => context.l10n.detectBadgeSign,
-      };
 }
 
 // ── Bottom sheets ─────────────────────────────────────────────────────────────
@@ -692,17 +645,26 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+        16,
+        16,
+        16,
+        MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(context.l10n.detectEditField,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.detectEditField,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 12),
 
           // Type selector
-          Text(context.l10n.detectFieldType, style: Theme.of(context).textTheme.labelLarge),
+          Text(
+            context.l10n.detectFieldType,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
@@ -747,8 +709,8 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
                 icon: const Icon(Icons.delete_outline),
                 label: Text(context.l10n.actionRemove),
                 style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        Theme.of(context).colorScheme.error),
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
               ),
               const Spacer(),
               FilledButton.icon(
@@ -763,148 +725,8 @@ class _FieldEditSheetState extends State<_FieldEditSheet> {
     );
   }
 
-  String _typeLabel(BuildContext context, FieldType t) => switch (t) {
-        FieldType.text => context.l10n.fieldTypeText,
-        FieldType.date => context.l10n.fieldTypeDate,
-        FieldType.checkbox => context.l10n.fieldTypeCheckbox,
-        FieldType.signature => context.l10n.fieldTypeSignature,
-      };
-}
-
-class _AddFieldSheet extends StatefulWidget {
-  const _AddFieldSheet({
-    required this.onAdd,
-    this.preselectedType,
-  });
-  final ValueChanged<FieldType> onAdd;
-  final FieldType? preselectedType;
-
-  @override
-  State<_AddFieldSheet> createState() => _AddFieldSheetState();
-}
-
-class _AddFieldSheetState extends State<_AddFieldSheet> {
-  late FieldType _selected;
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = widget.preselectedType ?? FieldType.text;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(context.l10n.detectAddField,
-              style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            children: FieldType.values.map((t) {
-              return ChoiceChip(
-                label: Text(_typeLabel(context, t)),
-                selected: _selected == t,
-                onSelected: (_) => setState(() => _selected = t),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () => widget.onAdd(_selected),
-              icon: const Icon(Icons.add),
-              label: Text(context.l10n
-                  .detectAddTypedField(_typeLabel(context, _selected))),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _typeLabel(BuildContext context, FieldType t) => switch (t) {
-        FieldType.text => context.l10n.fieldTypeText,
-        FieldType.date => context.l10n.fieldTypeDate,
-        FieldType.checkbox => context.l10n.fieldTypeCheckbox,
-        FieldType.signature => context.l10n.fieldTypeSignature,
-      };
-}
-
-// ── Manual add toolbar ────────────────────────────────────────────────────────
-
-class _ManualAddToolbar extends StatelessWidget {
-  const _ManualAddToolbar({required this.onAdd});
-  final ValueChanged<FieldType> onAdd;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        border: Border(
-          top: BorderSide(color: Theme.of(context).dividerColor),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _ToolbarBtn(
-              icon: Icons.text_fields,
-              label: context.l10n.fieldTypeText,
-              onTap: () => onAdd(FieldType.text)),
-          _ToolbarBtn(
-              icon: Icons.check_box_outline_blank,
-              label: context.l10n.fieldTypeCheckShort,
-              onTap: () => onAdd(FieldType.checkbox)),
-          _ToolbarBtn(
-              icon: Icons.calendar_today,
-              label: context.l10n.fieldTypeDate,
-              onTap: () => onAdd(FieldType.date)),
-          _ToolbarBtn(
-              icon: Icons.draw,
-              label: context.l10n.fieldTypeSignShort,
-              onTap: () => onAdd(FieldType.signature)),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToolbarBtn extends StatelessWidget {
-  const _ToolbarBtn({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 22),
-            const SizedBox(height: 2),
-            Text(label, style: Theme.of(context).textTheme.labelSmall),
-          ],
-        ),
-      ),
-    );
-  }
+  String _typeLabel(BuildContext context, FieldType t) =>
+      fieldTypeName(context, t);
 }
 
 // ── Page picker ───────────────────────────────────────────────────────────────

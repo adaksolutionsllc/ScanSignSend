@@ -133,6 +133,17 @@ class $DocumentsTable extends Documents
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _textSizeMeta = const VerificationMeta(
+    'textSize',
+  );
+  @override
+  late final GeneratedColumn<double> textSize = GeneratedColumn<double>(
+    'text_size',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -146,6 +157,7 @@ class $DocumentsTable extends Documents
     pressedPdfPath,
     fillablePdfPath,
     isTemplate,
+    textSize,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -236,6 +248,12 @@ class $DocumentsTable extends Documents
         isTemplate.isAcceptableOrUnknown(data['is_template']!, _isTemplateMeta),
       );
     }
+    if (data.containsKey('text_size')) {
+      context.handle(
+        _textSizeMeta,
+        textSize.isAcceptableOrUnknown(data['text_size']!, _textSizeMeta),
+      );
+    }
     return context;
   }
 
@@ -289,6 +307,10 @@ class $DocumentsTable extends Documents
         DriftSqlType.bool,
         data['${effectivePrefix}is_template'],
       )!,
+      textSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}text_size'],
+      ),
     );
   }
 
@@ -310,6 +332,7 @@ class Document extends DataClass implements Insertable<Document> {
   final String? pressedPdfPath;
   final String? fillablePdfPath;
   final bool isTemplate;
+  final double? textSize;
   const Document({
     required this.id,
     required this.uuid,
@@ -322,6 +345,7 @@ class Document extends DataClass implements Insertable<Document> {
     this.pressedPdfPath,
     this.fillablePdfPath,
     required this.isTemplate,
+    this.textSize,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -341,6 +365,9 @@ class Document extends DataClass implements Insertable<Document> {
       map['fillable_pdf_path'] = Variable<String>(fillablePdfPath);
     }
     map['is_template'] = Variable<bool>(isTemplate);
+    if (!nullToAbsent || textSize != null) {
+      map['text_size'] = Variable<double>(textSize);
+    }
     return map;
   }
 
@@ -361,6 +388,9 @@ class Document extends DataClass implements Insertable<Document> {
           ? const Value.absent()
           : Value(fillablePdfPath),
       isTemplate: Value(isTemplate),
+      textSize: textSize == null && nullToAbsent
+          ? const Value.absent()
+          : Value(textSize),
     );
   }
 
@@ -381,6 +411,7 @@ class Document extends DataClass implements Insertable<Document> {
       pressedPdfPath: serializer.fromJson<String?>(json['pressedPdfPath']),
       fillablePdfPath: serializer.fromJson<String?>(json['fillablePdfPath']),
       isTemplate: serializer.fromJson<bool>(json['isTemplate']),
+      textSize: serializer.fromJson<double?>(json['textSize']),
     );
   }
   @override
@@ -398,6 +429,7 @@ class Document extends DataClass implements Insertable<Document> {
       'pressedPdfPath': serializer.toJson<String?>(pressedPdfPath),
       'fillablePdfPath': serializer.toJson<String?>(fillablePdfPath),
       'isTemplate': serializer.toJson<bool>(isTemplate),
+      'textSize': serializer.toJson<double?>(textSize),
     };
   }
 
@@ -413,6 +445,7 @@ class Document extends DataClass implements Insertable<Document> {
     Value<String?> pressedPdfPath = const Value.absent(),
     Value<String?> fillablePdfPath = const Value.absent(),
     bool? isTemplate,
+    Value<double?> textSize = const Value.absent(),
   }) => Document(
     id: id ?? this.id,
     uuid: uuid ?? this.uuid,
@@ -429,6 +462,7 @@ class Document extends DataClass implements Insertable<Document> {
         ? fillablePdfPath.value
         : this.fillablePdfPath,
     isTemplate: isTemplate ?? this.isTemplate,
+    textSize: textSize.present ? textSize.value : this.textSize,
   );
   Document copyWithCompanion(DocumentsCompanion data) {
     return Document(
@@ -449,6 +483,7 @@ class Document extends DataClass implements Insertable<Document> {
       isTemplate: data.isTemplate.present
           ? data.isTemplate.value
           : this.isTemplate,
+      textSize: data.textSize.present ? data.textSize.value : this.textSize,
     );
   }
 
@@ -465,7 +500,8 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('updatedAt: $updatedAt, ')
           ..write('pressedPdfPath: $pressedPdfPath, ')
           ..write('fillablePdfPath: $fillablePdfPath, ')
-          ..write('isTemplate: $isTemplate')
+          ..write('isTemplate: $isTemplate, ')
+          ..write('textSize: $textSize')
           ..write(')'))
         .toString();
   }
@@ -483,6 +519,7 @@ class Document extends DataClass implements Insertable<Document> {
     pressedPdfPath,
     fillablePdfPath,
     isTemplate,
+    textSize,
   );
   @override
   bool operator ==(Object other) =>
@@ -498,7 +535,8 @@ class Document extends DataClass implements Insertable<Document> {
           other.updatedAt == this.updatedAt &&
           other.pressedPdfPath == this.pressedPdfPath &&
           other.fillablePdfPath == this.fillablePdfPath &&
-          other.isTemplate == this.isTemplate);
+          other.isTemplate == this.isTemplate &&
+          other.textSize == this.textSize);
 }
 
 class DocumentsCompanion extends UpdateCompanion<Document> {
@@ -513,6 +551,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<String?> pressedPdfPath;
   final Value<String?> fillablePdfPath;
   final Value<bool> isTemplate;
+  final Value<double?> textSize;
   const DocumentsCompanion({
     this.id = const Value.absent(),
     this.uuid = const Value.absent(),
@@ -525,6 +564,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.pressedPdfPath = const Value.absent(),
     this.fillablePdfPath = const Value.absent(),
     this.isTemplate = const Value.absent(),
+    this.textSize = const Value.absent(),
   });
   DocumentsCompanion.insert({
     this.id = const Value.absent(),
@@ -538,6 +578,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.pressedPdfPath = const Value.absent(),
     this.fillablePdfPath = const Value.absent(),
     this.isTemplate = const Value.absent(),
+    this.textSize = const Value.absent(),
   }) : uuid = Value(uuid),
        title = Value(title),
        createdAt = Value(createdAt),
@@ -554,6 +595,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Expression<String>? pressedPdfPath,
     Expression<String>? fillablePdfPath,
     Expression<bool>? isTemplate,
+    Expression<double>? textSize,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -567,6 +609,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       if (pressedPdfPath != null) 'pressed_pdf_path': pressedPdfPath,
       if (fillablePdfPath != null) 'fillable_pdf_path': fillablePdfPath,
       if (isTemplate != null) 'is_template': isTemplate,
+      if (textSize != null) 'text_size': textSize,
     });
   }
 
@@ -582,6 +625,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Value<String?>? pressedPdfPath,
     Value<String?>? fillablePdfPath,
     Value<bool>? isTemplate,
+    Value<double?>? textSize,
   }) {
     return DocumentsCompanion(
       id: id ?? this.id,
@@ -595,6 +639,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       pressedPdfPath: pressedPdfPath ?? this.pressedPdfPath,
       fillablePdfPath: fillablePdfPath ?? this.fillablePdfPath,
       isTemplate: isTemplate ?? this.isTemplate,
+      textSize: textSize ?? this.textSize,
     );
   }
 
@@ -634,6 +679,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (isTemplate.present) {
       map['is_template'] = Variable<bool>(isTemplate.value);
     }
+    if (textSize.present) {
+      map['text_size'] = Variable<double>(textSize.value);
+    }
     return map;
   }
 
@@ -650,7 +698,8 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('updatedAt: $updatedAt, ')
           ..write('pressedPdfPath: $pressedPdfPath, ')
           ..write('fillablePdfPath: $fillablePdfPath, ')
-          ..write('isTemplate: $isTemplate')
+          ..write('isTemplate: $isTemplate, ')
+          ..write('textSize: $textSize')
           ..write(')'))
         .toString();
   }
@@ -2433,6 +2482,21 @@ class $UserProfileTable extends UserProfile
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _includeInDeviceBackupMeta =
+      const VerificationMeta('includeInDeviceBackup');
+  @override
+  late final GeneratedColumn<bool> includeInDeviceBackup =
+      GeneratedColumn<bool>(
+        'include_in_device_backup',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("include_in_device_backup" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2448,6 +2512,7 @@ class $UserProfileTable extends UserProfile
     aiEnhancedDetection,
     scanCount,
     isPurchased,
+    includeInDeviceBackup,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2545,6 +2610,15 @@ class $UserProfileTable extends UserProfile
         ),
       );
     }
+    if (data.containsKey('include_in_device_backup')) {
+      context.handle(
+        _includeInDeviceBackupMeta,
+        includeInDeviceBackup.isAcceptableOrUnknown(
+          data['include_in_device_backup']!,
+          _includeInDeviceBackupMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2606,6 +2680,10 @@ class $UserProfileTable extends UserProfile
         DriftSqlType.bool,
         data['${effectivePrefix}is_purchased'],
       )!,
+      includeInDeviceBackup: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}include_in_device_backup'],
+      )!,
     );
   }
 
@@ -2629,6 +2707,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   final bool aiEnhancedDetection;
   final int scanCount;
   final bool isPurchased;
+  final bool includeInDeviceBackup;
   const UserProfileData({
     required this.id,
     required this.fullName,
@@ -2643,6 +2722,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     required this.aiEnhancedDetection,
     required this.scanCount,
     required this.isPurchased,
+    required this.includeInDeviceBackup,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2660,6 +2740,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     map['ai_enhanced_detection'] = Variable<bool>(aiEnhancedDetection);
     map['scan_count'] = Variable<int>(scanCount);
     map['is_purchased'] = Variable<bool>(isPurchased);
+    map['include_in_device_backup'] = Variable<bool>(includeInDeviceBackup);
     return map;
   }
 
@@ -2678,6 +2759,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       aiEnhancedDetection: Value(aiEnhancedDetection),
       scanCount: Value(scanCount),
       isPurchased: Value(isPurchased),
+      includeInDeviceBackup: Value(includeInDeviceBackup),
     );
   }
 
@@ -2704,6 +2786,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       ),
       scanCount: serializer.fromJson<int>(json['scanCount']),
       isPurchased: serializer.fromJson<bool>(json['isPurchased']),
+      includeInDeviceBackup: serializer.fromJson<bool>(
+        json['includeInDeviceBackup'],
+      ),
     );
   }
   @override
@@ -2723,6 +2808,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       'aiEnhancedDetection': serializer.toJson<bool>(aiEnhancedDetection),
       'scanCount': serializer.toJson<int>(scanCount),
       'isPurchased': serializer.toJson<bool>(isPurchased),
+      'includeInDeviceBackup': serializer.toJson<bool>(includeInDeviceBackup),
     };
   }
 
@@ -2740,6 +2826,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     bool? aiEnhancedDetection,
     int? scanCount,
     bool? isPurchased,
+    bool? includeInDeviceBackup,
   }) => UserProfileData(
     id: id ?? this.id,
     fullName: fullName ?? this.fullName,
@@ -2754,6 +2841,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     aiEnhancedDetection: aiEnhancedDetection ?? this.aiEnhancedDetection,
     scanCount: scanCount ?? this.scanCount,
     isPurchased: isPurchased ?? this.isPurchased,
+    includeInDeviceBackup: includeInDeviceBackup ?? this.includeInDeviceBackup,
   );
   UserProfileData copyWithCompanion(UserProfileCompanion data) {
     return UserProfileData(
@@ -2776,6 +2864,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       isPurchased: data.isPurchased.present
           ? data.isPurchased.value
           : this.isPurchased,
+      includeInDeviceBackup: data.includeInDeviceBackup.present
+          ? data.includeInDeviceBackup.value
+          : this.includeInDeviceBackup,
     );
   }
 
@@ -2794,7 +2885,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           ..write('biometricLockEnabled: $biometricLockEnabled, ')
           ..write('aiEnhancedDetection: $aiEnhancedDetection, ')
           ..write('scanCount: $scanCount, ')
-          ..write('isPurchased: $isPurchased')
+          ..write('isPurchased: $isPurchased, ')
+          ..write('includeInDeviceBackup: $includeInDeviceBackup')
           ..write(')'))
         .toString();
   }
@@ -2814,6 +2906,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     aiEnhancedDetection,
     scanCount,
     isPurchased,
+    includeInDeviceBackup,
   );
   @override
   bool operator ==(Object other) =>
@@ -2831,7 +2924,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           other.biometricLockEnabled == this.biometricLockEnabled &&
           other.aiEnhancedDetection == this.aiEnhancedDetection &&
           other.scanCount == this.scanCount &&
-          other.isPurchased == this.isPurchased);
+          other.isPurchased == this.isPurchased &&
+          other.includeInDeviceBackup == this.includeInDeviceBackup);
 }
 
 class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
@@ -2848,6 +2942,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
   final Value<bool> aiEnhancedDetection;
   final Value<int> scanCount;
   final Value<bool> isPurchased;
+  final Value<bool> includeInDeviceBackup;
   const UserProfileCompanion({
     this.id = const Value.absent(),
     this.fullName = const Value.absent(),
@@ -2862,6 +2957,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     this.aiEnhancedDetection = const Value.absent(),
     this.scanCount = const Value.absent(),
     this.isPurchased = const Value.absent(),
+    this.includeInDeviceBackup = const Value.absent(),
   });
   UserProfileCompanion.insert({
     this.id = const Value.absent(),
@@ -2877,6 +2973,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     this.aiEnhancedDetection = const Value.absent(),
     this.scanCount = const Value.absent(),
     this.isPurchased = const Value.absent(),
+    this.includeInDeviceBackup = const Value.absent(),
   });
   static Insertable<UserProfileData> custom({
     Expression<int>? id,
@@ -2892,6 +2989,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Expression<bool>? aiEnhancedDetection,
     Expression<int>? scanCount,
     Expression<bool>? isPurchased,
+    Expression<bool>? includeInDeviceBackup,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2909,6 +3007,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
         'ai_enhanced_detection': aiEnhancedDetection,
       if (scanCount != null) 'scan_count': scanCount,
       if (isPurchased != null) 'is_purchased': isPurchased,
+      if (includeInDeviceBackup != null)
+        'include_in_device_backup': includeInDeviceBackup,
     });
   }
 
@@ -2926,6 +3026,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Value<bool>? aiEnhancedDetection,
     Value<int>? scanCount,
     Value<bool>? isPurchased,
+    Value<bool>? includeInDeviceBackup,
   }) {
     return UserProfileCompanion(
       id: id ?? this.id,
@@ -2941,6 +3042,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       aiEnhancedDetection: aiEnhancedDetection ?? this.aiEnhancedDetection,
       scanCount: scanCount ?? this.scanCount,
       isPurchased: isPurchased ?? this.isPurchased,
+      includeInDeviceBackup:
+          includeInDeviceBackup ?? this.includeInDeviceBackup,
     );
   }
 
@@ -2988,6 +3091,11 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     if (isPurchased.present) {
       map['is_purchased'] = Variable<bool>(isPurchased.value);
     }
+    if (includeInDeviceBackup.present) {
+      map['include_in_device_backup'] = Variable<bool>(
+        includeInDeviceBackup.value,
+      );
+    }
     return map;
   }
 
@@ -3006,7 +3114,404 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
           ..write('biometricLockEnabled: $biometricLockEnabled, ')
           ..write('aiEnhancedDetection: $aiEnhancedDetection, ')
           ..write('scanCount: $scanCount, ')
-          ..write('isPurchased: $isPurchased')
+          ..write('isPurchased: $isPurchased, ')
+          ..write('includeInDeviceBackup: $includeInDeviceBackup')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FieldHintsTable extends FieldHints
+    with TableInfo<$FieldHintsTable, FieldHint> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldHintsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _phraseMeta = const VerificationMeta('phrase');
+  @override
+  late final GeneratedColumn<String> phrase = GeneratedColumn<String>(
+    'phrase',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _acceptedMeta = const VerificationMeta(
+    'accepted',
+  );
+  @override
+  late final GeneratedColumn<int> accepted = GeneratedColumn<int>(
+    'accepted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _rejectedMeta = const VerificationMeta(
+    'rejected',
+  );
+  @override
+  late final GeneratedColumn<int> rejected = GeneratedColumn<int>(
+    'rejected',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    phrase,
+    type,
+    accepted,
+    rejected,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_hints';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldHint> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('phrase')) {
+      context.handle(
+        _phraseMeta,
+        phrase.isAcceptableOrUnknown(data['phrase']!, _phraseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_phraseMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('accepted')) {
+      context.handle(
+        _acceptedMeta,
+        accepted.isAcceptableOrUnknown(data['accepted']!, _acceptedMeta),
+      );
+    }
+    if (data.containsKey('rejected')) {
+      context.handle(
+        _rejectedMeta,
+        rejected.isAcceptableOrUnknown(data['rejected']!, _rejectedMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {phrase, type},
+  ];
+  @override
+  FieldHint map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldHint(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      phrase: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phrase'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      accepted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}accepted'],
+      )!,
+      rejected: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rejected'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FieldHintsTable createAlias(String alias) {
+    return $FieldHintsTable(attachedDatabase, alias);
+  }
+}
+
+class FieldHint extends DataClass implements Insertable<FieldHint> {
+  final int id;
+  final String phrase;
+  final String type;
+  final int accepted;
+  final int rejected;
+  final DateTime updatedAt;
+  const FieldHint({
+    required this.id,
+    required this.phrase,
+    required this.type,
+    required this.accepted,
+    required this.rejected,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['phrase'] = Variable<String>(phrase);
+    map['type'] = Variable<String>(type);
+    map['accepted'] = Variable<int>(accepted);
+    map['rejected'] = Variable<int>(rejected);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  FieldHintsCompanion toCompanion(bool nullToAbsent) {
+    return FieldHintsCompanion(
+      id: Value(id),
+      phrase: Value(phrase),
+      type: Value(type),
+      accepted: Value(accepted),
+      rejected: Value(rejected),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FieldHint.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldHint(
+      id: serializer.fromJson<int>(json['id']),
+      phrase: serializer.fromJson<String>(json['phrase']),
+      type: serializer.fromJson<String>(json['type']),
+      accepted: serializer.fromJson<int>(json['accepted']),
+      rejected: serializer.fromJson<int>(json['rejected']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'phrase': serializer.toJson<String>(phrase),
+      'type': serializer.toJson<String>(type),
+      'accepted': serializer.toJson<int>(accepted),
+      'rejected': serializer.toJson<int>(rejected),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  FieldHint copyWith({
+    int? id,
+    String? phrase,
+    String? type,
+    int? accepted,
+    int? rejected,
+    DateTime? updatedAt,
+  }) => FieldHint(
+    id: id ?? this.id,
+    phrase: phrase ?? this.phrase,
+    type: type ?? this.type,
+    accepted: accepted ?? this.accepted,
+    rejected: rejected ?? this.rejected,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FieldHint copyWithCompanion(FieldHintsCompanion data) {
+    return FieldHint(
+      id: data.id.present ? data.id.value : this.id,
+      phrase: data.phrase.present ? data.phrase.value : this.phrase,
+      type: data.type.present ? data.type.value : this.type,
+      accepted: data.accepted.present ? data.accepted.value : this.accepted,
+      rejected: data.rejected.present ? data.rejected.value : this.rejected,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldHint(')
+          ..write('id: $id, ')
+          ..write('phrase: $phrase, ')
+          ..write('type: $type, ')
+          ..write('accepted: $accepted, ')
+          ..write('rejected: $rejected, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, phrase, type, accepted, rejected, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldHint &&
+          other.id == this.id &&
+          other.phrase == this.phrase &&
+          other.type == this.type &&
+          other.accepted == this.accepted &&
+          other.rejected == this.rejected &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FieldHintsCompanion extends UpdateCompanion<FieldHint> {
+  final Value<int> id;
+  final Value<String> phrase;
+  final Value<String> type;
+  final Value<int> accepted;
+  final Value<int> rejected;
+  final Value<DateTime> updatedAt;
+  const FieldHintsCompanion({
+    this.id = const Value.absent(),
+    this.phrase = const Value.absent(),
+    this.type = const Value.absent(),
+    this.accepted = const Value.absent(),
+    this.rejected = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  FieldHintsCompanion.insert({
+    this.id = const Value.absent(),
+    required String phrase,
+    required String type,
+    this.accepted = const Value.absent(),
+    this.rejected = const Value.absent(),
+    required DateTime updatedAt,
+  }) : phrase = Value(phrase),
+       type = Value(type),
+       updatedAt = Value(updatedAt);
+  static Insertable<FieldHint> custom({
+    Expression<int>? id,
+    Expression<String>? phrase,
+    Expression<String>? type,
+    Expression<int>? accepted,
+    Expression<int>? rejected,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (phrase != null) 'phrase': phrase,
+      if (type != null) 'type': type,
+      if (accepted != null) 'accepted': accepted,
+      if (rejected != null) 'rejected': rejected,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  FieldHintsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? phrase,
+    Value<String>? type,
+    Value<int>? accepted,
+    Value<int>? rejected,
+    Value<DateTime>? updatedAt,
+  }) {
+    return FieldHintsCompanion(
+      id: id ?? this.id,
+      phrase: phrase ?? this.phrase,
+      type: type ?? this.type,
+      accepted: accepted ?? this.accepted,
+      rejected: rejected ?? this.rejected,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (phrase.present) {
+      map['phrase'] = Variable<String>(phrase.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (accepted.present) {
+      map['accepted'] = Variable<int>(accepted.value);
+    }
+    if (rejected.present) {
+      map['rejected'] = Variable<int>(rejected.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldHintsCompanion(')
+          ..write('id: $id, ')
+          ..write('phrase: $phrase, ')
+          ..write('type: $type, ')
+          ..write('accepted: $accepted, ')
+          ..write('rejected: $rejected, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -3020,6 +3525,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FieldsTable fields = $FieldsTable(this);
   late final $SignaturesTable signatures = $SignaturesTable(this);
   late final $UserProfileTable userProfile = $UserProfileTable(this);
+  late final $FieldHintsTable fieldHints = $FieldHintsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3030,6 +3536,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     fields,
     signatures,
     userProfile,
+    fieldHints,
   ];
 }
 
@@ -3046,6 +3553,7 @@ typedef $$DocumentsTableCreateCompanionBuilder =
       Value<String?> pressedPdfPath,
       Value<String?> fillablePdfPath,
       Value<bool> isTemplate,
+      Value<double?> textSize,
     });
 typedef $$DocumentsTableUpdateCompanionBuilder =
     DocumentsCompanion Function({
@@ -3060,6 +3568,7 @@ typedef $$DocumentsTableUpdateCompanionBuilder =
       Value<String?> pressedPdfPath,
       Value<String?> fillablePdfPath,
       Value<bool> isTemplate,
+      Value<double?> textSize,
     });
 
 final class $$DocumentsTableReferences
@@ -3166,6 +3675,11 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<bool> get isTemplate => $composableBuilder(
     column: $table.isTemplate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get textSize => $composableBuilder(
+    column: $table.textSize,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3283,6 +3797,11 @@ class $$DocumentsTableOrderingComposer
     column: $table.isTemplate,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get textSize => $composableBuilder(
+    column: $table.textSize,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -3332,6 +3851,9 @@ class $$DocumentsTableAnnotationComposer
     column: $table.isTemplate,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get textSize =>
+      $composableBuilder(column: $table.textSize, builder: (column) => column);
 
   Expression<T> pagesRefs<T extends Object>(
     Expression<T> Function($$PagesTableAnnotationComposer a) f,
@@ -3423,6 +3945,7 @@ class $$DocumentsTableTableManager
                 Value<String?> pressedPdfPath = const Value.absent(),
                 Value<String?> fillablePdfPath = const Value.absent(),
                 Value<bool> isTemplate = const Value.absent(),
+                Value<double?> textSize = const Value.absent(),
               }) => DocumentsCompanion(
                 id: id,
                 uuid: uuid,
@@ -3435,6 +3958,7 @@ class $$DocumentsTableTableManager
                 pressedPdfPath: pressedPdfPath,
                 fillablePdfPath: fillablePdfPath,
                 isTemplate: isTemplate,
+                textSize: textSize,
               ),
           createCompanionCallback:
               ({
@@ -3449,6 +3973,7 @@ class $$DocumentsTableTableManager
                 Value<String?> pressedPdfPath = const Value.absent(),
                 Value<String?> fillablePdfPath = const Value.absent(),
                 Value<bool> isTemplate = const Value.absent(),
+                Value<double?> textSize = const Value.absent(),
               }) => DocumentsCompanion.insert(
                 id: id,
                 uuid: uuid,
@@ -3461,6 +3986,7 @@ class $$DocumentsTableTableManager
                 pressedPdfPath: pressedPdfPath,
                 fillablePdfPath: fillablePdfPath,
                 isTemplate: isTemplate,
+                textSize: textSize,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4572,6 +5098,7 @@ typedef $$UserProfileTableCreateCompanionBuilder =
       Value<bool> aiEnhancedDetection,
       Value<int> scanCount,
       Value<bool> isPurchased,
+      Value<bool> includeInDeviceBackup,
     });
 typedef $$UserProfileTableUpdateCompanionBuilder =
     UserProfileCompanion Function({
@@ -4588,6 +5115,7 @@ typedef $$UserProfileTableUpdateCompanionBuilder =
       Value<bool> aiEnhancedDetection,
       Value<int> scanCount,
       Value<bool> isPurchased,
+      Value<bool> includeInDeviceBackup,
     });
 
 class $$UserProfileTableFilterComposer
@@ -4661,6 +5189,11 @@ class $$UserProfileTableFilterComposer
 
   ColumnFilters<bool> get isPurchased => $composableBuilder(
     column: $table.isPurchased,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get includeInDeviceBackup => $composableBuilder(
+    column: $table.includeInDeviceBackup,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -4738,6 +5271,11 @@ class $$UserProfileTableOrderingComposer
     column: $table.isPurchased,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get includeInDeviceBackup => $composableBuilder(
+    column: $table.includeInDeviceBackup,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserProfileTableAnnotationComposer
@@ -4793,6 +5331,11 @@ class $$UserProfileTableAnnotationComposer
     column: $table.isPurchased,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get includeInDeviceBackup => $composableBuilder(
+    column: $table.includeInDeviceBackup,
+    builder: (column) => column,
+  );
 }
 
 class $$UserProfileTableTableManager
@@ -4839,6 +5382,7 @@ class $$UserProfileTableTableManager
                 Value<bool> aiEnhancedDetection = const Value.absent(),
                 Value<int> scanCount = const Value.absent(),
                 Value<bool> isPurchased = const Value.absent(),
+                Value<bool> includeInDeviceBackup = const Value.absent(),
               }) => UserProfileCompanion(
                 id: id,
                 fullName: fullName,
@@ -4853,6 +5397,7 @@ class $$UserProfileTableTableManager
                 aiEnhancedDetection: aiEnhancedDetection,
                 scanCount: scanCount,
                 isPurchased: isPurchased,
+                includeInDeviceBackup: includeInDeviceBackup,
               ),
           createCompanionCallback:
               ({
@@ -4869,6 +5414,7 @@ class $$UserProfileTableTableManager
                 Value<bool> aiEnhancedDetection = const Value.absent(),
                 Value<int> scanCount = const Value.absent(),
                 Value<bool> isPurchased = const Value.absent(),
+                Value<bool> includeInDeviceBackup = const Value.absent(),
               }) => UserProfileCompanion.insert(
                 id: id,
                 fullName: fullName,
@@ -4883,6 +5429,7 @@ class $$UserProfileTableTableManager
                 aiEnhancedDetection: aiEnhancedDetection,
                 scanCount: scanCount,
                 isPurchased: isPurchased,
+                includeInDeviceBackup: includeInDeviceBackup,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -4909,6 +5456,216 @@ typedef $$UserProfileTableProcessedTableManager =
       UserProfileData,
       PrefetchHooks Function()
     >;
+typedef $$FieldHintsTableCreateCompanionBuilder =
+    FieldHintsCompanion Function({
+      Value<int> id,
+      required String phrase,
+      required String type,
+      Value<int> accepted,
+      Value<int> rejected,
+      required DateTime updatedAt,
+    });
+typedef $$FieldHintsTableUpdateCompanionBuilder =
+    FieldHintsCompanion Function({
+      Value<int> id,
+      Value<String> phrase,
+      Value<String> type,
+      Value<int> accepted,
+      Value<int> rejected,
+      Value<DateTime> updatedAt,
+    });
+
+class $$FieldHintsTableFilterComposer
+    extends Composer<_$AppDatabase, $FieldHintsTable> {
+  $$FieldHintsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phrase => $composableBuilder(
+    column: $table.phrase,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accepted => $composableBuilder(
+    column: $table.accepted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rejected => $composableBuilder(
+    column: $table.rejected,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FieldHintsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FieldHintsTable> {
+  $$FieldHintsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phrase => $composableBuilder(
+    column: $table.phrase,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accepted => $composableBuilder(
+    column: $table.accepted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rejected => $composableBuilder(
+    column: $table.rejected,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FieldHintsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FieldHintsTable> {
+  $$FieldHintsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get phrase =>
+      $composableBuilder(column: $table.phrase, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get accepted =>
+      $composableBuilder(column: $table.accepted, builder: (column) => column);
+
+  GeneratedColumn<int> get rejected =>
+      $composableBuilder(column: $table.rejected, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FieldHintsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FieldHintsTable,
+          FieldHint,
+          $$FieldHintsTableFilterComposer,
+          $$FieldHintsTableOrderingComposer,
+          $$FieldHintsTableAnnotationComposer,
+          $$FieldHintsTableCreateCompanionBuilder,
+          $$FieldHintsTableUpdateCompanionBuilder,
+          (
+            FieldHint,
+            BaseReferences<_$AppDatabase, $FieldHintsTable, FieldHint>,
+          ),
+          FieldHint,
+          PrefetchHooks Function()
+        > {
+  $$FieldHintsTableTableManager(_$AppDatabase db, $FieldHintsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldHintsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FieldHintsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FieldHintsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> phrase = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<int> accepted = const Value.absent(),
+                Value<int> rejected = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => FieldHintsCompanion(
+                id: id,
+                phrase: phrase,
+                type: type,
+                accepted: accepted,
+                rejected: rejected,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String phrase,
+                required String type,
+                Value<int> accepted = const Value.absent(),
+                Value<int> rejected = const Value.absent(),
+                required DateTime updatedAt,
+              }) => FieldHintsCompanion.insert(
+                id: id,
+                phrase: phrase,
+                type: type,
+                accepted: accepted,
+                rejected: rejected,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FieldHintsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FieldHintsTable,
+      FieldHint,
+      $$FieldHintsTableFilterComposer,
+      $$FieldHintsTableOrderingComposer,
+      $$FieldHintsTableAnnotationComposer,
+      $$FieldHintsTableCreateCompanionBuilder,
+      $$FieldHintsTableUpdateCompanionBuilder,
+      (FieldHint, BaseReferences<_$AppDatabase, $FieldHintsTable, FieldHint>),
+      FieldHint,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4923,4 +5680,6 @@ class $AppDatabaseManager {
       $$SignaturesTableTableManager(_db, _db.signatures);
   $$UserProfileTableTableManager get userProfile =>
       $$UserProfileTableTableManager(_db, _db.userProfile);
+  $$FieldHintsTableTableManager get fieldHints =>
+      $$FieldHintsTableTableManager(_db, _db.fieldHints);
 }

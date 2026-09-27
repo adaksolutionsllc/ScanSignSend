@@ -7,9 +7,11 @@ import 'package:intl/intl.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/models/document_model.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/profile_repository.dart';
 import '../../../core/services/template_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/paywall_screen.dart';
 import '../../../shared/widgets/text_edit_dialog.dart';
 import '../../../core/utils/l10n_ext.dart';
 
@@ -41,7 +43,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     super.dispose();
   }
 
+  /// Streams are cached per (tab, query): creating fresh ones on every
+  /// rebuild re-subscribed all four tabs whenever a tab was tapped or a key
+  /// typed, and each flashed a loading spinner.
+  final _streams = <(_LibraryTab, String), Stream<List<Document>>>{};
+
   Stream<List<Document>> _stream(_LibraryTab tab) {
+    if (_streams.length > 32) _streams.clear();
+    return _streams[(tab, _query)] ??= _createStream(tab);
+  }
+
+  Stream<List<Document>> _createStream(_LibraryTab tab) {
     final repo = ref.read(documentRepositoryProvider);
     final base = _query.isEmpty ? repo.watchAll() : repo.watchByQuery(_query);
     if (tab == _LibraryTab.all) return base;
@@ -51,7 +63,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       _LibraryTab.template => 'template',
       _LibraryTab.all => 'all',
     };
-    return base.map((docs) => docs.where((d) => d.status == statusStr).toList());
+    return base.map(
+      (docs) => docs.where((d) => d.status == statusStr).toList(),
+    );
   }
 
   @override
@@ -139,17 +153,22 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          FloatingActionButton.small(
+          // Both labelled, same size, and each starts its action directly.
+          FloatingActionButton.extended(
             heroTag: 'import',
-            onPressed: () => context.push(AppRoutes.capture),
+            onPressed: () => context.push('${AppRoutes.capture}?action=import'),
             tooltip: context.l10n.libraryImportTooltip,
-            child: const Icon(Icons.upload_file),
+            icon: const Icon(Icons.upload_file),
+            label: Text(context.l10n.libraryImport),
+            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+            foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
           ),
           const SizedBox(height: 12),
           FloatingActionButton.extended(
             heroTag: 'scan',
-            onPressed: () => context.push(AppRoutes.capture),
+            onPressed: () => context.push('${AppRoutes.capture}?action=scan'),
             icon: const Icon(Icons.document_scanner),
             label: Text(context.l10n.libraryNewScan),
           ),
@@ -166,12 +185,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         content: Text(context.l10n.libraryDeleteBody(doc.title)),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(context.l10n.actionCancel)),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(context.l10n.actionCancel),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(ctx).colorScheme.error),
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
             child: Text(context.l10n.actionDelete),
           ),
         ],
@@ -183,6 +204,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   }
 
   Future<void> _useTemplate(Document doc) async {
+    // A template use starts a new document, so it's gated like a new scan.
+    if (!await ref.read(profileRepositoryProvider).canScan()) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => const PaywallScreen(),
+        ),
+      );
+      return;
+    }
     try {
       final newId = await ref.read(templateServiceProvider).useTemplate(doc.id);
       if (mounted) {
@@ -191,8 +223,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(context.l10n.libraryUseTemplateFailed('$e'))),
+          SnackBar(content: Text(context.l10n.libraryUseTemplateFailed('$e'))),
         );
       }
     }
@@ -208,7 +239,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       ),
     );
     if (result != null && result.trim().isNotEmpty) {
-      await ref.read(documentRepositoryProvider).updateDocument(
+      await ref
+          .read(documentRepositoryProvider)
+          .updateDocument(
             DocumentsCompanion(
               id: Value(doc.id),
               title: Value(result.trim()),
@@ -237,11 +270,11 @@ class _DocumentCard extends StatelessWidget {
   final VoidCallback? onUseTemplate;
 
   static Color _statusColor(DocumentStatus s) => switch (s) {
-        DocumentStatus.pressed => AppTheme.statusPressed,
-        DocumentStatus.fillable => AppTheme.statusFillable,
-        DocumentStatus.template => AppTheme.statusTemplate,
-        DocumentStatus.draft => AppTheme.statusDraft,
-      };
+    DocumentStatus.pressed => AppTheme.statusPressed,
+    DocumentStatus.fillable => AppTheme.statusFillable,
+    DocumentStatus.template => AppTheme.statusTemplate,
+    DocumentStatus.draft => AppTheme.statusDraft,
+  };
 
   static String _statusLabel(BuildContext context, DocumentStatus s) =>
       switch (s) {
@@ -252,11 +285,11 @@ class _DocumentCard extends StatelessWidget {
       };
 
   static IconData _statusIcon(DocumentStatus s) => switch (s) {
-        DocumentStatus.pressed => Icons.lock,
-        DocumentStatus.fillable => Icons.edit_document,
-        DocumentStatus.template => Icons.layers,
-        DocumentStatus.draft => Icons.edit,
-      };
+    DocumentStatus.pressed => Icons.lock,
+    DocumentStatus.fillable => Icons.edit_document,
+    DocumentStatus.template => Icons.layers,
+    DocumentStatus.draft => Icons.edit,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -264,8 +297,10 @@ class _DocumentCard extends StatelessWidget {
     // Pattern and locale both come from the active translation so dates read
     // naturally (e.g. "3 déc. 2026", not "Dec 3, 2026") in every language.
     final locale = Localizations.localeOf(context).toString();
-    final dateStr = DateFormat(context.l10n.dateFormatShort, locale)
-        .format(doc.updatedAt);
+    final dateStr = DateFormat(
+      context.l10n.dateFormatShort,
+      locale,
+    ).format(doc.updatedAt);
     final isTemplate = status == DocumentStatus.template;
     // Only a pressed (flattened & signed) document is actually locked — it
     // opens read-only in the viewer. Everything else, including a document
@@ -281,12 +316,12 @@ class _DocumentCard extends StatelessWidget {
         onTap: isTemplate
             ? onUseTemplate
             : isLocked
-                ? () => context.push(
-                      AppRoutes.viewer.replaceAll(':docId', '${doc.id}'),
-                    )
-                : () => context.push(
-                      AppRoutes.fillMode.replaceAll(':docId', '${doc.id}'),
-                    ),
+            ? () => context.push(
+                AppRoutes.viewer.replaceAll(':docId', '${doc.id}'),
+              )
+            : () => context.push(
+                AppRoutes.fillMode.replaceAll(':docId', '${doc.id}'),
+              ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -302,14 +337,14 @@ class _DocumentCard extends StatelessWidget {
                         isTemplate
                             ? Icons.layers_outlined
                             : status == DocumentStatus.pressed
-                                ? Icons.lock_outlined
-                                : Icons.description_outlined,
+                            ? Icons.lock_outlined
+                            : Icons.description_outlined,
                         size: 48,
                         color: status == DocumentStatus.pressed
                             ? AppTheme.statusPressed.withValues(alpha: 0.5)
                             : isTemplate
-                                ? AppTheme.statusTemplate.withValues(alpha: 0.5)
-                                : Colors.grey.shade400,
+                            ? AppTheme.statusTemplate.withValues(alpha: 0.5)
+                            : Colors.grey.shade400,
                       ),
                     ),
                   ),
@@ -320,7 +355,9 @@ class _DocumentCard extends StatelessWidget {
                       right: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: _statusColor(status),
                           borderRadius: BorderRadius.circular(20),
@@ -328,8 +365,11 @@ class _DocumentCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(_statusIcon(status),
-                                size: 10, color: Colors.white),
+                            Icon(
+                              _statusIcon(status),
+                              size: 10,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               _statusLabel(context, status),
@@ -357,10 +397,9 @@ class _DocumentCard extends StatelessWidget {
                       doc.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -379,10 +418,9 @@ class _DocumentCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
               child: Text(
                 '$dateStr · ${doc.pageCount}p',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey),
               ),
             ),
 
@@ -399,7 +437,9 @@ class _DocumentCard extends StatelessWidget {
                       icon: isLocked
                           ? Icons.visibility_outlined
                           : Icons.edit_outlined,
-                      label: isLocked ? context.l10n.actionOpen : context.l10n.actionEdit,
+                      label: isLocked
+                          ? context.l10n.actionOpen
+                          : context.l10n.actionEdit,
                       onTap: () {
                         if (isTemplate) {
                           onUseTemplate?.call();
@@ -409,8 +449,10 @@ class _DocumentCard extends StatelessWidget {
                           );
                         } else {
                           context.push(
-                            AppRoutes.fillMode
-                                .replaceAll(':docId', '${doc.id}'),
+                            AppRoutes.fillMode.replaceAll(
+                              ':docId',
+                              '${doc.id}',
+                            ),
                           );
                         }
                       },
@@ -470,7 +512,8 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
+    final c =
+        color ?? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
     return InkWell(
       borderRadius: BorderRadius.circular(6),
       onTap: onTap,
@@ -491,7 +534,10 @@ class _ActionButton extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                      fontSize: 11, color: c, fontWeight: FontWeight.w500),
+                    fontSize: 11,
+                    color: c,
+                    fontWeight: FontWeight.w500,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -513,25 +559,25 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, title, subtitle) = switch (tab) {
       _LibraryTab.draft => (
-          Icons.edit_document,
-          context.l10n.emptyDraftsTitle,
-          context.l10n.emptyDraftsBody,
-        ),
+        Icons.edit_document,
+        context.l10n.emptyDraftsTitle,
+        context.l10n.emptyDraftsBody,
+      ),
       _LibraryTab.pressed => (
-          Icons.lock_outlined,
-          context.l10n.emptyPressedTitle,
-          context.l10n.emptyPressedBody,
-        ),
+        Icons.lock_outlined,
+        context.l10n.emptyPressedTitle,
+        context.l10n.emptyPressedBody,
+      ),
       _LibraryTab.template => (
-          Icons.layers_outlined,
-          context.l10n.emptyTemplatesTitle,
-          context.l10n.emptyTemplatesBody,
-        ),
+        Icons.layers_outlined,
+        context.l10n.emptyTemplatesTitle,
+        context.l10n.emptyTemplatesBody,
+      ),
       _LibraryTab.all => (
-          Icons.document_scanner_outlined,
-          context.l10n.emptyAllTitle,
-          context.l10n.emptyAllBody,
-        ),
+        Icons.document_scanner_outlined,
+        context.l10n.emptyAllTitle,
+        context.l10n.emptyAllBody,
+      ),
     };
 
     return Center(
@@ -547,10 +593,9 @@ class _EmptyState extends StatelessWidget {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Colors.grey),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
             ),
           ],
         ),

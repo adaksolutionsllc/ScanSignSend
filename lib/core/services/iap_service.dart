@@ -9,6 +9,17 @@ import 'profile_repository.dart';
 
 const kProductId = 'com.adakventures.fullaccess';
 
+/// Why a store call failed. The service has no BuildContext, so the UI maps
+/// this to a translated message (see [IapException.message]).
+enum IapFailure { unavailable, productNotFound, purchaseFailed }
+
+class IapException implements Exception {
+  const IapException(this.failure);
+  final IapFailure failure;
+  @override
+  String toString() => 'IapException(${failure.name})';
+}
+
 final iapServiceProvider = Provider<IapService>((ref) {
   final svc = IapService(ref.watch(profileRepositoryProvider));
   ref.onDispose(svc.dispose);
@@ -17,10 +28,7 @@ final iapServiceProvider = Provider<IapService>((ref) {
 
 /// True when the user has purchased full access.
 final isPurchasedProvider = StreamProvider<bool>((ref) {
-  return ref
-      .watch(profileRepositoryProvider)
-      .watch()
-      .map((p) => p.isPurchased);
+  return ref.watch(profileRepositoryProvider).watch().map((p) => p.isPurchased);
 });
 
 class IapService {
@@ -46,8 +54,9 @@ class IapService {
   Future<String?> localizedPrice() async {
     try {
       if (!await isAvailable) return null;
-      final response =
-          await InAppPurchase.instance.queryProductDetails({kProductId});
+      final response = await InAppPurchase.instance.queryProductDetails({
+        kProductId,
+      });
       if (response.productDetails.isEmpty) return null;
       return response.productDetails.first.price;
     } catch (_) {
@@ -58,12 +67,13 @@ class IapService {
   /// Fetch the product from the store and initiate a purchase.
   Future<void> buy() async {
     if (!await isAvailable) {
-      throw Exception('In-app purchases are unavailable on this device.');
+      throw const IapException(IapFailure.unavailable);
     }
-    final response = await InAppPurchase.instance
-        .queryProductDetails({kProductId});
+    final response = await InAppPurchase.instance.queryProductDetails({
+      kProductId,
+    });
     if (response.productDetails.isEmpty) {
-      throw Exception('Product not found in store');
+      throw const IapException(IapFailure.productNotFound);
     }
     final product = response.productDetails.first;
     await InAppPurchase.instance.buyNonConsumable(
@@ -80,7 +90,7 @@ class IapService {
   /// honest feedback instead of always claiming success.
   Future<bool> restore() async {
     if (!await isAvailable) {
-      throw Exception('In-app purchases are unavailable on this device.');
+      throw const IapException(IapFailure.unavailable);
     }
     final completer = Completer<bool>();
     _restoreCompleter = completer;
@@ -118,7 +128,7 @@ class IapService {
       if (p.status == PurchaseStatus.error &&
           !(_restoreCompleter?.isCompleted ?? true)) {
         _restoreCompleter!.completeError(
-          Exception(p.error?.message ?? 'Purchase error'),
+          const IapException(IapFailure.purchaseFailed),
         );
         _restoreCompleter = null;
       }

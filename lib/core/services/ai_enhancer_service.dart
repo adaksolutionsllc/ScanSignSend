@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/field_model.dart';
 import 'field_detection_engine.dart';
-import 'ocr_service.dart';
+import 'field_hints.dart';
+import 'page_layout.dart';
 import 'profile_repository.dart';
 
-final aiEnhancerServiceProvider =
-    Provider<AiEnhancerService>((ref) {
+final aiEnhancerServiceProvider = Provider<AiEnhancerService>((ref) {
   return AiEnhancerService(ref.watch(profileRepositoryProvider));
 });
 
@@ -30,45 +30,40 @@ class AiEnhancerService {
     }
   }
 
-  /// Returns AI-enhanced fields if the toggle is on AND the platform supports it;
-  /// otherwise falls back to heuristic detection.
-  Future<List<DetectedField>> detect(OcrResult ocr) async {
+  /// Detects fields on one page. Uses the on-device model when the toggle is
+  /// on and the platform supports it, and the layout heuristics otherwise —
+  /// including whenever the model returns nothing or errors. The page's text
+  /// size always comes from the layout.
+  Future<DetectionResult> detect(
+    PageLayout layout, {
+    LearnedHints hints = LearnedHints.none,
+  }) async {
+    final heuristic = _engine.detect(layout, hints: hints);
     final profile = await _profileRepo.getOrCreate();
-    if (!profile.aiEnhancedDetection) {
-      return _engine.detect(ocr);
-    }
-
-    final available = await isAvailable();
-    if (!available) return _engine.detect(ocr);
+    if (!profile.aiEnhancedDetection || !await isAvailable()) return heuristic;
 
     try {
-      final raw = await _channel.invokeListMethod<Map>(
-        'enhance',
-        {'ocrText': ocr.fullText},
-      );
-      if (raw == null || raw.isEmpty) return _engine.detect(ocr);
+      final raw = await _channel.invokeListMethod<Map>('enhance', {
+        'ocrText': layout.lines.map((l) => l.text).join('\n'),
+      });
+      if (raw == null || raw.isEmpty) return heuristic;
 
-      return raw.map((m) {
-        final type = switch (m['type'] as String? ?? 'text') {
-          'date' => FieldType.date,
-          'checkbox' => FieldType.checkbox,
-          'signature' => FieldType.signature,
-          _ => FieldType.text,
-        };
-        return DetectedField(
-          type: type,
-          bbox: BoundingBox(
-            x: (m['x'] as num).toDouble(),
-            y: (m['y'] as num).toDouble(),
-            w: (m['w'] as num).toDouble(),
-            h: (m['h'] as num).toDouble(),
+      return DetectionResult([
+        for (final m in raw)
+          DetectedField(
+            type: (m['type'] as String? ?? 'text').toFieldType(),
+            bbox: BoundingBox(
+              x: (m['x'] as num).toDouble(),
+              y: (m['y'] as num).toDouble(),
+              w: (m['w'] as num).toDouble(),
+              h: (m['h'] as num).toDouble(),
+            ),
+            label: m['label'] as String? ?? '',
           ),
-          label: m['label'] as String? ?? '',
-        );
-      }).toList();
+      ], heuristic.textSize);
     } catch (_) {
       // Any platform error → fall back to heuristics
-      return _engine.detect(ocr);
+      return heuristic;
     }
   }
 }

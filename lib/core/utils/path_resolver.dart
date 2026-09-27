@@ -26,6 +26,9 @@ class PathResolver {
     _docsDir = await getApplicationDocumentsDirectory();
   }
 
+  /// Test hook: points resolution at [dir] without path_provider.
+  static void debugSetDocsDir(Directory dir) => _docsDir = dir;
+
   /// The app-owned top-level folders we persist files under.
   static const _ownedRoots = {'pages', 'pressed', 'fillable', 'signatures'};
 

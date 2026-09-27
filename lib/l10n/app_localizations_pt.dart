@@ -807,4 +807,98 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String detectFillFields(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Preencher $count campos →',
+      one: 'Preencher 1 campo →',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get detectPinchHint =>
+      'Toque numa ferramenta abaixo para adicionar um campo · toque num campo para selecioná-lo';
+
+  @override
+  String get importErrorUnreadableImage =>
+      'Não foi possível abrir esta imagem. Tente uma foto JPEG, PNG ou HEIC.';
+
+  @override
+  String get iapErrorUnavailable =>
+      'As compras não estão disponíveis neste dispositivo no momento.';
+
+  @override
+  String get iapErrorProductNotFound =>
+      'Não foi possível acessar a loja. Tente novamente mais tarde.';
+
+  @override
+  String get iapErrorPurchaseFailed =>
+      'Não foi possível concluir a compra. Nenhum valor foi cobrado.';
+
+  @override
+  String get settingsBackupTitle => 'Incluir no backup do dispositivo';
+
+  @override
+  String get settingsBackupSubtitleIos =>
+      'Desativado: documentos e assinaturas ficam apenas neste iPhone. Ativado: eles entram no seu backup do iCloud.';
+
+  @override
+  String get settingsBackupSubtitleAndroid =>
+      'Desativado: documentos e assinaturas ficam apenas neste telefone. Ativado: eles entram no seu backup criptografado do Google e na transferência para um novo telefone.';
+
+  @override
+  String get fieldTypeRadio => 'Botão de opção';
+
+  @override
+  String get fieldTypeRadioShort => 'Opção';
+
+  @override
+  String get fieldTypeInitials => 'Rubrica';
+
+  @override
+  String get fillTapToInitial => 'Toque para rubricar';
+
+  @override
+  String get signInitialsTitle => 'Desenhe sua rubrica';
+
+  @override
+  String get pressRadioSelected => 'Selecionado';
+
+  @override
+  String get pressRadioNotSelected => 'Não selecionado';
+
+  @override
+  String get detectSelectedHint =>
+      'Arraste para mover · faça pinça ou arraste o canto para redimensionar · toque de novo para editar';
+
+  @override
+  String get detectRadioAddChoiceHint =>
+      'Toque em Opção de novo para adicionar outra resposta a esta pergunta';
+
+  @override
+  String get detectFieldDeleted => 'Campo excluído';
+
+  @override
+  String get actionUndo => 'Desfazer';
+
+  @override
+  String get detectFormFieldLocked =>
+      'Este campo faz parte do formulário do PDF. Preencha-o na próxima etapa.';
+
+  @override
+  String get libraryImport => 'Importar';
+
+  @override
+  String get settingsForgetLearned => 'Esquecer campos aprendidos';
+
+  @override
+  String get settingsForgetLearnedSubtitle =>
+      'A detecção aprende com os campos que você adiciona, altera e exclui, somente neste dispositivo.';
+
+  @override
+  String get settingsForgetLearnedDone => 'Campos aprendidos apagados';
 }

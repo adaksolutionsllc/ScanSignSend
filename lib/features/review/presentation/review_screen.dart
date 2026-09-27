@@ -4,11 +4,10 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image/image.dart' as img;
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/page_raster_service.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
@@ -29,8 +28,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   bool _dirty = false;
 
   // Created once — a fresh drift stream per build() re-subscribes each frame.
-  late final Stream<List<db.Page>> _pagesStream =
-      ref.read(pageRepositoryProvider).watchPages(widget.docId);
+  late final Stream<List<db.Page>> _pagesStream = ref
+      .read(pageRepositoryProvider)
+      .watchPages(widget.docId);
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,17 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           final pages = snapshot.data ?? [];
-          if (_pages.isEmpty || !_dirty) _pages = List.from(pages);
+          if (_pages.isEmpty || !_dirty) {
+            _pages = List.from(pages);
+          } else {
+            // Keep the unsaved order, but pick up row changes (a rotate writes
+            // a new imagePath) and drop pages deleted meanwhile.
+            final byId = {for (final pg in pages) pg.id: pg};
+            _pages = [
+              for (final pg in _pages)
+                if (byId[pg.id] != null) byId[pg.id]!,
+            ];
+          }
 
           if (pages.isEmpty) {
             return Center(child: Text(context.l10n.reviewNoPagesFound));
@@ -75,7 +85,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               final page = _pages[index];
               // Seed from the persisted per-page filter so the choice survives
               // reopening and flows into the pressed PDF.
-              final filter = _filters[page.id] ?? _filterFromString(page.activeFilter);
+              final filter =
+                  _filters[page.id] ?? _filterFromString(page.activeFilter);
               return _PageCard(
                 key: ValueKey(page.id),
                 page: page,
@@ -108,21 +119,23 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   static PageFilter _filterFromString(String s) => switch (s) {
-        'original' => PageFilter.original,
-        'bw' => PageFilter.bw,
-        _ => PageFilter.enhanced,
-      };
+    'original' => PageFilter.original,
+    'bw' => PageFilter.bw,
+    _ => PageFilter.enhanced,
+  };
 
   static String _filterToString(PageFilter f) => switch (f) {
-        PageFilter.original => 'original',
-        PageFilter.enhanced => 'enhanced',
-        PageFilter.bw => 'bw',
-      };
+    PageFilter.original => 'original',
+    PageFilter.enhanced => 'enhanced',
+    PageFilter.bw => 'bw',
+  };
 
   void _setFilter(db.Page page, PageFilter f) {
     setState(() => _filters[page.id] = f);
     // Persist so the pressed PDF uses the same filter the user previewed.
-    ref.read(pageRepositoryProvider).updatePage(
+    ref
+        .read(pageRepositoryProvider)
+        .updatePage(
           db.PagesCompanion(
             id: Value(page.id),
             activeFilter: Value(_filterToString(f)),
@@ -137,17 +150,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   Future<void> _rotatePage(db.Page page) async {
-    // Skip rotation for PDF-backed pages
-    if (page.imagePath.contains('#page=')) return;
+    // Also turns the page's fields, so they stay on the content they cover.
     try {
-      final file = File(PathResolver.resolve(page.imagePath));
-      final bytes = await file.readAsBytes();
-      final decoded = img.decodeImage(bytes);
-      if (decoded == null) return;
-      final rotated = img.copyRotate(decoded, angle: 90);
-      final encoded = img.encodeJpg(rotated, quality: 92);
-      await file.writeAsBytes(encoded);
-      if (mounted) setState(() {});
+      await ref.read(pageRepositoryProvider).rotatePageClockwise(page.id);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -162,28 +167,26 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(context.l10n.reviewDeletePageTitle),
-        content: Text(context.l10n
-            .reviewDeletePageBody(_pages.indexOf(page) + 1)),
+        content: Text(
+          context.l10n.reviewDeletePageBody(_pages.indexOf(page) + 1),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(context.l10n.actionCancel)),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(context.l10n.actionCancel),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(context.l10n.actionDelete)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(context.l10n.actionDelete),
+          ),
         ],
       ),
     );
     if (confirm != true) return;
+    // Deletes the page's fields and renumbers later pages (and their fields)
+    // in one transaction, and updates the page count.
     await ref.read(pageRepositoryProvider).deletePage(page.id);
-    setState(() => _pages.removeWhere((p) => p.id == page.id));
-    await ref.read(documentRepositoryProvider).updateDocument(
-          db.DocumentsCompanion(
-            id: Value(widget.docId),
-            pageCount: Value(_pages.length),
-            updatedAt: Value(DateTime.now()),
-          ),
-        );
+    if (mounted) setState(() => _pages.removeWhere((p) => p.id == page.id));
   }
 
   void _proceed() {
@@ -223,6 +226,11 @@ class _PageCard extends StatelessWidget {
   final VoidCallback onRotate;
   final VoidCallback onDelete;
 
+  /// A page of an imported PDF: its content is vector, drawn as-is into the
+  /// output, so rotation and the image filters don't apply and aren't shown
+  /// (they used to be offered and silently do nothing).
+  bool get _isPdfPage => page.imagePath.contains('#page=');
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -234,14 +242,17 @@ class _PageCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 0),
             child: Row(
               children: [
-                Text(context.l10n.reviewPageOf(pageNumber, totalPages),
-                    style: Theme.of(context).textTheme.labelLarge),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.rotate_right),
-                  tooltip: context.l10n.reviewRotateTooltip,
-                  onPressed: onRotate,
+                Text(
+                  context.l10n.reviewPageOf(pageNumber, totalPages),
+                  style: Theme.of(context).textTheme.labelLarge,
                 ),
+                const Spacer(),
+                if (!_isPdfPage)
+                  IconButton(
+                    icon: const Icon(Icons.rotate_right),
+                    tooltip: context.l10n.reviewRotateTooltip,
+                    onPressed: onRotate,
+                  ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: context.l10n.reviewDeletePageTooltip,
@@ -256,30 +267,64 @@ class _PageCard extends StatelessWidget {
             aspectRatio: 0.707,
             child: _FilteredImage(path: page.imagePath, filter: filter),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            child: Wrap(
-              spacing: 8,
-              children: PageFilter.values.map((f) {
-                return ChoiceChip(
-                  label: Text(_filterLabel(context, f)),
-                  selected: filter == f,
-                  onSelected: (_) => onFilterChanged(f),
-                  visualDensity: VisualDensity.compact,
-                );
-              }).toList(),
+          if (_isPdfPage)
+            const SizedBox(height: 12)
+          else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+              child: Wrap(
+                spacing: 8,
+                children: PageFilter.values.map((f) {
+                  return ChoiceChip(
+                    label: Text(_filterLabel(context, f)),
+                    selected: filter == f,
+                    onSelected: (_) => onFilterChanged(f),
+                    visualDensity: VisualDensity.compact,
+                  );
+                }).toList(),
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
   String _filterLabel(BuildContext context, PageFilter f) => switch (f) {
-        PageFilter.original => context.l10n.filterOriginal,
-        PageFilter.enhanced => context.l10n.filterEnhanced,
-        PageFilter.bw => context.l10n.filterBw,
-      };
+    PageFilter.original => context.l10n.filterOriginal,
+    PageFilter.enhanced => context.l10n.filterEnhanced,
+    PageFilter.bw => context.l10n.filterBw,
+  };
+}
+
+class _RasterThumb extends ConsumerWidget {
+  const _RasterThumb({required this.storedPath});
+  final String storedPath;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return FutureBuilder<String>(
+      future: ref.read(pageRasterServiceProvider).imageFor(storedPath),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return Container(
+            color: Colors.grey.shade100,
+            child: const Center(
+              child: Icon(
+                Icons.picture_as_pdf_outlined,
+                size: 48,
+                color: Colors.grey,
+              ),
+            ),
+          );
+        }
+        final path = snap.data;
+        if (path == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Image.file(File(path), fit: BoxFit.contain, cacheWidth: 800);
+      },
+    );
+  }
 }
 
 class _FilteredImage extends StatelessWidget {
@@ -290,28 +335,10 @@ class _FilteredImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolved = PathResolver.resolve(path);
-    // PDF-backed page — render with SfPdfViewer
+    // PDF-backed page: show the cached render instead of a live viewer per
+    // card, which was slow and memory-hungry on long imports.
     if (resolved.contains('#page=')) {
-      final parts = resolved.split('#page=');
-      final pdfPath = parts[0];
-      final pageNum = (int.tryParse(parts[1]) ?? 0) + 1; // SfPdfViewer is 1-indexed
-      final pdfFile = File(pdfPath);
-      if (!pdfFile.existsSync()) {
-        return Container(
-          color: Colors.grey.shade100,
-          child: const Center(child: Icon(Icons.picture_as_pdf_outlined, size: 48, color: Colors.grey)),
-        );
-      }
-      return IgnorePointer(
-        child: SfPdfViewer.file(
-          pdfFile,
-          initialPageNumber: pageNum,
-          canShowScrollHead: false,
-          canShowScrollStatus: false,
-          enableDoubleTapZooming: false,
-          pageLayoutMode: PdfPageLayoutMode.single,
-        ),
-      );
+      return _RasterThumb(storedPath: path);
     }
 
     final file = File(resolved);
@@ -327,23 +354,55 @@ class _FilteredImage extends StatelessWidget {
     return switch (filter) {
       PageFilter.original => image,
       PageFilter.enhanced => ColorFiltered(
-          colorFilter: const ColorFilter.matrix([
-            1.2, 0,   0,   0, -15,
-            0,   1.2, 0,   0, -15,
-            0,   0,   1.2, 0, -15,
-            0,   0,   0,   1, 0,
-          ]),
-          child: image,
-        ),
+        colorFilter: const ColorFilter.matrix([
+          1.2,
+          0,
+          0,
+          0,
+          -15,
+          0,
+          1.2,
+          0,
+          0,
+          -15,
+          0,
+          0,
+          1.2,
+          0,
+          -15,
+          0,
+          0,
+          0,
+          1,
+          0,
+        ]),
+        child: image,
+      ),
       PageFilter.bw => ColorFiltered(
-          colorFilter: const ColorFilter.matrix([
-            0.299, 0.587, 0.114, 0, 0,
-            0.299, 0.587, 0.114, 0, 0,
-            0.299, 0.587, 0.114, 0, 0,
-            0,     0,     0,     1, 0,
-          ]),
-          child: image,
-        ),
+        colorFilter: const ColorFilter.matrix([
+          0.299,
+          0.587,
+          0.114,
+          0,
+          0,
+          0.299,
+          0.587,
+          0.114,
+          0,
+          0,
+          0.299,
+          0.587,
+          0.114,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+        ]),
+        child: image,
+      ),
     };
   }
 }

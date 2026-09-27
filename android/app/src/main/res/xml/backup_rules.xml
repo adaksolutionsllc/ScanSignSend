@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Pre-Android-12 counterpart to data_extraction_rules.xml: back up nothing. -->
+<!--
+  Pre-Android-12 counterpart to data_extraction_rules.xml. Backup is opt-in
+  (AppBackupAgent writes nothing unless the Settings switch is on), and then
+  only into a client-side-encrypted backup.
+-->
 <full-backup-content>
-    <exclude domain="root" path="." />
-    <exclude domain="file" path="." />
-    <exclude domain="database" path="." />
-    <exclude domain="sharedpref" path="." />
+    <include domain="root" path="." requireFlags="clientSideEncryption" />
+    <include domain="file" path="." requireFlags="clientSideEncryption" />
+    <include domain="database" path="." requireFlags="clientSideEncryption" />
+    <include domain="sharedpref" path="." requireFlags="clientSideEncryption" />
 </full-backup-content>

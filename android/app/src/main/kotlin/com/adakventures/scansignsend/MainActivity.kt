@@ -1,5 +1,6 @@
 package com.adakventures.scansignsend
 
+import android.app.backup.BackupManager
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -12,6 +13,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     private companion object {
         const val PRIVACY_CHANNEL = "com.scansignsend/privacy"
+        const val BACKUP_CHANNEL = "com.scansignsend/backup"
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -32,6 +34,23 @@ class MainActivity : FlutterFragmentActivity() {
                             } else {
                                 window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                             }
+                        }
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // "Include in device backup" (Settings). Stored natively because
+        // AppBackupAgent runs in a process without a Flutter engine.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BACKUP_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "apply" -> {
+                        val include = call.argument<Boolean>("include") ?: false
+                        if (AppBackupAgent.isEnabled(this) != include) {
+                            AppBackupAgent.setEnabled(this, include)
+                            BackupManager(this).dataChanged()
                         }
                         result.success(null)
                     }

@@ -421,5 +421,37 @@
         "type": "int"
       }
     }
-  }
+  },
+  "detectFillFields": "{count, plural, =1{Fill 1 field →} other{Fill {count} fields →}}",
+  "@detectFillFields": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detectPinchHint": "Tap a tool below to add a field · tap a field to select it",
+  "importErrorUnreadableImage": "This image couldn't be opened. Try a JPEG, PNG or HEIC photo.",
+  "iapErrorUnavailable": "Purchases aren't available on this device right now.",
+  "iapErrorProductNotFound": "Couldn't reach the store. Please try again later.",
+  "iapErrorPurchaseFailed": "The purchase couldn't be completed. You haven't been charged.",
+  "settingsBackupTitle": "Include in device backup",
+  "settingsBackupSubtitleIos": "Off: documents and signatures stay only on this iPhone. On: they're included in your iCloud Backup.",
+  "settingsBackupSubtitleAndroid": "Off: documents and signatures stay only on this phone. On: they're included in your encrypted Google backup and when moving to a new phone.",
+  "fieldTypeRadio": "Radio button",
+  "fieldTypeRadioShort": "Radio",
+  "fieldTypeInitials": "Initials",
+  "fillTapToInitial": "Tap to initial",
+  "signInitialsTitle": "Draw your initials",
+  "pressRadioSelected": "Selected",
+  "pressRadioNotSelected": "Not selected",
+  "detectSelectedHint": "Drag to move · pinch or drag the corner to resize · tap again to edit",
+  "detectRadioAddChoiceHint": "Tap Radio again to add another choice to this question",
+  "detectFieldDeleted": "Field deleted",
+  "actionUndo": "Undo",
+  "detectFormFieldLocked": "This field is part of the PDF's own form. Fill it in on the next step.",
+  "libraryImport": "Import",
+  "settingsForgetLearned": "Forget learned field patterns",
+  "settingsForgetLearnedSubtitle": "Field detection learns from the fields you add, retype and delete, on this device only.",
+  "settingsForgetLearnedDone": "Learned field patterns cleared"
 }

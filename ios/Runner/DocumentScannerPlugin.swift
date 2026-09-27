@@ -41,10 +41,21 @@ class DocumentScannerPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewContro
             }
             pendingResult = result
             DispatchQueue.main.async {
+                // Present from the top-most controller. Presenting from the
+                // root fails silently whenever something is already shown on
+                // top of it (a sheet, an alert, the privacy overlay), and the
+                // Dart side then waited forever on a result that never came.
+                guard let host = UIApplication.shared.topMostViewController else {
+                    self.pendingResult?(FlutterError(code: "NO_PRESENTER",
+                                                     message: "No view controller to present the scanner from",
+                                                     details: nil))
+                    self.pendingResult = nil
+                    return
+                }
                 let scanner = VNDocumentCameraViewController()
                 scanner.delegate = self
-                self.viewController = UIApplication.shared.keyWindowRootViewController
-                self.viewController?.present(scanner, animated: true)
+                self.viewController = host
+                host.present(scanner, animated: true)
             }
 
         default:
@@ -61,17 +72,17 @@ class DocumentScannerPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewContro
         controller.dismiss(animated: true)
         var paths: [String] = []
 
-        // Save directly to Documents/scan_staging/ — permanent, never cleared by OS
+        // Stage in the temp directory: it's never included in iCloud Backup,
+        // and the Dart side moves each page into Documents/pages/ straight
+        // away. (Staging used to live in Documents/scan_staging, which was
+        // backed up and kept any page orphaned by a crash forever.)
         let fm = FileManager.default
-        guard let docsDir = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            pendingResult?(FlutterError(code: "STORAGE_ERROR",
-                                        message: "Cannot access Documents directory",
-                                        details: nil))
-            pendingResult = nil
-            return
-        }
-        let stagingDir = docsDir.appendingPathComponent("scan_staging", isDirectory: true)
+        let stagingDir = fm.temporaryDirectory.appendingPathComponent("scan_staging", isDirectory: true)
         try? fm.createDirectory(at: stagingDir, withIntermediateDirectories: true)
+        // Remove what the old location may still hold from earlier builds.
+        if let docsDir = fm.urls(for: .documentDirectory, in: .userDomainMask).first {
+            try? fm.removeItem(at: docsDir.appendingPathComponent("scan_staging", isDirectory: true))
+        }
 
         let batchId = UUID().uuidString
         for i in 0..<scan.pageCount {
@@ -106,11 +117,17 @@ class DocumentScannerPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewContro
 }
 
 private extension UIApplication {
-    var keyWindowRootViewController: UIViewController? {
-        connectedScenes
+    /// The controller currently on top: the key window's root, followed down
+    /// through anything it (or its descendants) is presenting.
+    var topMostViewController: UIViewController? {
+        var top = connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
             .first { $0.isKeyWindow }?
             .rootViewController
+        while let presented = top?.presentedViewController, !presented.isBeingDismissed {
+            top = presented
+        }
+        return top
     }
 }
