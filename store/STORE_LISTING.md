@@ -66,9 +66,9 @@ Built by ADAK Ventures.
 `First release. Scan, sign, and send documents completely offline. One-time purchase — no subscriptions, ever.`
 
 ## Support & marketing URLs
-- Support URL: https://adakventures.com/scansignsend/support   ← create before submitting
-- Marketing URL: https://adakventures.com/scansignsend
-- Privacy Policy URL: https://adakventures.com/scansignsend/privacy   ← see PRIVACY_POLICY.md
+- Support URL: https://www.adakventures.com/scansignsend/support   (live)
+- Marketing URL: https://www.adakventures.com/scansignsend
+- Privacy Policy URL: https://www.adakventures.com/scansignsend/privacy   (live; source PRIVACY_POLICY.md)
 
 ## Age rating
 - App Store: 4+ (no objectionable content)

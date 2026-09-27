@@ -48,4 +48,4 @@ The app is suitable for all ages and collects no personal information from anyon
 If this policy changes, the updated version will be posted at the Privacy Policy URL listed in the app stores.
 
 ## Contact
-ADAK Ventures LLC — adakventuresllc@gmail.com · https://adakventures.com/scansignsend/support
+ADAK Ventures LLC — adakventuresllc@gmail.com · https://www.adakventures.com/scansignsend/support
