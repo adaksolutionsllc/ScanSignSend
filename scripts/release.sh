@@ -22,9 +22,25 @@
 set -euo pipefail
 
 target="${1:-}"
-case "$target" in ios|android|all) ;; *)
-  echo "usage: $0 ios|android|all" >&2; exit 64 ;;
+case "$target" in ios|android|all|ios-upload) ;; *)
+  echo "usage: $0 ios|android|all|ios-upload" >&2; exit 64 ;;
 esac
+
+# Uploads can die on a dropped connection mid-transfer (altool reports
+# "The network connection was lost" and fastlane gives up). Retry the upload
+# alone — the build is fine — before failing.
+upload_ios() {
+  local ipa="$1" attempt
+  for attempt in 1 2 3; do
+    echo "▶ iOS: uploading $ipa to TestFlight (attempt $attempt/3)"
+    if (cd "$root/ios" && IPA_PATH="$ipa" fastlane local_testflight); then
+      return 0
+    fi
+    sleep 20
+  done
+  echo "Upload failed 3 times; retry later with: $0 ios-upload" >&2
+  return 1
+}
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
@@ -38,6 +54,14 @@ echo "▶ Releasing $version to: $target"
 
 [[ -z "$(git status --porcelain)" ]] || { echo "Commit your changes first." >&2; exit 1; }
 
+if [[ "$target" == ios-upload ]]; then
+  # Re-upload the last IPA built by this script (after a failed upload).
+  : "${ASC_KEY_ID:?}" "${ASC_ISSUER_ID:?}" "${ASC_KEY_PATH:?}"
+  upload_ios "$(ls "$root"/build/ios/ipa/*.ipa | head -1)"
+  echo "✓ $version uploaded (ios)"
+  exit 0
+fi
+
 echo "▶ Checks"
 flutter pub get >/dev/null
 flutter analyze
@@ -48,9 +72,7 @@ if [[ "$target" == ios || "$target" == all ]]; then
   : "${ASC_KEY_ID:?}" "${ASC_ISSUER_ID:?}" "${ASC_KEY_PATH:?}"
   echo "▶ iOS: building IPA"
   flutter build ipa --release
-  ipa="$(ls "$root"/build/ios/ipa/*.ipa | head -1)"
-  echo "▶ iOS: uploading $ipa to TestFlight"
-  (cd ios && IPA_PATH="$ipa" fastlane local_testflight)
+  upload_ios "$(ls "$root"/build/ios/ipa/*.ipa | head -1)"
 fi
 
 if [[ "$target" == android || "$target" == all ]]; then
