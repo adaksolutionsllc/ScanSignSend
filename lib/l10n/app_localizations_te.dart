@@ -88,7 +88,7 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get onboardSendBody =>
-      'సంతకం చేసిన PDFని Mail, Messages, AirDrop లేదా ఏ యాప్ ద్వారానైనా షేర్ చేయండి. ఒకసారి కొనుగోలు — ఎప్పటికీ అపరిమిత పత్రాలు.';
+      'సంతకం చేసిన PDFను ఈమెయిల్, మెసేజింగ్ లేదా ఏ యాప్ ద్వారానైనా షేర్ చేయండి. ఒకేసారి కొనుగోలు — ఎప్పటికీ అపరిమిత పత్రాలు.';
 
   @override
   String get onboardGetStarted => 'ప్రారంభించండి';
@@ -163,14 +163,14 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get emptyPressedBody =>
-      'ఒక డ్రాఫ్ట్‌ను పూరించి ఖరారు చేస్తే అది ఇక్కడ కనిపిస్తుంది.';
+      'ఇక్కడ చూడటానికి ఒక డ్రాఫ్ట్‌ను పూర్తి చేయండి.';
 
   @override
   String get emptyTemplatesTitle => 'ఇంకా టెంప్లేట్‌లు లేవు';
 
   @override
   String get emptyTemplatesBody =>
-      'మీరు ఒక పత్రాన్ని ఖరారు చేసినప్పుడు, మళ్లీ వాడగల\nటెంప్లేట్ ఇక్కడ వాటంతట అదే సేవ్ అవుతుంది.';
+      'పత్రాన్ని పూర్తి చేసిన తర్వాత, ఫారమ్‌ను మళ్లీ ఉపయోగించడానికి\n“టెంప్లేట్‌గా సేవ్ చేయి” నొక్కండి.';
 
   @override
   String get emptyAllTitle => 'ఇంకా పత్రాలు లేవు';
@@ -465,7 +465,7 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String pressFailed(String error) {
-    return 'ప్రక్రియ విఫలమైంది: $error';
+    return 'పత్రాన్ని పూర్తి చేయలేకపోయాం: $error';
   }
 
   @override
@@ -548,17 +548,17 @@ class AppLocalizationsTe extends AppLocalizations {
   String get sendReadyToSend => 'పంపడానికి సిద్ధం';
 
   @override
-  String get sendSharedBody => 'ఖరారైన PDF షేర్ చేయబడింది.';
+  String get sendSharedBody => 'మీ PDF షేర్ చేయబడింది.';
 
   @override
   String get sendReadyBody =>
-      'మీ ఖరారైన PDFని Mail, Messages, AirDrop లేదా ఏ యాప్ ద్వారానైనా షేర్ చేయండి.';
+      'మీ PDFను ఈమెయిల్, మెసేజింగ్ లేదా ఏ యాప్ ద్వారానైనా షేర్ చేయండి.';
 
   @override
   String get sendOpeningShareSheet => 'షేర్ విండో తెరుచుకుంటోంది…';
 
   @override
-  String get sendSharePressed => 'ఖరారైన పత్రాన్ని షేర్ చేయి';
+  String get sendSharePressed => 'PDF షేర్ చేయండి';
 
   @override
   String get sendPreviewDocument => 'పత్రాన్ని ప్రివ్యూ చేయి';
@@ -567,10 +567,10 @@ class AppLocalizationsTe extends AppLocalizations {
   String get sendShareAgain => 'మళ్లీ షేర్ చేయి';
 
   @override
-  String get sendNotYetPressed => 'పత్రం ఇంకా ఖరారు కాలేదు.';
+  String get sendNotYetPressed => 'ఈ పత్రం ఇంకా పూర్తి కాలేదు.';
 
   @override
-  String get sendPressedPdfNotFound => 'ఖరారైన PDF ఫైల్ దొరకలేదు.';
+  String get sendPressedPdfNotFound => 'పూర్తయిన PDF కనబడలేదు.';
 
   @override
   String get sendShareMessage => 'Scan Sign Send ద్వారా సంతకం చేయబడింది';
@@ -944,4 +944,14 @@ class AppLocalizationsTe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get sendSaveAsTemplate => 'టెంప్లేట్‌గా సేవ్ చేయి';
+
+  @override
+  String get sendTemplateSaved =>
+      'టెంప్లేట్‌లలో సేవ్ అయింది — లైబ్రరీ నుండి కొత్త కాపీ ప్రారంభించండి.';
+
+  @override
+  String get sendTemplateSavedShort => 'టెంప్లేట్‌గా సేవ్ అయింది';
 }

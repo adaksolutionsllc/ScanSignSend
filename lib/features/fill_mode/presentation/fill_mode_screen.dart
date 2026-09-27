@@ -222,6 +222,14 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     );
   }
 
+  /// Labels of birth-date fields, in the app's languages.
+  static final _birthLabel = RegExp(
+    r'birth|\bd\.?\s?o\.?\s?b\b|\bborn\b|naissance|nacimiento|nascimento|'
+    r'जन्म|பிறந்த|పుట్టిన',
+    caseSensitive: false,
+    unicode: true,
+  );
+
   Future<void> _openFieldInput(BuildContext context, db.Field field) async {
     final type = field.type.toFieldType();
     switch (type) {
@@ -256,11 +264,19 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         // Capture the pattern + locale before awaiting the picker.
         final datePattern = context.l10n.dateFormatInput;
         final dateLocale = Localizations.localeOf(context).toString();
+        // A birth date is decades back: open on the year grid around 30
+        // years ago instead of on today, which meant paging back month by
+        // month.
+        final now = DateTime.now();
+        final isBirth = _birthLabel.hasMatch(field.label);
         final picked = await showDatePicker(
           context: context,
-          initialDate: DateTime.now(),
+          initialDate: isBirth ? DateTime(now.year - 30, now.month) : now,
+          initialDatePickerMode: isBirth
+              ? DatePickerMode.year
+              : DatePickerMode.day,
           firstDate: DateTime(1900),
-          lastDate: DateTime(2100),
+          lastDate: isBirth ? now : DateTime(2100),
         );
         if (picked == null) return;
         final formatted = DateFormat(datePattern, dateLocale).format(picked);

@@ -15,37 +15,40 @@ Sans compte. Sans abonnement. Sans cloud. Scannez un document, remplissez-le et 
 scanner,pdf,signer,signature,document,remplir,formulaire,hors ligne,contrat,numériser,esign
 
 ## full_description
-**Scan Sign Send transforme le papier en PDF signés — entièrement sur votre appareil.**
+Scan Sign Send transforme le papier en PDF signés — entièrement sur votre téléphone.
 
-Scannez n'importe quel document avec votre appareil photo, touchez les champs pour les remplir, ajoutez votre signature du bout du doigt et partagez le PDF terminé. Aucun compte, aucun abonnement, et rien n'est jamais envoyé sur un serveur. Vos documents restent sur votre téléphone.
+Scannez n'importe quel document avec l'appareil photo ou importez un PDF, laissez l'app trouver les blancs, remplissez-les, signez du doigt et partagez le PDF final. Aucun compte, aucun abonnement, rien n'est jamais envoyé en ligne. Vos documents restent sur votre appareil.
 
-**Scanner**
-• Numérisation de qualité avec détection automatique des bords
-• Lots multipages — jusqu'à 20 pages par numérisation
+SCANNER
+• Des scans nets avec détection automatique des bords, plusieurs pages à la fois
+• Importez vos PDF et photos existants
 • Réorganisez, faites pivoter et nettoyez les pages avant de signer
-• Importez aussi vos PDF et images existants
 
-**Remplir et signer**
-• La détection automatique repère les champs texte, date, case à cocher et signature
-• Déplacez et redimensionnez chaque champ pour l'ajuster exactement à votre formulaire
-• Tracez votre signature une fois et réutilisez-la sur tous vos documents
-• Remplissage automatique de vos nom, e-mail, téléphone et adresse
+REMPLIR ET SIGNER
+• Trouve les blancs pour vous — lignes, espaces, emplacements de signature et de date — et apprend de vos corrections
+• Texte, dates, cases à cocher, boutons radio, initiales et signatures
+• Glissez pour déplacer, pincez pour redimensionner — les champs s'ajustent à votre formulaire
+• Dessinez votre signature une fois et réutilisez-la ; remplissage auto de votre nom, e-mail et adresse
+• En signant, la date du jour s'ajoute là où le formulaire la demande
 
-**Envoyer**
-• Aplatissez le tout en un PDF final accompagné d'un certificat de signature
-• Ou exportez un PDF resté remplissable, modifiable dans n'importe quel lecteur
-• Partagez par Mail, Messages, AirDrop ou toute autre application
-• Les modèles réutilisables sont enregistrés automatiquement : ne rescannez jamais le même formulaire
+ENVOYER
+• Un PDF aplati et signé, avec une page de certificat de signature
+• Ou un PDF remplissable que d'autres peuvent compléter dans n'importe quel lecteur PDF
+• Partagez par e-mail, messagerie ou toute autre app
+• Enregistrez un formulaire comme modèle pour le réutiliser
 
-**Confidentiel par conception**
-• Vos documents ne sont jamais envoyés — tout le traitement a lieu sur votre appareil
-• Verrouillage Face ID / empreinte optionnel, réactivé chaque fois que vous quittez l'app
-• Le contenu est masqué dans le sélecteur d'applications
-• Supprimer un document supprime réellement ses fichiers, pas seulement la ligne dans la liste
+CONFIDENTIEL PAR CONCEPTION
+• Rien n'est envoyé en ligne — tout le traitement se fait sur votre appareil
+• Déverrouillage par empreinte ou visage (facultatif), reverrouillé dès que vous quittez l'app
+• Supprimer un document supprime vraiment ses fichiers
 
-**Achat unique. À vous pour toujours. Sans abonnement.**
+DANS VOTRE LANGUE
+English, Français, Español, Português, हिन्दी, தமிழ், తెలుగు — y compris le texte en hindi, tamoul et télougou dans vos PDF finaux.
 
-Développé par ADAK Ventures.
+ESSAYEZ GRATUITEMENT
+Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. L'accès complet est un achat unique pour des documents illimités de toute longueur — à vous pour toujours, sans abonnement.
+
+Conçu par ADAK Ventures.
 
 ## whats_new
 Première version. Scannez, signez et envoyez vos documents entièrement hors ligne. Achat unique — jamais d'abonnement.
@@ -54,4 +57,4 @@ Première version. Scannez, signez et envoyez vos documents entièrement hors li
 Accès complet
 
 ## iap_description
-Documents, modèles et signatures illimités.
+Documents illimités, de toute longueur..

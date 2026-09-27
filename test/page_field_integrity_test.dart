@@ -327,4 +327,44 @@ void main() {
       expect(byId[otherPage], isEmpty, reason: 'only the signed page');
     },
   );
+
+  test(
+    'save as template keeps the form, clears the answers; each use is a new draft',
+    () async {
+      final docId = await seed(2);
+      // Fill it in, as a finished document would be.
+      for (final f in await fields.watchFields(docId).first) {
+        await fields.updateField(
+          FieldsCompanion(
+            id: Value(f.id),
+            value: const Value('filled'),
+            isFilled: const Value(true),
+          ),
+        );
+      }
+      final svc = TemplateService(docs, pages, fields);
+
+      final tmplId = await svc.createTemplate(docId);
+      final tmpl = (await docs.getById(tmplId))!;
+      expect(tmpl.status, 'template');
+      expect(tmpl.isTemplate, isTrue);
+      expect(
+        await fieldHomes(tmplId),
+        await fieldHomes(docId),
+        reason: 'every field stays on its page',
+      );
+      expect(
+        (await fields.watchFields(tmplId).first).every(
+          (f) => f.value.isEmpty && !f.isFilled,
+        ),
+        isTrue,
+      );
+
+      final a = await svc.useTemplate(tmplId);
+      final b = await svc.useTemplate(tmplId);
+      expect(a, isNot(b), reason: 'each use starts its own draft');
+      expect((await docs.getById(a))!.status, 'draft');
+      expect(await fieldHomes(a), await fieldHomes(docId));
+    },
+  );
 }

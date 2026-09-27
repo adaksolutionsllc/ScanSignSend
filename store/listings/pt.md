@@ -15,37 +15,40 @@ Sem contas. Sem subscrições. Sem nuvem. Digitalize qualquer documento, preench
 digitalizar,pdf,assinar,assinatura,documento,scanner,preencher,formulário,offline,contrato
 
 ## full_description
-**O Scan Sign Send transforma papel em PDF assinados — inteiramente no seu dispositivo.**
+Scan Sign Send transforma papel em PDFs assinados — tudo no seu celular.
 
-Digitalize qualquer documento com a câmara, toque nos campos para os preencher, adicione a sua assinatura com o dedo e partilhe o PDF terminado. Sem contas, sem subscrições e sem nada enviado para um servidor. Os seus documentos ficam no seu telemóvel.
+Digitalize qualquer documento com a câmera ou importe um PDF, deixe o app encontrar os espaços em branco, preencha-os, assine com o dedo e compartilhe o PDF final. Sem conta, sem assinatura e nada é enviado para a internet. Seus documentos ficam no seu aparelho.
 
-**Digitalizar**
-• Digitalização de alta qualidade com deteção automática de limites
-• Lotes de várias páginas — até 20 por digitalização
-• Reordene, rode e limpe as páginas antes de assinar
-• Importe também PDF e imagens que já tenha
+DIGITALIZAR
+• Digitalizações nítidas com detecção automática de bordas, várias páginas de uma vez
+• Importe PDFs e fotos que você já tem
+• Reordene, gire e limpe as páginas antes de assinar
 
-**Preencher e assinar**
-• A deteção automática encontra campos de texto, data, caixa de verificação e assinatura
-• Arraste e redimensione qualquer campo para encaixar exatamente no seu formulário
-• Desenhe a sua assinatura uma vez e reutilize-a em todos os documentos
-• Preenchimento automático do nome, e-mail, telefone e morada
+PREENCHER E ASSINAR
+• Encontra os espaços em branco para você — linhas, lacunas, locais de assinatura e data — e aprende com suas correções
+• Texto, datas, caixas de seleção, botões de opção, rubricas e assinaturas
+• Arraste para mover, faça pinça para redimensionar — os campos se ajustam ao formulário
+• Desenhe sua assinatura uma vez e reutilize; preenchimento automático de nome, e-mail e endereço
+• Ao assinar, a data de hoje é preenchida onde o formulário pede
 
-**Enviar**
-• Achate tudo num PDF final com uma página de certificado de assinatura
-• Ou exporte um PDF que continua preenchível em qualquer leitor
-• Partilhe por Mail, Mensagens, AirDrop ou qualquer aplicação
-• Os modelos reutilizáveis são guardados automaticamente: nunca volte a digitalizar o mesmo formulário
+ENVIAR
+• Um PDF achatado e assinado, com uma página de certificado de assinatura
+• Ou um PDF preenchível que outras pessoas podem completar em qualquer leitor de PDF
+• Compartilhe por e-mail, mensagem ou qualquer app
+• Salve qualquer formulário como modelo para reutilizar
 
-**Privado por conceção**
-• Os seus documentos nunca são enviados — todo o processamento ocorre no dispositivo
-• Bloqueio opcional com Face ID ou impressão digital, reativado sempre que sai da app
-• O conteúdo fica oculto no alternador de aplicações
-• Eliminar um documento elimina mesmo os ficheiros, não só a entrada na lista
+PRIVADO POR PRINCÍPIO
+• Nada é enviado — todo o processamento acontece no seu aparelho
+• Desbloqueio opcional por digital ou rosto, que bloqueia de novo ao sair do app
+• Excluir um documento apaga de verdade os arquivos dele
 
-**Compra única. Seu para sempre. Sem subscrição.**
+NO SEU IDIOMA
+English, Français, Español, Português, हिन्दी, தமிழ், తెలుగు — inclusive texto em hindi, tâmil e télugo nos seus PDFs finais.
 
-Criado pela ADAK Ventures.
+EXPERIMENTE GRÁTIS
+Conclua 2 documentos (de até 2 páginas cada) de graça. O acesso completo é uma compra única para documentos ilimitados de qualquer tamanho — seu para sempre, sem assinatura.
+
+Feito pela ADAK Ventures.
 
 ## whats_new
 Primeira versão. Digitalize, assine e envie documentos totalmente offline. Compra única — nunca uma subscrição.
@@ -54,4 +57,4 @@ Primeira versão. Digitalize, assine e envie documentos totalmente offline. Comp
 Acesso total
 
 ## iap_description
-Documentos, modelos, assinaturas sem limite.
+Documentos ilimitados, de qualquer tamanho..

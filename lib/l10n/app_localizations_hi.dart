@@ -88,7 +88,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get onboardSendBody =>
-      'हस्ताक्षरित PDF को Mail, Messages, AirDrop या किसी भी ऐप से साझा करें। एक बार की ख़रीद — हमेशा के लिए असीमित दस्तावेज़।';
+      'हस्ताक्षरित PDF को ईमेल, मैसेजिंग या किसी भी ऐप से शेयर करें। एक बार की ख़रीद — हमेशा के लिए असीमित दस्तावेज़।';
 
   @override
   String get onboardGetStarted => 'शुरू करें';
@@ -158,18 +158,17 @@ class AppLocalizationsHi extends AppLocalizations {
   String get emptyDraftsBody => 'ड्राफ़्ट बनाने के लिए नया स्कैन शुरू करें।';
 
   @override
-  String get emptyPressedTitle => 'कोई पूर्ण दस्तावेज़ नहीं';
+  String get emptyPressedTitle => 'कोई पूरा दस्तावेज़ नहीं';
 
   @override
-  String get emptyPressedBody =>
-      'किसी ड्राफ़्ट को भरकर अंतिम रूप दें, वह यहाँ दिखेगा।';
+  String get emptyPressedBody => 'यहाँ देखने के लिए कोई ड्राफ़्ट पूरा करें।';
 
   @override
   String get emptyTemplatesTitle => 'अभी कोई टेम्पलेट नहीं';
 
   @override
   String get emptyTemplatesBody =>
-      'जब आप किसी दस्तावेज़ को अंतिम रूप देते हैं, तो एक\nपुन: उपयोग योग्य टेम्पलेट यहाँ अपने आप सहेजा जाता है।';
+      'दस्तावेज़ पूरा करने के बाद, फ़ॉर्म दोबारा इस्तेमाल करने के लिए\n“टेम्पलेट के रूप में सहेजें” पर टैप करें।';
 
   @override
   String get emptyAllTitle => 'अभी कोई दस्तावेज़ नहीं';
@@ -462,7 +461,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String pressFailed(String error) {
-    return 'प्रक्रिया विफल: $error';
+    return 'दस्तावेज़ पूरा नहीं हो सका: $error';
   }
 
   @override
@@ -545,17 +544,17 @@ class AppLocalizationsHi extends AppLocalizations {
   String get sendReadyToSend => 'भेजने के लिए तैयार';
 
   @override
-  String get sendSharedBody => 'अंतिम PDF साझा कर दिया गया।';
+  String get sendSharedBody => 'आपका PDF शेयर कर दिया गया है।';
 
   @override
   String get sendReadyBody =>
-      'अपना अंतिम PDF Mail, Messages, AirDrop या किसी भी ऐप से साझा करें।';
+      'अपना PDF ईमेल, मैसेजिंग या किसी भी ऐप से शेयर करें।';
 
   @override
   String get sendOpeningShareSheet => 'साझा करने का विकल्प खुल रहा है…';
 
   @override
-  String get sendSharePressed => 'अंतिम दस्तावेज़ साझा करें';
+  String get sendSharePressed => 'PDF शेयर करें';
 
   @override
   String get sendPreviewDocument => 'दस्तावेज़ का पूर्वावलोकन';
@@ -564,11 +563,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get sendShareAgain => 'फिर से साझा करें';
 
   @override
-  String get sendNotYetPressed =>
-      'दस्तावेज़ को अभी अंतिम रूप नहीं दिया गया है।';
+  String get sendNotYetPressed => 'यह दस्तावेज़ अभी पूरा नहीं हुआ है।';
 
   @override
-  String get sendPressedPdfNotFound => 'अंतिम PDF फ़ाइल नहीं मिली।';
+  String get sendPressedPdfNotFound => 'पूरा PDF नहीं मिला।';
 
   @override
   String get sendShareMessage => 'Scan Sign Send से हस्ताक्षरित';
@@ -941,4 +939,14 @@ class AppLocalizationsHi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get sendSaveAsTemplate => 'टेम्पलेट के रूप में सहेजें';
+
+  @override
+  String get sendTemplateSaved =>
+      'टेम्पलेट में सहेजा गया — लाइब्रेरी से नई कॉपी शुरू करें।';
+
+  @override
+  String get sendTemplateSavedShort => 'टेम्पलेट के रूप में सहेजा गया';
 }

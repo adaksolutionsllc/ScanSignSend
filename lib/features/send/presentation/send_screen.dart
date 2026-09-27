@@ -11,6 +11,7 @@ import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/services/app_lock_provider.dart';
 import '../../../shared/utils/share_pdf.dart';
+import '../../../core/services/template_service.dart';
 
 class SendScreen extends ConsumerStatefulWidget {
   const SendScreen({super.key, required this.docId});
@@ -23,6 +24,21 @@ class SendScreen extends ConsumerStatefulWidget {
 class _SendScreenState extends ConsumerState<SendScreen> {
   bool _sharing = false;
   bool _shared = false;
+
+  /// Set once the form has been saved as a template, so it's saved once.
+  bool _templateSaved = false;
+
+  Future<void> _saveTemplate() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final saved = context.l10n.sendTemplateSaved;
+    setState(() => _templateSaved = true);
+    try {
+      await ref.read(templateServiceProvider).createTemplate(widget.docId);
+      messenger.showSnackBar(SnackBar(content: Text(saved)));
+    } catch (_) {
+      if (mounted) setState(() => _templateSaved = false);
+    }
+  }
 
   // Fetch the doc once. Toggling _sharing/_shared calls setState; a fresh
   // getById() future per build would reload and can flicker.
@@ -137,6 +153,28 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                           ),
                           icon: const Icon(Icons.visibility_outlined),
                           label: Text(context.l10n.sendPreviewDocument),
+                        ),
+                      ),
+                    ],
+
+                    // Reuse this form next time: same pages and fields, empty.
+                    if (pdfPath != null) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: TextButton.icon(
+                          onPressed: _templateSaved ? null : _saveTemplate,
+                          icon: Icon(
+                            _templateSaved
+                                ? Icons.check
+                                : Icons.layers_outlined,
+                          ),
+                          label: Text(
+                            _templateSaved
+                                ? context.l10n.sendTemplateSavedShort
+                                : context.l10n.sendSaveAsTemplate,
+                          ),
                         ),
                       ),
                     ],

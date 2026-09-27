@@ -261,7 +261,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardSendBody.
   ///
   /// In en, this message translates to:
-  /// **'Share the signed PDF via Mail, Messages, AirDrop, or any app. One-time purchase — unlimited documents forever.'**
+  /// **'Share the signed PDF by email, messaging or any app. One-time purchase — unlimited documents forever.'**
   String get onboardSendBody;
 
   /// No description provided for @onboardGetStarted.
@@ -393,13 +393,13 @@ abstract class AppLocalizations {
   /// No description provided for @emptyPressedTitle.
   ///
   /// In en, this message translates to:
-  /// **'No pressed documents'**
+  /// **'No completed documents'**
   String get emptyPressedTitle;
 
   /// No description provided for @emptyPressedBody.
   ///
   /// In en, this message translates to:
-  /// **'Fill and press a draft to see it here.'**
+  /// **'Finish a draft to see it here.'**
   String get emptyPressedBody;
 
   /// No description provided for @emptyTemplatesTitle.
@@ -411,7 +411,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyTemplatesBody.
   ///
   /// In en, this message translates to:
-  /// **'When you press a document, a reusable\ntemplate is saved here automatically.'**
+  /// **'After finishing a document, tap\n\"Save as reusable template\" to reuse the form.'**
   String get emptyTemplatesBody;
 
   /// No description provided for @emptyAllTitle.
@@ -939,7 +939,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressFailed.
   ///
   /// In en, this message translates to:
-  /// **'Press failed: {error}'**
+  /// **'Couldn\'t finish the document: {error}'**
   String pressFailed(String error);
 
   /// No description provided for @pressWorking.
@@ -1095,13 +1095,13 @@ abstract class AppLocalizations {
   /// No description provided for @sendSharedBody.
   ///
   /// In en, this message translates to:
-  /// **'The pressed PDF has been shared.'**
+  /// **'Your PDF has been shared.'**
   String get sendSharedBody;
 
   /// No description provided for @sendReadyBody.
   ///
   /// In en, this message translates to:
-  /// **'Share your pressed PDF via Mail, Messages, AirDrop, or any app.'**
+  /// **'Share your PDF by email, messaging or any app.'**
   String get sendReadyBody;
 
   /// No description provided for @sendOpeningShareSheet.
@@ -1113,7 +1113,7 @@ abstract class AppLocalizations {
   /// No description provided for @sendSharePressed.
   ///
   /// In en, this message translates to:
-  /// **'Share Pressed Document'**
+  /// **'Share PDF'**
   String get sendSharePressed;
 
   /// No description provided for @sendPreviewDocument.
@@ -1131,13 +1131,13 @@ abstract class AppLocalizations {
   /// No description provided for @sendNotYetPressed.
   ///
   /// In en, this message translates to:
-  /// **'Document not yet pressed.'**
+  /// **'This document isn\'t finished yet.'**
   String get sendNotYetPressed;
 
   /// No description provided for @sendPressedPdfNotFound.
   ///
   /// In en, this message translates to:
-  /// **'Pressed PDF file not found.'**
+  /// **'The finished PDF couldn\'t be found.'**
   String get sendPressedPdfNotFound;
 
   /// Body text attached to the outgoing share. Keep the product name untranslated.
@@ -1745,6 +1745,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{left, plural, =0{You\'ve used your {total} free documents} =1{Finishing uses your last free document} other{Finishing uses 1 of your {total} free documents ({left} left)}}'**
   String pressFreeRemaining(int left, int total);
+
+  /// No description provided for @sendSaveAsTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as reusable template'**
+  String get sendSaveAsTemplate;
+
+  /// No description provided for @sendTemplateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to Templates — start a new copy from the library.'**
+  String get sendTemplateSaved;
+
+  /// No description provided for @sendTemplateSavedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as template'**
+  String get sendTemplateSavedShort;
 }
 
 class _AppLocalizationsDelegate

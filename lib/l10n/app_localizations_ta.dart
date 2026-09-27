@@ -88,7 +88,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get onboardSendBody =>
-      'கையொப்பமிட்ட PDF-ஐ Mail, Messages, AirDrop அல்லது எந்த ஆப் வழியாகவும் பகிரவும். ஒரு முறை கொள்முதல் — எப்போதும் வரம்பற்ற ஆவணங்கள்.';
+      'கையொப்பமிட்ட PDF-ஐ மின்னஞ்சல், செய்தி அல்லது எந்த ஆப் மூலமும் பகிரவும். ஒருமுறை வாங்குதல் — என்றென்றும் வரம்பற்ற ஆவணங்கள்.';
 
   @override
   String get onboardGetStarted => 'தொடங்குங்கள்';
@@ -161,15 +161,14 @@ class AppLocalizationsTa extends AppLocalizations {
   String get emptyPressedTitle => 'முடிக்கப்பட்ட ஆவணங்கள் இல்லை';
 
   @override
-  String get emptyPressedBody =>
-      'ஒரு வரைவை நிரப்பி இறுதி செய்தால் அது இங்கே தோன்றும்.';
+  String get emptyPressedBody => 'இங்கே பார்க்க ஒரு வரைவை முடிக்கவும்.';
 
   @override
   String get emptyTemplatesTitle => 'இதுவரை வார்ப்புருக்கள் இல்லை';
 
   @override
   String get emptyTemplatesBody =>
-      'ஒரு ஆவணத்தை இறுதி செய்யும்போது, மீண்டும் பயன்படுத்தக்கூடிய\nவார்ப்புரு இங்கே தானாகச் சேமிக்கப்படும்.';
+      'ஆவணத்தை முடித்த பிறகு, படிவத்தை மீண்டும் பயன்படுத்த\n“டெம்ப்ளேட்டாகச் சேமி” என்பதைத் தட்டவும்.';
 
   @override
   String get emptyAllTitle => 'இதுவரை ஆவணங்கள் இல்லை';
@@ -464,7 +463,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String pressFailed(String error) {
-    return 'செயல்முறை தோல்வி: $error';
+    return 'ஆவணத்தை முடிக்க முடியவில்லை: $error';
   }
 
   @override
@@ -547,17 +546,17 @@ class AppLocalizationsTa extends AppLocalizations {
   String get sendReadyToSend => 'அனுப்பத் தயார்';
 
   @override
-  String get sendSharedBody => 'இறுதி PDF பகிரப்பட்டது.';
+  String get sendSharedBody => 'உங்கள் PDF பகிரப்பட்டது.';
 
   @override
   String get sendReadyBody =>
-      'உங்கள் இறுதி PDF-ஐ Mail, Messages, AirDrop அல்லது எந்த ஆப் வழியாகவும் பகிரவும்.';
+      'உங்கள் PDF-ஐ மின்னஞ்சல், செய்தி அல்லது எந்த ஆப் மூலமும் பகிரவும்.';
 
   @override
   String get sendOpeningShareSheet => 'பகிர்வுத் திரை திறக்கிறது…';
 
   @override
-  String get sendSharePressed => 'இறுதி ஆவணத்தைப் பகிர்';
+  String get sendSharePressed => 'PDF-ஐப் பகிர்';
 
   @override
   String get sendPreviewDocument => 'ஆவணத்தை முன்னோட்டமிடு';
@@ -566,10 +565,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get sendShareAgain => 'மீண்டும் பகிர்';
 
   @override
-  String get sendNotYetPressed => 'ஆவணம் இன்னும் இறுதி செய்யப்படவில்லை.';
+  String get sendNotYetPressed => 'இந்த ஆவணம் இன்னும் முடிக்கப்படவில்லை.';
 
   @override
-  String get sendPressedPdfNotFound => 'இறுதி PDF கோப்பு கிடைக்கவில்லை.';
+  String get sendPressedPdfNotFound => 'முடிக்கப்பட்ட PDF கிடைக்கவில்லை.';
 
   @override
   String get sendShareMessage => 'Scan Sign Send மூலம் கையொப்பமிடப்பட்டது';
@@ -943,4 +942,14 @@ class AppLocalizationsTa extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get sendSaveAsTemplate => 'டெம்ப்ளேட்டாகச் சேமி';
+
+  @override
+  String get sendTemplateSaved =>
+      'டெம்ப்ளேட்களில் சேமிக்கப்பட்டது — நூலகத்திலிருந்து புதிய நகலைத் தொடங்கவும்.';
+
+  @override
+  String get sendTemplateSavedShort => 'டெம்ப்ளேட்டாகச் சேமிக்கப்பட்டது';
 }

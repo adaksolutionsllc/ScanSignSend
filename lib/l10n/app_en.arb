@@ -31,7 +31,7 @@
   "onboardSignTitle": "Sign",
   "onboardSignBody": "Tap fields to fill them in. Add your signature with your finger. Your data never leaves your device.",
   "onboardSendTitle": "Send",
-  "onboardSendBody": "Share the signed PDF via Mail, Messages, AirDrop, or any app. One-time purchase — unlimited documents forever.",
+  "onboardSendBody": "Share the signed PDF by email, messaging or any app. One-time purchase — unlimited documents forever.",
   "onboardGetStarted": "Get Started",
   "librarySearchHint": "Search documents…",
   "libraryTabAll": "All",
@@ -67,10 +67,10 @@
   "statusDraft": "Draft",
   "emptyDraftsTitle": "No drafts",
   "emptyDraftsBody": "Start a new scan to create a draft.",
-  "emptyPressedTitle": "No pressed documents",
-  "emptyPressedBody": "Fill and press a draft to see it here.",
+  "emptyPressedTitle": "No completed documents",
+  "emptyPressedBody": "Finish a draft to see it here.",
   "emptyTemplatesTitle": "No templates yet",
-  "emptyTemplatesBody": "When you press a document, a reusable\ntemplate is saved here automatically.",
+  "emptyTemplatesBody": "After finishing a document, tap\n\"Save as reusable template\" to reuse the form.",
   "emptyAllTitle": "No documents yet",
   "emptyAllBody": "Tap \"New Scan\" to get started.\nScan → Sign → Send.",
   "searchNoResults": "No results for \"{query}\"",
@@ -247,7 +247,7 @@
   "pressConfirmLiveFields": "This document has interactive form fields. Flattening removes them — to keep them editable, choose “Save Draft” instead.",
   "pressConfirmNote": "Note: a drawn signature here is a visual mark, not a certified digital e-signature.",
   "pressFlattenAndLock": "Flatten & Lock",
-  "pressFailed": "Press failed: {error}",
+  "pressFailed": "Couldn't finish the document: {error}",
   "@pressFailed": {
     "placeholders": {
       "error": {
@@ -294,14 +294,14 @@
   "sendBackToLibrary": "Back to Library",
   "sendDocumentSent": "Document sent!",
   "sendReadyToSend": "Ready to send",
-  "sendSharedBody": "The pressed PDF has been shared.",
-  "sendReadyBody": "Share your pressed PDF via Mail, Messages, AirDrop, or any app.",
+  "sendSharedBody": "Your PDF has been shared.",
+  "sendReadyBody": "Share your PDF by email, messaging or any app.",
   "sendOpeningShareSheet": "Opening share sheet…",
-  "sendSharePressed": "Share Pressed Document",
+  "sendSharePressed": "Share PDF",
   "sendPreviewDocument": "Preview Document",
   "sendShareAgain": "Share Again",
-  "sendNotYetPressed": "Document not yet pressed.",
-  "sendPressedPdfNotFound": "Pressed PDF file not found.",
+  "sendNotYetPressed": "This document isn't finished yet.",
+  "sendPressedPdfNotFound": "The finished PDF couldn't be found.",
   "sendShareMessage": "Signed with Scan Sign Send",
   "@sendShareMessage": {
     "description": "Body text attached to the outgoing share. Keep the product name untranslated."
@@ -508,5 +508,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "sendSaveAsTemplate": "Save as reusable template",
+  "sendTemplateSaved": "Saved to Templates — start a new copy from the library.",
+  "sendTemplateSavedShort": "Saved as template"
 }

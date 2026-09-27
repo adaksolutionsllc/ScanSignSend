@@ -88,7 +88,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardSendBody =>
-      'Partagez le PDF signé par Mail, Messages, AirDrop ou toute autre application. Achat unique — documents illimités à vie.';
+      'Partagez le PDF signé par e-mail, messagerie ou toute autre app. Achat unique — documents illimités pour toujours.';
 
   @override
   String get onboardGetStarted => 'Commencer';
@@ -159,18 +159,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'Lancez une numérisation pour créer un brouillon.';
 
   @override
-  String get emptyPressedTitle => 'Aucun document finalisé';
+  String get emptyPressedTitle => 'Aucun document terminé';
 
   @override
-  String get emptyPressedBody =>
-      'Remplissez et finalisez un brouillon pour le voir ici.';
+  String get emptyPressedBody => 'Terminez un brouillon pour le voir ici.';
 
   @override
   String get emptyTemplatesTitle => 'Aucun modèle pour l\'instant';
 
   @override
   String get emptyTemplatesBody =>
-      'Lorsque vous finalisez un document, un modèle\nréutilisable est enregistré ici automatiquement.';
+      'Après avoir terminé un document, touchez\n« Enregistrer comme modèle » pour réutiliser le formulaire.';
 
   @override
   String get emptyAllTitle => 'Aucun document pour l\'instant';
@@ -464,7 +463,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String pressFailed(String error) {
-    return 'Échec de la finalisation : $error';
+    return 'Impossible de terminer le document : $error';
   }
 
   @override
@@ -547,17 +546,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sendReadyToSend => 'Prêt à envoyer';
 
   @override
-  String get sendSharedBody => 'Le PDF finalisé a été partagé.';
+  String get sendSharedBody => 'Votre PDF a été partagé.';
 
   @override
   String get sendReadyBody =>
-      'Partagez votre PDF finalisé par Mail, Messages, AirDrop ou toute autre application.';
+      'Partagez votre PDF par e-mail, messagerie ou toute autre app.';
 
   @override
   String get sendOpeningShareSheet => 'Ouverture du partage…';
 
   @override
-  String get sendSharePressed => 'Partager le document finalisé';
+  String get sendSharePressed => 'Partager le PDF';
 
   @override
   String get sendPreviewDocument => 'Aperçu du document';
@@ -566,10 +565,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sendShareAgain => 'Partager à nouveau';
 
   @override
-  String get sendNotYetPressed => 'Document pas encore finalisé.';
+  String get sendNotYetPressed => 'Ce document n\'est pas encore terminé.';
 
   @override
-  String get sendPressedPdfNotFound => 'Fichier PDF finalisé introuvable.';
+  String get sendPressedPdfNotFound => 'Le PDF terminé est introuvable.';
 
   @override
   String get sendShareMessage => 'Signé avec Scan Sign Send';
@@ -940,4 +939,14 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get sendSaveAsTemplate => 'Enregistrer comme modèle';
+
+  @override
+  String get sendTemplateSaved =>
+      'Enregistré dans Modèles — créez une nouvelle copie depuis la bibliothèque.';
+
+  @override
+  String get sendTemplateSavedShort => 'Enregistré comme modèle';
 }

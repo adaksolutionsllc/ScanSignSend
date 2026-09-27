@@ -87,7 +87,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardSendBody =>
-      'Share the signed PDF via Mail, Messages, AirDrop, or any app. One-time purchase — unlimited documents forever.';
+      'Share the signed PDF by email, messaging or any app. One-time purchase — unlimited documents forever.';
 
   @override
   String get onboardGetStarted => 'Get Started';
@@ -157,17 +157,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyDraftsBody => 'Start a new scan to create a draft.';
 
   @override
-  String get emptyPressedTitle => 'No pressed documents';
+  String get emptyPressedTitle => 'No completed documents';
 
   @override
-  String get emptyPressedBody => 'Fill and press a draft to see it here.';
+  String get emptyPressedBody => 'Finish a draft to see it here.';
 
   @override
   String get emptyTemplatesTitle => 'No templates yet';
 
   @override
   String get emptyTemplatesBody =>
-      'When you press a document, a reusable\ntemplate is saved here automatically.';
+      'After finishing a document, tap\n\"Save as reusable template\" to reuse the form.';
 
   @override
   String get emptyAllTitle => 'No documents yet';
@@ -459,7 +459,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pressFailed(String error) {
-    return 'Press failed: $error';
+    return 'Couldn\'t finish the document: $error';
   }
 
   @override
@@ -542,17 +542,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendReadyToSend => 'Ready to send';
 
   @override
-  String get sendSharedBody => 'The pressed PDF has been shared.';
+  String get sendSharedBody => 'Your PDF has been shared.';
 
   @override
-  String get sendReadyBody =>
-      'Share your pressed PDF via Mail, Messages, AirDrop, or any app.';
+  String get sendReadyBody => 'Share your PDF by email, messaging or any app.';
 
   @override
   String get sendOpeningShareSheet => 'Opening share sheet…';
 
   @override
-  String get sendSharePressed => 'Share Pressed Document';
+  String get sendSharePressed => 'Share PDF';
 
   @override
   String get sendPreviewDocument => 'Preview Document';
@@ -561,10 +560,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendShareAgain => 'Share Again';
 
   @override
-  String get sendNotYetPressed => 'Document not yet pressed.';
+  String get sendNotYetPressed => 'This document isn\'t finished yet.';
 
   @override
-  String get sendPressedPdfNotFound => 'Pressed PDF file not found.';
+  String get sendPressedPdfNotFound => 'The finished PDF couldn\'t be found.';
 
   @override
   String get sendShareMessage => 'Signed with Scan Sign Send';
@@ -935,4 +934,14 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get sendSaveAsTemplate => 'Save as reusable template';
+
+  @override
+  String get sendTemplateSaved =>
+      'Saved to Templates — start a new copy from the library.';
+
+  @override
+  String get sendTemplateSavedShort => 'Saved as template';
 }

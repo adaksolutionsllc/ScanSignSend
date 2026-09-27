@@ -15,35 +15,38 @@ Sin cuentas. Sin suscripciones. Sin nube. Escanea cualquier documento, rellénal
 escanear,pdf,firmar,firma,documento,escáner,rellenar,formulario,sin conexión,contrato,esign
 
 ## full_description
-**Scan Sign Send convierte el papel en PDF firmados, todo en tu dispositivo.**
+Scan Sign Send convierte el papel en PDF firmados, todo en tu teléfono.
 
-Escanea cualquier documento con la cámara, toca los campos para rellenarlos, añade tu firma con el dedo y comparte el PDF terminado. Sin cuentas, sin suscripciones y sin subir nada a ningún servidor. Tus documentos se quedan en tu teléfono.
+Escanea cualquier documento con la cámara o importa un PDF, deja que la app encuentre los espacios en blanco, rellénalos, firma con el dedo y comparte el PDF final. Sin cuenta, sin suscripción y nada se sube nunca. Tus documentos se quedan en tu dispositivo.
 
-**Escanear**
-• Escaneo de alta calidad con detección automática de bordes
-• Lotes de varias páginas: hasta 20 por escaneo
+ESCANEAR
+• Escaneos nítidos con detección automática de bordes, varias páginas a la vez
+• Importa PDF y fotos que ya tengas
 • Reordena, gira y limpia las páginas antes de firmar
-• Importa también PDF e imágenes que ya tengas
 
-**Rellenar y firmar**
-• La detección automática encuentra campos de texto, fecha, casilla y firma
-• Arrastra y redimensiona cualquier campo para ajustarlo a tu formulario
-• Dibuja tu firma una vez y reutilízala en todos los documentos
-• Autorrelleno de nombre, correo, teléfono y dirección
+RELLENAR Y FIRMAR
+• Encuentra los espacios en blanco por ti —líneas, huecos, lugares de firma y fecha— y aprende de tus correcciones
+• Texto, fechas, casillas, botones de opción, iniciales y firmas
+• Arrastra para mover y pellizca para cambiar el tamaño: los campos se ajustan a tu formulario
+• Dibuja tu firma una vez y reutilízala; autocompleta tu nombre, correo y dirección
+• Al firmar, se añade la fecha de hoy donde el formulario la pide
 
-**Enviar**
-• Aplana todo en un PDF final con una página de certificado de firma
-• O exporta un PDF que sigue siendo rellenable en cualquier lector
-• Comparte por Mail, Mensajes, AirDrop o cualquier app
-• Las plantillas reutilizables se guardan solas: nunca vuelvas a escanear el mismo formulario
+ENVIAR
+• Un PDF acoplado y firmado, con una página de certificado de firma
+• O un PDF rellenable que otros pueden completar en cualquier lector de PDF
+• Comparte por correo, mensajería o cualquier app
+• Guarda cualquier formulario como plantilla para reutilizarlo
 
-**Privado por diseño**
-• Tus documentos nunca se suben: todo el procesamiento ocurre en tu dispositivo
-• Bloqueo opcional con Face ID o huella, que se reactiva cada vez que sales de la app
-• El contenido se oculta en el selector de apps
-• Borrar un documento borra de verdad sus archivos, no solo la entrada de la lista
+PRIVADO POR DISEÑO
+• Nada se sube: todo el procesamiento ocurre en tu dispositivo
+• Desbloqueo opcional con huella o rostro, que se vuelve a bloquear al salir de la app
+• Eliminar un documento elimina de verdad sus archivos
 
-**Pago único. Tuyo para siempre. Sin suscripción.**
+EN TU IDIOMA
+English, Français, Español, Português, हिन्दी, தமிழ், తెలుగు, incluido el texto en hindi, tamil y telugu en tus PDF finales.
+
+PRUÉBALO GRATIS
+Completa 2 documentos (de hasta 2 páginas cada uno) gratis. El acceso completo es una compra única para documentos ilimitados de cualquier extensión: tuyo para siempre, sin suscripción.
 
 Creado por ADAK Ventures.
 
@@ -54,4 +57,4 @@ Primera versión. Escanea, firma y envía documentos totalmente sin conexión. P
 Acceso completo
 
 ## iap_description
-Documentos, plantillas y firmas ilimitados.
+Documentos ilimitados, de cualquier tamaño..
