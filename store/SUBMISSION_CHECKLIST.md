@@ -90,7 +90,7 @@ Both answers are the same: **no data collected, no tracking.**
 ## 4b. Pricing ⬜
 See **`store/PRICING.md`** for the full rationale. Summary:
 - ⬜ **$9.99** in tier-1 markets. Revisit $14.99 once there are reviews — see PRICING.md §2
-- ⬜ **Override auto-conversion** for India (₹399), Brazil (R$19.90), Mexico,
+- ⬜ **Override auto-conversion** for India (₹499), Brazil (R$19.90), Mexico,
   SE Asia, Turkey, Eastern Europe and LatAm. Default conversion would price the
   app at ~₹850 in India, which is a decision not to sell there — and the app
   now ships in Hindi, Tamil and Telugu specifically to reach those users.
