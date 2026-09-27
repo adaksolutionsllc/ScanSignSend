@@ -72,7 +72,7 @@ Set explicit per-country prices rather than accepting auto-conversion:
 | Australia | **A$14.99** | ~9.80 |
 | Japan | **¥1,500** | ~9.90 |
 | **India** | **₹499** (set 2026-09-26; ₹399 kept in reserve for launch/festival sales) | ~5.90 |
-| **Brazil** | **R$ 19.90** | ~3.70 |
+| **Brazil** | **R$ 34.90** (set 2026-09-26; R$19.90 kept in reserve for sales) | ~6.30 |
 | Mexico | **MX$ 89** | ~4.90 |
 | SE Asia (ID/PH/VN/TH) | ~**$3.99** equivalent | 3.99 |
 | Turkey, Eastern Europe | ~**$4.99** equivalent | 4.99 |
@@ -80,7 +80,7 @@ Set explicit per-country prices rather than accepting auto-conversion:
 | Middle East (AE/SA) | **$9.99** equivalent | 9.99 |
 
 The discounted tiers are not a fixed fraction of the US price — they are set to
-locally credible price points (₹499 and R$19.90 are familiar numbers in their
+locally credible price points (₹499 and R$34.90 are familiar numbers in their
 markets), which matters more than arithmetic consistency.
 
 Rationale for the discounted tiers: a one-time purchase has no ongoing cost to
