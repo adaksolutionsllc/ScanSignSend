@@ -1,4 +1,14 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Actively strip broad media/storage permissions in case a plugin's
+         manifest ever adds them: imports go through the system picker, so the
+         app never needs them, and declaring READ_MEDIA_IMAGES/VIDEO triggers
+         Play's Photo and Video Permissions declaration. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- No storage permission is declared on purpose. Imports go through the
          Storage Access Framework (file_picker → ACTION_GET_CONTENT) and the ML
