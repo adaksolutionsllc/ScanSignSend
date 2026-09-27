@@ -7,7 +7,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import '../db/app_database.dart';
 import 'profile_repository.dart';
 
-const kProductId = 'com.adakventures.fullaccess';
+const kProductId = 'com.adakventures.scansignsend.fullaccess';
 
 /// Why a store call failed. The service has no BuildContext, so the UI maps
 /// this to a translated message (see [IapException.message]).

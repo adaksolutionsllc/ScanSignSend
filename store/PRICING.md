@@ -1,6 +1,6 @@
 # Pricing — Scan Sign Send
 
-One-time non-consumable unlock, product ID `com.adakventures.fullaccess`.
+One-time non-consumable unlock, product ID `com.adakventures.scansignsend.fullaccess`.
 Free tier: 3 complete Scan → Sign → Send cycles, gated at Press by
 `ProfileRepository.canScan()`.
 

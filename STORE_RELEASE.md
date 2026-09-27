@@ -12,7 +12,7 @@ This app is prepped for App Store + Google Play. Full details live in `store/`:
 - iOS: `com.adakVentures.scanSignSend` (team `T995T8G6Z2`)
 - Android: `com.adakventures.scansignsend`
 
-**In-app purchase** — non-consumable `com.adakventures.fullaccess`, **$9.99** base (per-country overrides in `store/PRICING.md`)
+**In-app purchase** — non-consumable `com.adakventures.scansignsend.fullaccess`, **$9.99** base (per-country overrides in `store/PRICING.md`)
 
 **Brand & icons** — the launcher icon is rendered from scratch by
 `branding/make_icon_3d.py`: a signed page rising out of a lit slot in a dark

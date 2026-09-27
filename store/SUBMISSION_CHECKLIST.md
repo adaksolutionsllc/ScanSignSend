@@ -33,7 +33,7 @@ Status legend: ✅ done in repo · ⬜ you must do it (account/console/hardware)
 - ✅ `MainActivity` → `FlutterFragmentActivity` (required for biometric lock)
 - ✅ ML Kit document scanner bumped off `-beta1` to stable `16.0.0`
 - ✅ IAP reads the live localized store price — no price is hardcoded in the app,
-  so repricing is a console-only change (product `com.adakventures.fullaccess`)
+  so repricing is a console-only change (product `com.adakventures.scansignsend.fullaccess`)
 - ✅ IAP product ID is all-lowercase — Play Console rejects uppercase in product
   IDs, so the old `com.adakVentures.fullaccess` could never have been created there
 - ✅ iOS permission prompts (camera, photos, Face ID) localized in all 7 languages
@@ -66,7 +66,7 @@ cp android/key.properties.example android/key.properties
 
 ## 3. In-app purchase product ⬜
 Create the **same non-consumable** in BOTH consoles:
-- Product ID: `com.adakventures.fullaccess`
+- Product ID: `com.adakventures.scansignsend.fullaccess`
 - Type: Non-consumable (iOS) / One-time product (Android)
 - Price tier: **$9.99 USD** base, with per-country overrides (see PRICING.md §3)
 - Display name: `Full Access`
