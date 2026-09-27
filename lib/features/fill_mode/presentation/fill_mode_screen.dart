@@ -152,6 +152,13 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                                 field,
                                 pageRect,
                                 doc?.textSize,
+                                neighbours: [
+                                  for (final other in pageFields)
+                                    if (other.id != field.id)
+                                      BoundingBox.fromJsonString(
+                                        other.boundingBoxJson,
+                                      ).inPageRect(pageRect),
+                                ],
                               ),
                           ],
                         ),
@@ -178,13 +185,15 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     BuildContext context,
     db.Field field,
     Rect pageRect,
-    double? textSize,
-  ) {
+    double? textSize, {
+    List<Rect> neighbours = const [],
+  }) {
     final type = field.type.toFieldType();
     return FieldBox(
       key: ValueKey(field.id),
       bbox: BoundingBox.fromJsonString(field.boundingBoxJson),
       pageRect: pageRect,
+      neighbours: neighbours,
       color: field.isFilled && !type.isToggle
           ? Colors.amber.shade700
           : colorFor(type),

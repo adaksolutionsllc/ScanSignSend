@@ -336,6 +336,10 @@ class _EditorViewState extends ConsumerState<_EditorView> {
                         key: ObjectKey(f),
                         bbox: f.bbox,
                         pageRect: pageRect,
+                        neighbours: [
+                          for (final o in pageFields)
+                            if (!identical(o, f)) o.bbox.inPageRect(pageRect),
+                        ],
                         color: colorFor(f.type),
                         shape: shapeFor(f.type),
                         selected: identical(f, sel),

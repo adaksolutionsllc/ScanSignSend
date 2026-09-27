@@ -83,17 +83,17 @@ class PageRasterService {
   /// Drops every cached render of the PDF at [storedPdfPath]. Called when its
   /// document is deleted, so page images don't outlive the document.
   Future<void> evict(String storedPdfPath) async {
-    final folder = _folderOf(PathResolver.resolve(storedPdfPath));
-    final dir = await _cacheDir();
+    // Best effort and never throws: it runs inside document deletion, which
+    // must not fail over a cache the OS purges anyway.
     try {
+      final folder = _folderOf(PathResolver.resolve(storedPdfPath));
+      final dir = await _cacheDir();
       for (final f in dir.listSync()) {
         if (p.basename(f.path).startsWith('${folder}_')) {
           await f.delete();
         }
       }
-    } catch (_) {
-      // Cache cleanup is best effort; the OS purges this directory anyway.
-    }
+    } catch (_) {}
   }
 
   Future<Directory> _cacheDir() async {

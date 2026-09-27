@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/models/field_model.dart';
@@ -44,6 +45,7 @@ class FieldBox extends StatefulWidget {
     this.highlighted = false,
     this.onDelete,
     this.onGestureStart,
+    this.neighbours = const [],
   });
 
   final BoundingBox bbox;
@@ -69,6 +71,12 @@ class FieldBox extends StatefulWidget {
 
   /// A drag or pinch began on this field — the editor selects it.
   final VoidCallback? onGestureStart;
+
+  /// The on-screen rects of the other fields on this page (same coordinate
+  /// space as [pageRect]). A touch in this field's invisible margin only
+  /// counts if this field is the nearest one — otherwise, on a dense form,
+  /// the margin of the row below stole taps meant for the row above.
+  final List<Rect> neighbours;
 
   /// Invisible margin around every field that still counts as touching it, so
   /// a 16 px checkbox is as easy to grab as a big box. Large enough to contain
@@ -178,78 +186,101 @@ class _FieldBoxState extends State<FieldBox> {
     final canGesture = widget.movable || widget.resizable;
     final active = widget.selected || _pointers > 0;
 
+    final outer = visual.inflate(slop);
     return Positioned.fromRect(
-      rect: visual.inflate(slop),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        // Scale callbacks (not pan) so one-finger move and two-finger pinch
-        // share one recogniser instead of fighting in the gesture arena.
-        onScaleStart: canGesture
-            ? (d) {
-                _pointers = d.pointerCount;
-                _lastH = _lastV = _last = 1;
-                widget.onGestureStart?.call();
-              }
-            : null,
-        onScaleUpdate: canGesture ? _onScaleUpdate : null,
-        onScaleEnd: canGesture
-            ? (_) {
-                setState(() => _pointers = 0);
-                _commit();
-              }
-            : null,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              left: slop,
-              top: slop,
-              right: slop,
-              bottom: slop,
-              child: _Outline(
-                shape: widget.shape,
-                color: widget.color,
-                selected: active,
-                highlighted: widget.highlighted,
-                child: widget.child,
-              ),
-            ),
-            if (widget.showHandles && widget.onDelete != null)
-              // Top-left, diagonally opposite the resize handle: on a thin
-              // field, top-right and bottom-right sat on top of each other.
-              Positioned(
-                left: slop - FieldBox.handleSize / 2,
-                top: slop - FieldBox.handleSize / 2,
-                child: _CornerButton(
-                  color: Theme.of(context).colorScheme.error,
-                  icon: Icons.close,
-                  tooltip: MaterialLocalizations.of(
-                    context,
-                  ).deleteButtonTooltip,
-                  onTap: () {
-                    HapticFeedback.mediumImpact();
-                    widget.onDelete!();
-                  },
-                ),
-              ),
-            if (widget.showHandles && widget.resizable)
-              Positioned(
-                right: slop - FieldBox.handleSize / 2,
-                bottom: slop - FieldBox.handleSize / 2,
-                child: _CornerButton(
+      rect: outer,
+      child: _MarginHitTest(
+        accept: (local) => _claims(local + outer.topLeft, visual),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          // Scale callbacks (not pan) so one-finger move and two-finger pinch
+          // share one recogniser instead of fighting in the gesture arena.
+          onScaleStart: canGesture
+              ? (d) {
+                  _pointers = d.pointerCount;
+                  _lastH = _lastV = _last = 1;
+                  widget.onGestureStart?.call();
+                }
+              : null,
+          onScaleUpdate: canGesture ? _onScaleUpdate : null,
+          onScaleEnd: canGesture
+              ? (_) {
+                  setState(() => _pointers = 0);
+                  _commit();
+                }
+              : null,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                left: slop,
+                top: slop,
+                right: slop,
+                bottom: slop,
+                child: _Outline(
+                  shape: widget.shape,
                   color: widget.color,
-                  icon: Icons.open_in_full,
-                  onTap: () {}, // absorb, so it doesn't count as a field tap
-                  onPanStart: (_) => widget.onGestureStart?.call(),
-                  onPanUpdate: (d) => _resizeBy(d.delta),
-                  onPanEnd: (_) => _commit(),
+                  selected: active,
+                  highlighted: widget.highlighted,
+                  child: widget.child,
                 ),
               ),
-          ],
+              if (widget.showHandles && widget.onDelete != null)
+                // Top-left, diagonally opposite the resize handle: on a thin
+                // field, top-right and bottom-right sat on top of each other.
+                Positioned(
+                  left: slop - FieldBox.handleSize / 2,
+                  top: slop - FieldBox.handleSize / 2,
+                  child: _CornerButton(
+                    color: Theme.of(context).colorScheme.error,
+                    icon: Icons.close,
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).deleteButtonTooltip,
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      widget.onDelete!();
+                    },
+                  ),
+                ),
+              if (widget.showHandles && widget.resizable)
+                Positioned(
+                  right: slop - FieldBox.handleSize / 2,
+                  bottom: slop - FieldBox.handleSize / 2,
+                  child: _CornerButton(
+                    color: widget.color,
+                    icon: Icons.open_in_full,
+                    onTap: () {}, // absorb, so it doesn't count as a field tap
+                    onPanStart: (_) => widget.onGestureStart?.call(),
+                    onPanUpdate: (d) => _resizeBy(d.delta),
+                    onPanEnd: (_) => _commit(),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  /// Whether a touch at [p] (parent coordinates) belongs to this field:
+  /// always inside its visible box; in the margin only when no other field
+  /// is closer. A selected field keeps its whole margin so its corner
+  /// buttons stay reachable.
+  bool _claims(Offset p, Rect visual) {
+    if (visual.contains(p) || widget.showHandles || _pointers > 0) return true;
+    final mine = _distance(p, visual);
+    for (final r in widget.neighbours) {
+      if (r.contains(p) || _distance(p, r) < mine) return false;
+    }
+    return true;
+  }
+
+  static double _distance(Offset p, Rect r) {
+    final dx = math.max(math.max(r.left - p.dx, 0.0), p.dx - r.right);
+    final dy = math.max(math.max(r.top - p.dy, 0.0), p.dy - r.bottom);
+    return math.sqrt(dx * dx + dy * dy);
   }
 
   void _onScaleUpdate(ScaleUpdateDetails d) {
@@ -403,3 +434,28 @@ IconData iconFor(FieldType type) => switch (type) {
   FieldType.initials => Icons.gesture,
   FieldType.signature => Icons.draw,
 };
+
+/// Hit-tests its child only where [accept] agrees (local coordinates).
+class _MarginHitTest extends SingleChildRenderObjectWidget {
+  const _MarginHitTest({required this.accept, super.child});
+  final bool Function(Offset local) accept;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderMarginHitTest(accept);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderMarginHitTest renderObject,
+  ) => renderObject.accept = accept;
+}
+
+class _RenderMarginHitTest extends RenderProxyBox {
+  _RenderMarginHitTest(this.accept);
+  bool Function(Offset local) accept;
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
+      accept(position) && super.hitTest(result, position: position);
+}

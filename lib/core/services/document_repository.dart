@@ -113,7 +113,10 @@ class DocumentRepository {
         if (page.imagePath.contains('#page='))
           page.imagePath.split('#page=').first,
     };
-    for (final src in pdfSources) {
+    // The library thumbnail of a completed document is a render of its
+    // flattened PDF; clear those too (the rest simply re-render).
+    final pressed = doc?.pressedPdfPath;
+    for (final src in [...pdfSources, ?pressed]) {
       await PageRasterService().evict(src);
     }
 

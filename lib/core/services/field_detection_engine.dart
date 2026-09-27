@@ -553,9 +553,47 @@ class FieldDetectionEngine {
     var t = s.replaceAll(RegExp(r'[\s,:;.\-–—]+$'), '');
     final cut = t.lastIndexOf(RegExp(r'[,:;.]'));
     if (cut >= 0) t = t.substring(cut + 1);
-    t = _lastWords(t.replaceAll(RegExp(r'^[\d.()\s]+'), ''), 2).trim();
+    // Up to three words, minus leading filler: "Date of birth" stays whole,
+    // "I was born on" → "born on", "I am aged" → "aged".
+    final words = _lastWords(
+      t.replaceAll(RegExp(r'^[\d.()\s]+'), ''),
+      3,
+    ).trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+    while (words.length > 1 && _filler.contains(words.first.toLowerCase())) {
+      words.removeAt(0);
+    }
+    t = words.join(' ');
     return t.length > 40 ? t.substring(0, 40) : t;
   }
+
+  static const _filler = {
+    'i',
+    'am',
+    'is',
+    'was',
+    'were',
+    'be',
+    'been',
+    'the',
+    'a',
+    'an',
+    'my',
+    'our',
+    'your',
+    'his',
+    'her',
+    'their',
+    'and',
+    'or',
+    'to',
+    'we',
+    'he',
+    'she',
+    'they',
+    'it',
+    'this',
+    'that',
+  };
 
   /// A signature is named by its whole signer line ("DEPONENT (ANBU MAHESH)").
   static String _signerLabel(String s) {

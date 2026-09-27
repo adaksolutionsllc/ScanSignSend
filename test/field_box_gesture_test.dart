@@ -187,4 +187,44 @@ void main() {
     expect(find.byIcon(Icons.close), findsNothing);
     expect(find.byIcon(Icons.open_in_full), findsNothing);
   });
+
+  testWidgets('on a dense form, a tap goes to the field it lands in', (
+    tester,
+  ) async {
+    // Two rows 8 px apart: each field's invisible touch margin (18 px)
+    // overlaps the other field. The lower one is painted on top.
+    const upper = BoundingBox(x: 0.1, y: 0.20, w: 0.6, h: 0.03); // 18 px tall
+    const lower = BoundingBox(x: 0.1, y: 0.2433, w: 0.6, h: 0.03);
+    final tapped = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Stack(
+          children: [
+            for (final (name, box, other) in [
+              ('upper', upper, lower),
+              ('lower', lower, upper),
+            ])
+              FieldBox(
+                bbox: box,
+                pageRect: pageRect,
+                color: Colors.blue,
+                showHandles: false,
+                neighbours: [other.inPageRect(pageRect)],
+                onTap: () => tapped.add(name),
+                onChanged: (_) {},
+                child: const SizedBox.expand(),
+              ),
+          ],
+        ),
+      ),
+    );
+    final upperRect = upper.inPageRect(pageRect);
+    final lowerRect = lower.inPageRect(pageRect);
+    await tester.tapAt(upperRect.center);
+    await tester.tapAt(
+      upperRect.bottomCenter + const Offset(0, 1),
+    ); // gap, nearer upper
+    await tester.tapAt(lowerRect.center);
+    expect(tapped, ['upper', 'upper', 'lower']);
+  });
 }

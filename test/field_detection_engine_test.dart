@@ -334,7 +334,7 @@ void main() {
       final r = _detectPdf(path, 0);
       File(path).deleteSync();
       final labels = r.fields.map((f) => f.label).toSet();
-      expect(labels, containsAll(['am aged', 'Name', 'Age', "Father's name"]));
+      expect(labels, containsAll(['aged', 'Name', 'Age', "Father's name"]));
       expect(r.fields.every((f) => f.type == FieldType.text), isTrue);
     });
 
@@ -424,5 +424,21 @@ void main() {
       expect(hints.suppressed('born on', FieldType.date), isFalse);
       expect(normalizePhrase("Father's  Name :"), "father's name");
     });
+  });
+
+  test('labels keep short phrases whole and drop leading filler', () {
+    final path = _pdf([
+      [
+        (100, 'Date of birth: ______________   Phone: ______________'),
+        (140, '2. I was born on ______, at ______, in the district.'),
+        (180, 'I, the undersigned, A. PERSON, aged ______ years.'),
+      ],
+    ]);
+    final labels = _detectPdf(path, 0).fields.map((f) => f.label).toList();
+    File(path).deleteSync();
+    expect(
+      labels,
+      containsAll(['Date of birth', 'Phone', 'born on', 'at', 'aged']),
+    );
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/models/document_model.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/page_raster_service.dart';
 import '../../../core/services/template_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -317,21 +320,28 @@ class _DocumentCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(
-                    color: Colors.grey.shade100,
-                    child: Center(
-                      child: Icon(
-                        isTemplate
-                            ? Icons.layers_outlined
-                            : status == DocumentStatus.pressed
-                            ? Icons.lock_outlined
-                            : Icons.description_outlined,
-                        size: 48,
-                        color: status == DocumentStatus.pressed
-                            ? AppTheme.statusPressed.withValues(alpha: 0.5)
-                            : isTemplate
-                            ? AppTheme.statusTemplate.withValues(alpha: 0.5)
-                            : Colors.grey.shade400,
+                  // A preview of the first page, so documents are recognisable
+                  // at a glance; the type icon if it can't be shown.
+                  _FirstPageThumb(
+                    key: ValueKey('${doc.id}-${doc.updatedAt}'),
+                    docId: doc.id,
+                    finishedPdf: doc.pressedPdfPath,
+                    fallback: Container(
+                      color: Colors.grey.shade100,
+                      child: Center(
+                        child: Icon(
+                          isTemplate
+                              ? Icons.layers_outlined
+                              : status == DocumentStatus.pressed
+                              ? Icons.lock_outlined
+                              : Icons.description_outlined,
+                          size: 48,
+                          color: status == DocumentStatus.pressed
+                              ? AppTheme.statusPressed.withValues(alpha: 0.5)
+                              : isTemplate
+                              ? AppTheme.statusTemplate.withValues(alpha: 0.5)
+                              : Colors.grey.shade400,
+                        ),
                       ),
                     ),
                   ),
@@ -587,6 +597,76 @@ class _EmptyState extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The first page of a document as a card thumbnail (scans and imported PDF
+/// pages alike, via the page renderer's cache). Shows [fallback] while
+/// loading or if the page can't be read.
+class _FirstPageThumb extends ConsumerStatefulWidget {
+  const _FirstPageThumb({
+    super.key,
+    required this.docId,
+    required this.fallback,
+    this.finishedPdf,
+  });
+  final int docId;
+  final Widget fallback;
+
+  /// A completed document's flattened PDF: its first page (filled in and
+  /// signed) is the thumbnail, rather than the blank original.
+  final String? finishedPdf;
+
+  @override
+  ConsumerState<_FirstPageThumb> createState() => _FirstPageThumbState();
+}
+
+class _FirstPageThumbState extends ConsumerState<_FirstPageThumb> {
+  late final Future<String?> _path = _load();
+
+  Future<String?> _load() async {
+    try {
+      final raster = ref.read(pageRasterServiceProvider);
+      final finished = widget.finishedPdf;
+      if (finished != null && finished.isNotEmpty) {
+        try {
+          return await raster.imageFor('$finished#page=0');
+        } catch (_) {
+          // Fall back to the original first page below.
+        }
+      }
+      final pages = await ref
+          .read(pageRepositoryProvider)
+          .watchPages(widget.docId)
+          .first;
+      if (pages.isEmpty) return null;
+      return await ref
+          .read(pageRasterServiceProvider)
+          .imageFor(pages.first.imagePath);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String?>(
+      future: _path,
+      builder: (context, snap) {
+        final path = snap.data;
+        if (path == null || !File(path).existsSync()) return widget.fallback;
+        return ColoredBox(
+          color: Colors.white,
+          child: Image.file(
+            File(path),
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+            cacheWidth: 400,
+            errorBuilder: (_, _, _) => widget.fallback,
+          ),
+        );
+      },
     );
   }
 }
