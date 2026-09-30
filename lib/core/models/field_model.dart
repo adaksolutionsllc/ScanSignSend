@@ -53,11 +53,21 @@ String? radioGroupOf(String? optionsJson) {
 bool autoTodayOf(String? optionsJson) =>
     _options(optionsJson)['autoToday'] == true;
 
+/// Proposed by auto-detect rather than placed by the user, so "Remove
+/// detected fields" can find it again after the document is reopened.
+bool detectedOf(String? optionsJson) =>
+    _options(optionsJson)['detected'] == true;
+
 /// Builds `optionsJson` for an app field; null when there's nothing to store.
-String? fieldOptionsJson({String? group, bool autoToday = false}) {
+String? fieldOptionsJson({
+  String? group,
+  bool autoToday = false,
+  bool detected = false,
+}) {
   final m = <String, Object?>{
     'group': ?group,
     if (autoToday) 'autoToday': true,
+    if (detected) 'detected': true,
   };
   return m.isEmpty ? null : jsonEncode(m);
 }

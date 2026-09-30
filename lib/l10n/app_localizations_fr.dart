@@ -880,6 +880,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get detectFieldDeleted => 'Champ supprimé';
 
   @override
+  String get detectRemoveDetected => 'Retirer les champs détectés';
+
+  @override
+  String detectRemovedDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count champs détectés retirés',
+      one: '1 champ détecté retiré',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get actionUndo => 'Annuler';
 
   @override

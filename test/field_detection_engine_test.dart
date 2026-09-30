@@ -354,6 +354,52 @@ void main() {
     );
   });
 
+  test('an article with headings and a "following:" line has no fields', () {
+    // Shaped like a help page: paragraphs, short title-case headings after
+    // white space, a sentence ending in a colon and a "(Note:" aside.
+    final path = _pdf([
+      [
+        (100, 'Graphic art on this site is offered in multiple formats.'),
+        (117, 'When using other formats, please note the following:'),
+        (151, 'PDF, the Adobe Portable Document Format, preserves the'),
+        (168, 'look and feel of the original. (Note: your system may'),
+        (185, 'show the file extension as PS.) See http://example.com/.'),
+        (480, 'Flash Animation'),
+        (510, 'Some materials are offered as animations for the web.'),
+        (700, 'Graphic File Formats'),
+        (730, 'Files are compressed to make downloading faster.'),
+      ],
+    ]);
+    expect(_detectPdf(path, 0).fields, isEmpty);
+    File(path).deleteSync();
+  });
+
+  test('prose whose word boxes are narrower than the words has no gaps', () {
+    // Seen on Android: every word box covered only part of the word, so each
+    // ordinary space measured several em wide.
+    const words = ['most', 'of', 'the', 'images', 'you', 'see', 'are', 'low'];
+    final layout = PageLayout(
+      lines: ocrLayout(
+        _ocr([
+          for (var row = 0; row < 4; row++)
+            (
+              Rect.fromLTWH(100, 200.0 + row * 40, 960, 30),
+              [
+                for (var i = 0; i < words.length; i++)
+                  (
+                    words[i],
+                    Rect.fromLTWH(100.0 + i * 120, 200.0 + row * 40, 20, 30),
+                  ),
+              ],
+            ),
+        ]),
+      ),
+      rules: const [],
+      aspect: 1000 / 1414,
+    );
+    expect(_engine.detect(layout).fields, isEmpty);
+  });
+
   group('learning from the user', () {
     PageLayout layoutOf(String path) {
       final (lines, aspect) = pdfTextLayout((path, 0))!;

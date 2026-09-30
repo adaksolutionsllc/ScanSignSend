@@ -112,10 +112,19 @@ class FieldDetectionEngine {
 
     // ── 1c. Unexplained white space between words ──────────────────────────
     // "aged        years" or "Name:          Age:" — a blank with no line
-    // drawn. Only when the gap reads as a blank, not as layout: the sentence
-    // carries on after it, or a "Label:" precedes it. Column gaps in tables
-    // and aligned lists ("NAME      (Name at birth)") don't match either.
-    for (final gap in _wordGaps(lines, layout.aspect, textSize)) {
+    // drawn. White space is mostly layout, so this is deliberately
+    // skeptical: only on a page that is plainly a form (it has a real blank,
+    // or several "Label:" prompts), and only where the gap reads as a blank:
+    // the sentence carries on after it, or a "Label:" precedes it. A missed
+    // blank costs one tap to add; a page of false fields costs many to clear.
+    final formLike =
+        found.isNotEmpty ||
+        layout.rules.isNotEmpty ||
+        _labelPrompts(lines) >= 3;
+    for (final gap
+        in formLike
+            ? _wordGaps(lines, layout.aspect, textSize)
+            : const <({Rect rect, LayoutLine line})>[]) {
       if (found.any(
         (c) =>
             _hOverlap(c.rect, gap.rect) > 0 &&
@@ -206,13 +215,16 @@ class FieldDetectionEngine {
     }
 
     // ── 2. White space above a signer's name, with no line drawn ───────────
+    // A bare name ("RAVI KUMAR") counts only on a page that talks about
+    // signing; otherwise every heading after a paragraph break would do.
+    final mentionsSigning = lines.any((l) => _sigWords.hasMatch(l.text));
     for (var i = 0; i < lines.length; i++) {
       final l = lines[i];
       final text = l.text.trim();
       if (l.blanks.isNotEmpty || text.isEmpty) continue;
       final signer =
           _signerLine.hasMatch(text) ||
-          (_looksLikeName(text) && l.box.top > 0.5);
+          (mentionsSigning && _looksLikeName(text) && l.box.top > 0.5);
       if (!signer) continue;
       final prevBottom = i == 0 ? 0.0 : lines[i - 1].box.bottom;
       final gap = l.box.top - prevBottom;
@@ -429,6 +441,25 @@ class FieldDetectionEngine {
     }
   }
 
+  /// Short "Label:" prompts on the page ("Name:", "Date of birth:") — one
+  /// to three words ending in a colon, not the tail of a sentence ("note the
+  /// following:", "(Note:") or a URL ("http://").
+  static int _labelPrompts(List<LayoutLine> lines) {
+    var n = 0;
+    for (final l in lines) {
+      // Each segment is the words since the previous prompt on the line.
+      for (final seg in l.textWithoutBlanks.split(RegExp(r'(?<=:)\s'))) {
+        final t = seg.trim();
+        if (_labelPrompt.hasMatch(t) && t.split(RegExp(r'\s+')).length <= 3) {
+          n++;
+        }
+      }
+    }
+    return n;
+  }
+
+  static final _labelPrompt = RegExp(r'^[^a-z\s.,;!?()\[\]][^.;!?()\[\]:]*:$');
+
   static final _endsSentence = RegExp(r'[.!?;)\]"”’]$');
   static final _continues = RegExp(r'^[a-z0-9]');
 
@@ -442,14 +473,35 @@ class FieldDetectionEngine {
   ) sync* {
     final em = textSize > 0 ? textSize : 0.0145;
     final pad = em * 0.3 / aspect; // breathing room each side, in widths
+    double fontOf(LayoutLine l) => l.fontSize > 0 ? l.fontSize : em;
+    List<LayoutWord> sorted(LayoutLine l) =>
+        [...l.words]..sort((a, b) => a.box.left.compareTo(b.box.left));
+    List<double> gapsOf(List<LayoutWord> w) => [
+      for (var i = 0; i + 1 < w.length; i++)
+        (w[i + 1].box.left - w[i].box.right) * aspect,
+    ];
+
+    // The page's ordinary word spacing, in font sizes. Word boxes from OCR
+    // (or a PDF text layer) can be narrower than the ink, making every space
+    // look wide; a blank has to stand out against the spacing actually
+    // measured, not against a fixed width.
+    final pageRel = _median([
+      for (final l in lines)
+        for (final g in gapsOf(sorted(l))) g / fontOf(l),
+    ]);
+
     for (final line in lines) {
-      final words = [...line.words]
-        ..sort((a, b) => a.box.left.compareTo(b.box.left));
-      final fs = line.fontSize > 0 ? line.fontSize : em;
+      final words = sorted(line);
+      final fs = fontOf(line);
+      final gaps = gapsOf(words);
       for (var i = 0; i + 1 < words.length; i++) {
         final a = words[i], b = words[i + 1];
-        final gapH = (b.box.left - a.box.right) * aspect;
-        if (gapH < fs * 3) continue;
+        final gapH = gaps[i];
+        final others = [...gaps]..removeAt(i);
+        final typical = others.length >= 2
+            ? _median(others)
+            : (pageRel ?? 0.3) * fs;
+        if (gapH < math.max(fs * 3, (typical ?? 0) * 4)) continue;
         final prev = a.text.trim(), next = b.text.trim();
         if (LayoutLine.blankRun.hasMatch(prev) ||
             LayoutLine.blankRun.hasMatch(next)) {
@@ -489,6 +541,13 @@ class FieldDetectionEngine {
         }
       }
     }
+  }
+
+  static double? _median(List<double> xs) {
+    if (xs.isEmpty) return null;
+    final s = [...xs]..sort();
+    final m = s.length ~/ 2;
+    return s.length.isOdd ? s[m] : (s[m - 1] + s[m]) / 2;
   }
 
   static BoundingBox _box(double x, double y, double w, double h) {

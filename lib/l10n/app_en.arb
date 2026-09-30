@@ -448,6 +448,15 @@
   "detectSelectedHint": "Drag to move · pinch or drag the corner to resize · tap again to edit",
   "detectRadioAddChoiceHint": "Tap Radio again to add another choice to this question",
   "detectFieldDeleted": "Field deleted",
+  "detectRemoveDetected": "Remove detected fields",
+  "detectRemovedDetected": "{count, plural, =1{Removed 1 detected field} other{Removed {count} detected fields}}",
+  "@detectRemovedDetected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "actionUndo": "Undo",
   "detectFormFieldLocked": "This field is part of the PDF's own form. Fill it in on the next step.",
   "libraryImport": "Import",

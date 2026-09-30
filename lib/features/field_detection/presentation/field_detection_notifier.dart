@@ -94,8 +94,11 @@ class EditableField {
   /// This field's lesson has already been recorded (see LearnedHints).
   bool learned = false;
 
-  String? get optionsJson =>
-      fieldOptionsJson(group: radioGroup, autoToday: autoToday);
+  String? get optionsJson => fieldOptionsJson(
+    group: radioGroup,
+    autoToday: autoToday,
+    detected: detected,
+  );
 
   EditableField({
     this.dbId,
@@ -119,7 +122,9 @@ class EditableField {
     confirmed: confirmed,
     isRequired: isRequired,
     radioGroup: radioGroup,
-  );
+    autoToday: autoToday,
+    detected: detected,
+  )..learned = learned;
 }
 
 // ── Notifier ──────────────────────────────────────────────────────────────────
@@ -218,6 +223,7 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
                 label: d.label,
                 pageIndex: i,
                 autoToday: d.autoToday,
+                detected: true,
               ),
             );
           }
@@ -287,6 +293,7 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
             // optionsJson from these, so a dropped one would be erased.
             radioGroup: radioGroupOf(f.optionsJson),
             autoToday: autoTodayOf(f.optionsJson),
+            detected: detectedOf(f.optionsJson),
           )
           // Taught (or not) in the session that created it; reopening the
           // document mustn't count the same fields again.
@@ -401,6 +408,47 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
     label: f.label,
     isRequired: f.isRequired,
   );
+
+  /// Auto-detect's fields that are still in the editor, on every page.
+  List<EditableField> get detectedFields => [
+    for (final f in state.fields)
+      if (f.detected) f,
+  ];
+
+  /// Undoes auto-detect: removes every field it proposed and keeps the
+  /// ones the user placed. Returns them for an Undo. Not a lesson — one
+  /// "clear the lot" says nothing about any single label.
+  List<EditableField> removeDetected() {
+    final removed = detectedFields;
+    if (removed.isEmpty) return removed;
+    state = state.copyWith(
+      fields: [
+        for (final f in state.fields)
+          if (!f.detected) f,
+      ],
+    );
+    final ids = [for (final f in removed) f.dbId];
+    _enqueue(() async {
+      for (final id in ids) {
+        if (id != null) await fieldRepo.deleteField(id);
+      }
+    });
+    return removed;
+  }
+
+  /// Puts back fields taken away by [removeDetected], still marked detected.
+  void restoreDetected(List<EditableField> fields) {
+    if (fields.isEmpty) return;
+    state = state.copyWith(fields: [...state.fields, ...fields]);
+    _enqueue(() async {
+      final ids = await fieldRepo.addFields([
+        for (final f in fields) _insertCompanion(f),
+      ]);
+      for (var i = 0; i < fields.length; i++) {
+        fields[i].dbId = ids[i];
+      }
+    });
+  }
 
   static String _newGroup() => const Uuid().v4().substring(0, 8);
 

@@ -260,6 +260,8 @@
   "detectSelectedHint": "खिसकाने के लिए खींचें · आकार बदलने के लिए पिंच करें या कोना खींचें · बदलने के लिए फिर टैप करें",
   "detectRadioAddChoiceHint": "इस प्रश्न में दूसरा विकल्प जोड़ने के लिए फिर से रेडियो टैप करें",
   "detectFieldDeleted": "फ़ील्ड हटाया गया",
+  "detectRemoveDetected": "पहचाने गए फ़ील्ड हटाएँ",
+  "detectRemovedDetected": "{count, plural, =1{1 पहचाना गया फ़ील्ड हटाया गया} other{{count} पहचाने गए फ़ील्ड हटाए गए}}",
   "actionUndo": "पूर्ववत करें",
   "detectFormFieldLocked": "यह फ़ील्ड PDF के अपने फ़ॉर्म का हिस्सा है। इसे अगले चरण में भरें।",
   "libraryImport": "इम्पोर्ट",

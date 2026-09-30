@@ -260,6 +260,8 @@
   "detectSelectedHint": "Arraste para mover · faça pinça ou arraste o canto para redimensionar · toque de novo para editar",
   "detectRadioAddChoiceHint": "Toque em Opção de novo para adicionar outra resposta a esta pergunta",
   "detectFieldDeleted": "Campo excluído",
+  "detectRemoveDetected": "Remover campos detectados",
+  "detectRemovedDetected": "{count, plural, =1{1 campo detectado removido} other{{count} campos detectados removidos}}",
   "actionUndo": "Desfazer",
   "detectFormFieldLocked": "Este campo faz parte do formulário do PDF. Preencha-o na próxima etapa.",
   "libraryImport": "Importar",

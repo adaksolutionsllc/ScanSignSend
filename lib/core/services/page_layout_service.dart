@@ -103,12 +103,20 @@ class PageLayoutService {
           ),
         );
       }
+      final box = norm(line.bounds);
+      // Some PDFs set text at 1pt and scale it up with the text matrix, so
+      // the reported size is tiny. The line's box is what's really on the
+      // page: trust the reported size only when it roughly agrees with it.
+      var fontSize = line.fontSize / h;
+      if (fontSize < box.height * 0.5 || fontSize > box.height * 1.6) {
+        fontSize = box.height * 0.8;
+      }
       out.add(
         LayoutLine(
           text: line.text,
-          box: norm(line.bounds),
+          box: box,
           words: words,
-          fontSize: line.fontSize / h,
+          fontSize: fontSize,
           blanks: blanks,
         ),
       );

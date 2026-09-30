@@ -884,6 +884,20 @@ class AppLocalizationsTe extends AppLocalizations {
   String get detectFieldDeleted => 'ఫీల్డ్ తొలగించబడింది';
 
   @override
+  String get detectRemoveDetected => 'గుర్తించిన ఫీల్డ్‌లను తొలగించు';
+
+  @override
+  String detectRemovedDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'గుర్తించిన $count ఫీల్డ్‌లు తొలగించబడ్డాయి',
+      one: 'గుర్తించిన 1 ఫీల్డ్ తొలగించబడింది',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get actionUndo => 'రద్దు చేయి';
 
   @override

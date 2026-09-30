@@ -880,6 +880,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get detectFieldDeleted => 'फ़ील्ड हटाया गया';
 
   @override
+  String get detectRemoveDetected => 'पहचाने गए फ़ील्ड हटाएँ';
+
+  @override
+  String detectRemovedDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count पहचाने गए फ़ील्ड हटाए गए',
+      one: '1 पहचाना गया फ़ील्ड हटाया गया',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get actionUndo => 'पूर्ववत करें';
 
   @override

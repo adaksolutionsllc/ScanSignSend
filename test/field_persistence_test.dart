@@ -104,6 +104,57 @@ void main() {
     file.deleteSync();
   });
 
+  test('"Remove detected fields" keeps the user\'s own, and undoes', () async {
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    final doc = await DocumentRepository(db).createDocument('Form');
+    await PageRepository(db).addPage(
+      documentId: doc.id,
+      pageIndex: 0,
+      imagePath: 'pages/u/page_0.jpg',
+    );
+    final fields = FieldRepository(db);
+    FieldsCompanion row(String label, {required bool detected}) =>
+        FieldsCompanion.insert(
+          documentId: doc.id,
+          pageIndex: 0,
+          type: 'text',
+          boundingBoxJson: const BoundingBox(
+            x: 0.1,
+            y: 0.1,
+            w: 0.3,
+            h: 0.03,
+          ).toJsonString(),
+          label: Value(label),
+          sourceKind: const Value('app'),
+          optionsJson: Value(fieldOptionsJson(detected: detected)),
+        );
+    await fields.addFields([
+      row('found 1', detected: true),
+      row('mine', detected: false),
+      row('found 2', detected: true),
+    ]);
+
+    // Reopened document: the detected flag comes back from the database.
+    final editor = _editor(db, doc.id);
+    await editor.loadExisting();
+    expect(editor.detectedFields, hasLength(2));
+
+    final removed = editor.removeDetected();
+    await editor.flush();
+    expect(removed, hasLength(2));
+    expect((await fields.watchFields(doc.id).first).map((f) => f.label), [
+      'mine',
+    ]);
+
+    editor.restoreDetected(removed);
+    await editor.flush();
+    final back = await fields.watchFields(doc.id).first;
+    expect(back.map((f) => f.label).toSet(), {'found 1', 'mine', 'found 2'});
+    expect(back.where((f) => detectedOf(f.optionsJson)), hasLength(2));
+    editor.dispose();
+    await db.close();
+  });
+
   group('page geometry', () {
     test('the page rect is the letterboxed content, not the container', () {
       // A4-ish scan in a tall phone viewport: full width, centred vertically.

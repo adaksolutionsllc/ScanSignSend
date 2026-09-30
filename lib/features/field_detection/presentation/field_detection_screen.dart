@@ -63,6 +63,13 @@ class _FieldDetectionScreenState extends ConsumerState<FieldDetectionScreen> {
         title: Text(context.l10n.detectTitle),
         actions: state.phase == DetectionPhase.done
             ? [
+                // Undo auto-detect: clears its fields, keeps the user's own.
+                if (state.fields.any((f) => f.detected))
+                  IconButton(
+                    icon: const Icon(Icons.auto_fix_off),
+                    tooltip: context.l10n.detectRemoveDetected,
+                    onPressed: () => _removeDetected(context),
+                  ),
                 TextButton(
                   onPressed: () => _confirmAll(context),
                   child: Text(context.l10n.detectConfirmAll),
@@ -101,6 +108,30 @@ class _FieldDetectionScreenState extends ConsumerState<FieldDetectionScreen> {
   }
 
   bool _proceeding = false;
+
+  void _removeDetected(BuildContext context) {
+    final l10n = context.l10n;
+    final notifier = ref.read(
+      fieldDetectionNotifierProvider(widget.docId).notifier,
+    );
+    final removed = notifier.removeDetected();
+    if (removed.isEmpty) return;
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.detectRemovedDetected(removed.length)),
+          duration: const Duration(seconds: 4),
+          persist: false,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: l10n.actionUndo,
+            onPressed: () => notifier.restoreDetected(removed),
+          ),
+        ),
+      );
+  }
 
   Future<void> _confirmAll(BuildContext context) async {
     ref

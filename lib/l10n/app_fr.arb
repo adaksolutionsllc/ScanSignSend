@@ -260,6 +260,8 @@
   "detectSelectedHint": "Glissez pour déplacer · pincez ou tirez le coin pour redimensionner · touchez à nouveau pour modifier",
   "detectRadioAddChoiceHint": "Touchez à nouveau Radio pour ajouter un autre choix à cette question",
   "detectFieldDeleted": "Champ supprimé",
+  "detectRemoveDetected": "Retirer les champs détectés",
+  "detectRemovedDetected": "{count, plural, =1{1 champ détecté retiré} other{{count} champs détectés retirés}}",
   "actionUndo": "Annuler",
   "detectFormFieldLocked": "Ce champ fait partie du formulaire du PDF. Remplissez-le à l’étape suivante.",
   "libraryImport": "Importer",
