@@ -2,7 +2,7 @@
 
 Offline document scanner + e-signature app for iOS and Android. Scan documents, detect and fill form fields, sign, flatten to PDF, and share — all on-device, no cloud, no account, no subscription.
 
-One-time purchase: $14.99.
+One-time purchase: $9.99 base (per-country pricing in `store/PRICING.md`).
 
 ---
 
