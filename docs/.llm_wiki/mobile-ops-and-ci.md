@@ -96,7 +96,7 @@ no codesign). `concurrency` cancels superseded runs.
 | Key | Why (from the shipped string / code) |
 |---|---|
 | `NSCameraUsageDescription` | VisionKit document camera (`DocumentScannerPlugin.swift`) |
-| `NSPhotoLibraryUsageDescription` | Import existing photos/images as pages |
+| `NSPhotoLibraryUsageDescription` | Import existing photos/images as pages. Required even though imports use `FileType.custom`: `file_picker` links the Photos framework, and App Store processing rejects binaries that reference it without this key |
 | `NSFaceIDUsageDescription` | Biometric app lock (`local_auth`, `BiometricService`) |
 
 Other relevant keys: `ITSAppUsesNonExemptEncryption = false`,
@@ -134,5 +134,3 @@ Application attributes: `allowBackup="true"`, `backupAgent=".AppBackupAgent"`,
   latest gem each run.
 - **Bundle ID casing differs** between platforms (`com.adakVentures.scanSignSend`
   vs `com.adakventures.scansignsend`) — harmless but easy to mistype in tooling.
-- **iOS photo-library string** is declared although imports go through
-  `file_picker` with `FileType.custom`; verify it is still required.

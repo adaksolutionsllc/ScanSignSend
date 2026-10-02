@@ -45,7 +45,8 @@ Every Dart caller wraps calls in `try/catch` and degrades silently
 | Presentation | from top-most presented VC (avoids silent failure under sheets/overlay) | `startIntentSenderForResult`, request code `0x5CA3` |
 
 Dart (`ScanService.scan`) maps `UNAVAILABLE` → empty list and rethrows other
-`PlatformException`s. The capture flow wraps the call in
+`PlatformException`s. `capture_screen.dart` copies each staged file into
+`Documents/pages/<uuid>/page_<i>.jpg` and deletes the staged original. The capture flow wraps the call in
 `AppLockNotifier.whileExternal` so the lock doesn't re-arm mid-scan.
 
 ### Entitlement (`com.scansignsend/entitlement`)
@@ -70,7 +71,7 @@ Dart (`ScanService.scan`) maps `UNAVAILABLE` → empty list and rethrows other
 ### Privacy
 - Android: `FLAG_SECURE` toggled from the biometric-lock setting via
   `AppLockNotifier` → `PrivacyScreenService`; re-asserted post-first-frame by
-  `AppLockGate.syncPrivacyScreen()`.
+  `AppLockNotifier.syncPrivacyScreen()`, called from `AppLockGate.initState`.
 - iOS: `ios/Runner/PrivacyOverlay.swift` adds a `.systemThickMaterial` blur with
   a `lock.doc.fill` glyph on `didEnterBackground`, removes it on
   `willEnterForeground`/`didBecomeActive`. Always on; not tied to the setting.
@@ -132,9 +133,6 @@ Android extra Gradle deps (`android/app/build.gradle.kts`):
   `PrivacyOverlay.swift`, activated from `AppDelegate`.
 - **Misleading pubspec comment**: `google_mlkit_text_recognition` is annotated
   "wraps VisionKit on iOS" — `ios/Podfile.lock` shows it uses Google ML Kit pods.
-- **Android scan staging in `cacheDir`** is not explicitly cleaned on the native
-  side (relies on Dart moving files and OS cache eviction); iOS cleans legacy
-  staging but not `tmp/scan_staging` itself.
 - **Android scanner swallows per-page copy errors** (`catch (e: Exception) {}`),
   so a partially failed scan returns fewer pages without signalling it.
 - **`scanAvailable` on Android always returns `true`**, even on devices
