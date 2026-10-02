@@ -24,7 +24,6 @@ dependencies:
 
   # State management
   flutter_riverpod: ^2.5.1
-  riverpod_annotation: ^2.3.5
 
   # Biometric / app lock
   local_auth: ^2.3.0
@@ -36,7 +35,7 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^28.2.12
   syncfusion_flutter_signaturepad: ^28.2.12
 
-  # OCR — wraps VisionKit on iOS and ML Kit Text Recognition on Android
+  # OCR — Google ML Kit Text Recognition on both iOS and Android
   google_mlkit_text_recognition: ^0.13.0
 
   # Image processing utilities
@@ -62,7 +61,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   build_runner: ^2.4.9
-  riverpod_generator: ^2.4.3
   drift_dev: ^2.20.0
   flutter_launcher_icons: ^0.14.1
   flutter_native_splash: ^2.4.7

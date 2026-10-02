@@ -99,6 +99,7 @@ jobs:
       - run: flutter pub get
 
       # Builds the iOS app without code signing so CI needs no certificates.
-      # The signed IPA is produced in release.yml via fastlane match.
+      # The signed IPA is produced in release.yml by fastlane `beta`, which
+      # imports the distribution certificate and profile from secrets.
       - name: Build iOS (no codesign)
         run: flutter build ios --debug --no-codesign

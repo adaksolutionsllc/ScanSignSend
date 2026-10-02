@@ -5,8 +5,8 @@ Back to [[Index]] · Related: [[Native Bridges and Plugins]] · [[UI and Design 
 ## Paradigm
 
 **Riverpod 2 (`flutter_riverpod ^2.5.1`), hand-written providers.** There are
-no `@riverpod` annotations anywhere in `lib/` even though `riverpod_annotation`
-and `riverpod_generator` are declared (see debt list). The only `.g.dart` file
+no Riverpod code generation (`riverpod_annotation` / `riverpod_generator` were
+removed as unused on 2026-10-01). The only `.g.dart` file
 is drift's `lib/core/db/app_database.g.dart`.
 
 There is **no network layer and no API data**. The single source of truth is a
@@ -165,8 +165,6 @@ so underlying screens keep their state.
 
 ## Technical Debt Observations
 
-- **Unused codegen dependencies**: `riverpod_annotation` / `riverpod_generator`
-  are in `pubspec.yaml`, but no `@riverpod` annotation exists in `lib/`.
 - **Legacy `StateNotifier` API**: `appLockProvider` and
   `fieldDetectionNotifierProvider` use `StateNotifierProvider`, which Riverpod 2
   treats as legacy in favour of `Notifier`/`AsyncNotifier`.

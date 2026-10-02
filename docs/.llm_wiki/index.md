@@ -101,6 +101,7 @@ Resolved 2026-10-01: `README.md` price (now $9.99 base, matching
 `store/PRICING.md`); `CLAUDE.md` paywall rule, stack table, folder layout,
 codegen note and platform-channel section now match the code.
 
-Still open: stale code comments listed on [[Native Bridges and Plugins]] and
-[[Mobile Ops and CI]], and the unused `riverpod_annotation` /
-`riverpod_generator` dependencies ([[State and Data Flow]]).
+Also resolved 2026-10-01: stale code comments (pubspec OCR note,
+`privacy_screen_service.dart`, `ai_enhancer_service.dart`, `ci.yml`,
+`ios/Podfile`) and the unused `riverpod_annotation` / `riverpod_generator`
+dependencies were removed.

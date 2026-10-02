@@ -9,8 +9,9 @@ final privacyScreenServiceProvider = Provider<PrivacyScreenService>((ref) {
 ///
 /// Android: toggles `WindowManager.LayoutParams.FLAG_SECURE`, which blanks the
 /// window in the recents thumbnail and blocks screenshots / screen recording.
-/// iOS: the snapshot blur is handled entirely in `SceneDelegate` (it is always
-/// on there, since it costs the user nothing), so this call is a no-op.
+/// iOS: the snapshot blur is handled entirely by `PrivacyOverlay` (activated in
+/// `AppDelegate`; always on, since it costs the user nothing). There is no iOS
+/// handler for this channel, so the call throws and is swallowed below.
 ///
 /// Driven by the user's Biometric App Lock setting — someone who asked for a
 /// lock on their documents does not expect those documents to be legible in the

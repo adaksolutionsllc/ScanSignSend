@@ -12,9 +12,10 @@ final aiEnhancerServiceProvider = Provider<AiEnhancerService>((ref) {
 });
 
 /// Wraps the on-device AI channel.
-/// On iOS 26+ with Foundation Models: asks the model to semantically label
+/// Intended for iOS 26+ Foundation Models: ask the model to semantically label
 /// form fields from the OCR text, returning structured DetectedField results.
-/// Falls back to the heuristic engine on older OS or Android without Gemini Nano.
+/// The native side is currently a stub that returns no fields, and Android has
+/// no handler, so detection always falls back to the heuristic engine.
 class AiEnhancerService {
   AiEnhancerService(this._profileRepo);
   final ProfileRepository _profileRepo;

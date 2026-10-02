@@ -127,9 +127,6 @@ Application attributes: `allowBackup="true"`, `backupAgent=".AppBackupAgent"`,
 - **Two release pipelines** (local `scripts/release.sh` and tag-triggered CI)
   use different build-number sources (pubspec `+N` vs `run_number`); mixing
   them can produce a lower build number than one already uploaded.
-- **Stale comments**: `ci.yml` says the signed IPA is produced "via fastlane
-  match", but the Fastfile imports a p12 directly; `ios/Podfile` comment says
-  deployment target 13.0 while both values are 15.0.
 - **Fastlane is not pinned** (no `Gemfile`/`Gemfile.lock`); CI installs the
   latest gem each run.
 - **Bundle ID casing differs** between platforms (`com.adakVentures.scanSignSend`

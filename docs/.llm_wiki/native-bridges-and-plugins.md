@@ -124,15 +124,9 @@ Android extra Gradle deps (`android/app/build.gradle.kts`):
 - **AI enhancer is a stub that claims availability.** iOS 26+ reports
   `isAvailable = true` while `enhance` always returns `[]`; Android has no
   handler at all. Net effect is harmless (heuristic fallback), but the Settings
-  toggle `aiEnhancedDetection` currently changes nothing. The Dart doc comment
-  mentions "Android without Gemini Nano" — no Gemini Nano code exists.
+  toggle `aiEnhancedDetection` currently changes nothing.
 - **Asymmetric channel coverage**: `privacy` has no iOS handler and
   `ai_enhancer` has no Android handler; both rely on swallowed exceptions.
-- **Stale comment**: `privacy_screen_service.dart` says the iOS blur is
-  "handled entirely in `SceneDelegate`"; it actually lives in
-  `PrivacyOverlay.swift`, activated from `AppDelegate`.
-- **Misleading pubspec comment**: `google_mlkit_text_recognition` is annotated
-  "wraps VisionKit on iOS" — `ios/Podfile.lock` shows it uses Google ML Kit pods.
 - **Android scanner swallows per-page copy errors** (`catch (e: Exception) {}`),
   so a partially failed scan returns fewer pages without signalling it.
 - **`scanAvailable` on Android always returns `true`**, even on devices

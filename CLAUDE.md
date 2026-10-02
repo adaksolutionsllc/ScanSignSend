@@ -10,7 +10,7 @@ No server, no accounts, no subscription.
 |---|---|
 | Framework | Flutter 3.x (stable) |
 | Navigation | go_router |
-| State | flutter_riverpod (hand-written `Provider`/`StateNotifierProvider`; no `@riverpod` codegen in use) |
+| State | flutter_riverpod (hand-written `Provider`/`StateNotifierProvider`; no codegen) |
 | Database | drift (SQLite, pure Dart) |
 | PDF | syncfusion_flutter_pdf + syncfusion_flutter_pdfviewer |
 | Signature pad | syncfusion_flutter_signaturepad |
