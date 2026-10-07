@@ -49,126 +49,139 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            if (widget.reason != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+      // An explicit scroll padding drops the automatic safe-area inset, so
+      // the buy button could sit under Android's navigation bar.
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              if (widget.reason != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    switch (widget.reason!) {
+                      PaywallReason.allowanceUsed =>
+                        context.l10n.paywallReasonAllowance(
+                          FreeUsageService.freeDocuments,
+                        ),
+                      PaywallReason.tooManyPages =>
+                        context.l10n.paywallReasonPages(
+                          FreeUsageService.freePageLimit,
+                        ),
+                    },
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
                 ),
-                child: Text(
-                  switch (widget.reason!) {
-                    PaywallReason.allowanceUsed =>
-                      context.l10n.paywallReasonAllowance(
-                        FreeUsageService.freeDocuments,
+              const SizedBox(height: 16),
+              const Icon(
+                Icons.workspace_premium,
+                size: 80,
+                color: Color(0xFF1A73E8),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                context.l10n.paywallHeadline,
+                style: Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.paywallSubhead,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+
+              // Feature list
+              ...[
+                (Icons.all_inclusive, context.l10n.paywallBenefitUnlimited),
+                (Icons.auto_stories, context.l10n.paywallBenefitAnyLength),
+                (Icons.layers, context.l10n.paywallBenefitTemplates),
+                (Icons.draw, context.l10n.paywallBenefitSignatures),
+                (Icons.person, context.l10n.paywallBenefitAutofill),
+                (Icons.lock_outline, context.l10n.paywallBenefitLock),
+                (Icons.cloud_off, context.l10n.paywallBenefitOffline),
+              ].map(
+                (row) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      Icon(
+                        row.$1,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                    PaywallReason.tooManyPages =>
-                      context.l10n.paywallReasonPages(
-                        FreeUsageService.freePageLimit,
+                      const SizedBox(width: 12),
+                      // Long translations wrap instead of overflowing.
+                      Expanded(
+                        child: Text(
+                          row.$2,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ),
-                  },
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ],
                   ),
                 ),
               ),
-            const SizedBox(height: 16),
-            const Icon(
-              Icons.workspace_premium,
-              size: 80,
-              color: Color(0xFF1A73E8),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              context.l10n.paywallHeadline,
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.paywallSubhead,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
 
-            // Feature list
-            ...[
-              (Icons.all_inclusive, context.l10n.paywallBenefitUnlimited),
-              (Icons.auto_stories, context.l10n.paywallBenefitAnyLength),
-              (Icons.layers, context.l10n.paywallBenefitTemplates),
-              (Icons.draw, context.l10n.paywallBenefitSignatures),
-              (Icons.person, context.l10n.paywallBenefitAutofill),
-              (Icons.lock_outline, context.l10n.paywallBenefitLock),
-              (Icons.cloud_off, context.l10n.paywallBenefitOffline),
-            ].map(
-              (row) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  children: [
-                    Icon(
-                      row.$1,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
+              const SizedBox(height: 32),
+
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
                     ),
-                    const SizedBox(width: 12),
-                    Text(row.$2, style: Theme.of(context).textTheme.bodyMedium),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 32),
-
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ),
-
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: FilledButton(
-                onPressed: _loading ? null : _buy,
-                child: _loading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                        _price == null
-                            ? context.l10n.paywallTitle
-                            : context.l10n.paywallUnlockForPrice(_price!),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: FilledButton(
+                  onPressed: _loading ? null : _buy,
+                  child: _loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          _price == null
+                              ? context.l10n.paywallTitle
+                              : context.l10n.paywallUnlockForPrice(_price!),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: _loading ? null : _restore,
-              child: Text(context.l10n.paywallRestore),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.paywallPaymentDisclosure,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _loading ? null : _restore,
+                child: Text(context.l10n.paywallRestore),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.paywallPaymentDisclosure,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

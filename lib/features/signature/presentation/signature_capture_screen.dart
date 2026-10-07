@@ -77,63 +77,69 @@ class _SignatureCaptureScreenState
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Draw canvas
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: RepaintBoundary(
-                key: _repaintKey,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: SfSignaturePad(
-                    key: _padKey,
-                    backgroundColor: Colors.white,
-                    strokeColor: _inkColor,
-                    minimumStrokeWidth: 3.0,
-                    maximumStrokeWidth: 7.0,
+      // Android draws edge to edge: keep the button clear of the nav bar.
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            // Draw canvas
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: RepaintBoundary(
+                  key: _repaintKey,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: SfSignaturePad(
+                      key: _padKey,
+                      backgroundColor: Colors.white,
+                      strokeColor: _inkColor,
+                      minimumStrokeWidth: 3.0,
+                      maximumStrokeWidth: 7.0,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          // Save-as-default toggle
-          SwitchListTile(
-            title: Text(context.l10n.signSaveAsMine),
-            subtitle: Text(context.l10n.signReuseSubtitle),
-            value: _saveAsDefault,
-            onChanged: (v) => setState(() => _saveAsDefault = v),
-          ),
-          // CTA
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton.icon(
-                onPressed: _saving ? null : _onSave,
-                icon: _saving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.check),
-                label: Text(
-                  _saving ? context.l10n.signSaving : context.l10n.signUseThis,
+            // Save-as-default toggle
+            SwitchListTile(
+              title: Text(context.l10n.signSaveAsMine),
+              subtitle: Text(context.l10n.signReuseSubtitle),
+              value: _saveAsDefault,
+              onChanged: (v) => setState(() => _saveAsDefault = v),
+            ),
+            // CTA
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton.icon(
+                  onPressed: _saving ? null : _onSave,
+                  icon: _saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.check),
+                  label: Text(
+                    _saving
+                        ? context.l10n.signSaving
+                        : context.l10n.signUseThis,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
