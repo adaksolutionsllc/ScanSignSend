@@ -85,10 +85,16 @@ jobs:
 
   build-ios:
     name: Build iOS (no codesign)
-    runs-on: macos-14
+    # macos-14's Xcode 15 lacks the StoreKit APIs in_app_purchase_storekit
+    # uses (iOS 18 SDK), and App Store uploads need the iOS 26 SDK.
+    runs-on: macos-15
     needs: analyze-and-test
     steps:
       - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - uses: subosito/flutter-action@v2
         with:
