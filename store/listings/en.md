@@ -51,7 +51,7 @@ Finish 2 documents (up to 2 pages each) free. Full Access is a one-time purchase
 Built by ADAK Ventures.
 
 ## whats_new
-First release. Scan, sign and send documents completely offline. One-time purchase — no subscriptions, ever.
+Performance and reliability improvements.
 
 ## iap_display_name
 Full Access

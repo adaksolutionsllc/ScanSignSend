@@ -51,7 +51,7 @@ Conclua 2 documentos (de até 2 páginas cada) de graça. O acesso completo é u
 Feito pela ADAK Ventures.
 
 ## whats_new
-Primeira versão. Digitalize, assine e envie documentos totalmente offline. Compra única — nunca uma subscrição.
+Melhorias de desempenho e confiabilidade.
 
 ## iap_display_name
 Acesso total

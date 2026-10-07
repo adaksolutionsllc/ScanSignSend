@@ -1,0 +1,9 @@
+name: google_mlkit_text_recognition
+description: Capture-only stand-in for google_mlkit_text_recognition. ML Kit ships no arm64 simulator slice; this lets tool/store_capture build for the simulator. Never used in release builds.
+version: 0.13.1
+publish_to: none
+environment:
+  sdk: ^3.0.0
+dependencies:
+  flutter:
+    sdk: flutter

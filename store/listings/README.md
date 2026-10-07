@@ -16,6 +16,11 @@ within the character limits each store enforces.
 Telugu are not penalised for their UTF-8 size — but they *are* long in
 characters, which is why several subtitles here are terser than the English.
 
+**The one exception is App Store keywords: 100 UTF-8 *bytes*.** A Tamil or
+Hindi character costs ~3 bytes, so an Indic keyword list holds roughly a third
+as many native-script words. Spend them on the native terms; Latin terms that
+are already in the app name ("scan", "sign") are indexed anyway.
+
 Run `python3 store/listings/check_limits.py` after any edit; it fails loudly
 rather than letting a console reject the upload.
 

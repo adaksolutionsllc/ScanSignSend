@@ -51,7 +51,7 @@ Completa 2 documentos (de hasta 2 páginas cada uno) gratis. El acceso completo 
 Creado por ADAK Ventures.
 
 ## whats_new
-Primera versión. Escanea, firma y envía documentos totalmente sin conexión. Pago único, nunca una suscripción.
+Mejoras de rendimiento y fiabilidad.
 
 ## iap_display_name
 Acceso completo

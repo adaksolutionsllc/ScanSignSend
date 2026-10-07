@@ -1,0 +1,1 @@
+pdf,signature,हस्ताक्षर,दस्तावेज़,स्कैन,scanner,form

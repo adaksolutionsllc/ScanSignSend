@@ -7,7 +7,8 @@ Tamil, after you have already filled in six other languages by hand. This
 checks all of them at once.
 
 Limits are counted in *characters*, not bytes, which is why Devanagari, Tamil
-and Telugu are not penalised for their UTF-8 size.
+and Telugu are not penalised for their UTF-8 size — except App Store keywords,
+which Apple caps at 100 *bytes*.
 
     python3 store/listings/check_limits.py
 """
@@ -94,6 +95,12 @@ def main() -> int:
         if "Scan Sign Send" not in fields.get("app_name", ""):
             failures.append(
                 f"{locale}.app_name: product name was translated or dropped")
+
+        # Apple counts the keyword limit in UTF-8 *bytes*, unlike every other
+        # field — Devanagari, Tamil and Telugu cost ~3 bytes per character.
+        kb = len(unicodedata.normalize("NFC", fields.get("keywords", "")).encode())
+        if kb > 100:
+            failures.append(f"{locale}.keywords: {kb}/100 bytes (App Store)")
 
         # App Store keywords are comma-separated with no spaces after commas —
         # a space costs a character out of the 100 and indexes nothing.

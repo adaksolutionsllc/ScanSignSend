@@ -73,3 +73,8 @@ app.*.map.json
 **/fastlane/README.md
 **/fastlane/report.xml
 **/fastlane/test_output
+
+# tool/store_capture swaps in the ML Kit stub for simulator capture runs
+pubspec_overrides.yaml
+build/store_capture/
+ios/fastlane/screenshots/

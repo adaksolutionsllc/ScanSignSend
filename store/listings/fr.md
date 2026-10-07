@@ -51,7 +51,7 @@ Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. L'accès complet es
 Conçu par ADAK Ventures.
 
 ## whats_new
-Première version. Scannez, signez et envoyez vos documents entièrement hors ligne. Achat unique — jamais d'abonnement.
+Améliorations des performances et de la fiabilité.
 
 ## iap_display_name
 Accès complet
