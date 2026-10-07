@@ -23,12 +23,21 @@ OUT="build/store_capture/raw/$NAME"
 
 restore() {
   rm -f pubspec_overrides.yaml
-  git checkout -- ios/Podfile.lock ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+  git checkout -- pubspec.yaml pubspec.lock ios/Podfile.lock \
+    ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
   flutter pub get >/dev/null
   (cd ios && pod install >/dev/null) || true
 }
 trap restore EXIT
 
+# integration_test is added for the run only: as a regular dev dependency its
+# iOS framework gets embedded in release IPAs.
+python3 - <<'PY'
+p = "pubspec.yaml"; t = open(p).read()
+dev = "dev_dependencies:\n"
+assert t.count(dev) == 1
+open(p, "w").write(t.replace(dev, dev + "  integration_test:\n    sdk: flutter\n"))
+PY
 cat > pubspec_overrides.yaml <<'EOF'
 dependency_overrides:
   google_mlkit_text_recognition:

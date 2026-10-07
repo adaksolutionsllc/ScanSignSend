@@ -4,6 +4,7 @@
 #   scripts/release.sh ios        # TestFlight (internal testers)
 #   scripts/release.sh android    # Google Play internal testing track
 #   scripts/release.sh all        # both
+#   scripts/release.sh listing    # App Store metadata + screenshots (no submit)
 #
 # Production is deliberately NOT automated here: promote a tested build from
 # App Store Connect (submit for review) and Play Console (internal → production,
@@ -22,8 +23,8 @@
 set -euo pipefail
 
 target="${1:-}"
-case "$target" in ios|android|all|ios-upload) ;; *)
-  echo "usage: $0 ios|android|all|ios-upload" >&2; exit 64 ;;
+case "$target" in ios|android|all|ios-upload|listing) ;; *)
+  echo "usage: $0 ios|android|all|ios-upload|listing" >&2; exit 64 ;;
 esac
 
 # Uploads can die on a dropped connection mid-transfer (altool reports
@@ -76,6 +77,21 @@ if [[ "$target" == ios-upload ]]; then
   : "${ASC_KEY_ID:?}" "${ASC_ISSUER_ID:?}" "${ASC_KEY_PATH:?}"
   upload_ios "$(ls "$root"/build/ios/ipa/*.ipa | head -1)"
   echo "✓ $version uploaded (ios)"
+  exit 0
+fi
+
+if [[ "$target" == listing ]]; then
+  # Store copy comes from store/listings/, screenshots from tool/store_capture.
+  : "${ASC_KEY_ID:?}" "${ASC_ISSUER_ID:?}" "${ASC_KEY_PATH:?}"
+  python3 store/listings/check_limits.py
+  python3 scripts/appstore_metadata.py
+  [[ -z "$(git status --porcelain ios/fastlane/metadata)" ]] ||
+    { echo "Generated metadata differs from the commit — commit it first." >&2; exit 1; }
+  n=$(find ios/fastlane/screenshots -name '*.png' 2>/dev/null | wc -l | tr -d ' ')
+  [[ $n -gt 0 ]] || { echo "No screenshots — run tool/store_capture (see its README)." >&2; exit 1; }
+  echo "▶ Uploading listing for $version ($n screenshots)"
+  (cd ios && fastlane listing)
+  echo "✓ Listing uploaded. Upload the preview video by hand, then submit in App Store Connect."
   exit 0
 fi
 

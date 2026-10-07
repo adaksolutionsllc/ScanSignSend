@@ -26,6 +26,9 @@ the 6.9" slot) and an *iPad Pro 13-inch* (2064×2752).
   `capture.sh` answers each with `simctl io screenshot` (clean 9:41 status bar
   via `simctl status_bar`). In `--video` mode it records between `REC:start`
   and `REC:stop` and logs `BEAT:` times for the captions.
+- `integration_test` is not in pubspec.yaml — Flutter would embed its
+  framework in release IPAs. `capture.sh` adds it for the run and restores
+  `pubspec.yaml`/`pubspec.lock` afterwards (so commit before capturing).
 - ML Kit has no arm64 simulator slice, so for the run `capture.sh` writes a
   `pubspec_overrides.yaml` pointing at `mlkit_stub/`, and lets the Runner
   target build for the simulator. A trap restores the iOS project on exit;
