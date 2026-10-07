@@ -129,7 +129,8 @@ def checkbox(c: canvas.Canvas, x: float, y: float, label: str) -> None:
 def make(lang: str, t: dict) -> str:
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, f"{t['file']}.pdf")
-    c = canvas.Canvas(path, pagesize=letter)
+    # invariant: no creation timestamp/ID, so regenerating doesn't churn git.
+    c = canvas.Canvas(path, pagesize=letter, invariant=1)
     c.setTitle(t["title"].title())
     c.setAuthor("Scan Sign Send demo")
 

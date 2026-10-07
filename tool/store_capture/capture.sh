@@ -90,8 +90,13 @@ for lang in "${LANGS[@]}"; do
   xcrun simctl uninstall "$DEV" "$BUNDLE" 2>/dev/null || true
 
   # Video goes in its own folder so it never wipes the stills.
-  dir="$OUT/$lang"; [[ $MODE == video ]] && dir="$dir/video"
-  rm -rf "$dir"; mkdir -p "$dir"
+  dir="$OUT/$lang"
+  if [[ $MODE == video ]]; then
+    dir="$dir/video"; rm -rf "$dir"
+  else
+    rm -f "$dir"/*.png  # keep $dir/video from an earlier --video run
+  fi
+  mkdir -p "$dir"
   n=0
   rec_pid=""
   rec_t0=""
