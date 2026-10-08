@@ -658,7 +658,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Utilise un modèle embarqué pour mieux reconnaître les champs';
 
   @override
-  String get settingsUnlockFullAccess => 'Débloquer l\'accès complet';
+  String get settingsUnlockFullAccess => 'Débloquer Illimité';
 
   @override
   String get settingsUnlockSubtitle => 'Achat unique — voir le prix';
@@ -667,7 +667,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsRestorePurchase => 'Restaurer l\'achat';
 
   @override
-  String get settingsFullAccessUnlocked => 'Accès complet débloqué';
+  String get settingsFullAccessUnlocked => 'Illimité débloqué';
 
   @override
   String get settingsThankYou => 'Merci pour votre achat !';
@@ -676,7 +676,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsCheckingPurchases => 'Recherche d\'achats antérieurs…';
 
   @override
-  String get settingsRestored => 'Accès complet restauré. Merci !';
+  String get settingsRestored => 'Illimité restauré. Merci !';
 
   @override
   String get settingsNoPreviousPurchase =>
@@ -696,10 +696,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get paywallTitle => 'Débloquer l\'accès complet';
+  String get paywallTitle => 'Débloquer Illimité';
 
   @override
-  String get paywallHeadline => 'Scan Sign Send — Accès complet';
+  String get paywallHeadline => 'Scan Sign Send — Illimité';
 
   @override
   String get paywallSubhead => 'Achat unique. Sans abonnement. Sans compte.';
@@ -933,7 +933,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String pageLimitBody(int pages, int limit) {
-    return 'Ce document contient $pages pages. Débloquez l’accès complet pour des documents de toute longueur, ou gardez les $limit premières pages.';
+    return 'Ce document contient $pages pages. Débloquez Illimité pour des documents de toute longueur, ou gardez les $limit premières pages.';
   }
 
   @override

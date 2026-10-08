@@ -657,7 +657,7 @@ class AppLocalizationsHi extends AppLocalizations {
       'फ़ील्ड बेहतर पहचानने के लिए डिवाइस पर ही मॉडल चलाता है';
 
   @override
-  String get settingsUnlockFullAccess => 'पूर्ण एक्सेस अनलॉक करें';
+  String get settingsUnlockFullAccess => 'अनलिमिटेड अनलॉक करें';
 
   @override
   String get settingsUnlockSubtitle => 'एक बार की ख़रीद — क़ीमत देखें';
@@ -666,7 +666,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsRestorePurchase => 'ख़रीद पुनर्स्थापित करें';
 
   @override
-  String get settingsFullAccessUnlocked => 'पूर्ण एक्सेस अनलॉक हो गया';
+  String get settingsFullAccessUnlocked => 'अनलिमिटेड अनलॉक हो गया';
 
   @override
   String get settingsThankYou => 'आपकी ख़रीद के लिए धन्यवाद!';
@@ -675,7 +675,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsCheckingPurchases => 'पिछली ख़रीद खोजी जा रही है…';
 
   @override
-  String get settingsRestored => 'पूर्ण एक्सेस पुनर्स्थापित हो गया। धन्यवाद!';
+  String get settingsRestored => 'अनलिमिटेड पुनर्स्थापित हो गया। धन्यवाद!';
 
   @override
   String get settingsNoPreviousPurchase =>
@@ -695,10 +695,10 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get paywallTitle => 'पूर्ण एक्सेस अनलॉक करें';
+  String get paywallTitle => 'अनलिमिटेड अनलॉक करें';
 
   @override
-  String get paywallHeadline => 'Scan Sign Send — पूर्ण एक्सेस';
+  String get paywallHeadline => 'Scan Sign Send — अनलिमिटेड';
 
   @override
   String get paywallSubhead =>
@@ -933,7 +933,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String pageLimitBody(int pages, int limit) {
-    return 'इस दस्तावेज़ में $pages पेज हैं। किसी भी लंबाई के दस्तावेज़ों के लिए फ़ुल एक्सेस अनलॉक करें, या पहले $limit पेज रखें।';
+    return 'इस दस्तावेज़ में $pages पेज हैं। किसी भी लंबाई के दस्तावेज़ों के लिए अनलिमिटेड अनलॉक करें, या पहले $limit पेज रखें।';
   }
 
   @override

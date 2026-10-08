@@ -16,7 +16,7 @@ Scan Sign Send does not collect, transmit, or share any of your data. Everything
 Nothing. The app has no analytics, no advertising SDKs, no crash-reporting that leaves the device, and no network calls for your document data.
 
 ## Purchases
-The one-time "Full Access" purchase is processed by Apple's App Store or Google Play. We do not receive or store your payment information. Purchase validation is handled by the platform's in-app purchase system.
+The one-time "Unlimited" purchase is processed by Apple's App Store or Google Play. We do not receive or store your payment information. Purchase validation is handled by the platform's in-app purchase system.
 
 The free version includes 2 finished documents. To keep that allowance from resetting when the app is reinstalled, the app stores one number — how many free documents have been used — in your device's secure storage (the iOS Keychain, or Google Play services Block Store on Android). It contains nothing about you or your documents, stays on your device, and is never sent to us.
 

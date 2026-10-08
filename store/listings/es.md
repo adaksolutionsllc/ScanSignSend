@@ -46,16 +46,16 @@ EN TU IDIOMA
 English, Français, Español, Português, हिन्दी, தமிழ், తెలుగు, incluido el texto en hindi, tamil y telugu en tus PDF finales.
 
 PRUÉBALO GRATIS
-Completa 2 documentos (de hasta 2 páginas cada uno) gratis. El acceso completo es una compra única para documentos ilimitados de cualquier extensión: tuyo para siempre, sin suscripción.
+Completa 2 documentos (de hasta 2 páginas cada uno) gratis. Ilimitado es una compra única para documentos ilimitados de cualquier extensión: tuyo para siempre, sin suscripción.
 
 Creado por ADAK Ventures.
 
 ## whats_new
-Ahora puedes probar Scan Sign Send gratis. Si ya lo compraste, tienes Acceso completo; no tienes que hacer nada.
+Ahora puedes probar Scan Sign Send gratis. Si ya lo compraste, tienes Ilimitado; no tienes que hacer nada.
 Mejoras de rendimiento y fiabilidad.
 
 ## iap_display_name
-Acceso completo
+Ilimitado
 
 ## iap_description
 Documentos ilimitados, de cualquier tamaño.

@@ -69,7 +69,7 @@ Create the **same non-consumable** in BOTH consoles:
 - Product ID: `com.adakventures.scansignsend.fullaccess`
 - Type: Non-consumable (iOS) / One-time product (Android)
 - Price tier: **$9.99 USD** base, with per-country overrides (see PRICING.md §3)
-- Display name: `Full Access`
+- Display name: `Unlimited`
 - ⬜ App Store: fill IAP metadata + screenshot, submit IAP **with** the first app version
 - ⬜ Play: activate the product; upload at least one build to a track first so billing works
 
@@ -147,18 +147,18 @@ flutter build appbundle --release
 ```
 - ⬜ iOS: run through **TestFlight** internal testing first (validates IAP sandbox)
 - ⬜ Android: upload to **Internal testing** track first
-- ⬜ Verify the one-time purchase completes and unlocks Full Access in sandbox/test
+- ⬜ Verify the one-time purchase completes and unlocks Unlimited in sandbox/test
 
 ## 8. Pre-submit smoke test (real device) ⬜
 - ⬜ Full cycle: scan → detect fields → drag a field → fill → sign → press → share
 - ⬜ Import a PDF and an image
 - ⬜ Enable Face ID / fingerprint lock, background & relaunch, confirm unlock works and cancel doesn't brick
-- ⬜ Buy Full Access (sandbox) and confirm paywall disappears + Restore works
+- ⬜ Buy Unlimited (sandbox) and confirm paywall disappears + Restore works
 - ⬜ Confirm the app icon shows the ADAK triangle on the home screen
 
 ## 9. App Review notes ⬜
 Add to the review-notes field:
-> This app is fully offline. To test: tap New Scan (or Import), fill a field, add a signature, then Press & Send. Full Access is a one-time non-consumable unlock ($9.99). Without it, 2 documents (up to 2 pages each) can be finished for free; scanning, importing and filling are always free. The paywall appears when finishing a third document or a document longer than 2 pages.
+> This app is fully offline. To test: tap New Scan (or Import), fill a field, add a signature, then Press & Send. Unlimited is a one-time non-consumable unlock ($9.99). Without it, 2 documents (up to 2 pages each) can be finished for free; scanning, importing and filling are always free. The paywall appears when finishing a third document or a document longer than 2 pages.
 
 ---
 
@@ -171,5 +171,5 @@ Add to the review-notes field:
   unaffected.
 - IAP entitlement is trusted from the local `purchaseStream` with no receipt
   validation. Correct for a no-server app, but it means a jailbroken/rooted
-  device can unlock Full Access. Accepted trade-off — revisit only if piracy
+  device can unlock Unlimited. Accepted trade-off — revisit only if piracy
   shows up in the numbers.

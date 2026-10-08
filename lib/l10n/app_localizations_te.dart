@@ -660,7 +660,7 @@ class AppLocalizationsTe extends AppLocalizations {
       'ఫీల్డ్‌లను మెరుగ్గా గుర్తించడానికి పరికరంలోని మోడల్‌ను వాడుతుంది';
 
   @override
-  String get settingsUnlockFullAccess => 'పూర్తి యాక్సెస్ అన్‌లాక్ చేయి';
+  String get settingsUnlockFullAccess => 'అన్‌లిమిటెడ్ అన్‌లాక్ చేయి';
 
   @override
   String get settingsUnlockSubtitle => 'ఒకసారి కొనుగోలు — ధర చూడండి';
@@ -669,7 +669,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settingsRestorePurchase => 'కొనుగోలును పునరుద్ధరించు';
 
   @override
-  String get settingsFullAccessUnlocked => 'పూర్తి యాక్సెస్ అన్‌లాక్ అయింది';
+  String get settingsFullAccessUnlocked => 'అన్‌లిమిటెడ్ అన్‌లాక్ అయింది';
 
   @override
   String get settingsThankYou => 'మీ కొనుగోలుకు ధన్యవాదాలు!';
@@ -678,8 +678,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settingsCheckingPurchases => 'గత కొనుగోళ్లను తనిఖీ చేస్తోంది…';
 
   @override
-  String get settingsRestored =>
-      'పూర్తి యాక్సెస్ పునరుద్ధరించబడింది. ధన్యవాదాలు!';
+  String get settingsRestored => 'అన్‌లిమిటెడ్ పునరుద్ధరించబడింది. ధన్యవాదాలు!';
 
   @override
   String get settingsNoPreviousPurchase =>
@@ -699,10 +698,10 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
-  String get paywallTitle => 'పూర్తి యాక్సెస్ అన్‌లాక్ చేయి';
+  String get paywallTitle => 'అన్‌లిమిటెడ్ అన్‌లాక్ చేయి';
 
   @override
-  String get paywallHeadline => 'Scan Sign Send — పూర్తి యాక్సెస్';
+  String get paywallHeadline => 'Scan Sign Send — అన్‌లిమిటెడ్';
 
   @override
   String get paywallSubhead =>
@@ -938,7 +937,7 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String pageLimitBody(int pages, int limit) {
-    return 'ఈ పత్రంలో $pages పేజీలు ఉన్నాయి. ఏ పొడవు పత్రాలకైనా పూర్తి యాక్సెస్ అన్‌లాక్ చేయండి, లేదా మొదటి $limit పేజీలను ఉంచుకోండి.';
+    return 'ఈ పత్రంలో $pages పేజీలు ఉన్నాయి. ఏ పొడవు పత్రాలకైనా అన్‌లిమిటెడ్ అన్‌లాక్ చేయండి, లేదా మొదటి $limit పేజీలను ఉంచుకోండి.';
   }
 
   @override

@@ -46,16 +46,16 @@ WORKS IN YOUR LANGUAGE
 English, Français, Español, Português, हिन्दी, தமிழ், తెలుగు — including Hindi, Tamil and Telugu text in your finished PDFs.
 
 TRY IT FREE
-Finish 2 documents (up to 2 pages each) free. Full Access is a one-time purchase for unlimited documents of any length — own it forever, no subscription.
+Finish 2 documents (up to 2 pages each) free. Unlimited is a one-time purchase for as many documents as you like, of any length — own it forever, no subscription.
 
 Built by ADAK Ventures.
 
 ## whats_new
-Scan Sign Send is now free to try. If you bought it before, you already have Full Access — nothing to do.
+Scan Sign Send is now free to try. If you bought it before, you already have Unlimited — nothing to do.
 Performance and reliability improvements.
 
 ## iap_display_name
-Full Access
+Unlimited
 
 ## iap_description
 Unlimited documents of any length, forever.

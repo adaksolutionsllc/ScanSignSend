@@ -653,7 +653,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Uses on-device model for smarter field recognition';
 
   @override
-  String get settingsUnlockFullAccess => 'Unlock Full Access';
+  String get settingsUnlockFullAccess => 'Unlock Unlimited';
 
   @override
   String get settingsUnlockSubtitle => 'One-time purchase — see price';
@@ -662,7 +662,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRestorePurchase => 'Restore Purchase';
 
   @override
-  String get settingsFullAccessUnlocked => 'Full Access Unlocked';
+  String get settingsFullAccessUnlocked => 'Unlimited Unlocked';
 
   @override
   String get settingsThankYou => 'Thank you for your purchase!';
@@ -671,7 +671,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsCheckingPurchases => 'Checking for previous purchases…';
 
   @override
-  String get settingsRestored => 'Full access restored. Thank you!';
+  String get settingsRestored => 'Unlimited restored. Thank you!';
 
   @override
   String get settingsNoPreviousPurchase =>
@@ -691,10 +691,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get paywallTitle => 'Unlock Full Access';
+  String get paywallTitle => 'Unlock Unlimited';
 
   @override
-  String get paywallHeadline => 'Scan Sign Send — Full Access';
+  String get paywallHeadline => 'Scan Sign Send — Unlimited';
 
   @override
   String get paywallSubhead =>
@@ -929,7 +929,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pageLimitBody(int pages, int limit) {
-    return 'This document has $pages pages. Unlock Full Access for documents of any length, or keep the first $limit pages.';
+    return 'This document has $pages pages. Unlock Unlimited for documents of any length, or keep the first $limit pages.';
   }
 
   @override

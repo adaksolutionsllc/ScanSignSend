@@ -342,13 +342,13 @@
   "settingsNoBiometrics": "No biometrics enrolled on this device. Set up Face ID / fingerprint first.",
   "settingsAiDetection": "Enhanced AI Detection",
   "settingsAiDetectionSubtitle": "Uses on-device model for smarter field recognition",
-  "settingsUnlockFullAccess": "Unlock Full Access",
+  "settingsUnlockFullAccess": "Unlock Unlimited",
   "settingsUnlockSubtitle": "One-time purchase — see price",
   "settingsRestorePurchase": "Restore Purchase",
-  "settingsFullAccessUnlocked": "Full Access Unlocked",
+  "settingsFullAccessUnlocked": "Unlimited Unlocked",
   "settingsThankYou": "Thank you for your purchase!",
   "settingsCheckingPurchases": "Checking for previous purchases…",
-  "settingsRestored": "Full access restored. Thank you!",
+  "settingsRestored": "Unlimited restored. Thank you!",
   "settingsNoPreviousPurchase": "No previous purchase found on this account.",
   "settingsRestoreFailed": "Restore failed: {error}",
   "@settingsRestoreFailed": {
@@ -367,8 +367,8 @@
       }
     }
   },
-  "paywallTitle": "Unlock Full Access",
-  "paywallHeadline": "Scan Sign Send — Full Access",
+  "paywallTitle": "Unlock Unlimited",
+  "paywallHeadline": "Scan Sign Send — Unlimited",
   "paywallSubhead": "One-time purchase. No subscription. No account.",
   "paywallBenefitUnlimited": "Unlimited documents",
   "paywallBenefitTemplates": "Reusable templates",
@@ -488,7 +488,7 @@
       }
     }
   },
-  "pageLimitBody": "This document has {pages} pages. Unlock Full Access for documents of any length, or keep the first {limit} pages.",
+  "pageLimitBody": "This document has {pages} pages. Unlock Unlimited for documents of any length, or keep the first {limit} pages.",
   "@pageLimitBody": {
     "placeholders": {
       "pages": {

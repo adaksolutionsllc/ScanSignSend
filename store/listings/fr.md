@@ -46,16 +46,16 @@ DANS VOTRE LANGUE
 English, Français, Español, Português, हिन्दी, தமிழ், తెలుగు — y compris le texte en hindi, tamoul et télougou dans vos PDF finaux.
 
 ESSAYEZ GRATUITEMENT
-Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. L'accès complet est un achat unique pour des documents illimités de toute longueur — à vous pour toujours, sans abonnement.
+Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. Illimité est un achat unique pour des documents illimités de toute longueur — à vous pour toujours, sans abonnement.
 
 Conçu par ADAK Ventures.
 
 ## whats_new
-Scan Sign Send est désormais gratuit à l’essai. Si vous l’avez déjà acheté, vous avez l’Accès complet — rien à faire.
+Scan Sign Send est désormais gratuit à l’essai. Si vous l’avez déjà acheté, vous avez Illimité — rien à faire.
 Améliorations des performances et de la fiabilité.
 
 ## iap_display_name
-Accès complet
+Illimité
 
 ## iap_description
 Documents illimités, de toute longueur.

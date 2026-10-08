@@ -8,7 +8,7 @@
 
 Publisher: **ADAK Ventures**
 Category: Productivity (secondary: Business)
-Price: Free to download • One-time in-app purchase **$9.99** for Full Access
+Price: Free to download • One-time in-app purchase **$9.99** for Unlimited
 Product ID (both stores): `com.adakventures.scansignsend.fullaccess` (non-consumable)
 
 ---
@@ -75,7 +75,7 @@ Built by ADAK Ventures.
 - Google Play: Everyone
 
 ## In-app purchase display name / description (enter in console)
-- Display name: **Full Access** (30-char limit)
+- Display name: **Unlimited** (30-char limit)
 - Description: `Unlimited documents, templates, signatures.` (**45-char limit** — the
   original copy here was 80 chars and would have been rejected)
 - Localized display names and descriptions: see `store/listings/<locale>.md`

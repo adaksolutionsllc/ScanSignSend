@@ -1305,7 +1305,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsUnlockFullAccess.
   ///
   /// In en, this message translates to:
-  /// **'Unlock Full Access'**
+  /// **'Unlock Unlimited'**
   String get settingsUnlockFullAccess;
 
   /// No description provided for @settingsUnlockSubtitle.
@@ -1323,7 +1323,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsFullAccessUnlocked.
   ///
   /// In en, this message translates to:
-  /// **'Full Access Unlocked'**
+  /// **'Unlimited Unlocked'**
   String get settingsFullAccessUnlocked;
 
   /// No description provided for @settingsThankYou.
@@ -1341,7 +1341,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsRestored.
   ///
   /// In en, this message translates to:
-  /// **'Full access restored. Thank you!'**
+  /// **'Unlimited restored. Thank you!'**
   String get settingsRestored;
 
   /// No description provided for @settingsNoPreviousPurchase.
@@ -1371,13 +1371,13 @@ abstract class AppLocalizations {
   /// No description provided for @paywallTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock Full Access'**
+  /// **'Unlock Unlimited'**
   String get paywallTitle;
 
   /// No description provided for @paywallHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Scan Sign Send — Full Access'**
+  /// **'Scan Sign Send — Unlimited'**
   String get paywallHeadline;
 
   /// No description provided for @paywallSubhead.
@@ -1743,7 +1743,7 @@ abstract class AppLocalizations {
   /// No description provided for @pageLimitBody.
   ///
   /// In en, this message translates to:
-  /// **'This document has {pages} pages. Unlock Full Access for documents of any length, or keep the first {limit} pages.'**
+  /// **'This document has {pages} pages. Unlock Unlimited for documents of any length, or keep the first {limit} pages.'**
   String pageLimitBody(int pages, int limit);
 
   /// No description provided for @pageLimitKeepFirst.

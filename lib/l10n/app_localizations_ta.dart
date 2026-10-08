@@ -658,7 +658,7 @@ class AppLocalizationsTa extends AppLocalizations {
       'புலங்களைச் சிறப்பாக அறிய சாதனத்திலேயே ஒரு மாதிரியைப் பயன்படுத்துகிறது';
 
   @override
-  String get settingsUnlockFullAccess => 'முழு அணுகலைத் திற';
+  String get settingsUnlockFullAccess => 'அன்லிமிடெட்டைத் திற';
 
   @override
   String get settingsUnlockSubtitle => 'ஒரு முறை கொள்முதல் — விலையைப் பார்க்க';
@@ -667,7 +667,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsRestorePurchase => 'கொள்முதலை மீட்டமை';
 
   @override
-  String get settingsFullAccessUnlocked => 'முழு அணுகல் திறக்கப்பட்டது';
+  String get settingsFullAccessUnlocked => 'அன்லிமிடெட் திறக்கப்பட்டது';
 
   @override
   String get settingsThankYou => 'உங்கள் கொள்முதலுக்கு நன்றி!';
@@ -677,7 +677,7 @@ class AppLocalizationsTa extends AppLocalizations {
       'முந்தைய கொள்முதல்கள் சரிபார்க்கப்படுகின்றன…';
 
   @override
-  String get settingsRestored => 'முழு அணுகல் மீட்டமைக்கப்பட்டது. நன்றி!';
+  String get settingsRestored => 'அன்லிமிடெட் மீட்டமைக்கப்பட்டது. நன்றி!';
 
   @override
   String get settingsNoPreviousPurchase =>
@@ -697,10 +697,10 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get paywallTitle => 'முழு அணுகலைத் திற';
+  String get paywallTitle => 'அன்லிமிடெட்டைத் திற';
 
   @override
-  String get paywallHeadline => 'Scan Sign Send — முழு அணுகல்';
+  String get paywallHeadline => 'Scan Sign Send — அன்லிமிடெட்';
 
   @override
   String get paywallSubhead => 'ஒரு முறை கொள்முதல். சந்தா இல்லை. கணக்கு இல்லை.';
@@ -936,7 +936,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String pageLimitBody(int pages, int limit) {
-    return 'இந்த ஆவணத்தில் $pages பக்கங்கள் உள்ளன. எந்த நீளமுள்ள ஆவணங்களுக்கும் முழு அணுகலைத் திறக்கவும், அல்லது முதல் $limit பக்கங்களை வைத்துக்கொள்ளவும்.';
+    return 'இந்த ஆவணத்தில் $pages பக்கங்கள் உள்ளன. எந்த நீளமுள்ள ஆவணங்களுக்கும் அன்லிமிடெட்டைத் திறக்கவும், அல்லது முதல் $limit பக்கங்களை வைத்துக்கொள்ளவும்.';
   }
 
   @override
