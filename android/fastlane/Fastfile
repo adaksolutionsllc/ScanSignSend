@@ -25,12 +25,16 @@ platform :android do
     )
   end
 
-  desc "Promote the latest internal build to production (manual)"
+  desc "Promote the pubspec build from internal to production (manual)"
   lane :promote_to_production do
+    # Name the build explicitly: with a draft newer release on internal,
+    # supply promoted the older completed one (build 8 instead of 9).
+    build = File.read("../../pubspec.yaml")[/^version:\s*[\d.]+\+(\d+)/, 1]
     upload_to_play_store(
       package_name: "com.adakventures.scansignsend",
       track: "internal",
       track_promote_to: "production",
+      version_code: build.to_i,
       json_key: ENV["GOOGLE_PLAY_JSON_KEY"],
       skip_upload_aab: true,
       skip_upload_apk: true,
