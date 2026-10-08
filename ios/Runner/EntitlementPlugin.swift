@@ -1,6 +1,7 @@
 import Flutter
 import Foundation
 import Security
+import StoreKit
 
 /// Platform channel: "com.scansignsend/entitlement"
 /// Keeps the number of free documents already used in the Keychain, which
@@ -11,7 +12,11 @@ import Security
 /// "ThisDeviceOnly": never synced to iCloud Keychain or restored to another
 /// phone. The allowance is per device, like the rest of the app.
 ///
-/// Methods: "getFreeUsed" → Int (0 if unset); "setFreeUsed" {value: Int}.
+/// Methods: "getFreeUsed" → Int (0 if unset); "setFreeUsed" {value: Int};
+/// "originalAppVersion" → {supported: Bool, version: String?} — the build
+/// number of the user's first App Store download, from Apple's signed
+/// AppTransaction (iOS 16+). Builds up to 9 were sold at $9.99 upfront, so
+/// those buyers keep full access now the app is free with an unlock.
 class EntitlementPlugin: NSObject, FlutterPlugin {
 
     static let channelName = "com.scansignsend/entitlement"
@@ -35,6 +40,23 @@ class EntitlementPlugin: NSObject, FlutterPlugin {
                 return
             }
             result(Self.write(value))
+        case "originalAppVersion":
+            guard #available(iOS 16.0, *) else {
+                result(["supported": false])
+                return
+            }
+            Task {
+                var version: String?
+                // Only a verified production transaction counts: TestFlight
+                // and Xcode builds report "1.0" and must see the paywall.
+                if case .verified(let tx)? = try? await AppTransaction.shared,
+                   tx.environment == .production {
+                    version = tx.originalAppVersion
+                }
+                await MainActor.run {
+                    result(["supported": true, "version": version as Any])
+                }
+            }
         default:
             result(FlutterMethodNotImplemented)
         }

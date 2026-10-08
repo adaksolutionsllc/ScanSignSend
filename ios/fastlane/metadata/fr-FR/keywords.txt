@@ -1,1 +1,1 @@
-scanner,pdf,signer,signature,document,remplir,formulaire,hors ligne,contrat,numériser,esign
+scanner,signature,document,contrat,numériser,esign,électronique,bail,scanneur,initiales

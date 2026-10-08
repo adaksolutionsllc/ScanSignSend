@@ -4,7 +4,7 @@
 Scan Sign Send: firmar PDF
 
 ## subtitle
-Escanea, firma y envía
+Rellena formularios sin red
 
 ## short_description
 Escanea, firma con el dedo y envía PDF firmados. Todo sin conexión.
@@ -12,7 +12,7 @@ Escanea, firma con el dedo y envía PDF firmados. Todo sin conexión.
 Sin cuentas. Sin suscripciones. Sin nube. Escanea cualquier documento, rellénalo y fírmalo en tu dispositivo, y comparte un PDF terminado en segundos.
 
 ## keywords
-escanear,pdf,firmar,firma,documento,escáner,rellenar,formulario,sin conexión,contrato,esign
+escanear,firma,documento,escáner,contrato,conexión,esign,electrónica,digital,autorrellenar
 
 ## full_description
 Scan Sign Send convierte el papel en PDF firmados, todo en tu teléfono.
@@ -51,10 +51,11 @@ Completa 2 documentos (de hasta 2 páginas cada uno) gratis. El acceso completo 
 Creado por ADAK Ventures.
 
 ## whats_new
+Ahora puedes probar Scan Sign Send gratis. Si ya lo compraste, tienes Acceso completo; no tienes que hacer nada.
 Mejoras de rendimiento y fiabilidad.
 
 ## iap_display_name
 Acceso completo
 
 ## iap_description
-Documentos ilimitados, de cualquier tamaño..
+Documentos ilimitados, de cualquier tamaño.

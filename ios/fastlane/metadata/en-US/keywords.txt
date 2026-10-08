@@ -1,1 +1,1 @@
-scan,pdf,sign,signature,document,scanner,fill,form,esign,offline,contract,paperwork,sign pdf
+signature,scanner,document,contract,fillable,editor,initials,autofill,lease,camera,paperwork,doc

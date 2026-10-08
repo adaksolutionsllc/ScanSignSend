@@ -4,7 +4,7 @@
 Scan Sign Send: assinar PDF
 
 ## subtitle
-Digitalize, assine e envie
+Preencha formulários offline
 
 ## short_description
 Digitalize, assine com o dedo e envie PDF assinados. Tudo offline.
@@ -12,7 +12,7 @@ Digitalize, assine com o dedo e envie PDF assinados. Tudo offline.
 Sem contas. Sem subscrições. Sem nuvem. Digitalize qualquer documento, preencha-o e assine-o no seu dispositivo, e partilhe um PDF pronto em segundos.
 
 ## keywords
-digitalizar,pdf,assinar,assinatura,documento,scanner,preencher,formulário,offline,contrato
+digitalizar,assinatura,documento,scanner,contrato,esign,eletrônica,digital,sem internet
 
 ## full_description
 Scan Sign Send transforma papel em PDFs assinados — tudo no seu celular.
@@ -51,10 +51,11 @@ Conclua 2 documentos (de até 2 páginas cada) de graça. O acesso completo é u
 Feito pela ADAK Ventures.
 
 ## whats_new
+Agora você pode experimentar o Scan Sign Send grátis. Se já comprou o app, você tem Acesso total — não precisa fazer nada.
 Melhorias de desempenho e confiabilidade.
 
 ## iap_display_name
 Acesso total
 
 ## iap_description
-Documentos ilimitados, de qualquer tamanho..
+Documentos ilimitados, de qualquer tamanho.

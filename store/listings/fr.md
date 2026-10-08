@@ -4,7 +4,7 @@
 Scan Sign Send : signer PDF
 
 ## subtitle
-Scanner, signer, envoyer
+Remplir formulaires hors ligne
 
 ## short_description
 Scannez, signez au doigt, envoyez un PDF signé. 100 % hors ligne.
@@ -12,7 +12,7 @@ Scannez, signez au doigt, envoyez un PDF signé. 100 % hors ligne.
 Sans compte. Sans abonnement. Sans cloud. Scannez un document, remplissez-le et signez-le sur votre appareil, puis partagez un PDF fini en quelques secondes.
 
 ## keywords
-scanner,pdf,signer,signature,document,remplir,formulaire,hors ligne,contrat,numériser,esign
+scanner,signature,document,contrat,numériser,esign,électronique,bail,scanneur,initiales
 
 ## full_description
 Scan Sign Send transforme le papier en PDF signés — entièrement sur votre téléphone.
@@ -51,10 +51,11 @@ Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. L'accès complet es
 Conçu par ADAK Ventures.
 
 ## whats_new
+Scan Sign Send est désormais gratuit à l’essai. Si vous l’avez déjà acheté, vous avez l’Accès complet — rien à faire.
 Améliorations des performances et de la fiabilité.
 
 ## iap_display_name
 Accès complet
 
 ## iap_description
-Documents illimités, de toute longueur..
+Documents illimités, de toute longueur.

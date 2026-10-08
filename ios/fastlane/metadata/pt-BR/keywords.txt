@@ -1,1 +1,1 @@
-digitalizar,pdf,assinar,assinatura,documento,scanner,preencher,formulário,offline,contrato
+digitalizar,assinatura,documento,scanner,contrato,esign,eletrônica,digital,sem internet

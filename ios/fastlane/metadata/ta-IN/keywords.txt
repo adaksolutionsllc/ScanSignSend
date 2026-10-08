@@ -1,1 +1,1 @@
-pdf,signature,கையொப்பம்,ஆவணம்,ஸ்கேன்,scanner,form,esign
+signature,ஆவணம்,scanner,form,esign,fill,offline,document,contract

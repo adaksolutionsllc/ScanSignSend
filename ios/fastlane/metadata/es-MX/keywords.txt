@@ -1,1 +1,1 @@
-escanear,pdf,firmar,firma,documento,escáner,rellenar,formulario,sin conexión,contrato,esign
+escanear,firma,documento,escáner,contrato,conexión,esign,electrónica,digital,autorrellenar

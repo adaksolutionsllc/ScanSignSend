@@ -1,1 +1,1 @@
-pdf,signature,సంతకం,పత్రం,స్కాన్,ఫారమ్,scanner,form,esign
+signature,పత్రం,ఫారమ్,scanner,form,esign,fill,offline,document,contract

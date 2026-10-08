@@ -4,7 +4,7 @@
 Scan Sign Send: PDF Signer
 
 ## subtitle
-Scan, sign & send. Offline.
+Fill forms & e-sign, offline
 
 ## short_description
 Scan documents, sign with your finger, send signed PDFs — fully offline.
@@ -12,7 +12,7 @@ Scan documents, sign with your finger, send signed PDFs — fully offline.
 No accounts. No subscriptions. No cloud. Scan any document, fill and sign it on your device, and share a finished PDF in seconds.
 
 ## keywords
-scan,pdf,sign,signature,document,scanner,fill,form,esign,offline,contract,paperwork,sign pdf
+signature,scanner,document,contract,fillable,editor,initials,autofill,lease,camera,paperwork,doc
 
 ## full_description
 Scan Sign Send turns paper into signed PDFs — entirely on your phone.
@@ -51,6 +51,7 @@ Finish 2 documents (up to 2 pages each) free. Full Access is a one-time purchase
 Built by ADAK Ventures.
 
 ## whats_new
+Scan Sign Send is now free to try. If you bought it before, you already have Full Access — nothing to do.
 Performance and reliability improvements.
 
 ## iap_display_name
