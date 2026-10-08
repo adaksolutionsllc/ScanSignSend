@@ -963,4 +963,29 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get sendTemplateSavedShort => 'टेम्पलेट के रूप में सहेजा गया';
+
+  @override
+  String libraryFreeLeft(int left) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other: '$left मुफ़्त दस्तावेज़ बाकी',
+      one: '1 मुफ़्त दस्तावेज़ बाकी',
+      zero: 'मुफ़्त दस्तावेज़ खत्म',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryUnlimitedPrice(String price) {
+    return 'अनलिमिटेड, एक बार $price';
+  }
+
+  @override
+  String get onboardFreeTitle => 'मुफ़्त आज़माएँ';
+
+  @override
+  String onboardFreeBody(int count, int pages) {
+    return '$count दस्तावेज़ मुफ़्त में पूरे करें, हर एक में अधिकतम $pages पेज। फिर एक बार की ख़रीद से अनलिमिटेड अनलॉक करें — कोई सब्सक्रिप्शन नहीं।';
+  }
 }

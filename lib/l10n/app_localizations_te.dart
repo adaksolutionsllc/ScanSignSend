@@ -967,4 +967,29 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get sendTemplateSavedShort => 'టెంప్లేట్‌గా సేవ్ అయింది';
+
+  @override
+  String libraryFreeLeft(int left) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other: '$left ఉచిత పత్రాలు మిగిలి ఉన్నాయి',
+      one: '1 ఉచిత పత్రం మిగిలి ఉంది',
+      zero: 'ఉచిత పత్రాలు అయిపోయాయి',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryUnlimitedPrice(String price) {
+    return 'అన్‌లిమిటెడ్, ఒకేసారి $price';
+  }
+
+  @override
+  String get onboardFreeTitle => 'ఉచితంగా ప్రయత్నించండి';
+
+  @override
+  String onboardFreeBody(int count, int pages) {
+    return '$count పత్రాలను ఉచితంగా పూర్తి చేయండి, ఒక్కొక్కటి గరిష్ఠంగా $pages పేజీలు. తర్వాత ఒకేసారి కొనుగోలుతో అన్‌లిమిటెడ్ అన్‌లాక్ చేయండి — సబ్‌స్క్రిప్షన్ లేదు.';
+  }
 }

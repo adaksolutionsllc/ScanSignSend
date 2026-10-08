@@ -277,5 +277,9 @@
   "pressFreeRemaining": "{left, plural, =0{Vous avez utilisé vos {total} documents gratuits} =1{Terminer utilise votre dernier document gratuit} other{Terminer utilise 1 de vos {total} documents gratuits ({left} restants)}}",
   "sendSaveAsTemplate": "Enregistrer comme modèle",
   "sendTemplateSaved": "Enregistré dans Modèles — créez une nouvelle copie depuis la bibliothèque.",
-  "sendTemplateSavedShort": "Enregistré comme modèle"
+  "sendTemplateSavedShort": "Enregistré comme modèle",
+  "libraryFreeLeft": "{left, plural, =0{Documents gratuits épuisés} =1{1 document gratuit restant} other{{left} documents gratuits restants}}",
+  "libraryUnlimitedPrice": "Illimité, achat unique {price}",
+  "onboardFreeTitle": "Essai gratuit",
+  "onboardFreeBody": "Terminez {count} documents gratuitement, jusqu’à {pages} pages chacun. Ensuite, débloquez Illimité en un seul achat — sans abonnement."
 }

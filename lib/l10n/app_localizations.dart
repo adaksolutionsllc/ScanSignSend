@@ -1775,6 +1775,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved as template'**
   String get sendTemplateSavedShort;
+
+  /// Library banner for free users: free documents remaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{left, plural, =0{Free documents used} =1{1 free document left} other{{left} free documents left}}'**
+  String libraryFreeLeft(int left);
+
+  /// Library banner call to action; price is the store-localized price.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited, one-time {price}'**
+  String libraryUnlimitedPrice(String price);
+
+  /// No description provided for @onboardFreeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try it free'**
+  String get onboardFreeTitle;
+
+  /// No description provided for @onboardFreeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish {count} documents free, up to {pages} pages each. Then unlock Unlimited with one purchase — no subscription.'**
+  String onboardFreeBody(int count, int pages);
 }
 
 class _AppLocalizationsDelegate

@@ -15,6 +15,7 @@ import '../../../core/utils/router.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/text_edit_dialog.dart';
 import '../../../core/utils/l10n_ext.dart';
+import 'unlimited_banner.dart';
 
 enum _LibraryTab { all, draft, pressed, template }
 
@@ -117,64 +118,77 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: _LibraryTab.values.map((tab) {
-          return StreamBuilder<List<Document>>(
-            stream: _stream(tab),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final docs = snapshot.data ?? [];
-              if (docs.isEmpty) return _EmptyState(tab: tab);
-
-              return GridView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.68,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                itemCount: docs.length,
-                itemBuilder: (context, i) => _DocumentCard(
-                  doc: docs[i],
-                  tab: tab,
-                  onDelete: () => _deleteDoc(docs[i]),
-                  onRename: () => _renameDoc(docs[i]),
-                  onUseTemplate: docs[i].statusEnum == DocumentStatus.template
-                      ? () => _useTemplate(docs[i])
-                      : null,
-                ),
-              );
-            },
-          );
-        }).toList(),
-      ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      body: Column(
         children: [
-          // Both labelled, same size, and each starts its action directly.
-          FloatingActionButton.extended(
-            heroTag: 'import',
-            onPressed: () => context.push('${AppRoutes.capture}?action=import'),
-            tooltip: context.l10n.libraryImportTooltip,
-            icon: const Icon(Icons.upload_file),
-            label: Text(context.l10n.libraryImport),
-            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
-          ),
-          const SizedBox(height: 12),
-          FloatingActionButton.extended(
-            heroTag: 'scan',
-            onPressed: () => context.push('${AppRoutes.capture}?action=scan'),
-            icon: const Icon(Icons.document_scanner),
-            label: Text(context.l10n.libraryNewScan),
-          ),
+          const UnlimitedBanner(),
+          Expanded(child: _tabs()),
         ],
       ),
+      floatingActionButton: _actions(),
+    );
+  }
+
+  Widget _tabs() {
+    return TabBarView(
+      controller: _tabController,
+      children: _LibraryTab.values.map((tab) {
+        return StreamBuilder<List<Document>>(
+          stream: _stream(tab),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final docs = snapshot.data ?? [];
+            if (docs.isEmpty) return _EmptyState(tab: tab);
+
+            return GridView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.68,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: docs.length,
+              itemBuilder: (context, i) => _DocumentCard(
+                doc: docs[i],
+                tab: tab,
+                onDelete: () => _deleteDoc(docs[i]),
+                onRename: () => _renameDoc(docs[i]),
+                onUseTemplate: docs[i].statusEnum == DocumentStatus.template
+                    ? () => _useTemplate(docs[i])
+                    : null,
+              ),
+            );
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _actions() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Both labelled, same size, and each starts its action directly.
+        FloatingActionButton.extended(
+          heroTag: 'import',
+          onPressed: () => context.push('${AppRoutes.capture}?action=import'),
+          tooltip: context.l10n.libraryImportTooltip,
+          icon: const Icon(Icons.upload_file),
+          label: Text(context.l10n.libraryImport),
+          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+          foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+        ),
+        const SizedBox(height: 12),
+        FloatingActionButton.extended(
+          heroTag: 'scan',
+          onPressed: () => context.push('${AppRoutes.capture}?action=scan'),
+          icon: const Icon(Icons.document_scanner),
+          label: Text(context.l10n.libraryNewScan),
+        ),
+      ],
     );
   }
 

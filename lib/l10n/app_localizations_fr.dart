@@ -963,4 +963,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sendTemplateSavedShort => 'Enregistré comme modèle';
+
+  @override
+  String libraryFreeLeft(int left) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other: '$left documents gratuits restants',
+      one: '1 document gratuit restant',
+      zero: 'Documents gratuits épuisés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryUnlimitedPrice(String price) {
+    return 'Illimité, achat unique $price';
+  }
+
+  @override
+  String get onboardFreeTitle => 'Essai gratuit';
+
+  @override
+  String onboardFreeBody(int count, int pages) {
+    return 'Terminez $count documents gratuitement, jusqu’à $pages pages chacun. Ensuite, débloquez Illimité en un seul achat — sans abonnement.';
+  }
 }

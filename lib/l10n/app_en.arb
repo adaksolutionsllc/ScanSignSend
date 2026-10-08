@@ -520,5 +520,12 @@
   },
   "sendSaveAsTemplate": "Save as reusable template",
   "sendTemplateSaved": "Saved to Templates — start a new copy from the library.",
-  "sendTemplateSavedShort": "Saved as template"
+  "sendTemplateSavedShort": "Saved as template",
+  "libraryFreeLeft": "{left, plural, =0{Free documents used} =1{1 free document left} other{{left} free documents left}}",
+  "libraryUnlimitedPrice": "Unlimited, one-time {price}",
+  "onboardFreeTitle": "Try it free",
+  "onboardFreeBody": "Finish {count} documents free, up to {pages} pages each. Then unlock Unlimited with one purchase — no subscription.",
+  "@libraryFreeLeft": {"description": "Library banner for free users: free documents remaining.", "placeholders": {"left": {"type": "int"}}},
+  "@libraryUnlimitedPrice": {"description": "Library banner call to action; price is the store-localized price.", "placeholders": {"price": {"type": "String"}}},
+  "@onboardFreeBody": {"placeholders": {"count": {"type": "int"}, "pages": {"type": "int"}}}
 }

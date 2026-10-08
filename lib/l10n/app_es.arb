@@ -277,5 +277,9 @@
   "pressFreeRemaining": "{left, plural, =0{Has usado tus {total} documentos gratuitos} =1{Finalizar usa tu último documento gratuito} other{Finalizar usa 1 de tus {total} documentos gratuitos (quedan {left})}}",
   "sendSaveAsTemplate": "Guardar como plantilla",
   "sendTemplateSaved": "Guardado en Plantillas: crea una copia nueva desde la biblioteca.",
-  "sendTemplateSavedShort": "Guardado como plantilla"
+  "sendTemplateSavedShort": "Guardado como plantilla",
+  "libraryFreeLeft": "{left, plural, =0{Documentos gratis agotados} =1{Te queda 1 documento gratis} other{Te quedan {left} documentos gratis}}",
+  "libraryUnlimitedPrice": "Ilimitado, pago único {price}",
+  "onboardFreeTitle": "Pruébalo gratis",
+  "onboardFreeBody": "Completa {count} documentos gratis, de hasta {pages} páginas cada uno. Después, desbloquea Ilimitado con una sola compra, sin suscripción."
 }

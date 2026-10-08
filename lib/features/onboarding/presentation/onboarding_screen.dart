@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/services/free_usage_service.dart';
 import '../../../core/utils/l10n_ext.dart';
 
 const _kOnboardingDone = 'onboarding_done';
@@ -36,6 +37,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           color: const Color(0xFF2E7D32),
           title: context.l10n.onboardSendTitle,
           subtitle: context.l10n.onboardSendBody,
+        ),
+        _OnboardingPage(
+          icon: Icons.workspace_premium,
+          color: const Color(0xFFE37400),
+          title: context.l10n.onboardFreeTitle,
+          subtitle: context.l10n.onboardFreeBody(
+            FreeUsageService.freeDocuments,
+            FreeUsageService.freePageLimit,
+          ),
         ),
       ];
 
