@@ -50,5 +50,9 @@ promote to production in Play Console. Play screenshots are unchanged
 (`branding/store_screenshots/android/`).
 
 ## Regenerating assets
+After any simulator capture run, `flutter clean` before `release.sh ios` — a
+stale simulator `objective_c.framework` got the first 1.0.1 upload rejected
+(91169). `capture.sh` now clears it and `release.sh` refuses such an IPA.
+
 See `tool/store_capture/README.md`. Raw captures and framed output are
 gitignored; everything is reproducible from the repo.

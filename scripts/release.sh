@@ -33,6 +33,20 @@ esac
 upload_ios() {
   local ipa="$1" attempt
   local build="${version##*+}" log
+  # A simulator run (tool/store_capture) leaves simulator-built native assets
+  # in build/native_assets, and `flutter build ipa` packaged them: Apple
+  # rejected objective_c.framework (error 91169). Refuse such an IPA here.
+  local tmp bad
+  tmp="$(mktemp -d)"
+  unzip -q "$ipa" -d "$tmp"
+  bad="$(find "$tmp/Payload" -type f -perm +111 -exec sh -c \
+    'vtool -show-build "$1" 2>/dev/null | grep -q IOSSIMULATOR && echo "$1"' _ {} \;)"
+  rm -rf "$tmp"
+  if [[ -n "$bad" ]]; then
+    echo "IPA contains simulator binaries — run 'flutter clean' and rebuild:" >&2
+    echo "$bad" >&2
+    return 1
+  fi
   log="$(mktemp)"
   for attempt in 1 2 3; do
     echo "▶ iOS: uploading $ipa to TestFlight (attempt $attempt/3)"

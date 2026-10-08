@@ -23,6 +23,9 @@ OUT="build/store_capture/raw/$NAME"
 
 restore() {
   rm -f pubspec_overrides.yaml
+  # Simulator-built native assets (objective_c.framework) otherwise end up in
+  # the next release IPA, which App Store Connect rejects.
+  rm -rf build/native_assets/ios
   git checkout -- pubspec.yaml pubspec.lock ios/Podfile.lock \
     ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
   flutter pub get >/dev/null
