@@ -85,9 +85,15 @@ class _UnlimitedBannerState extends ConsumerState<UnlimitedBanner> {
                         TextSpan(text: context.l10n.libraryFreeLeft(left)),
                         const TextSpan(text: '  ·  '),
                         TextSpan(
-                          text: price == null
-                              ? context.l10n.paywallTitle
-                              : context.l10n.libraryUnlimitedPrice(price),
+                          // Non-breaking spaces: the call to action wraps
+                          // as one piece, never leaving the price alone.
+                          text:
+                              (price == null
+                                      ? context.l10n.paywallTitle
+                                      : context.l10n.libraryUnlimitedPrice(
+                                          price,
+                                        ))
+                                  .replaceAll(' ', '\u00A0'),
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: scheme.primary,
