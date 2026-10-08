@@ -321,6 +321,14 @@ void main() {
       await _waitFor(tester, find.byType(PaywallScreen));
       await _pause(tester, 1500);
       await _capture(tester, 'paywall');
+
+      // A free user's library, with the Unlimited banner (not a store shot).
+      nav.pop();
+      await container
+          .read(profileRepositoryProvider)
+          .update(const UserProfileCompanion(isPurchased: Value(false)));
+      await _pause(tester, 2500);
+      await _capture(tester, 'banner');
     }
   }, timeout: const Timeout(Duration(minutes: 5)));
 }
