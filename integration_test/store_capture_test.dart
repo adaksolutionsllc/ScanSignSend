@@ -1,3 +1,4 @@
+import 'dart:async';
 // Drives the real app through Scan → Detect → Fill → Sign → Send for App Store
 // screenshots and preview footage. Run by tool/store_capture/capture.sh, which
 // swaps in the ML Kit stub, sets the simulator language, and grabs a
@@ -23,6 +24,7 @@ import 'package:scan_sign_send/l10n/app_localizations.dart';
 import 'package:scan_sign_send/shared/widgets/field_box.dart';
 import 'package:scan_sign_send/core/utils/router.dart';
 import 'package:scan_sign_send/main.dart' as app;
+import 'package:scan_sign_send/shared/widgets/paywall_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 
@@ -310,6 +312,15 @@ void main() {
       await _waitFor(tester, find.byType(LibraryScreen));
       await _pause(tester, 1500);
       await _capture(tester, 'library');
+
+      // App Review screenshot for the Full Access in-app purchase.
+      final nav = tester.state<NavigatorState>(find.byType(Navigator).last);
+      unawaited(nav.push(
+        MaterialPageRoute<void>(builder: (_) => const PaywallScreen()),
+      ));
+      await _waitFor(tester, find.byType(PaywallScreen));
+      await _pause(tester, 1500);
+      await _capture(tester, 'paywall');
     }
   }, timeout: const Timeout(Duration(minutes: 5)));
 }
