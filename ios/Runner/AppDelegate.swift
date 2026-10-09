@@ -19,5 +19,6 @@ import UIKit
     AiFieldEnhancerPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "AiFieldEnhancerPlugin")!)
     BackupPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "BackupPlugin")!)
     EntitlementPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "EntitlementPlugin")!)
+    OpenFilePlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "OpenFilePlugin")!)
   }
 }

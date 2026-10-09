@@ -100,6 +100,18 @@ class ImportService {
     }
   }
 
+  /// Imports a PDF opened with the app from another app (see
+  /// OpenedFileService), then deletes the temporary copy it arrived as.
+  Future<Document> importOpenedPdf(String path, String name) async {
+    try {
+      return await _importPdf(path, name);
+    } finally {
+      try {
+        await Directory(p.dirname(path)).delete(recursive: true);
+      } catch (_) {}
+    }
+  }
+
   Future<Document> _importImage(String imagePath, String name) async {
     final id = _uuid.v4();
     final appDir = await getApplicationDocumentsDirectory();

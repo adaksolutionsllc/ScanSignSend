@@ -20,6 +20,7 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		9CDCB7CF24803B7EA243F068 /* BackupPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059E24256D0B6B0BFC4783C /* BackupPlugin.swift */; };
+		A1E4F11E00A1B2C3D4E5F601 /* OpenFilePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E4F11E00A1B2C3D4E5F602 /* OpenFilePlugin.swift */; };
 		AA1111111111111111111111 /* DocumentScannerPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2222222222222222222222 /* DocumentScannerPlugin.swift */; };
 		AA3333333333333333333333 /* AiFieldEnhancerPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4444444444444444444444 /* AiFieldEnhancerPlugin.swift */; };
 		AA5555555555555555555555 /* PrivacyOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6666666666666666666666 /* PrivacyOverlay.swift */; };
@@ -63,6 +64,7 @@
 		4C7ED92C5DC97388D17562E3 /* es */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4DF661688521208885D98AAE /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5059E24256D0B6B0BFC4783C /* BackupPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackupPlugin.swift; sourceTree = "<group>"; };
+		A1E4F11E00A1B2C3D4E5F602 /* OpenFilePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OpenFilePlugin.swift; sourceTree = "<group>"; };
 		5B4564BF621A370D913ECF96 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6843126E466836A3B4C5FD60 /* EntitlementPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EntitlementPlugin.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 				AA6666666666666666666666 /* PrivacyOverlay.swift */,
 				D11326A48AAE4D0AADAC0B5C /* InfoPlist.strings */,
 				5059E24256D0B6B0BFC4783C /* BackupPlugin.swift */,
+				A1E4F11E00A1B2C3D4E5F602 /* OpenFilePlugin.swift */,
 				6843126E466836A3B4C5FD60 /* EntitlementPlugin.swift */,
 			);
 			path = Runner;
@@ -439,6 +442,7 @@
 				AA3333333333333333333333 /* AiFieldEnhancerPlugin.swift in Sources */,
 				AA5555555555555555555555 /* PrivacyOverlay.swift in Sources */,
 				9CDCB7CF24803B7EA243F068 /* BackupPlugin.swift in Sources */,
+				A1E4F11E00A1B2C3D4E5F601 /* OpenFilePlugin.swift in Sources */,
 				FDF1D91D1EBC56A18E3C2BDA /* EntitlementPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

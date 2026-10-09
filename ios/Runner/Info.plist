@@ -14,6 +14,30 @@
 	     avoids the export-compliance question on every TestFlight/App Store upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Lists the app under "Open in…" / the share sheet for PDFs from Files,
+	     Mail, Safari, etc. Alternate rank: we open PDFs, we don't own the type.
+	     Not in place: iOS hands over a copy, which OpenFilePlugin imports. -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>PDF Document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.adobe.pdf</string>
+			</array>
+		</dict>
+	</array>
+	<!-- No deep links: without this Flutter hands an opened PDF's file URL to
+	     the router as a route ("Page Not Found"). -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<!-- Languages the App Store lists this app under, and which the OS will

@@ -15,6 +15,7 @@ All custom bridges are **`MethodChannel`s** using the standard codec under the
 | `com.scansignsend/backup` | `lib/core/services/backup_service.dart` | `apply({include, path})` | `ios/Runner/BackupPlugin.swift` (`isExcludedFromBackup`) | `MainActivity.kt` inline → `AppBackupAgent.setEnabled` + `BackupManager.dataChanged()` |
 | `com.scansignsend/privacy` | `lib/core/services/privacy_screen_service.dart` | `setSecure({enabled})` | **none** (iOS uses always-on `PrivacyOverlay`) | `MainActivity.kt` inline (`FLAG_SECURE`) |
 | `com.scansignsend/ai_enhancer` | `lib/core/services/ai_enhancer_service.dart` | `isAvailable` → `bool`; `enhance({ocrText})` → `List<Map>` | `ios/Runner/AiFieldEnhancerPlugin.swift` (**stub**, returns `[]`) | **none** |
+| `com.scansignsend/open_file` | `lib/core/services/opened_file_service.dart` | `takePending` → `List<{path,name}>`; native→Dart `pending` ping | `ios/Runner/OpenFilePlugin.swift` (scene delegate) | `OpenFileHandler.kt` (from `MainActivity`) |
 
 Every Dart caller wraps calls in `try/catch` and degrades silently
 (`MissingPluginException` → default value), so a missing handler never crashes.
@@ -56,6 +57,23 @@ Dart (`ScanService.scan`) maps `UNAVAILABLE` → empty list and rethrows other
   reinstall).
 - Android: Block Store key `com.adakventures.scansignsend.freeDocumentsUsed`,
   `setShouldBackupToCloud(false)`; failures resolve to `0` / `false`.
+
+### Open file (`com.scansignsend/open_file`)
+- Makes the app a PDF handler: iOS `CFBundleDocumentTypes` (`com.adobe.pdf`,
+  rank Alternate, not in place) → "Open in…"/share sheet; Android VIEW + SEND
+  intent filters for `application/pdf`, `content://` only → app chooser and
+  "Always"/default PDF app.
+- Native copies each file into temp/cache (`opened/<uuid>/name.pdf`; iOS
+  removes the `Documents/Inbox` copy) and queues it; a cold launch delivers
+  the file before Dart listens. `_MainAppState` (`main.dart`) drains the
+  queue after onboarding and pushes `/capture` with the `OpenedFile` as
+  `extra`; `ImportService.importOpenedPdf` imports and deletes the temp copy.
+- Android: the fragment attaches the engine after `onCreate`, so the launch
+  intent is held until `configureFlutterEngine`; restores and Recents
+  relaunches are skipped so the same PDF isn't imported twice.
+- Flutter deep linking is disabled (`FlutterDeepLinkingEnabled` /
+  `flutter_deeplinking_enabled` = false); otherwise the file URI is pushed
+  to go_router as a route ("Page Not Found").
 
 ### Backup (`com.scansignsend/backup`)
 - iOS sets `URLResourceValues.isExcludedFromBackup = !include` on the

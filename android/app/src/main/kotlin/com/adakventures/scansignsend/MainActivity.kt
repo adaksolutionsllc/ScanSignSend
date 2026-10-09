@@ -1,6 +1,8 @@
 package com.adakventures.scansignsend
 
 import android.app.backup.BackupManager
+import android.content.Intent
+import android.os.Bundle
 import com.google.android.gms.auth.blockstore.Blockstore
 import com.google.android.gms.auth.blockstore.RetrieveBytesRequest
 import com.google.android.gms.auth.blockstore.StoreBytesData
@@ -21,9 +23,40 @@ class MainActivity : FlutterFragmentActivity() {
         const val FREE_USED_KEY = "com.adakventures.scansignsend.freeDocumentsUsed"
     }
 
+    private var openFileHandler: OpenFileHandler? = null
+
+    // The fragment attaches the engine after onCreate returns, so the launch
+    // intent waits here until configureFlutterEngine creates the handler.
+    private var launchIntent: Intent? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // A PDF opened from another app. Not on a restore or a relaunch from
+        // Recents: those re-deliver the original intent, which would import
+        // the same file again.
+        val fromHistory =
+            intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
+        if (savedInstanceState == null && !fromHistory) {
+            val handler = openFileHandler
+            if (handler != null) handler.receive(intent) else launchIntent = intent
+        }
+    }
+
+    // singleTop: a PDF opened while the app is running arrives here.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        openFileHandler?.receive(intent)
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         flutterEngine.plugins.add(DocumentScannerPlugin())
+        openFileHandler = OpenFileHandler(this, flutterEngine.dartExecutor.binaryMessenger)
+            .also { handler ->
+                launchIntent?.let(handler::receive)
+                launchIntent = null
+            }
 
         // FLAG_SECURE blanks the window in the recents thumbnail and blocks
         // screenshots / screen recording. Driven from Dart by the Biometric App

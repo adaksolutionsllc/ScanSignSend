@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/services/backup_service.dart';
 import 'core/services/iap_service.dart';
+import 'core/services/opened_file_service.dart';
 import 'core/services/profile_repository.dart';
 import 'core/services/app_lock_provider.dart';
 import 'core/utils/l10n_ext.dart';
@@ -160,9 +161,35 @@ class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
   }
 }
 
-class _MainApp extends ConsumerWidget {
+class _MainApp extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends ConsumerState<_MainApp> {
+  StreamSubscription<OpenedFile>? _openedSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // PDFs opened with the app from Files, Mail, etc. Collected here rather
+    // than at launch so one that arrives during onboarding waits (natively)
+    // until the library exists, then goes through the normal import flow.
+    final service = ref.read(openedFileServiceProvider);
+    _openedSub = service.files.listen(
+      (file) => ref.read(routerProvider).push(AppRoutes.capture, extra: file),
+    );
+    service.start();
+  }
+
+  @override
+  void dispose() {
+    _openedSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Scan Sign Send',

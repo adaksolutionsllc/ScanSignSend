@@ -12,6 +12,7 @@ import '../../features/send/presentation/send_screen.dart';
 import '../../features/library/presentation/search_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/viewer/presentation/document_viewer_screen.dart';
+import '../services/opened_file_service.dart';
 import '../../features/settings/presentation/signatures_manager_screen.dart';
 
 // Route path constants
@@ -41,6 +42,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.capture,
         builder: (context, state) => CaptureScreen(
+          openedFile: state.extra as OpenedFile?,
           action: switch (state.uri.queryParameters['action']) {
             'scan' => CaptureAction.scan,
             'import' => CaptureAction.import,

@@ -9,6 +9,7 @@ import 'dart:io';
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/import_service.dart';
+import '../../../core/services/opened_file_service.dart';
 import '../../../core/services/free_usage_service.dart';
 import '../../../core/services/scan_service.dart';
 import '../../../core/utils/router.dart';
@@ -23,10 +24,13 @@ import '../../../core/services/app_lock_provider.dart';
 enum CaptureAction { scan, import }
 
 class CaptureScreen extends ConsumerStatefulWidget {
-  const CaptureScreen({super.key, this.action});
+  const CaptureScreen({super.key, this.action, this.openedFile});
 
   /// Started on open; cancelling it returns to where the user came from.
   final CaptureAction? action;
+
+  /// A PDF opened with the app from Files, Mail, etc.; imported on open.
+  final OpenedFile? openedFile;
 
   @override
   ConsumerState<CaptureScreen> createState() => _CaptureScreenState();
@@ -39,6 +43,19 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   @override
   void initState() {
     super.initState();
+    final opened = widget.openedFile;
+    if (opened != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _importFile(
+            () => ref
+                .read(importServiceProvider)
+                .importOpenedPdf(opened.path, opened.name),
+          );
+        }
+      });
+      return;
+    }
     final action = widget.action;
     if (action != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -47,7 +64,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           case CaptureAction.scan:
             _startScan();
           case CaptureAction.import:
-            _importFile();
+            _importFile(_pickAndImport);
         }
       });
     }
@@ -56,7 +73,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   /// A cancelled scan/import that was started for the user (from a library
   /// button) leaves this screen too, instead of stranding them on it.
   void _leaveIfAutoStarted() {
-    if (widget.action != null && mounted && context.canPop()) context.pop();
+    final autoStarted = widget.action != null || widget.openedFile != null;
+    if (autoStarted && mounted && context.canPop()) context.pop();
   }
 
   Future<void> _startScan() async {
@@ -112,7 +130,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     }
   }
 
-  Future<void> _importFile() async {
+  Future<Document?> _pickAndImport() => ref
+      .read(appLockProvider.notifier)
+      .whileExternal(ref.read(importServiceProvider).pickAndImport);
+
+  /// Runs [import] (the file picker, or a PDF opened from another app) and
+  /// continues to Review / Fill with the new document.
+  Future<void> _importFile(Future<Document?> Function() import) async {
     // Importing is always free; the free tier is enforced when a document is
     // finished (FreeUsageService).
     setState(() {
@@ -120,9 +144,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       _loadingMessageKey = 'importing';
     });
     try {
-      final doc = await ref
-          .read(appLockProvider.notifier)
-          .whileExternal(ref.read(importServiceProvider).pickAndImport);
+      final doc = await import();
       if (doc == null) {
         if (mounted) setState(() => _loading = false);
         _leaveIfAutoStarted();
@@ -309,7 +331,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
-                    onPressed: _importFile,
+                    onPressed: () => _importFile(_pickAndImport),
                     icon: const Icon(Icons.upload_file, color: Colors.white70),
                     label: Text(
                       context.l10n.captureImportPdfImage,
