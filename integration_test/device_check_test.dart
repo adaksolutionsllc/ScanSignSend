@@ -19,6 +19,10 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
+import 'package:scan_sign_send/core/services/opened_file_service.dart';
+import 'package:scan_sign_send/core/services/profile_repository.dart';
+import 'package:scan_sign_send/features/fill_mode/presentation/fill_mode_screen.dart';
+import 'package:scan_sign_send/shared/widgets/field_box.dart';
 import 'package:scan_sign_send/core/utils/router.dart';
 import 'package:scan_sign_send/features/library/presentation/library_screen.dart';
 import 'package:scan_sign_send/l10n/app_localizations.dart';
@@ -66,6 +70,45 @@ void main() {
     );
     await _pause(tester, 400);
     await _capture(tester, 'settings_support');
+
+    // A form with its own fields (the IRS W-4, from test/fixtures), opened
+    // the way a PDF arrives from Files or Mail: fields carry the captions
+    // printed on the form, not internal names. Unlimited, so the 4-page form
+    // isn't stopped at the free page limit.
+    await container
+        .read(profileRepositoryProvider)
+        .update(const UserProfileCompanion(isPurchased: Value(true)));
+    // The script copies the form into the app's temp folder on request;
+    // compiled in as a constant, it stalled the debug build's start-up.
+    final tmp = await getTemporaryDirectory();
+    final w4 = File(p.join(tmp.path, 'fw4.pdf'));
+    _mark('NEED:w4');
+    final until = DateTime.now().add(const Duration(seconds: 30));
+    while (!w4.existsSync() || w4.lengthSync() == 0) {
+      if (DateTime.now().isAfter(until)) fail('fw4.pdf was not provided');
+      await _pause(tester, 250);
+    }
+    await _pause(tester, 500); // let the copy finish
+    router.push(
+      AppRoutes.capture,
+      extra: OpenedFile(path: w4.path, name: 'fw4.pdf'),
+    );
+    await _waitFor(tester, find.byType(FillModeScreen), seconds: 60);
+    await _waitFor(tester, find.byType(FieldBox));
+    await _pause(tester, 1500);
+    await _capture(tester, 'w4_fill');
+    await tester.tap(find.byType(FieldBox).first);
+    await _waitFor(tester, find.text('First name and middle initial'));
+    await _capture(tester, 'w4_field_label');
+    await tester.tap(find.text(l10n.actionCancel));
+    await _pause(tester, 600);
+    final w4Doc =
+        (await container.read(documentRepositoryProvider).watchAll().first)
+            .firstWhere((d) => d.title == 'fw4');
+    router.push(AppRoutes.press.replaceAll(':docId', '${w4Doc.id}'));
+    await _waitFor(tester, find.text('Last name'));
+    await _capture(tester, 'w4_review_list');
+    _mark('INFO:w4 labels ok');
 
     // A finished document on the Send screen.
     final docId = await _pressedDocument(container);

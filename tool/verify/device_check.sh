@@ -85,6 +85,18 @@ foreground() {
   fi
 }
 
+# Copy a test PDF into the app's temp folder (the test asks with NEED:).
+provide() {
+  local src="test/fixtures/irs_fw4_2026.pdf"
+  if [[ $PLATFORM == ios ]]; then
+    # path_provider's temporary directory on iOS is Library/Caches.
+    cp "$src" "$(xcrun simctl get_app_container "$DEV" com.adakVentures.scanSignSend data)/Library/Caches/fw4.pdf"
+  else
+    adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \
+      sh -c 'cat > cache/fw4.pdf' < "$src"
+  fi
+}
+
 shot() {
   if [[ $PLATFORM == ios ]]; then
     xcrun simctl io "$DEV" screenshot "$1" >/dev/null 2>&1
@@ -98,12 +110,21 @@ run() {  # run <test file> [flutter test args...]
   local n
   n=$(ls "$OUT" | wc -l | tr -d ' ')
   set +e
-  flutter test "$test" -d "$DEV" "$@" 2>&1 | while IFS= read -r line; do
-    echo "$line"
-    if [[ "$line" =~ CAPTURE:([a-z_]+) ]]; then
+  # iOS always runs verbose: with Xcode 27 the quiet mode intermittently
+  # fails with "missing expected TARGET_BUILD_DIR" after a good build. The
+  # verbose noise ("[ +12 ms] …") is hidden unless VERBOSE=1.
+  local v=""
+  [[ $PLATFORM == ios || -n "${VERBOSE:-}" ]] && v="-v"
+  flutter test "$test" -d "$DEV" $v "$@" 2>&1 | while IFS= read -r line; do
+    if [[ -n "${VERBOSE:-}" || ! "$line" =~ ^\[\ *\+?[0-9]+\ ms\] ]]; then
+      echo "$line"
+    fi
+    if [[ "$line" =~ CAPTURE:([a-z0-9_]+) ]]; then
       n=$((n + 1))
       shot "$OUT/$(printf %02d "$n")_${BASH_REMATCH[1]}.png"
-    elif [[ "$line" =~ LEAVE:([a-z_]+) ]]; then
+    elif [[ "$line" == *NEED:w4* ]]; then
+      provide
+    elif [[ "$line" =~ LEAVE:([a-z0-9_]+) ]]; then
       # The app is about to leave for another app: shoot that, then return.
       n=$((n + 1))
       (sleep 6; shot "$OUT/$(printf %02d "$n")_${BASH_REMATCH[1]}.png"; foreground) &
