@@ -52,6 +52,7 @@ Feito pela ADAK Ventures.
 
 ## whats_new
 Novidade: abra PDFs do app Arquivos, do e-mail ou de outros apps direto no Scan Sign Send.
+Formulários PDF preenchíveis, como os de impostos, agora mostram o nome impresso de cada campo, e não um código.
 “Rever e concluir” agora pede pelo menos um campo antes de concluir um documento.
 Os botões dos painéis não ficam mais sob a barra de navegação.
 Novidade nas Definições: avalie o Scan Sign Send.

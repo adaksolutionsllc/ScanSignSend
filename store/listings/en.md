@@ -52,6 +52,7 @@ Built by ADAK Ventures.
 
 ## whats_new
 New: open PDFs from Files, email or other apps straight in Scan Sign Send.
+Fillable PDF forms, like tax forms, now show each field’s name as printed on the form, not a code.
 “Review & Finish” now asks for at least one field before you finish a document.
 Buttons in pop-up panels stay clear of the navigation bar.
 New in Settings: rate Scan Sign Send.

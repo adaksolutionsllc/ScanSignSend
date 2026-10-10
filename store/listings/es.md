@@ -52,6 +52,7 @@ Creado por ADAK Ventures.
 
 ## whats_new
 Novedad: abre PDF desde Archivos, el correo u otras apps directamente en Scan Sign Send.
+Los formularios PDF rellenables, como los fiscales, ahora muestran el nombre impreso de cada campo, no un código.
 «Revisar y finalizar» ahora pide al menos un campo antes de finalizar un documento.
 Los botones de los paneles ya no quedan bajo la barra de navegación.
 Novedad en Ajustes: valora Scan Sign Send.

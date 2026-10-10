@@ -1,4 +1,5 @@
 Nouveau : ouvrez des PDF depuis Fichiers, vos e-mails ou d’autres apps directement dans Scan Sign Send.
+Les formulaires PDF à remplir, comme les formulaires fiscaux, affichent désormais le nom imprimé de chaque champ, et non un code.
 « Vérifier et terminer » demande désormais au moins un champ avant de terminer un document.
 Les boutons des panneaux restent au-dessus de la barre de navigation.
 Nouveau dans les Réglages : notez Scan Sign Send.
