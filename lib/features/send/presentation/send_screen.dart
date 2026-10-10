@@ -243,6 +243,8 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     // share popover; without it share_plus throws a PlatformException.
     // Resolve strings before the await — `context` is unsafe past the gap.
     final l10n = context.l10n;
+    // Read before the await too: `ref` is unusable once the screen is gone.
+    final reviews = ref.read(reviewPromptServiceProvider);
     final box = context.findRenderObject() as RenderBox?;
     final origin = (box != null && box.hasSize)
         ? box.localToGlobal(Offset.zero) & box.size
@@ -257,7 +259,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       );
       // Only "sent" if it was: dismissing the share sheet isn't sending.
       // "Share again" on the same document doesn't count as another send.
-      if (sent && !_shared) unawaited(_afterSend());
+      if (sent && !_shared) unawaited(_afterSend(reviews));
       if (mounted) {
         setState(() {
           _sharing = false;
@@ -273,8 +275,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
   }
 
   /// Counts the send and, when it's time, asks for a store rating.
-  Future<void> _afterSend() async {
-    final reviews = ref.read(reviewPromptServiceProvider);
+  Future<void> _afterSend(ReviewPromptService reviews) async {
     if (!await reviews.recordSend()) return;
     // Let the share sheet finish closing so the rating sheet doesn't cover it.
     await Future<void>.delayed(const Duration(seconds: 1));

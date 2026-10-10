@@ -243,12 +243,11 @@ Future<void> _restore(BuildContext context, WidgetRef ref) async {
 
 /// Opens the store listing. Always the listing, never the in-app rating
 /// sheet: the OS may silently ignore that, which would make this row dead.
+/// The store is another app, so the lock re-arms as for any app switch.
 Future<void> _rate(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
   final failed = context.l10n.settingsRateAppFailed;
-  final opened = await ref
-      .read(appLockProvider.notifier)
-      .whileExternal(ref.read(reviewPromptServiceProvider).openStoreListing);
+  final opened = await ref.read(reviewPromptServiceProvider).openStoreListing();
   if (!opened) messenger.showSnackBar(SnackBar(content: Text(failed)));
 }
 
