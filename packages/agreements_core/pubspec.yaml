@@ -1,0 +1,16 @@
+name: agreements_core
+description: >-
+  Two-party signing envelopes that travel inside a PDF: format, access codes,
+  signing flow and audit log. Pure Dart; no Flutter, no network.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  crypto: ^3.0.6
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0

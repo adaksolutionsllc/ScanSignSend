@@ -48,6 +48,10 @@ dependencies:
   file_picker: ^8.0.0
   share_plus: ^10.0.0
 
+  # Two-party signing envelopes (pure Dart, kept separable — see its README)
+  agreements_core:
+    path: packages/agreements_core
+
   # Misc utils
   uuid: ^4.4.0
   # Pinned by flutter_localizations (Flutter SDK) — must match its intl version.

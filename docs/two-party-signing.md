@@ -1,6 +1,9 @@
 # Two-party signing with signer ID — plan
 
-Status: **draft for review** (2026-10-07). Nothing here is built yet.
+Status: **in progress** on `feature/agreements` (from 2026-10-09). Packaging
+is still open: inside Scan Sign Send or a separate "Agreements"-type app in a
+monorepo. The envelope core is built to work either way (§7). §2 pricing
+assumes the in-app tier and changes if it becomes a separate app.
 
 ## 1. Goal
 
@@ -252,3 +255,41 @@ stores nothing centrally, which helps, but the sender becomes the data holder.
 - Family Sharing: off for every product, including the existing `fullaccess`.
 - Sender enters the recipient's email and/or mobile number; used to prefill
   sending (§3.2a).
+
+## 7. Implementation notes
+
+**Packaging-neutral core.** `packages/agreements_core` is pure Dart (only
+`crypto`): envelope model and JSON, access codes, verifier, code proof, signing
+flow, masking. The app depends on it by path; a separate app would do the same
+from a monorepo. No user-facing text: failures are `EnvelopeException` codes.
+
+**Tamper evidence without circularity.** The envelope can't hash the file
+that contains it. Instead `Envelope.content` is `{length, sha256}` of the
+*content* PDF, and `EnvelopePdf.seal` (`lib/core/services/envelope_pdf.dart`)
+adds the envelope as a PDF incremental update, which only appends. On open,
+the file's first `length` bytes must hash to `sha256`; a full re-save in any
+other editor rewrites them and is reported as modified. Each party's flatten
+step loads the previous content and saves incrementally too, so every earlier
+version stays an exact prefix of the final file. (Appended updates can still
+paint over earlier content, so this is tamper-*evident*, not tamper-proof.)
+
+**What travels and what stays.** The PDF carries what's known when it's
+sealed: parties, field→party map, verifier, content digest, log. The sender's
+send receipts ("sent by SMS to …") stay in the sender's local copy and are
+merged in by `Envelope.mergeReturned` when the file comes back. The merge
+refuses a returned copy whose fixed fields or earlier log entries changed.
+
+**Code check.** The access code is 9 random Crockford base32 symbols plus a
+Luhn mod 32 check symbol, which catches every single-symbol typo and 99.8% of
+neighbour swaps (measured). `AccessVerifier` (PBKDF2-SHA256, 600k iterations) runs
+through a `CodeKdf` the app supplies. Still to build: the OS-backed one
+(CommonCrypto / javax.crypto over a platform channel); Dart's is too slow at
+600k. Envelopes with fewer than 1,000 iterations or a short salt are rejected.
+The recipient can only sign after `codeWasAccepted`. The sender's `complete`
+recomputes the HMAC proof from the code it kept.
+
+**Next.** Schema (`Envelopes` table holding the sender's local envelope JSON +
+code, `Fields.partyId`, `Documents.envelopeId`), OS `CodeKdf` channel, party
+assignment in the field editor, sender seal/send flow, recipient "signing as"
+mode via the open-in handler (`EnvelopePdf.hasEnvelope` routes it), audit
+page.
