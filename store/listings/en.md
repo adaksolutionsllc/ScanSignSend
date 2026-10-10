@@ -51,8 +51,10 @@ Finish 2 documents (up to 2 pages each) free. Unlimited is a one-time purchase f
 Built by ADAK Ventures.
 
 ## whats_new
-Scan Sign Send is now free to try. If you bought it before, you already have Unlimited — nothing to do.
-Performance and reliability improvements.
+New: open PDFs from Files, email or other apps straight in Scan Sign Send.
+“Review & Finish” now asks for at least one field before you finish a document.
+Buttons in pop-up panels stay clear of the navigation bar.
+New in Settings: rate Scan Sign Send.
 
 ## iap_display_name
 Unlimited

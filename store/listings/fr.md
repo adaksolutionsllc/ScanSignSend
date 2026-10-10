@@ -51,8 +51,10 @@ Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. Illimité est un ac
 Conçu par ADAK Ventures.
 
 ## whats_new
-Scan Sign Send est désormais gratuit à l’essai. Si vous l’avez déjà acheté, vous avez Illimité — rien à faire.
-Améliorations des performances et de la fiabilité.
+Nouveau : ouvrez des PDF depuis Fichiers, vos e-mails ou d’autres apps directement dans Scan Sign Send.
+« Vérifier et terminer » demande désormais au moins un champ avant de terminer un document.
+Les boutons des panneaux restent au-dessus de la barre de navigation.
+Nouveau dans les Réglages : notez Scan Sign Send.
 
 ## iap_display_name
 Illimité

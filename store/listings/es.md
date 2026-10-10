@@ -51,8 +51,10 @@ Completa 2 documentos (de hasta 2 páginas cada uno) gratis. Ilimitado es una co
 Creado por ADAK Ventures.
 
 ## whats_new
-Ahora puedes probar Scan Sign Send gratis. Si ya lo compraste, tienes Ilimitado; no tienes que hacer nada.
-Mejoras de rendimiento y fiabilidad.
+Novedad: abre PDF desde Archivos, el correo u otras apps directamente en Scan Sign Send.
+«Revisar y finalizar» ahora pide al menos un campo antes de finalizar un documento.
+Los botones de los paneles ya no quedan bajo la barra de navegación.
+Novedad en Ajustes: valora Scan Sign Send.
 
 ## iap_display_name
 Ilimitado

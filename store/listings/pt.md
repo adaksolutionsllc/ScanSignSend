@@ -51,8 +51,10 @@ Conclua 2 documentos (de até 2 páginas cada) de graça. O Ilimitado é uma com
 Feito pela ADAK Ventures.
 
 ## whats_new
-Agora você pode experimentar o Scan Sign Send grátis. Se já comprou o app, você tem o Ilimitado — não precisa fazer nada.
-Melhorias de desempenho e confiabilidade.
+Novidade: abra PDFs do app Arquivos, do e-mail ou de outros apps direto no Scan Sign Send.
+“Rever e concluir” agora pede pelo menos um campo antes de concluir um documento.
+Os botões dos painéis não ficam mais sob a barra de navegação.
+Novidade nas Definições: avalie o Scan Sign Send.
 
 ## iap_display_name
 Ilimitado
