@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/services/app_lock_provider.dart';
+import '../../../core/services/review_prompt_service.dart';
 import '../../../shared/utils/share_pdf.dart';
 import '../../../core/services/template_service.dart';
 
@@ -254,6 +256,8 @@ class _SendScreenState extends ConsumerState<SendScreen> {
         origin: origin,
       );
       // Only "sent" if it was: dismissing the share sheet isn't sending.
+      // "Share again" on the same document doesn't count as another send.
+      if (sent && !_shared) unawaited(_afterSend());
       if (mounted) {
         setState(() {
           _sharing = false;
@@ -266,5 +270,22 @@ class _SendScreenState extends ConsumerState<SendScreen> {
         SnackBar(content: Text(l10n.sendShareFailed('$e'))),
       );
     }
+  }
+
+  /// Counts the send and, when it's time, asks for a store rating.
+  Future<void> _afterSend() async {
+    final reviews = ref.read(reviewPromptServiceProvider);
+    if (!await reviews.recordSend()) return;
+    // Let the share sheet finish closing so the rating sheet doesn't cover it.
+    await Future<void>.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+    // Only over this screen, in the foreground: never over the lock screen,
+    // the paywall, a dialog or anything else the user has moved on to.
+    if (ref.read(appLockProvider)) return;
+    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      return;
+    }
+    if (!(ModalRoute.of(context)?.isCurrent ?? false)) return;
+    await reviews.requestReview();
   }
 }

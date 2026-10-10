@@ -55,6 +55,7 @@ dependencies:
   shared_preferences: ^2.3.0
   cupertino_icons: ^1.0.8
   printing: ^5.14.3
+  in_app_review: ^2.0.12
 
 dev_dependencies:
   flutter_test:

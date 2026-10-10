@@ -667,6 +667,19 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsRestorePurchase => 'கொள்முதலை மீட்டமை';
 
   @override
+  String get settingsSectionSupport => 'உதவி';
+
+  @override
+  String get settingsRateApp => 'Scan Sign Send ஐ மதிப்பிடுங்கள்';
+
+  @override
+  String get settingsRateAppSubtitle => 'மதிப்பீடு அல்லது விமர்சனம் அளியுங்கள்';
+
+  @override
+  String get settingsRateAppFailed =>
+      'ஸ்டோரைத் திறக்க முடியவில்லை. பிறகு மீண்டும் முயலவும்.';
+
+  @override
   String get settingsFullAccessUnlocked => 'அன்லிமிடெட் திறக்கப்பட்டது';
 
   @override

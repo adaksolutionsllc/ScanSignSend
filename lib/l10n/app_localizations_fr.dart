@@ -667,6 +667,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsRestorePurchase => 'Restaurer l\'achat';
 
   @override
+  String get settingsSectionSupport => 'Assistance';
+
+  @override
+  String get settingsRateApp => 'Noter Scan Sign Send';
+
+  @override
+  String get settingsRateAppSubtitle => 'Laisser une note ou un avis';
+
+  @override
+  String get settingsRateAppFailed =>
+      'Impossible d’ouvrir la boutique. Réessayez plus tard.';
+
+  @override
   String get settingsFullAccessUnlocked => 'Illimité débloqué';
 
   @override

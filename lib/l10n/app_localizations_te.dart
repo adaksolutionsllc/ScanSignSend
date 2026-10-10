@@ -669,6 +669,19 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settingsRestorePurchase => 'కొనుగోలును పునరుద్ధరించు';
 
   @override
+  String get settingsSectionSupport => 'సహాయం';
+
+  @override
+  String get settingsRateApp => 'Scan Sign Sendని రేట్ చేయండి';
+
+  @override
+  String get settingsRateAppSubtitle => 'రేటింగ్ లేదా సమీక్ష ఇవ్వండి';
+
+  @override
+  String get settingsRateAppFailed =>
+      'స్టోర్‌ను తెరవడం సాధ్యం కాలేదు. తర్వాత మళ్లీ ప్రయత్నించండి.';
+
+  @override
   String get settingsFullAccessUnlocked => 'అన్‌లిమిటెడ్ అన్‌లాక్ అయింది';
 
   @override

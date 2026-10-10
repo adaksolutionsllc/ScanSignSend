@@ -1320,6 +1320,30 @@ abstract class AppLocalizations {
   /// **'Restore Purchase'**
   String get settingsRestorePurchase;
 
+  /// No description provided for @settingsSectionSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get settingsSectionSupport;
+
+  /// No description provided for @settingsRateApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Scan Sign Send'**
+  String get settingsRateApp;
+
+  /// No description provided for @settingsRateAppSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave a rating or review'**
+  String get settingsRateAppSubtitle;
+
+  /// No description provided for @settingsRateAppFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the store. Please try again later.'**
+  String get settingsRateAppFailed;
+
   /// No description provided for @settingsFullAccessUnlocked.
   ///
   /// In en, this message translates to:

@@ -666,6 +666,19 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsRestorePurchase => 'ख़रीद पुनर्स्थापित करें';
 
   @override
+  String get settingsSectionSupport => 'सहायता';
+
+  @override
+  String get settingsRateApp => 'Scan Sign Send को रेट करें';
+
+  @override
+  String get settingsRateAppSubtitle => 'रेटिंग या समीक्षा दें';
+
+  @override
+  String get settingsRateAppFailed =>
+      'स्टोर नहीं खुल सका। कृपया बाद में फिर से कोशिश करें।';
+
+  @override
   String get settingsFullAccessUnlocked => 'अनलिमिटेड अनलॉक हो गया';
 
   @override

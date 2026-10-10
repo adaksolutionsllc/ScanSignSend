@@ -11,6 +11,7 @@ import '../../../core/services/biometric_service.dart';
 import '../../../core/services/field_hints.dart';
 import '../../../core/services/iap_service.dart';
 import '../../../core/services/profile_repository.dart';
+import '../../../core/services/review_prompt_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
 import '../../../shared/widgets/text_edit_dialog.dart';
@@ -183,6 +184,13 @@ class SettingsScreen extends ConsumerWidget {
                   title: Text(context.l10n.settingsFullAccessUnlocked),
                   subtitle: Text(context.l10n.settingsThankYou),
                 ),
+              _SectionHeader(context.l10n.settingsSectionSupport),
+              ListTile(
+                leading: const Icon(Icons.star_outline),
+                title: Text(context.l10n.settingsRateApp),
+                subtitle: Text(context.l10n.settingsRateAppSubtitle),
+                onTap: () => _rate(context, ref),
+              ),
             ],
           );
         },
@@ -231,6 +239,17 @@ Future<void> _restore(BuildContext context, WidgetRef ref) async {
       ),
     );
   }
+}
+
+/// Opens the store listing. Always the listing, never the in-app rating
+/// sheet: the OS may silently ignore that, which would make this row dead.
+Future<void> _rate(BuildContext context, WidgetRef ref) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final failed = context.l10n.settingsRateAppFailed;
+  final opened = await ref
+      .read(appLockProvider.notifier)
+      .whileExternal(ref.read(reviewPromptServiceProvider).openStoreListing);
+  if (!opened) messenger.showSnackBar(SnackBar(content: Text(failed)));
 }
 
 class _SectionHeader extends StatelessWidget {
