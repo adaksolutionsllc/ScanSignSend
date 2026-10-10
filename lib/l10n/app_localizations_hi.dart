@@ -460,6 +460,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pressFlattenAndLock => 'फ़्लैटन करें और लॉक करें';
 
   @override
+  String get pressNoFieldsTitle => 'अभी कोई फ़ील्ड नहीं';
+
+  @override
+  String get pressNoFieldsBody =>
+      'पूरा करने से पहले भरने या साइन करने के लिए कम से कम एक फ़ील्ड जोड़ें।';
+
+  @override
+  String get pressAddFields => 'फ़ील्ड जोड़ें';
+
+  @override
   String pressFailed(String error) {
     return 'दस्तावेज़ पूरा नहीं हो सका: $error';
   }

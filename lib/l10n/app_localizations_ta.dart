@@ -462,6 +462,16 @@ class AppLocalizationsTa extends AppLocalizations {
   String get pressFlattenAndLock => 'தட்டையாக்கிப் பூட்டு';
 
   @override
+  String get pressNoFieldsTitle => 'இன்னும் புலங்கள் இல்லை';
+
+  @override
+  String get pressNoFieldsBody =>
+      'முடிப்பதற்கு முன், நிரப்ப அல்லது கையொப்பமிட குறைந்தது ஒரு புலத்தைச் சேர்க்கவும்.';
+
+  @override
+  String get pressAddFields => 'புலங்களைச் சேர்';
+
+  @override
   String pressFailed(String error) {
     return 'ஆவணத்தை முடிக்க முடியவில்லை: $error';
   }
