@@ -184,7 +184,13 @@ class FieldDetectionEngine {
       final context = '${c.left} $right';
 
       FieldType type;
-      String label = _cleanLabel(c.left);
+      String label = _withContext(
+        _cleanLabel(c.left),
+        c.left,
+        c.line,
+        c.rect,
+        lines,
+      );
       if (_initialWords.hasMatch(context)) {
         type = FieldType.initials;
       } else if (_sigWords.hasMatch(c.left) ||
@@ -395,7 +401,15 @@ class FieldDetectionEngine {
         .map((w) => w.text)
         .join(' ')
         .replaceAll(LayoutLine.blankRun, ' ');
-    return _cleanLabel(before);
+    final lines = [...layout.lines]
+      ..sort((a, b) => a.box.top.compareTo(b.box.top));
+    return _withContext(
+      _cleanLabel(before),
+      before,
+      best,
+      Rect.fromLTWH(box.x, box.y, box.w, box.h),
+      lines,
+    );
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -624,6 +638,72 @@ class FieldDetectionEngine {
     t = words.join(' ');
     return t.length > 40 ? t.substring(0, 40) : t;
   }
+
+  /// A label that is only a connecting word ("at", "in", "on") says little
+  /// on its own: put the nearest real word before it in front — earlier on
+  /// the line, past blanks, numbers and punctuation ("born on ____, at" →
+  /// "born at"), or else the last one on the line above ("…residing" /
+  /// "at ____" → "residing at").
+  static String _withContext(
+    String label,
+    String left,
+    LayoutLine? line,
+    Rect blank,
+    List<LayoutLine> lines,
+  ) {
+    final parts = label.split(' ').where((w) => w.isNotEmpty).toList();
+    if (parts.isEmpty ||
+        !parts.every((w) => _connectors.contains(w.toLowerCase()))) {
+      return label;
+    }
+    String? lastContent(String text) {
+      for (final t in text.split(RegExp(r'\s+')).reversed) {
+        final w = t.replaceAll(RegExp(r"[^\p{L}\p{M}'’-]", unicode: true), '');
+        final lower = w.toLowerCase();
+        if (w.isEmpty ||
+            _connectors.contains(lower) ||
+            _filler.contains(lower)) {
+          continue;
+        }
+        return w;
+      }
+      return null;
+    }
+
+    final tokens = left.trim().split(RegExp(r'\s+'));
+    final earlier = tokens.length > parts.length
+        ? tokens.sublist(0, tokens.length - parts.length).join(' ')
+        : '';
+    var word = lastContent(earlier);
+    if (word == null) {
+      final top = line?.box.top ?? blank.top;
+      final h = line?.box.height ?? blank.height;
+      LayoutLine? above;
+      for (final l in lines) {
+        if (identical(l, line) || l.box.center.dy >= top) continue;
+        if (top - l.box.bottom > h * 1.6) continue;
+        if (above == null || l.box.bottom > above.box.bottom) above = l;
+      }
+      if (above != null) {
+        word = lastContent(above.text.replaceAll(LayoutLine.blankRun, ' '));
+      }
+    }
+    if (word == null) return label;
+    final t = '$word $label';
+    return t.length > 40 ? label : t;
+  }
+
+  /// Connecting words that make a poor label alone, in the app's locales.
+  static const _connectors = {
+    // en
+    'at', 'in', 'on', 'of', 'by', 'to', 'for', 'from', 'with', 'into', 'per',
+    // fr
+    'à', 'au', 'aux', 'en', 'de', 'du', 'des', 'le', 'la', 'les',
+    // es / pt
+    'a', 'el', 'del', 'al', 'em', 'no', 'na', 'nos', 'nas', 'do', 'da', 'ao',
+    // hi
+    'में', 'पर', 'को', 'का', 'की', 'के', 'से',
+  };
 
   static const _filler = {
     'i',

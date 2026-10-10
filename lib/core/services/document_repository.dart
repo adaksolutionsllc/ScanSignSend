@@ -379,6 +379,16 @@ class FieldRepository {
   FieldRepository(this._db);
   final AppDatabase _db;
 
+  /// A PDF's own form fields still labelled with their internal name —
+  /// imported before labels came from the page (1.1.0).
+  Future<List<Field>> acroformFieldsWithRawLabels() =>
+      (_db.select(_db.fields)..where(
+            (t) =>
+                t.sourceKind.equals('acroform') &
+                t.label.equalsExp(t.pdfFieldName),
+          ))
+          .get();
+
   Stream<List<Field>> watchFields(int documentId) =>
       (_db.select(_db.fields)
             ..where((t) => t.documentId.equals(documentId))

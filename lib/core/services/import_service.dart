@@ -5,7 +5,8 @@ import 'dart:ui' as ui;
 
 import 'package:drift/drift.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show compute;
+import 'package:flutter/foundation.dart'
+    show compute, debugPrint, visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -15,7 +16,11 @@ import 'package:uuid/uuid.dart';
 
 import '../db/app_database.dart';
 import '../models/field_model.dart';
+import '../utils/path_resolver.dart';
+import 'acroform_labels.dart';
 import 'document_repository.dart';
+import 'page_layout.dart';
+import 'page_layout_service.dart';
 import 'pdf_geometry.dart';
 
 /// Why an import failed. The service has no BuildContext, so it reports a
@@ -271,6 +276,11 @@ class ImportService {
   static List<_ParsedField> _parseFormFields(PdfDocument pdfDoc) {
     final out = <_ParsedField>[];
     final form = pdfDoc.form;
+    // Each page's text layer, read once and only for pages with fields: the
+    // printed captions are what the fields are labelled by.
+    final text = <int, List<LayoutLine>>{};
+    List<LayoutLine> textOf(int page) =>
+        text[page] ??= pdfTextLayoutOf(pdfDoc, page)?.$1 ?? const [];
     for (var i = 0; i < form.fields.count; i++) {
       final field = form.fields[i];
       final page = field.page;
@@ -313,7 +323,13 @@ class ImportService {
           pageIndex: pageIndex,
           type: type,
           bbox: bbox,
-          label: field.name ?? '',
+          label: AcroformLabels.label(
+            type: type,
+            box: bbox,
+            lines: textOf(pageIndex),
+            tooltip: _tooltipOf(field),
+            name: field.name,
+          ),
           value: value,
           isChecked: isChecked,
           optionsJson: optionsJson,
@@ -321,6 +337,64 @@ class ImportService {
       );
     }
     return out;
+  }
+
+  /// Relabels form fields imported before labels came from the page: they
+  /// show internal names like "topmostSubform[0].Page1[0].f1_01[0]". Runs
+  /// once per such document (a relabelled field no longer matches), in the
+  /// background; a document that can't be read keeps its labels.
+  Future<void> relabelLegacyAcroforms() async {
+    try {
+      final stale = await _fieldRepo.acroformFieldsWithRawLabels();
+      final byDoc = <int, List<Field>>{};
+      for (final f in stale) {
+        (byDoc[f.documentId] ??= []).add(f);
+      }
+      for (final MapEntry(key: docId, value: fields) in byDoc.entries) {
+        final pages = await _pageRepo.watchPages(docId).first;
+        if (pages.isEmpty || !pages.first.imagePath.contains('#page=')) {
+          continue;
+        }
+        final pdf = PathResolver.resolve(
+          pages.first.imagePath.split('#page=').first,
+        );
+        final labels = await compute(_relabel, (
+          pdf,
+          [
+            for (final f in fields)
+              (
+                f.id,
+                f.pdfFieldName ?? '',
+                f.pageIndex,
+                f.type,
+                f.boundingBoxJson,
+              ),
+          ],
+        ));
+        for (final MapEntry(key: id, value: label) in labels.entries) {
+          await _fieldRepo.updateField(
+            FieldsCompanion(id: Value(id), label: Value(label)),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Form field labels not refreshed: $e');
+    }
+  }
+
+  /// The form fields of the PDF at [path] as import labels them:
+  /// (internal name, label). For tests.
+  @visibleForTesting
+  static List<(String, String)> formFieldLabels(String path) => [
+    for (final f in _parsePdf(path).$2) (f.pdfFieldName, f.label),
+  ];
+
+  static String? _tooltipOf(PdfField field) {
+    try {
+      return field.tooltip;
+    } catch (_) {
+      return null; // a malformed /TU must not fail the import
+    }
   }
 
   Future<String> _copyToAppDir(String src, String id) async {
@@ -348,6 +422,37 @@ Uint8List _encodeRgbaJpeg((Uint8List, int, int) args) {
 
 /// compute() entry: page count and AcroForm fields of the PDF at [path].
 /// Throws for an unreadable (corrupt / encrypted) file.
+/// compute() entry for [ImportService.relabelLegacyAcroforms]: field id →
+/// new label, for the fields of the PDF at `args.$1`.
+Map<int, String> _relabel(
+  (String, List<(int, String, int, String, String)>) args,
+) {
+  final (path, fields) = args;
+  final pdfDoc = PdfDocument(inputBytes: File(path).readAsBytesSync());
+  try {
+    final byName = <String, PdfField>{};
+    for (var i = 0; i < pdfDoc.form.fields.count; i++) {
+      final f = pdfDoc.form.fields[i];
+      if (f.name != null) byName[f.name!] = f;
+    }
+    final text = <int, List<LayoutLine>>{};
+    return {
+      for (final (id, name, page, type, box) in fields)
+        id: AcroformLabels.label(
+          type: type.toFieldType(),
+          box: BoundingBox.fromJsonString(box),
+          lines: text[page] ??= pdfTextLayoutOf(pdfDoc, page)?.$1 ?? const [],
+          tooltip: byName[name] == null
+              ? null
+              : ImportService._tooltipOf(byName[name]!),
+          name: name,
+        ),
+    };
+  } finally {
+    pdfDoc.dispose();
+  }
+}
+
 (int, List<_ParsedField>) _parsePdf(String path) {
   final pdfDoc = PdfDocument(inputBytes: File(path).readAsBytesSync());
   try {

@@ -73,6 +73,18 @@ class PageLayoutService {
   PdfDocument? doc;
   try {
     doc = PdfDocument(inputBytes: File(path).readAsBytesSync());
+    return pdfTextLayoutOf(doc, pageIndex);
+  } catch (_) {
+    return null;
+  } finally {
+    doc?.dispose();
+  }
+}
+
+/// [pdfTextLayout] for a document that is already open (e.g. while its form
+/// fields are being read). Null when the page has no usable size.
+(List<LayoutLine>, double)? pdfTextLayoutOf(PdfDocument doc, int pageIndex) {
+  try {
     if (pageIndex < 0 || pageIndex >= doc.pages.count) return null;
     final size = doc.pages[pageIndex].size;
     final w = size.width, h = size.height;
@@ -124,8 +136,6 @@ class PageLayoutService {
     return (out, w / h);
   } catch (_) {
     return null;
-  } finally {
-    doc?.dispose();
   }
 }
 

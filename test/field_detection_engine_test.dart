@@ -104,11 +104,13 @@ void main() {
       final byLabel = {for (final f in r.fields) f.label: f.type};
       expect(byLabel, {
         'aged': FieldType.text,
-        'at': FieldType.text,
+        'residing at': FieldType.text,
         'born on': FieldType.date,
+        'born at': FieldType.text,
       });
-      // "at ____" appears twice (address line, place of birth): both found.
-      expect(r.fields.where((f) => f.label == 'at'), hasLength(2));
+      // "at ____" appears twice. A bare "at" says nothing, so each takes the
+      // word before it: from the line above ("…residing" / "at ____") and
+      // from past the blank before it ("born on ____, at ____").
       expect(r.fields, hasLength(4), reason: 'no fields on plain sentences');
     });
 
@@ -454,7 +456,7 @@ void main() {
             layout,
             hints: const LearnedHints({
               'born on': {'text': (3, 0), 'date': (0, 3)},
-              'at': {'text': (0, 2)},
+              'born at': {'text': (0, 2)},
             }),
           )
           .fields;
@@ -484,7 +486,7 @@ void main() {
     File(path).deleteSync();
     expect(
       labels,
-      containsAll(['Date of birth', 'Phone', 'born on', 'at', 'aged']),
+      containsAll(['Date of birth', 'Phone', 'born on', 'born at', 'aged']),
     );
   });
 }

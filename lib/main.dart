@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/services/backup_service.dart';
 import 'core/services/iap_service.dart';
+import 'core/services/import_service.dart';
 import 'core/services/opened_file_service.dart';
 import 'core/services/profile_repository.dart';
 import 'core/services/app_lock_provider.dart';
@@ -180,6 +181,8 @@ class _MainAppState extends ConsumerState<_MainApp> {
       (file) => ref.read(routerProvider).push(AppRoutes.capture, extra: file),
     );
     service.start();
+    // Forms imported before 1.1.0 show internal field names; relabel them.
+    unawaited(ref.read(importServiceProvider).relabelLegacyAcroforms());
   }
 
   @override
