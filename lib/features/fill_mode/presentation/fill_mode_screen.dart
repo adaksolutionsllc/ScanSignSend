@@ -345,7 +345,12 @@ class _TextInputSheetState extends State<_TextInputSheet> {
         16,
         16,
         16,
-        MediaQuery.of(context).viewInsets.bottom + 16,
+        // Keyboard height, plus the navigation bar when the keyboard is
+        // closed (padding is zero while the keyboard covers it). Sheets get
+        // no automatic bottom inset, so the buttons sat behind the bar.
+        MediaQuery.viewInsetsOf(context).bottom +
+            MediaQuery.paddingOf(context).bottom +
+            16,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
