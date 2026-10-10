@@ -33,105 +33,130 @@ class _PressScreenState extends ConsumerState<PressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.pressTitle)),
-      body: StreamBuilder<List<Field>>(
-        stream: _fieldsStream,
-        builder: (context, snapshot) {
-          final fields = snapshot.data ?? [];
-          final filled = fields.where((f) => f.isFilled).length;
-          final unfilled = fields.length - filled;
+    return StreamBuilder<List<Field>>(
+      stream: _fieldsStream,
+      builder: (context, snapshot) {
+        final fields = snapshot.data ?? [];
+        // Finishing a document with no fields produces nothing to fill or
+        // sign — and on the free tier it would use up a document.
+        final noFields = snapshot.hasData && fields.isEmpty;
+        return Scaffold(
+          appBar: AppBar(title: Text(context.l10n.pressTitle)),
+          body: noFields
+              ? _NoFields(docId: widget.docId)
+              : _body(context, fields),
+          bottomNavigationBar: _actions(
+            context,
+            canFinish: snapshot.hasData && !noFields,
+          ),
+        );
+      },
+    );
+  }
 
-          return ListView(
+  Widget _body(BuildContext context, List<Field> fields) {
+    final filled = fields.where((f) => f.isFilled).length;
+    final unfilled = fields.length - filled;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Summary card
+        Card(
+          child: Padding(
             padding: const EdgeInsets.all(16),
-            children: [
-              // Summary card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.l10n.pressFieldSummary,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      _SummaryRow(
-                        icon: Icons.check_circle,
-                        color: Colors.green,
-                        label: context.l10n.pressFilled,
-                        count: filled,
-                      ),
-                      if (unfilled > 0)
-                        _SummaryRow(
-                          icon: Icons.warning_amber_rounded,
-                          color: Colors.amber.shade700,
-                          label: context.l10n.pressUnfilled,
-                          count: unfilled,
-                        ),
-                    ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.pressFieldSummary,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                _SummaryRow(
+                  icon: Icons.check_circle,
+                  color: Colors.green,
+                  label: context.l10n.pressFilled,
+                  count: filled,
+                ),
+                if (unfilled > 0)
+                  _SummaryRow(
+                    icon: Icons.warning_amber_rounded,
+                    color: Colors.amber.shade700,
+                    label: context.l10n.pressUnfilled,
+                    count: unfilled,
                   ),
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Field list
-              ...fields.map((f) => _FieldTile(field: f)),
-
-              const SizedBox(height: 80),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: _busy
-              ? const _BusyBar()
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const _FreeAllowanceNote(),
-                    // Primary, safe default: keep fields editable.
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: FilledButton.icon(
-                        onPressed: () => _exportFillable(context),
-                        icon: const Icon(Icons.edit_document),
-                        label: Text(context.l10n.pressSaveDraft),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Deliberate, irreversible: flatten + lock.
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _confirmPress(context),
-                        icon: Icon(
-                          Icons.lock_outline,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        label: Text(
-                          context.l10n.pressFlattenAndSign,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.error.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              ],
+            ),
+          ),
         ),
+        const SizedBox(height: 8),
+
+        // Field list
+        ...fields.map((f) => _FieldTile(field: f)),
+
+        const SizedBox(height: 80),
+      ],
+    );
+  }
+
+  Widget _actions(BuildContext context, {required bool canFinish}) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: _busy
+            ? const _BusyBar()
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // No allowance talk while finishing is blocked.
+                  if (canFinish) const _FreeAllowanceNote(),
+                  // Primary, safe default: keep fields editable.
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: FilledButton.icon(
+                      onPressed: canFinish
+                          ? () => _exportFillable(context)
+                          : null,
+                      icon: const Icon(Icons.edit_document),
+                      label: Text(context.l10n.pressSaveDraft),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Deliberate, irreversible: flatten + lock.
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      onPressed: canFinish
+                          ? () => _confirmPress(context)
+                          : null,
+                      icon: Icon(
+                        Icons.lock_outline,
+                        color: canFinish
+                            ? Theme.of(context).colorScheme.error
+                            : null,
+                      ),
+                      label: Text(
+                        context.l10n.pressFlattenAndSign,
+                        style: TextStyle(
+                          color: canFinish
+                              ? Theme.of(context).colorScheme.error
+                              : null,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.error.withValues(
+                            alpha: canFinish ? 0.5 : 0.15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -140,6 +165,16 @@ class _PressScreenState extends ConsumerState<PressScreen> {
   /// Free tier: may this document be finished? Opens the paywall (and
   /// returns false) when not. See FreeUsageService.
   Future<bool> _mayFinish(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final noFields = context.l10n.pressNoFieldsBody;
+    final fields = await ref
+        .read(fieldRepositoryProvider)
+        .watchFields(widget.docId)
+        .first;
+    if (fields.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(noFields)));
+      return false;
+    }
     final usage = ref.read(freeUsageServiceProvider);
     final doc = await ref
         .read(documentRepositoryProvider)
@@ -304,6 +339,54 @@ class _PressScreenState extends ConsumerState<PressScreen> {
         ),
       );
     }
+  }
+}
+
+/// Shown instead of the summary when the document has no fields: finishing
+/// is blocked, and the way forward is adding some.
+class _NoFields extends StatelessWidget {
+  const _NoFields({required this.docId});
+  final int docId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.edit_note,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.pressNoFieldsTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.l10n.pressNoFieldsBody,
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () => context.push(
+                AppRoutes.fieldDetection.replaceAll(':docId', '$docId'),
+              ),
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.pressAddFields),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -464,6 +464,16 @@ class AppLocalizationsTe extends AppLocalizations {
   String get pressFlattenAndLock => 'ఫ్లాటెన్ చేసి లాక్ చేయి';
 
   @override
+  String get pressNoFieldsTitle => 'ఇంకా ఫీల్డ్‌లు లేవు';
+
+  @override
+  String get pressNoFieldsBody =>
+      'పూర్తి చేసే ముందు, నింపడానికి లేదా సంతకం చేయడానికి కనీసం ఒక ఫీల్డ్‌ను జోడించండి.';
+
+  @override
+  String get pressAddFields => 'ఫీల్డ్‌లను జోడించండి';
+
+  @override
   String pressFailed(String error) {
     return 'పత్రాన్ని పూర్తి చేయలేకపోయాం: $error';
   }

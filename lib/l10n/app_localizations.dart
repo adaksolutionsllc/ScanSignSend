@@ -936,6 +936,24 @@ abstract class AppLocalizations {
   /// **'Flatten & Lock'**
   String get pressFlattenAndLock;
 
+  /// No description provided for @pressNoFieldsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No fields yet'**
+  String get pressNoFieldsTitle;
+
+  /// No description provided for @pressNoFieldsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one field to fill or sign before finishing.'**
+  String get pressNoFieldsBody;
+
+  /// No description provided for @pressAddFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Fields'**
+  String get pressAddFields;
+
   /// No description provided for @pressFailed.
   ///
   /// In en, this message translates to:

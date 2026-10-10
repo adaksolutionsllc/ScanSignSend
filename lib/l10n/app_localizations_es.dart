@@ -460,6 +460,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pressFlattenAndLock => 'Aplanar y bloquear';
 
   @override
+  String get pressNoFieldsTitle => 'Aún no hay campos';
+
+  @override
+  String get pressNoFieldsBody =>
+      'Añade al menos un campo para rellenar o firmar antes de terminar.';
+
+  @override
+  String get pressAddFields => 'Añadir campos';
+
+  @override
   String pressFailed(String error) {
     return 'No se pudo completar el documento: $error';
   }

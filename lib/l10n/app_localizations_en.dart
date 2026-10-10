@@ -458,6 +458,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pressFlattenAndLock => 'Flatten & Lock';
 
   @override
+  String get pressNoFieldsTitle => 'No fields yet';
+
+  @override
+  String get pressNoFieldsBody =>
+      'Add at least one field to fill or sign before finishing.';
+
+  @override
+  String get pressAddFields => 'Add Fields';
+
+  @override
   String pressFailed(String error) {
     return 'Couldn\'t finish the document: $error';
   }

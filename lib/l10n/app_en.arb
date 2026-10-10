@@ -247,6 +247,9 @@
   "pressConfirmLiveFields": "This document has interactive form fields. Flattening removes them — to keep them editable, choose “Save Draft” instead.",
   "pressConfirmNote": "Note: a drawn signature here is a visual mark, not a certified digital e-signature.",
   "pressFlattenAndLock": "Flatten & Lock",
+  "pressNoFieldsTitle": "No fields yet",
+  "pressNoFieldsBody": "Add at least one field to fill or sign before finishing.",
+  "pressAddFields": "Add Fields",
   "pressFailed": "Couldn't finish the document: {error}",
   "@pressFailed": {
     "placeholders": {
