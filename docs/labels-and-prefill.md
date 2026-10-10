@@ -98,18 +98,33 @@ existing engine test that expects the label "at" changes to these.
 
 ### C. PreFill
 
-**My Details** (Settings), all optional:
+**My Details** (Settings), all optional. **Locked 2026-10-10: these 14.**
 
-| Detail | New? | Notes |
-|---|---|---|
-| First name, Middle name, Last name | new (split) | Full name is built from them; existing fullName migrates into first/last (last word = last name) |
-| Email, Phone | existing | |
-| Street address, City, State/Province, ZIP/PIN code, Country | address split + Country new | |
-| Company / Employer, Job title | Job title new | |
-| Date of birth | new | Dates are formatted in the form's locale |
+| Group | Detail | New? | Notes |
+|---|---|---|---|
+| Name | First name | split from fullName | |
+| | Middle name | new | "Middle initial" fields get the first letter |
+| | Last name | split from fullName | Existing fullName migrates: last word → last name, the rest → first name (user can correct) |
+| Contact | Email | existing | |
+| | Phone | existing | |
+| Address | Street address (line 1) | existing `address` | |
+| | Apt / suite / unit (line 2) | new | |
+| | City | existing | |
+| | State / Province | existing `state` | Label follows region ("State" in India) |
+| | ZIP / PIN / Postal code | existing `zip` | Label follows region |
+| | Country | new | |
+| Work | Company / Employer | existing | |
+| | Job title | new | |
+| Personal | Date of birth | new | Written in each form's date style; "Age" fields computed from it |
 
-Not stored, on purpose: SSN, Aadhaar, PAN, passport, driving licence and
-bank numbers. The "Social security number" field on a W-4 stays for the
+Full name isn't stored. It's built from first + middle + last for "Full
+name", "Name" and "Signature name" fields. One-box fields ("Address", "City
+or town, state, and ZIP code") get the parts combined.
+
+Not stored, on purpose: SSN, Aadhaar, PAN, passport, driving licence, tax
+IDs and bank details; also marital status, gender, nationality (they
+change or depend on the form) and other people's data (emergency contact).
+Later, if asked for: preferred name, a second (work/mailing) address. The "Social security number" field on a W-4 stays for the
 user to type. These are the details people most fear losing. Holding them
 raises the cost of a lost or shared phone, and it invites review scrutiny.
 
@@ -207,7 +222,7 @@ C1–C5 is about 3–4 days, released as **1.2.0**.
 1. **1.1.0 contents.** Ship A + B as 1.1.0 (14) and PreFill as 1.2.0? Or
    ship 1.1.0 (13) now, with everything in 1.2.0?
 2. **Name.** "My Details" + "Fill from My Details" (renaming "My Profile").
-3. **Which details.** The table above, with **no ID numbers**.
+3. ~~Which details~~ **Decided 2026-10-10:** the 14 in §3C, no ID numbers.
 4. **Fill on open.** Offer, then fill on tap (recommended). Or fill
    automatically on open.
 5. **Store creative.** Add a PreFill screenshot and a header/search line
