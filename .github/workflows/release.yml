@@ -4,6 +4,10 @@ name: Release
 # Builds signed artifacts and uploads them to TestFlight (iOS) and the Google
 # Play internal testing track (Android). Store submission for review remains a
 # manual click in App Store Connect / Play Console.
+#
+# Releases are normally built on the Mac with scripts/release.sh, and the
+# repo then has no signing/store secrets. In that case both jobs are skipped
+# (not failed); add every secret in .github/DEPLOYMENT.md to turn them on.
 on:
   push:
     tags:
@@ -14,9 +18,60 @@ env:
   FLUTTER_VERSION: "3.41.9"
 
 jobs:
+  # ── Which platforms can release from here? ──────────────────────────────────
+  # No secrets for a platform → its job is skipped. Some but not all → fail:
+  # that's a half-finished setup, not a choice.
+  secrets:
+    name: Release secrets
+    runs-on: ubuntu-latest
+    outputs:
+      android: ${{ steps.check.outputs.android }}
+      ios: ${{ steps.check.outputs.ios }}
+    steps:
+      - id: check
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          IOS_DIST_CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          status=0
+          check() {  # check <platform> <secret names...>
+            local platform="$1"; shift
+            local set=() missing=()
+            for v in "$@"; do
+              if [ -n "${!v}" ]; then set+=("$v"); else missing+=("$v"); fi
+            done
+            if [ ${#missing[@]} -eq 0 ]; then
+              echo "$platform=true" >> "$GITHUB_OUTPUT"
+            elif [ ${#set[@]} -eq 0 ]; then
+              echo "$platform=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::$platform release skipped: no secrets set. Releases are built locally with scripts/release.sh."
+              echo "- **$platform**: skipped — built locally with \`scripts/release.sh\`" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "$platform=false" >> "$GITHUB_OUTPUT"
+              echo "::error::$platform secrets partly set. Missing: ${missing[*]} (see .github/DEPLOYMENT.md)"
+              status=1
+            fi
+          }
+          check android ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD \
+            ANDROID_KEY_PASSWORD ANDROID_KEY_ALIAS PLAY_SERVICE_ACCOUNT_JSON
+          check ios IOS_DIST_CERT_P12_BASE64 IOS_DIST_CERT_PASSWORD \
+            IOS_PROVISIONING_PROFILE_BASE64 ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8_BASE64
+          exit $status
+
   # ── Android → Google Play (internal track) ──────────────────────────────────
   android:
     name: Android → Play internal
+    needs: secrets
+    if: needs.secrets.outputs.android == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -108,6 +163,8 @@ jobs:
   # ── iOS → TestFlight ────────────────────────────────────────────────────────
   ios:
     name: iOS → TestFlight
+    needs: secrets
+    if: needs.secrets.outputs.ios == 'true'
     # macos-14's Xcode 15 lacks the StoreKit APIs in_app_purchase_storekit
     # uses (iOS 18 SDK), and App Store uploads need the iOS 26 SDK.
     runs-on: macos-15
