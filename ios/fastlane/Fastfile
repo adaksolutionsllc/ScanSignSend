@@ -101,6 +101,42 @@ platform :ios do
     )
   end
 
+  # The App Store preview video for the pubspec version, which deliver can't
+  # upload: build/store_capture/preview/en/preview_886x1920.mp4 (make_preview.py)
+  # into the en-US 6.9" iPhone preview set, replacing what's there. Other
+  # languages show the primary-language preview. Run `listing` first so the
+  # version exists. Never submits.
+  desc "Upload the English app preview video for the pubspec version"
+  lane :upload_preview do
+    version = File.read("../../pubspec.yaml")[/^version:\s*([\d.]+)/, 1]
+    path = File.expand_path("../../build/store_capture/preview/en/preview_886x1920.mp4")
+    UI.user_error!("No preview at #{path} — run make_preview.py") unless File.exist?(path)
+
+    app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: ENV.fetch("ASC_KEY_PATH"),
+    )
+    app = Spaceship::ConnectAPI::App.find("com.adakVentures.scanSignSend")
+    v = app.get_edit_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+    UI.user_error!("No editable version #{version} — run `listing` first") unless v&.version_string == version
+    loc = v.get_app_store_version_localizations.find { |l| l.locale == "en-US" }
+    UI.user_error!("No en-US localization on #{version}") unless loc
+
+    type = Spaceship::ConnectAPI::AppPreviewSet::PreviewType::IPHONE_67
+    set = loc.get_app_preview_sets.find { |s| s.preview_type == type } ||
+          loc.create_app_preview_set(attributes: { previewType: type })
+    (set.app_previews || []).each do |old|
+      UI.message("Removing the existing preview #{old.id}")
+      old.delete!
+    end
+    UI.message("Uploading #{File.basename(path)} (#{(File.size(path) / 1e6).round(1)} MB) to #{version} en-US #{type}")
+    preview = Spaceship::ConnectAPI::AppPreview.create(
+      app_preview_set_id: set.id, path: path, wait_for_processing: true,
+    )
+    UI.success("Preview #{preview.id}: #{preview.asset_delivery_state&.dig('state')}")
+  end
+
   # Submits the pubspec version + build for review, auto-releasing on approval.
   # Metadata and screenshots must already be uploaded (`listing`).
   desc "Submit the pubspec version/build for App Store review (auto-release)"
