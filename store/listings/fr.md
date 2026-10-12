@@ -28,7 +28,8 @@ REMPLIR ET SIGNER
 • Trouve les blancs pour vous — lignes, espaces, emplacements de signature et de date — et apprend de vos corrections
 • Texte, dates, cases à cocher, boutons radio, initiales et signatures
 • Glissez pour déplacer, pincez pour redimensionner — les champs s'ajustent à votre formulaire
-• Dessinez votre signature une fois et réutilisez-la ; remplissage auto de votre nom, e-mail et adresse
+• Dessinez votre signature une fois et réutilisez-la
+• PreFill : enregistrez vos informations une fois dans Mes informations, puis remplissez les champs correspondants d’un geste
 • En signant, la date du jour s'ajoute là où le formulaire la demande
 
 ENVOYER
@@ -51,11 +52,11 @@ Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. Illimité est un ac
 Conçu par ADAK Ventures.
 
 ## whats_new
-Nouveau : ouvrez des PDF depuis Fichiers, vos e-mails ou d’autres apps directement dans Scan Sign Send.
-Les formulaires PDF à remplir, comme les formulaires fiscaux, affichent désormais le nom imprimé de chaque champ, et non un code.
-« Vérifier et terminer » demande désormais au moins un champ avant de terminer un document.
-Les boutons des panneaux restent au-dessus de la barre de navigation.
-Nouveau dans les Réglages : notez Scan Sign Send.
+Nouveau : PreFill. Enregistrez vos informations une fois dans Mes informations, puis remplissez d’un geste les champs correspondants. Enregistrées uniquement sur cet appareil.
+Enregistrez un scan en PDF simple juste après la numérisation, sans champs.
+Touchez un champ dans « Vérifier et terminer » pour revenir le remplir.
+Les champs restent en place pendant le remplissage ; déplacez-les dans « Modifier les champs ».
+Les interrupteurs des Réglages se mettent à jour immédiatement.
 
 ## iap_display_name
 Illimité

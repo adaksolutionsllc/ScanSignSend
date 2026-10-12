@@ -11,7 +11,8 @@ RELLENAR Y FIRMAR
 • Encuentra los espacios en blanco por ti —líneas, huecos, lugares de firma y fecha— y aprende de tus correcciones
 • Texto, fechas, casillas, botones de opción, iniciales y firmas
 • Arrastra para mover y pellizca para cambiar el tamaño: los campos se ajustan a tu formulario
-• Dibuja tu firma una vez y reutilízala; autocompleta tu nombre, correo y dirección
+• Dibuja tu firma una vez y reutilízala
+• PreFill: guarda tus datos una vez en Mis datos y rellena con un toque los campos que coinciden
 • Al firmar, se añade la fecha de hoy donde el formulario la pide
 
 ENVIAR

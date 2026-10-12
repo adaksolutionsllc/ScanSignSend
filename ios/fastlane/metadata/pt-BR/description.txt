@@ -11,7 +11,8 @@ PREENCHER E ASSINAR
 • Encontra os espaços em branco para você — linhas, lacunas, locais de assinatura e data — e aprende com suas correções
 • Texto, datas, caixas de seleção, botões de opção, rubricas e assinaturas
 • Arraste para mover, faça pinça para redimensionar — os campos se ajustam ao formulário
-• Desenhe sua assinatura uma vez e reutilize; preenchimento automático de nome, e-mail e endereço
+• Desenhe sua assinatura uma vez e reutilize
+• PreFill: salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes
 • Ao assinar, a data de hoje é preenchida onde o formulário pede
 
 ENVIAR

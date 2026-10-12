@@ -28,7 +28,8 @@ FILL & SIGN
 • Finds the blanks for you — lines, gaps, signature and date spots — and learns from your corrections
 • Text, dates, checkboxes, radio buttons, initials and signatures
 • Drag to move, pinch to resize — fields fit your form exactly
-• Draw your signature once and reuse it; autofill your name, email and address
+• Draw your signature once and reuse it
+• PreFill: save your details once in My Details, then fill matching fields in one tap
 • Signing fills in today's date where the form asks for it
 
 SEND
@@ -51,11 +52,11 @@ Finish 2 documents (up to 2 pages each) free. Unlimited is a one-time purchase f
 Built by ADAK Ventures.
 
 ## whats_new
-New: open PDFs from Files, email or other apps straight in Scan Sign Send.
-Fillable PDF forms, like tax forms, now show each field’s name as printed on the form, not a code.
-“Review & Finish” now asks for at least one field before you finish a document.
-Buttons in pop-up panels stay clear of the navigation bar.
-New in Settings: rate Scan Sign Send.
+New: PreFill. Save your details once in My Details, then fill the matching fields on a form with one tap. Saved only on this device.
+Save a scan as a plain PDF straight after scanning — no fields needed.
+Tap a field in “Review & Finish” to go back and fill it.
+Fields stay in place while you fill; move or resize them in “Edit Fields”.
+Settings switches now update straight away.
 
 ## iap_display_name
 Unlimited

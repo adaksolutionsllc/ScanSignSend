@@ -28,7 +28,8 @@ PREENCHER E ASSINAR
 • Encontra os espaços em branco para você — linhas, lacunas, locais de assinatura e data — e aprende com suas correções
 • Texto, datas, caixas de seleção, botões de opção, rubricas e assinaturas
 • Arraste para mover, faça pinça para redimensionar — os campos se ajustam ao formulário
-• Desenhe sua assinatura uma vez e reutilize; preenchimento automático de nome, e-mail e endereço
+• Desenhe sua assinatura uma vez e reutilize
+• PreFill: salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes
 • Ao assinar, a data de hoje é preenchida onde o formulário pede
 
 ENVIAR
@@ -51,11 +52,11 @@ Conclua 2 documentos (de até 2 páginas cada) de graça. O Ilimitado é uma com
 Feito pela ADAK Ventures.
 
 ## whats_new
-Novidade: abra PDFs do app Arquivos, do e-mail ou de outros apps direto no Scan Sign Send.
-Formulários PDF preenchíveis, como os de impostos, agora mostram o nome impresso de cada campo, e não um código.
-“Rever e concluir” agora pede pelo menos um campo antes de concluir um documento.
-Os botões dos painéis não ficam mais sob a barra de navegação.
-Novidade nas Definições: avalie o Scan Sign Send.
+Novidade: PreFill. Salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes de um formulário. Ficam salvos só neste aparelho.
+Salve uma digitalização como PDF simples logo após digitalizar, sem campos.
+Toque em um campo em “Rever e concluir” para voltar e preenchê-lo.
+Os campos não se movem enquanto você preenche; mova ou redimensione em “Editar campos”.
+As chaves das Definições agora se atualizam na hora.
 
 ## iap_display_name
 Ilimitado

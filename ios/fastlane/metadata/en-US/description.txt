@@ -11,7 +11,8 @@ FILL & SIGN
 • Finds the blanks for you — lines, gaps, signature and date spots — and learns from your corrections
 • Text, dates, checkboxes, radio buttons, initials and signatures
 • Drag to move, pinch to resize — fields fit your form exactly
-• Draw your signature once and reuse it; autofill your name, email and address
+• Draw your signature once and reuse it
+• PreFill: save your details once in My Details, then fill matching fields in one tap
 • Signing fills in today's date where the form asks for it
 
 SEND

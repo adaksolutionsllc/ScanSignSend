@@ -11,7 +11,8 @@ REMPLIR ET SIGNER
 • Trouve les blancs pour vous — lignes, espaces, emplacements de signature et de date — et apprend de vos corrections
 • Texte, dates, cases à cocher, boutons radio, initiales et signatures
 • Glissez pour déplacer, pincez pour redimensionner — les champs s'ajustent à votre formulaire
-• Dessinez votre signature une fois et réutilisez-la ; remplissage auto de votre nom, e-mail et adresse
+• Dessinez votre signature une fois et réutilisez-la
+• PreFill : enregistrez vos informations une fois dans Mes informations, puis remplissez les champs correspondants d’un geste
 • En signant, la date du jour s'ajoute là où le formulaire la demande
 
 ENVOYER

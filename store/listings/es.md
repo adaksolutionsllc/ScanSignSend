@@ -28,7 +28,8 @@ RELLENAR Y FIRMAR
 • Encuentra los espacios en blanco por ti —líneas, huecos, lugares de firma y fecha— y aprende de tus correcciones
 • Texto, fechas, casillas, botones de opción, iniciales y firmas
 • Arrastra para mover y pellizca para cambiar el tamaño: los campos se ajustan a tu formulario
-• Dibuja tu firma una vez y reutilízala; autocompleta tu nombre, correo y dirección
+• Dibuja tu firma una vez y reutilízala
+• PreFill: guarda tus datos una vez en Mis datos y rellena con un toque los campos que coinciden
 • Al firmar, se añade la fecha de hoy donde el formulario la pide
 
 ENVIAR
@@ -51,11 +52,11 @@ Completa 2 documentos (de hasta 2 páginas cada uno) gratis. Ilimitado es una co
 Creado por ADAK Ventures.
 
 ## whats_new
-Novedad: abre PDF desde Archivos, el correo u otras apps directamente en Scan Sign Send.
-Los formularios PDF rellenables, como los fiscales, ahora muestran el nombre impreso de cada campo, no un código.
-«Revisar y finalizar» ahora pide al menos un campo antes de finalizar un documento.
-Los botones de los paneles ya no quedan bajo la barra de navegación.
-Novedad en Ajustes: valora Scan Sign Send.
+Novedad: PreFill. Guarda tus datos una vez en Mis datos y rellena con un toque los campos que coinciden en un formulario. Se guardan solo en este dispositivo.
+Guarda un escaneo como PDF simple justo después de escanear, sin campos.
+Toca un campo en «Revisar y finalizar» para volver y rellenarlo.
+Los campos no se mueven mientras rellenas; muévelos o cambia su tamaño en «Editar campos».
+Los interruptores de Ajustes ahora se actualizan al momento.
 
 ## iap_display_name
 Ilimitado
