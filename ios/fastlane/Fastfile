@@ -133,6 +133,8 @@ platform :ios do
     UI.message("Uploading #{File.basename(path)} (#{(File.size(path) / 1e6).round(1)} MB) to #{version} en-US #{type}")
     preview = Spaceship::ConnectAPI::AppPreview.create(
       app_preview_set_id: set.id, path: path, wait_for_processing: true,
+      # Poster frame (HH:MM:SS:FF): just after PreFill has filled the form.
+      frame_time_code: "00:00:12:00",
     )
     UI.success("Preview #{preview.id}: #{preview.asset_delivery_state&.dig('state')}")
   end
