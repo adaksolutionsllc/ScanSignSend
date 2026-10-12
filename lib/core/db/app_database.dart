@@ -111,6 +111,19 @@ class UserProfile extends Table {
   // that documents stay on the device unless the user opts in.
   BoolColumn get includeInDeviceBackup =>
       boolean().withDefault(const Constant(false))();
+
+  // ── My Details (schema v8), used by PreFill ────────────────────────────────
+  // All optional, on this device only. The name is stored in parts; v7's
+  // `fullName` is split into them on upgrade and no longer written. No ID
+  // numbers (SSN, Aadhaar, passport ...) are ever stored — see
+  // docs/labels-and-prefill.md.
+  TextColumn get firstName => text().withDefault(const Constant(''))();
+  TextColumn get middleName => text().withDefault(const Constant(''))();
+  TextColumn get lastName => text().withDefault(const Constant(''))();
+  TextColumn get address2 => text().withDefault(const Constant(''))();
+  TextColumn get country => text().withDefault(const Constant(''))();
+  TextColumn get jobTitle => text().withDefault(const Constant(''))();
+  DateTimeColumn get dateOfBirth => dateTime().nullable()();
 }
 
 /// Schema v6. What the user's own edits have taught field detection, per
@@ -147,7 +160,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -187,8 +200,37 @@ class AppDatabase extends _$AppDatabase {
       if (from < 7) {
         await m.addColumn(documents, documents.countedFree);
       }
+      // v7 → v8: My Details for PreFill. The saved full name is split: the
+      // last word becomes the last name, the rest the first name (the user
+      // can correct it in My Details).
+      if (from < 8) {
+        await m.addColumn(userProfile, userProfile.firstName);
+        await m.addColumn(userProfile, userProfile.middleName);
+        await m.addColumn(userProfile, userProfile.lastName);
+        await m.addColumn(userProfile, userProfile.address2);
+        await m.addColumn(userProfile, userProfile.country);
+        await m.addColumn(userProfile, userProfile.jobTitle);
+        await m.addColumn(userProfile, userProfile.dateOfBirth);
+        for (final row in await select(userProfile).get()) {
+          final (first, last) = splitFullName(row.fullName);
+          await (update(userProfile)..where((t) => t.id.equals(row.id))).write(
+            UserProfileCompanion(
+              firstName: Value(first),
+              lastName: Value(last),
+            ),
+          );
+        }
+      }
     },
   );
+
+  /// "Priya K Raman" → ("Priya K", "Raman"); one word is a first name.
+  static (String, String) splitFullName(String fullName) {
+    final words = fullName.trim().split(RegExp(r'\s+'))
+      ..removeWhere((w) => w.isEmpty);
+    if (words.length < 2) return (words.join(), '');
+    return (words.sublist(0, words.length - 1).join(' '), words.last);
+  }
 
   static QueryExecutor _openConnection() {
     return LazyDatabase(() async {

@@ -378,24 +378,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fillEnterValueHint => 'Enter value…';
 
   @override
-  String get fillChipName => 'Name';
-
-  @override
-  String get fillChipEmail => 'Email';
-
-  @override
-  String get fillChipPhone => 'Phone';
-
-  @override
-  String get fillChipAddress => 'Address';
-
-  @override
-  String get fillChipCompany => 'Company';
-
-  @override
-  String get fillChipToday => 'Today';
-
-  @override
   String get fillTapToFill => 'Tap to fill…';
 
   @override
@@ -613,7 +595,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get settingsSectionProfile => 'My Profile';
+  String get settingsSectionProfile => 'My Details';
 
   @override
   String get settingsSectionSignatures => 'Signatures';
@@ -1009,4 +991,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String onboardFreeBody(int count, int pages) {
     return 'Finish $count documents free, up to $pages pages each. Then unlock Unlimited with one purchase — no subscription.';
   }
+
+  @override
+  String get settingsMyDetailsSubtitle =>
+      'Saved once, used by PreFill to fill forms';
+
+  @override
+  String get myDetailsNote =>
+      'Saved only on this device. Included in your device backup only if you turn it on. PreFill uses them to fill matching fields on your forms; nothing is filled until you tap Fill.';
+
+  @override
+  String get prefillFill => 'Fill';
+
+  @override
+  String get myDetailsGroupName => 'Name';
+
+  @override
+  String get myDetailsGroupContact => 'Contact';
+
+  @override
+  String get myDetailsGroupAddress => 'Address';
+
+  @override
+  String get myDetailsGroupWork => 'Work';
+
+  @override
+  String get myDetailsGroupPersonal => 'Personal';
+
+  @override
+  String get detailFirstName => 'First name';
+
+  @override
+  String get detailMiddleName => 'Middle name';
+
+  @override
+  String get detailLastName => 'Last name';
+
+  @override
+  String get detailAddress1 => 'Street address';
+
+  @override
+  String get detailAddress2 => 'Apt / suite / unit';
+
+  @override
+  String get detailState => 'State / Province';
+
+  @override
+  String get detailZip => 'ZIP / PIN / Postal code';
+
+  @override
+  String get detailCountry => 'Country';
+
+  @override
+  String get detailJobTitle => 'Job title';
+
+  @override
+  String get detailDateOfBirth => 'Date of birth';
+
+  @override
+  String get myDetailsDelete => 'Delete my details';
+
+  @override
+  String get myDetailsDeleteBody =>
+      'This clears every detail on this page. Documents you\'ve already filled don\'t change.';
+
+  @override
+  String prefillOffer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fill $count fields from My Details',
+      one: 'Fill 1 field from My Details',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prefillFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Filled $count fields',
+      one: 'Filled 1 field',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prefillSetup => 'Save your details once to fill forms faster';
+
+  @override
+  String get prefillSetupAction => 'Add details';
+
+  @override
+  String get prefillSuggestions => 'From My Details';
+
+  @override
+  String get onboardPrefillTitle => 'Fill forms in one tap';
+
+  @override
+  String get onboardPrefillBody =>
+      'Fields are found and labelled for you. Save your details once in My Details, and PreFill fills the matching fields. Saved only on this device.';
 }

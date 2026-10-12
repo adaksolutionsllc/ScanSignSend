@@ -786,42 +786,6 @@ abstract class AppLocalizations {
   /// **'Enter value…'**
   String get fillEnterValueHint;
 
-  /// No description provided for @fillChipName.
-  ///
-  /// In en, this message translates to:
-  /// **'Name'**
-  String get fillChipName;
-
-  /// No description provided for @fillChipEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Email'**
-  String get fillChipEmail;
-
-  /// No description provided for @fillChipPhone.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone'**
-  String get fillChipPhone;
-
-  /// No description provided for @fillChipAddress.
-  ///
-  /// In en, this message translates to:
-  /// **'Address'**
-  String get fillChipAddress;
-
-  /// No description provided for @fillChipCompany.
-  ///
-  /// In en, this message translates to:
-  /// **'Company'**
-  String get fillChipCompany;
-
-  /// No description provided for @fillChipToday.
-  ///
-  /// In en, this message translates to:
-  /// **'Today'**
-  String get fillChipToday;
-
   /// No description provided for @fillTapToFill.
   ///
   /// In en, this message translates to:
@@ -1227,7 +1191,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSectionProfile.
   ///
   /// In en, this message translates to:
-  /// **'My Profile'**
+  /// **'My Details'**
   String get settingsSectionProfile;
 
   /// No description provided for @settingsSectionSignatures.
@@ -1847,6 +1811,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finish {count} documents free, up to {pages} pages each. Then unlock Unlimited with one purchase — no subscription.'**
   String onboardFreeBody(int count, int pages);
+
+  /// No description provided for @settingsMyDetailsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved once, used by PreFill to fill forms'**
+  String get settingsMyDetailsSubtitle;
+
+  /// No description provided for @myDetailsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved only on this device. Included in your device backup only if you turn it on. PreFill uses them to fill matching fields on your forms; nothing is filled until you tap Fill.'**
+  String get myDetailsNote;
+
+  /// No description provided for @prefillFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill'**
+  String get prefillFill;
+
+  /// No description provided for @myDetailsGroupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get myDetailsGroupName;
+
+  /// No description provided for @myDetailsGroupContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get myDetailsGroupContact;
+
+  /// No description provided for @myDetailsGroupAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get myDetailsGroupAddress;
+
+  /// No description provided for @myDetailsGroupWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get myDetailsGroupWork;
+
+  /// No description provided for @myDetailsGroupPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get myDetailsGroupPersonal;
+
+  /// No description provided for @detailFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get detailFirstName;
+
+  /// No description provided for @detailMiddleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Middle name'**
+  String get detailMiddleName;
+
+  /// No description provided for @detailLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get detailLastName;
+
+  /// No description provided for @detailAddress1.
+  ///
+  /// In en, this message translates to:
+  /// **'Street address'**
+  String get detailAddress1;
+
+  /// No description provided for @detailAddress2.
+  ///
+  /// In en, this message translates to:
+  /// **'Apt / suite / unit'**
+  String get detailAddress2;
+
+  /// No description provided for @detailState.
+  ///
+  /// In en, this message translates to:
+  /// **'State / Province'**
+  String get detailState;
+
+  /// No description provided for @detailZip.
+  ///
+  /// In en, this message translates to:
+  /// **'ZIP / PIN / Postal code'**
+  String get detailZip;
+
+  /// No description provided for @detailCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get detailCountry;
+
+  /// No description provided for @detailJobTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job title'**
+  String get detailJobTitle;
+
+  /// No description provided for @detailDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get detailDateOfBirth;
+
+  /// No description provided for @myDetailsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my details'**
+  String get myDetailsDelete;
+
+  /// No description provided for @myDetailsDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This clears every detail on this page. Documents you\'ve already filled don\'t change.'**
+  String get myDetailsDeleteBody;
+
+  /// No description provided for @prefillOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Fill 1 field from My Details} other{Fill {count} fields from My Details}}'**
+  String prefillOffer(int count);
+
+  /// No description provided for @prefillFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Filled 1 field} other{Filled {count} fields}}'**
+  String prefillFilled(int count);
+
+  /// No description provided for @prefillSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your details once to fill forms faster'**
+  String get prefillSetup;
+
+  /// No description provided for @prefillSetupAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details'**
+  String get prefillSetupAction;
+
+  /// No description provided for @prefillSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'From My Details'**
+  String get prefillSuggestions;
+
+  /// No description provided for @onboardPrefillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill forms in one tap'**
+  String get onboardPrefillTitle;
+
+  /// No description provided for @onboardPrefillBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Fields are found and labelled for you. Save your details once in My Details, and PreFill fills the matching fields. Saved only on this device.'**
+  String get onboardPrefillBody;
 }
 
 class _AppLocalizationsDelegate

@@ -59,11 +59,36 @@ void main() {
     await _waitGone(tester, find.byType(CircularProgressIndicator));
     await _capture(tester, 'library');
 
+    // My Details, as a user would save them (a made-up person).
+    await container
+        .read(profileRepositoryProvider)
+        .update(
+          UserProfileCompanion(
+            firstName: const Value('Priya'),
+            middleName: const Value('Kumari'),
+            lastName: const Value('Raman'),
+            email: const Value('priya@example.com'),
+            phone: const Value('+1 512 555 0100'),
+            address: const Value('12 Elm Street'),
+            address2: const Value('Apt 4'),
+            city: const Value('Austin'),
+            state: const Value('TX'),
+            zip: const Value('78701'),
+            country: const Value('USA'),
+            dateOfBirth: Value(DateTime(1990, 6, 15)),
+          ),
+        );
+
     // Settings, down to Support → Rate.
     router.push(AppRoutes.settings);
     // The list loads the profile first; wait for it, not just the app bar.
-    await _waitFor(tester, find.text(l10n.settingsSectionProfile));
+    await _waitFor(tester, find.text('Priya Raman'));
     await _capture(tester, 'settings');
+    await tester.tap(find.text('Priya Raman'));
+    await _waitFor(tester, find.text(l10n.myDetailsNote));
+    await _capture(tester, 'my_details');
+    router.pop();
+    await _waitFor(tester, find.text('Priya Raman').hitTestable());
     await tester.scrollUntilVisible(
       find.text(l10n.settingsRateApp),
       300,
@@ -147,8 +172,52 @@ void main() {
     await _pause(tester, 500);
     await tester.tap(find.byType(FieldBox).first);
     await _waitFor(tester, find.text('First name and middle initial'));
+    // My Details suggestions, the matching one first.
+    expect(find.text(l10n.prefillSuggestions), findsOneWidget);
+    expect(find.widgetWithText(ActionChip, 'Priya K'), findsOneWidget);
     await _capture(tester, 'w4_field_label');
     await tester.tap(find.text(l10n.actionCancel));
+    await _pause(tester, 600);
+
+    // PreFill: the bar offers the matching empty fields; Fill fills exactly
+    // those, Undo empties them again.
+    Future<Map<String, String>> w4Values() async => {
+      for (final f
+          in await container
+              .read(fieldRepositoryProvider)
+              .watchFields(w4Doc.id)
+              .first)
+        if (f.isFilled) f.label: f.value,
+    };
+    await _waitFor(tester, find.text(l10n.prefillFill));
+    await _capture(tester, 'w4_prefill_offer');
+    await tester.tap(find.text(l10n.prefillFill));
+    await _pause(tester, 1500);
+    final filled = await w4Values();
+    expect(filled['First name and middle initial'], 'Priya K');
+    expect(filled['Last name'], 'Raman');
+    expect(filled['Address'], '12 Elm Street, Apt 4');
+    expect(filled['City or town, state, and ZIP code'], 'Austin, TX 78701');
+    for (final label in filled.keys) {
+      expect(
+        label.toLowerCase(),
+        isNot(anyOf(contains('social security'), contains('employer'))),
+        reason: 'PreFill filled "$label"',
+      );
+    }
+    _mark('INFO:prefill filled ${filled.length}: ${filled.keys.join(' | ')}');
+    await _capture(tester, 'w4_prefilled');
+    await tester.tap(find.text(l10n.actionUndo));
+    await _pause(tester, 1500);
+    expect(await w4Values(), isEmpty, reason: 'Undo left values behind');
+    _mark('INFO:prefill undo ok');
+    await _waitFor(tester, find.text(l10n.prefillFill));
+    await tester.tap(find.text(l10n.prefillFill));
+    await _pause(tester, 1500);
+    // Let the snackbar go before the next taps.
+    ScaffoldMessenger.of(
+      tester.element(find.byType(FillModeScreen)),
+    ).hideCurrentSnackBar();
     await _pause(tester, 600);
     // Review & Finish from fill mode; tapping a field there comes back to
     // fill mode with that field's input open.
@@ -158,7 +227,7 @@ void main() {
     _mark('INFO:w4 labels ok');
     await tester.tap(find.text('Last name'));
     await _waitFor(tester, find.byType(TextField));
-    await _waitFor(tester, find.text(l10n.fillEnterValueHint));
+    await _waitFor(tester, find.widgetWithText(TextField, 'Raman'));
     await _capture(tester, 'w4_review_tap_opens_field');
     await tester.tap(find.text(l10n.actionCancel));
     await _pause(tester, 600);
@@ -226,6 +295,9 @@ void main() {
     // script takes this shot a few seconds after the tap and then brings the
     // app back. (The iOS simulator has no App Store app; Safari shows an error
     // there. A device opens the listing.)
+    // Wait for the route transition: tapping mid-slide misses the row.
+    await _waitFor(tester, find.text(l10n.settingsRateApp).hitTestable());
+    await _pause(tester, 400);
     _mark('LEAVE:rate_store');
     await tester.tap(find.text(l10n.settingsRateApp));
     final back = DateTime.now().add(const Duration(seconds: 60));

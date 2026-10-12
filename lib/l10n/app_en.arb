@@ -215,12 +215,6 @@
   "fillNoPages": "This document has no pages.",
   "fillTextFieldFallback": "Text Field",
   "fillEnterValueHint": "Enter value…",
-  "fillChipName": "Name",
-  "fillChipEmail": "Email",
-  "fillChipPhone": "Phone",
-  "fillChipAddress": "Address",
-  "fillChipCompany": "Company",
-  "fillChipToday": "Today",
   "fillTapToFill": "Tap to fill…",
   "fillTapForDate": "Tap for date…",
   "fillTapToCheck": "Tap to check",
@@ -326,7 +320,7 @@
   "viewerNoExportedPdf": "No exported PDF to view yet",
   "viewerNoExportedPdfBody": "Fill and export this document (draft or flattened) to view it here.",
   "settingsTitle": "Settings",
-  "settingsSectionProfile": "My Profile",
+  "settingsSectionProfile": "My Details",
   "settingsSectionSignatures": "Signatures",
   "settingsSectionSecurity": "Security",
   "settingsSectionDetection": "Field detection",
@@ -555,6 +549,47 @@
         "type": "int"
       },
       "pages": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsMyDetailsSubtitle": "Saved once, used by PreFill to fill forms",
+  "myDetailsNote": "Saved only on this device. Included in your device backup only if you turn it on. PreFill uses them to fill matching fields on your forms; nothing is filled until you tap Fill.",
+  "prefillFill": "Fill",
+  "myDetailsGroupName": "Name",
+  "myDetailsGroupContact": "Contact",
+  "myDetailsGroupAddress": "Address",
+  "myDetailsGroupWork": "Work",
+  "myDetailsGroupPersonal": "Personal",
+  "detailFirstName": "First name",
+  "detailMiddleName": "Middle name",
+  "detailLastName": "Last name",
+  "detailAddress1": "Street address",
+  "detailAddress2": "Apt / suite / unit",
+  "detailState": "State / Province",
+  "detailZip": "ZIP / PIN / Postal code",
+  "detailCountry": "Country",
+  "detailJobTitle": "Job title",
+  "detailDateOfBirth": "Date of birth",
+  "myDetailsDelete": "Delete my details",
+  "myDetailsDeleteBody": "This clears every detail on this page. Documents you've already filled don't change.",
+  "prefillOffer": "{count, plural, =1{Fill 1 field from My Details} other{Fill {count} fields from My Details}}",
+  "prefillFilled": "{count, plural, =1{Filled 1 field} other{Filled {count} fields}}",
+  "prefillSetup": "Save your details once to fill forms faster",
+  "prefillSetupAction": "Add details",
+  "prefillSuggestions": "From My Details",
+  "onboardPrefillTitle": "Fill forms in one tap",
+  "onboardPrefillBody": "Fields are found and labelled for you. Save your details once in My Details, and PreFill fills the matching fields. Saved only on this device.",
+  "@prefillOffer": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@prefillFilled": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

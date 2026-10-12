@@ -47,4 +47,26 @@ class ProfileRepository {
         .write(companion);
   }
 
+  /// Settings → My Details → Delete my details: clears every detail PreFill
+  /// uses (and the pre-v8 full name), leaving settings and purchase alone.
+  Future<void> clearDetails() => update(
+        const UserProfileCompanion(
+          fullName: Value(''),
+          firstName: Value(''),
+          middleName: Value(''),
+          lastName: Value(''),
+          email: Value(''),
+          phone: Value(''),
+          address: Value(''),
+          address2: Value(''),
+          city: Value(''),
+          state: Value(''),
+          zip: Value(''),
+          country: Value(''),
+          company: Value(''),
+          jobTitle: Value(''),
+          dateOfBirth: Value(null),
+        ),
+      );
+
 }

@@ -380,24 +380,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get fillEnterValueHint => 'மதிப்பை உள்ளிடவும்…';
 
   @override
-  String get fillChipName => 'பெயர்';
-
-  @override
-  String get fillChipEmail => 'மின்னஞ்சல்';
-
-  @override
-  String get fillChipPhone => 'தொலைபேசி';
-
-  @override
-  String get fillChipAddress => 'முகவரி';
-
-  @override
-  String get fillChipCompany => 'நிறுவனம்';
-
-  @override
-  String get fillChipToday => 'இன்று';
-
-  @override
   String get fillTapToFill => 'நிரப்பத் தட்டவும்…';
 
   @override
@@ -618,7 +600,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsTitle => 'அமைப்புகள்';
 
   @override
-  String get settingsSectionProfile => 'என் சுயவிவரம்';
+  String get settingsSectionProfile => 'என் விவரங்கள்';
 
   @override
   String get settingsSectionSignatures => 'கையொப்பங்கள்';
@@ -1017,4 +999,106 @@ class AppLocalizationsTa extends AppLocalizations {
   String onboardFreeBody(int count, int pages) {
     return '$count ஆவணங்களை இலவசமாக முடியுங்கள், ஒவ்வொன்றும் அதிகபட்சம் $pages பக்கங்கள். பிறகு ஒருமுறை வாங்கி அன்லிமிடெட்டைத் திறக்கவும் — சந்தா இல்லை.';
   }
+
+  @override
+  String get settingsMyDetailsSubtitle =>
+      'ஒருமுறை சேமியுங்கள்; PreFill இவற்றைக் கொண்டு படிவங்களை நிரப்பும்';
+
+  @override
+  String get myDetailsNote =>
+      'இந்தச் சாதனத்தில் மட்டுமே சேமிக்கப்படும். நீங்கள் இயக்கினால் மட்டுமே சாதன காப்புப்பிரதியில் சேர்க்கப்படும். PreFill இவற்றைக் கொண்டு உங்கள் படிவங்களில் பொருந்தும் புலங்களை நிரப்பும்; நிரப்பு என்பதைத் தட்டும் வரை எதுவும் நிரப்பப்படாது.';
+
+  @override
+  String get prefillFill => 'நிரப்பு';
+
+  @override
+  String get myDetailsGroupName => 'பெயர்';
+
+  @override
+  String get myDetailsGroupContact => 'தொடர்பு';
+
+  @override
+  String get myDetailsGroupAddress => 'முகவரி';
+
+  @override
+  String get myDetailsGroupWork => 'பணி';
+
+  @override
+  String get myDetailsGroupPersonal => 'தனிப்பட்டவை';
+
+  @override
+  String get detailFirstName => 'முதல் பெயர்';
+
+  @override
+  String get detailMiddleName => 'நடுப் பெயர்';
+
+  @override
+  String get detailLastName => 'குடும்பப் பெயர்';
+
+  @override
+  String get detailAddress1 => 'தெரு முகவரி';
+
+  @override
+  String get detailAddress2 => 'வீடு / பிரிவு எண்';
+
+  @override
+  String get detailState => 'மாநிலம்';
+
+  @override
+  String get detailZip => 'அஞ்சல் குறியீடு';
+
+  @override
+  String get detailCountry => 'நாடு';
+
+  @override
+  String get detailJobTitle => 'பதவி';
+
+  @override
+  String get detailDateOfBirth => 'பிறந்த தேதி';
+
+  @override
+  String get myDetailsDelete => 'என் விவரங்களை நீக்கு';
+
+  @override
+  String get myDetailsDeleteBody =>
+      'இந்தப் பக்கத்தில் உள்ள எல்லா விவரங்களும் அழிக்கப்படும். ஏற்கெனவே நிரப்பிய ஆவணங்கள் மாறாது.';
+
+  @override
+  String prefillOffer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'என் விவரங்களிலிருந்து $count புலங்களை நிரப்பு',
+      one: 'என் விவரங்களிலிருந்து 1 புலத்தை நிரப்பு',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prefillFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count புலங்கள் நிரப்பப்பட்டன',
+      one: '1 புலம் நிரப்பப்பட்டது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prefillSetup =>
+      'படிவங்களை வேகமாக நிரப்ப உங்கள் விவரங்களை ஒருமுறை சேமியுங்கள்';
+
+  @override
+  String get prefillSetupAction => 'சேர்';
+
+  @override
+  String get prefillSuggestions => 'என் விவரங்களிலிருந்து';
+
+  @override
+  String get onboardPrefillTitle => 'ஒரே தட்டில் படிவங்களை நிரப்புங்கள்';
+
+  @override
+  String get onboardPrefillBody =>
+      'புலங்கள் தானாகக் கண்டறியப்பட்டுப் பெயரிடப்படும். என் விவரங்களில் உங்கள் விவரங்களை ஒருமுறை சேமித்தால், PreFill பொருந்தும் புலங்களை நிரப்பும். இந்தச் சாதனத்தில் மட்டுமே சேமிக்கப்படும்.';
 }

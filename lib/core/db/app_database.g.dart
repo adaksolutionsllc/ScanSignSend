@@ -2551,6 +2551,89 @@ class $UserProfileTable extends UserProfile
         ),
         defaultValue: const Constant(false),
       );
+  static const VerificationMeta _firstNameMeta = const VerificationMeta(
+    'firstName',
+  );
+  @override
+  late final GeneratedColumn<String> firstName = GeneratedColumn<String>(
+    'first_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _middleNameMeta = const VerificationMeta(
+    'middleName',
+  );
+  @override
+  late final GeneratedColumn<String> middleName = GeneratedColumn<String>(
+    'middle_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _lastNameMeta = const VerificationMeta(
+    'lastName',
+  );
+  @override
+  late final GeneratedColumn<String> lastName = GeneratedColumn<String>(
+    'last_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _address2Meta = const VerificationMeta(
+    'address2',
+  );
+  @override
+  late final GeneratedColumn<String> address2 = GeneratedColumn<String>(
+    'address2',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _countryMeta = const VerificationMeta(
+    'country',
+  );
+  @override
+  late final GeneratedColumn<String> country = GeneratedColumn<String>(
+    'country',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _jobTitleMeta = const VerificationMeta(
+    'jobTitle',
+  );
+  @override
+  late final GeneratedColumn<String> jobTitle = GeneratedColumn<String>(
+    'job_title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _dateOfBirthMeta = const VerificationMeta(
+    'dateOfBirth',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dateOfBirth = GeneratedColumn<DateTime>(
+    'date_of_birth',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2567,6 +2650,13 @@ class $UserProfileTable extends UserProfile
     scanCount,
     isPurchased,
     includeInDeviceBackup,
+    firstName,
+    middleName,
+    lastName,
+    address2,
+    country,
+    jobTitle,
+    dateOfBirth,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2673,6 +2763,51 @@ class $UserProfileTable extends UserProfile
         ),
       );
     }
+    if (data.containsKey('first_name')) {
+      context.handle(
+        _firstNameMeta,
+        firstName.isAcceptableOrUnknown(data['first_name']!, _firstNameMeta),
+      );
+    }
+    if (data.containsKey('middle_name')) {
+      context.handle(
+        _middleNameMeta,
+        middleName.isAcceptableOrUnknown(data['middle_name']!, _middleNameMeta),
+      );
+    }
+    if (data.containsKey('last_name')) {
+      context.handle(
+        _lastNameMeta,
+        lastName.isAcceptableOrUnknown(data['last_name']!, _lastNameMeta),
+      );
+    }
+    if (data.containsKey('address2')) {
+      context.handle(
+        _address2Meta,
+        address2.isAcceptableOrUnknown(data['address2']!, _address2Meta),
+      );
+    }
+    if (data.containsKey('country')) {
+      context.handle(
+        _countryMeta,
+        country.isAcceptableOrUnknown(data['country']!, _countryMeta),
+      );
+    }
+    if (data.containsKey('job_title')) {
+      context.handle(
+        _jobTitleMeta,
+        jobTitle.isAcceptableOrUnknown(data['job_title']!, _jobTitleMeta),
+      );
+    }
+    if (data.containsKey('date_of_birth')) {
+      context.handle(
+        _dateOfBirthMeta,
+        dateOfBirth.isAcceptableOrUnknown(
+          data['date_of_birth']!,
+          _dateOfBirthMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2738,6 +2873,34 @@ class $UserProfileTable extends UserProfile
         DriftSqlType.bool,
         data['${effectivePrefix}include_in_device_backup'],
       )!,
+      firstName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}first_name'],
+      )!,
+      middleName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}middle_name'],
+      )!,
+      lastName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_name'],
+      )!,
+      address2: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}address2'],
+      )!,
+      country: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}country'],
+      )!,
+      jobTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}job_title'],
+      )!,
+      dateOfBirth: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_of_birth'],
+      ),
     );
   }
 
@@ -2762,6 +2925,13 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   final int scanCount;
   final bool isPurchased;
   final bool includeInDeviceBackup;
+  final String firstName;
+  final String middleName;
+  final String lastName;
+  final String address2;
+  final String country;
+  final String jobTitle;
+  final DateTime? dateOfBirth;
   const UserProfileData({
     required this.id,
     required this.fullName,
@@ -2777,6 +2947,13 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     required this.scanCount,
     required this.isPurchased,
     required this.includeInDeviceBackup,
+    required this.firstName,
+    required this.middleName,
+    required this.lastName,
+    required this.address2,
+    required this.country,
+    required this.jobTitle,
+    this.dateOfBirth,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2795,6 +2972,15 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     map['scan_count'] = Variable<int>(scanCount);
     map['is_purchased'] = Variable<bool>(isPurchased);
     map['include_in_device_backup'] = Variable<bool>(includeInDeviceBackup);
+    map['first_name'] = Variable<String>(firstName);
+    map['middle_name'] = Variable<String>(middleName);
+    map['last_name'] = Variable<String>(lastName);
+    map['address2'] = Variable<String>(address2);
+    map['country'] = Variable<String>(country);
+    map['job_title'] = Variable<String>(jobTitle);
+    if (!nullToAbsent || dateOfBirth != null) {
+      map['date_of_birth'] = Variable<DateTime>(dateOfBirth);
+    }
     return map;
   }
 
@@ -2814,6 +3000,15 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       scanCount: Value(scanCount),
       isPurchased: Value(isPurchased),
       includeInDeviceBackup: Value(includeInDeviceBackup),
+      firstName: Value(firstName),
+      middleName: Value(middleName),
+      lastName: Value(lastName),
+      address2: Value(address2),
+      country: Value(country),
+      jobTitle: Value(jobTitle),
+      dateOfBirth: dateOfBirth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dateOfBirth),
     );
   }
 
@@ -2843,6 +3038,13 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       includeInDeviceBackup: serializer.fromJson<bool>(
         json['includeInDeviceBackup'],
       ),
+      firstName: serializer.fromJson<String>(json['firstName']),
+      middleName: serializer.fromJson<String>(json['middleName']),
+      lastName: serializer.fromJson<String>(json['lastName']),
+      address2: serializer.fromJson<String>(json['address2']),
+      country: serializer.fromJson<String>(json['country']),
+      jobTitle: serializer.fromJson<String>(json['jobTitle']),
+      dateOfBirth: serializer.fromJson<DateTime?>(json['dateOfBirth']),
     );
   }
   @override
@@ -2863,6 +3065,13 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       'scanCount': serializer.toJson<int>(scanCount),
       'isPurchased': serializer.toJson<bool>(isPurchased),
       'includeInDeviceBackup': serializer.toJson<bool>(includeInDeviceBackup),
+      'firstName': serializer.toJson<String>(firstName),
+      'middleName': serializer.toJson<String>(middleName),
+      'lastName': serializer.toJson<String>(lastName),
+      'address2': serializer.toJson<String>(address2),
+      'country': serializer.toJson<String>(country),
+      'jobTitle': serializer.toJson<String>(jobTitle),
+      'dateOfBirth': serializer.toJson<DateTime?>(dateOfBirth),
     };
   }
 
@@ -2881,6 +3090,13 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     int? scanCount,
     bool? isPurchased,
     bool? includeInDeviceBackup,
+    String? firstName,
+    String? middleName,
+    String? lastName,
+    String? address2,
+    String? country,
+    String? jobTitle,
+    Value<DateTime?> dateOfBirth = const Value.absent(),
   }) => UserProfileData(
     id: id ?? this.id,
     fullName: fullName ?? this.fullName,
@@ -2896,6 +3112,13 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     scanCount: scanCount ?? this.scanCount,
     isPurchased: isPurchased ?? this.isPurchased,
     includeInDeviceBackup: includeInDeviceBackup ?? this.includeInDeviceBackup,
+    firstName: firstName ?? this.firstName,
+    middleName: middleName ?? this.middleName,
+    lastName: lastName ?? this.lastName,
+    address2: address2 ?? this.address2,
+    country: country ?? this.country,
+    jobTitle: jobTitle ?? this.jobTitle,
+    dateOfBirth: dateOfBirth.present ? dateOfBirth.value : this.dateOfBirth,
   );
   UserProfileData copyWithCompanion(UserProfileCompanion data) {
     return UserProfileData(
@@ -2921,6 +3144,17 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       includeInDeviceBackup: data.includeInDeviceBackup.present
           ? data.includeInDeviceBackup.value
           : this.includeInDeviceBackup,
+      firstName: data.firstName.present ? data.firstName.value : this.firstName,
+      middleName: data.middleName.present
+          ? data.middleName.value
+          : this.middleName,
+      lastName: data.lastName.present ? data.lastName.value : this.lastName,
+      address2: data.address2.present ? data.address2.value : this.address2,
+      country: data.country.present ? data.country.value : this.country,
+      jobTitle: data.jobTitle.present ? data.jobTitle.value : this.jobTitle,
+      dateOfBirth: data.dateOfBirth.present
+          ? data.dateOfBirth.value
+          : this.dateOfBirth,
     );
   }
 
@@ -2940,13 +3174,20 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           ..write('aiEnhancedDetection: $aiEnhancedDetection, ')
           ..write('scanCount: $scanCount, ')
           ..write('isPurchased: $isPurchased, ')
-          ..write('includeInDeviceBackup: $includeInDeviceBackup')
+          ..write('includeInDeviceBackup: $includeInDeviceBackup, ')
+          ..write('firstName: $firstName, ')
+          ..write('middleName: $middleName, ')
+          ..write('lastName: $lastName, ')
+          ..write('address2: $address2, ')
+          ..write('country: $country, ')
+          ..write('jobTitle: $jobTitle, ')
+          ..write('dateOfBirth: $dateOfBirth')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     fullName,
     email,
@@ -2961,7 +3202,14 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     scanCount,
     isPurchased,
     includeInDeviceBackup,
-  );
+    firstName,
+    middleName,
+    lastName,
+    address2,
+    country,
+    jobTitle,
+    dateOfBirth,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2979,7 +3227,14 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           other.aiEnhancedDetection == this.aiEnhancedDetection &&
           other.scanCount == this.scanCount &&
           other.isPurchased == this.isPurchased &&
-          other.includeInDeviceBackup == this.includeInDeviceBackup);
+          other.includeInDeviceBackup == this.includeInDeviceBackup &&
+          other.firstName == this.firstName &&
+          other.middleName == this.middleName &&
+          other.lastName == this.lastName &&
+          other.address2 == this.address2 &&
+          other.country == this.country &&
+          other.jobTitle == this.jobTitle &&
+          other.dateOfBirth == this.dateOfBirth);
 }
 
 class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
@@ -2997,6 +3252,13 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
   final Value<int> scanCount;
   final Value<bool> isPurchased;
   final Value<bool> includeInDeviceBackup;
+  final Value<String> firstName;
+  final Value<String> middleName;
+  final Value<String> lastName;
+  final Value<String> address2;
+  final Value<String> country;
+  final Value<String> jobTitle;
+  final Value<DateTime?> dateOfBirth;
   const UserProfileCompanion({
     this.id = const Value.absent(),
     this.fullName = const Value.absent(),
@@ -3012,6 +3274,13 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     this.scanCount = const Value.absent(),
     this.isPurchased = const Value.absent(),
     this.includeInDeviceBackup = const Value.absent(),
+    this.firstName = const Value.absent(),
+    this.middleName = const Value.absent(),
+    this.lastName = const Value.absent(),
+    this.address2 = const Value.absent(),
+    this.country = const Value.absent(),
+    this.jobTitle = const Value.absent(),
+    this.dateOfBirth = const Value.absent(),
   });
   UserProfileCompanion.insert({
     this.id = const Value.absent(),
@@ -3028,6 +3297,13 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     this.scanCount = const Value.absent(),
     this.isPurchased = const Value.absent(),
     this.includeInDeviceBackup = const Value.absent(),
+    this.firstName = const Value.absent(),
+    this.middleName = const Value.absent(),
+    this.lastName = const Value.absent(),
+    this.address2 = const Value.absent(),
+    this.country = const Value.absent(),
+    this.jobTitle = const Value.absent(),
+    this.dateOfBirth = const Value.absent(),
   });
   static Insertable<UserProfileData> custom({
     Expression<int>? id,
@@ -3044,6 +3320,13 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Expression<int>? scanCount,
     Expression<bool>? isPurchased,
     Expression<bool>? includeInDeviceBackup,
+    Expression<String>? firstName,
+    Expression<String>? middleName,
+    Expression<String>? lastName,
+    Expression<String>? address2,
+    Expression<String>? country,
+    Expression<String>? jobTitle,
+    Expression<DateTime>? dateOfBirth,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3063,6 +3346,13 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       if (isPurchased != null) 'is_purchased': isPurchased,
       if (includeInDeviceBackup != null)
         'include_in_device_backup': includeInDeviceBackup,
+      if (firstName != null) 'first_name': firstName,
+      if (middleName != null) 'middle_name': middleName,
+      if (lastName != null) 'last_name': lastName,
+      if (address2 != null) 'address2': address2,
+      if (country != null) 'country': country,
+      if (jobTitle != null) 'job_title': jobTitle,
+      if (dateOfBirth != null) 'date_of_birth': dateOfBirth,
     });
   }
 
@@ -3081,6 +3371,13 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Value<int>? scanCount,
     Value<bool>? isPurchased,
     Value<bool>? includeInDeviceBackup,
+    Value<String>? firstName,
+    Value<String>? middleName,
+    Value<String>? lastName,
+    Value<String>? address2,
+    Value<String>? country,
+    Value<String>? jobTitle,
+    Value<DateTime?>? dateOfBirth,
   }) {
     return UserProfileCompanion(
       id: id ?? this.id,
@@ -3098,6 +3395,13 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       isPurchased: isPurchased ?? this.isPurchased,
       includeInDeviceBackup:
           includeInDeviceBackup ?? this.includeInDeviceBackup,
+      firstName: firstName ?? this.firstName,
+      middleName: middleName ?? this.middleName,
+      lastName: lastName ?? this.lastName,
+      address2: address2 ?? this.address2,
+      country: country ?? this.country,
+      jobTitle: jobTitle ?? this.jobTitle,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
     );
   }
 
@@ -3150,6 +3454,27 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
         includeInDeviceBackup.value,
       );
     }
+    if (firstName.present) {
+      map['first_name'] = Variable<String>(firstName.value);
+    }
+    if (middleName.present) {
+      map['middle_name'] = Variable<String>(middleName.value);
+    }
+    if (lastName.present) {
+      map['last_name'] = Variable<String>(lastName.value);
+    }
+    if (address2.present) {
+      map['address2'] = Variable<String>(address2.value);
+    }
+    if (country.present) {
+      map['country'] = Variable<String>(country.value);
+    }
+    if (jobTitle.present) {
+      map['job_title'] = Variable<String>(jobTitle.value);
+    }
+    if (dateOfBirth.present) {
+      map['date_of_birth'] = Variable<DateTime>(dateOfBirth.value);
+    }
     return map;
   }
 
@@ -3169,7 +3494,14 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
           ..write('aiEnhancedDetection: $aiEnhancedDetection, ')
           ..write('scanCount: $scanCount, ')
           ..write('isPurchased: $isPurchased, ')
-          ..write('includeInDeviceBackup: $includeInDeviceBackup')
+          ..write('includeInDeviceBackup: $includeInDeviceBackup, ')
+          ..write('firstName: $firstName, ')
+          ..write('middleName: $middleName, ')
+          ..write('lastName: $lastName, ')
+          ..write('address2: $address2, ')
+          ..write('country: $country, ')
+          ..write('jobTitle: $jobTitle, ')
+          ..write('dateOfBirth: $dateOfBirth')
           ..write(')'))
         .toString();
   }
@@ -5174,6 +5506,13 @@ typedef $$UserProfileTableCreateCompanionBuilder =
       Value<int> scanCount,
       Value<bool> isPurchased,
       Value<bool> includeInDeviceBackup,
+      Value<String> firstName,
+      Value<String> middleName,
+      Value<String> lastName,
+      Value<String> address2,
+      Value<String> country,
+      Value<String> jobTitle,
+      Value<DateTime?> dateOfBirth,
     });
 typedef $$UserProfileTableUpdateCompanionBuilder =
     UserProfileCompanion Function({
@@ -5191,6 +5530,13 @@ typedef $$UserProfileTableUpdateCompanionBuilder =
       Value<int> scanCount,
       Value<bool> isPurchased,
       Value<bool> includeInDeviceBackup,
+      Value<String> firstName,
+      Value<String> middleName,
+      Value<String> lastName,
+      Value<String> address2,
+      Value<String> country,
+      Value<String> jobTitle,
+      Value<DateTime?> dateOfBirth,
     });
 
 class $$UserProfileTableFilterComposer
@@ -5269,6 +5615,41 @@ class $$UserProfileTableFilterComposer
 
   ColumnFilters<bool> get includeInDeviceBackup => $composableBuilder(
     column: $table.includeInDeviceBackup,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get firstName => $composableBuilder(
+    column: $table.firstName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get middleName => $composableBuilder(
+    column: $table.middleName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastName => $composableBuilder(
+    column: $table.lastName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get address2 => $composableBuilder(
+    column: $table.address2,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get jobTitle => $composableBuilder(
+    column: $table.jobTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dateOfBirth => $composableBuilder(
+    column: $table.dateOfBirth,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5351,6 +5732,41 @@ class $$UserProfileTableOrderingComposer
     column: $table.includeInDeviceBackup,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get firstName => $composableBuilder(
+    column: $table.firstName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get middleName => $composableBuilder(
+    column: $table.middleName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastName => $composableBuilder(
+    column: $table.lastName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get address2 => $composableBuilder(
+    column: $table.address2,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get jobTitle => $composableBuilder(
+    column: $table.jobTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dateOfBirth => $composableBuilder(
+    column: $table.dateOfBirth,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserProfileTableAnnotationComposer
@@ -5411,6 +5827,31 @@ class $$UserProfileTableAnnotationComposer
     column: $table.includeInDeviceBackup,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get firstName =>
+      $composableBuilder(column: $table.firstName, builder: (column) => column);
+
+  GeneratedColumn<String> get middleName => $composableBuilder(
+    column: $table.middleName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastName =>
+      $composableBuilder(column: $table.lastName, builder: (column) => column);
+
+  GeneratedColumn<String> get address2 =>
+      $composableBuilder(column: $table.address2, builder: (column) => column);
+
+  GeneratedColumn<String> get country =>
+      $composableBuilder(column: $table.country, builder: (column) => column);
+
+  GeneratedColumn<String> get jobTitle =>
+      $composableBuilder(column: $table.jobTitle, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dateOfBirth => $composableBuilder(
+    column: $table.dateOfBirth,
+    builder: (column) => column,
+  );
 }
 
 class $$UserProfileTableTableManager
@@ -5458,6 +5899,13 @@ class $$UserProfileTableTableManager
                 Value<int> scanCount = const Value.absent(),
                 Value<bool> isPurchased = const Value.absent(),
                 Value<bool> includeInDeviceBackup = const Value.absent(),
+                Value<String> firstName = const Value.absent(),
+                Value<String> middleName = const Value.absent(),
+                Value<String> lastName = const Value.absent(),
+                Value<String> address2 = const Value.absent(),
+                Value<String> country = const Value.absent(),
+                Value<String> jobTitle = const Value.absent(),
+                Value<DateTime?> dateOfBirth = const Value.absent(),
               }) => UserProfileCompanion(
                 id: id,
                 fullName: fullName,
@@ -5473,6 +5921,13 @@ class $$UserProfileTableTableManager
                 scanCount: scanCount,
                 isPurchased: isPurchased,
                 includeInDeviceBackup: includeInDeviceBackup,
+                firstName: firstName,
+                middleName: middleName,
+                lastName: lastName,
+                address2: address2,
+                country: country,
+                jobTitle: jobTitle,
+                dateOfBirth: dateOfBirth,
               ),
           createCompanionCallback:
               ({
@@ -5490,6 +5945,13 @@ class $$UserProfileTableTableManager
                 Value<int> scanCount = const Value.absent(),
                 Value<bool> isPurchased = const Value.absent(),
                 Value<bool> includeInDeviceBackup = const Value.absent(),
+                Value<String> firstName = const Value.absent(),
+                Value<String> middleName = const Value.absent(),
+                Value<String> lastName = const Value.absent(),
+                Value<String> address2 = const Value.absent(),
+                Value<String> country = const Value.absent(),
+                Value<String> jobTitle = const Value.absent(),
+                Value<DateTime?> dateOfBirth = const Value.absent(),
               }) => UserProfileCompanion.insert(
                 id: id,
                 fullName: fullName,
@@ -5505,6 +5967,13 @@ class $$UserProfileTableTableManager
                 scanCount: scanCount,
                 isPurchased: isPurchased,
                 includeInDeviceBackup: includeInDeviceBackup,
+                firstName: firstName,
+                middleName: middleName,
+                lastName: lastName,
+                address2: address2,
+                country: country,
+                jobTitle: jobTitle,
+                dateOfBirth: dateOfBirth,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

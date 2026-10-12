@@ -379,24 +379,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get fillEnterValueHint => 'मान दर्ज करें…';
 
   @override
-  String get fillChipName => 'नाम';
-
-  @override
-  String get fillChipEmail => 'ई-मेल';
-
-  @override
-  String get fillChipPhone => 'फ़ोन';
-
-  @override
-  String get fillChipAddress => 'पता';
-
-  @override
-  String get fillChipCompany => 'कंपनी';
-
-  @override
-  String get fillChipToday => 'आज';
-
-  @override
   String get fillTapToFill => 'भरने के लिए टैप करें…';
 
   @override
@@ -617,7 +599,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsTitle => 'सेटिंग्स';
 
   @override
-  String get settingsSectionProfile => 'मेरी प्रोफ़ाइल';
+  String get settingsSectionProfile => 'मेरा विवरण';
 
   @override
   String get settingsSectionSignatures => 'हस्ताक्षर';
@@ -1014,4 +996,106 @@ class AppLocalizationsHi extends AppLocalizations {
   String onboardFreeBody(int count, int pages) {
     return '$count दस्तावेज़ मुफ़्त में पूरे करें, हर एक में अधिकतम $pages पेज। फिर एक बार की ख़रीद से अनलिमिटेड अनलॉक करें — कोई सब्सक्रिप्शन नहीं।';
   }
+
+  @override
+  String get settingsMyDetailsSubtitle =>
+      'एक बार सहेजें, PreFill इनसे फ़ॉर्म भरता है';
+
+  @override
+  String get myDetailsNote =>
+      'सिर्फ़ इसी डिवाइस पर सहेजे जाते हैं। डिवाइस बैकअप में तभी शामिल होते हैं जब आप उसे चालू करें। PreFill इनसे आपके फ़ॉर्म के मिलते-जुलते फ़ील्ड भरता है; जब तक आप भरें पर टैप न करें, कुछ नहीं भरा जाता।';
+
+  @override
+  String get prefillFill => 'भरें';
+
+  @override
+  String get myDetailsGroupName => 'नाम';
+
+  @override
+  String get myDetailsGroupContact => 'संपर्क';
+
+  @override
+  String get myDetailsGroupAddress => 'पता';
+
+  @override
+  String get myDetailsGroupWork => 'काम';
+
+  @override
+  String get myDetailsGroupPersonal => 'व्यक्तिगत';
+
+  @override
+  String get detailFirstName => 'पहला नाम';
+
+  @override
+  String get detailMiddleName => 'मध्य नाम';
+
+  @override
+  String get detailLastName => 'उपनाम';
+
+  @override
+  String get detailAddress1 => 'पता (मकान, गली)';
+
+  @override
+  String get detailAddress2 => 'फ़्लैट / यूनिट';
+
+  @override
+  String get detailState => 'राज्य';
+
+  @override
+  String get detailZip => 'पिन कोड';
+
+  @override
+  String get detailCountry => 'देश';
+
+  @override
+  String get detailJobTitle => 'पद';
+
+  @override
+  String get detailDateOfBirth => 'जन्म तिथि';
+
+  @override
+  String get myDetailsDelete => 'मेरा विवरण हटाएँ';
+
+  @override
+  String get myDetailsDeleteBody =>
+      'इस पेज का हर विवरण मिट जाएगा। जो दस्तावेज़ आप भर चुके हैं, वे नहीं बदलेंगे।';
+
+  @override
+  String prefillOffer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'मेरा विवरण से $count फ़ील्ड भरें',
+      one: 'मेरा विवरण से 1 फ़ील्ड भरें',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prefillFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count फ़ील्ड भरे गए',
+      one: '1 फ़ील्ड भरा गया',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prefillSetup =>
+      'फ़ॉर्म जल्दी भरने के लिए अपना विवरण एक बार सहेजें';
+
+  @override
+  String get prefillSetupAction => 'जोड़ें';
+
+  @override
+  String get prefillSuggestions => 'मेरा विवरण से';
+
+  @override
+  String get onboardPrefillTitle => 'एक टैप में फ़ॉर्म भरें';
+
+  @override
+  String get onboardPrefillBody =>
+      'फ़ील्ड अपने-आप पहचाने और नामित किए जाते हैं। मेरा विवरण में अपना विवरण एक बार सहेजें, और PreFill मिलते-जुलते फ़ील्ड भर देगा। सिर्फ़ इसी डिवाइस पर सहेजा जाता है।';
 }

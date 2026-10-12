@@ -381,24 +381,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get fillEnterValueHint => 'Saisissez une valeur…';
 
   @override
-  String get fillChipName => 'Nom';
-
-  @override
-  String get fillChipEmail => 'E-mail';
-
-  @override
-  String get fillChipPhone => 'Téléphone';
-
-  @override
-  String get fillChipAddress => 'Adresse';
-
-  @override
-  String get fillChipCompany => 'Entreprise';
-
-  @override
-  String get fillChipToday => 'Aujourd\'hui';
-
-  @override
   String get fillTapToFill => 'Touchez pour remplir…';
 
   @override
@@ -618,7 +600,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsTitle => 'Réglages';
 
   @override
-  String get settingsSectionProfile => 'Mon profil';
+  String get settingsSectionProfile => 'Mes informations';
 
   @override
   String get settingsSectionSignatures => 'Signatures';
@@ -1014,4 +996,106 @@ class AppLocalizationsFr extends AppLocalizations {
   String onboardFreeBody(int count, int pages) {
     return 'Terminez $count documents gratuitement, jusqu’à $pages pages chacun. Ensuite, débloquez Illimité en un seul achat — sans abonnement.';
   }
+
+  @override
+  String get settingsMyDetailsSubtitle =>
+      'Enregistrées une fois, utilisées par PreFill pour remplir les formulaires';
+
+  @override
+  String get myDetailsNote =>
+      'Enregistrées uniquement sur cet appareil. Incluses dans la sauvegarde de l’appareil seulement si vous l’activez. PreFill s’en sert pour remplir les champs correspondants de vos formulaires ; rien n’est rempli tant que vous n’appuyez pas sur Remplir.';
+
+  @override
+  String get prefillFill => 'Remplir';
+
+  @override
+  String get myDetailsGroupName => 'Nom';
+
+  @override
+  String get myDetailsGroupContact => 'Coordonnées';
+
+  @override
+  String get myDetailsGroupAddress => 'Adresse';
+
+  @override
+  String get myDetailsGroupWork => 'Travail';
+
+  @override
+  String get myDetailsGroupPersonal => 'Personnel';
+
+  @override
+  String get detailFirstName => 'Prénom';
+
+  @override
+  String get detailMiddleName => 'Deuxième prénom';
+
+  @override
+  String get detailLastName => 'Nom de famille';
+
+  @override
+  String get detailAddress1 => 'Adresse';
+
+  @override
+  String get detailAddress2 => 'Appartement / bâtiment';
+
+  @override
+  String get detailState => 'État / province';
+
+  @override
+  String get detailZip => 'Code postal';
+
+  @override
+  String get detailCountry => 'Pays';
+
+  @override
+  String get detailJobTitle => 'Poste';
+
+  @override
+  String get detailDateOfBirth => 'Date de naissance';
+
+  @override
+  String get myDetailsDelete => 'Supprimer mes informations';
+
+  @override
+  String get myDetailsDeleteBody =>
+      'Toutes les informations de cette page seront effacées. Les documents déjà remplis ne changent pas.';
+
+  @override
+  String prefillOffer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remplir $count champs avec Mes informations',
+      one: 'Remplir 1 champ avec Mes informations',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prefillFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count champs remplis',
+      one: '1 champ rempli',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prefillSetup =>
+      'Enregistrez vos informations une fois pour remplir les formulaires plus vite';
+
+  @override
+  String get prefillSetupAction => 'Ajouter';
+
+  @override
+  String get prefillSuggestions => 'Depuis Mes informations';
+
+  @override
+  String get onboardPrefillTitle => 'Remplissez vos formulaires d’un geste';
+
+  @override
+  String get onboardPrefillBody =>
+      'Les champs sont repérés et nommés pour vous. Enregistrez vos informations une fois dans Mes informations, et PreFill remplit les champs correspondants. Enregistrées uniquement sur cet appareil.';
 }

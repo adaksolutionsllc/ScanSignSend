@@ -14,6 +14,7 @@ import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/viewer/presentation/document_viewer_screen.dart';
 import '../services/opened_file_service.dart';
 import '../../features/settings/presentation/signatures_manager_screen.dart';
+import '../../features/settings/presentation/my_details_screen.dart';
 
 // Route path constants
 class AppRoutes {
@@ -28,6 +29,7 @@ class AppRoutes {
   static const settings = '/settings';
   static const search = '/search';
   static const signaturesManager = '/settings/signatures';
+  static const myDetails = '/settings/my-details';
   static const viewer = '/viewer/:docId';
 }
 
@@ -95,6 +97,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.signaturesManager,
         builder: (context, state) => const SignaturesManagerScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.myDetails,
+        builder: (context, state) => const MyDetailsScreen(),
       ),
       GoRoute(
         path: AppRoutes.viewer,

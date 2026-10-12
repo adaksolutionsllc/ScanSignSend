@@ -23,6 +23,9 @@ The free version includes 2 finished documents. To keep that allowance from rese
 ## Data storage & deletion
 Your documents, signatures, and profile details are stored in a private database on your device. Deleting a document inside the app removes its stored pages and exported PDFs from your device's storage, not just its entry in the list. Deleting the app removes everything. We cannot access or recover any of it because we never receive it.
 
+### My Details (for PreFill)
+If you choose to, you can save your own details in Settings → My Details: name, email, phone, address, country, company, job title and date of birth. All of them are optional, and the app works fully without them. They are saved only in the app's database on this device, and are used only to fill matching fields on forms you open — nothing is filled until you tap **Fill**. They go into a PDF only when you fill a field with them. The app never asks for or stores ID numbers (such as a social security, Aadhaar, PAN or passport number) or bank details. To remove them, use **Delete my details** in Settings → My Details, or delete the app.
+
 ### Device backup (off unless you turn it on)
 By default, the app keeps your documents out of your phone's backup:
 - **iPhone:** excluded from iCloud Backup.

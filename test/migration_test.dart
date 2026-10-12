@@ -12,6 +12,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 
 void main() {
+  test('splitting a saved full name', () {
+    expect(AppDatabase.splitFullName('Priya K Raman'), ('Priya K', 'Raman'));
+    expect(AppDatabase.splitFullName('  Priya   Raman '), ('Priya', 'Raman'));
+    expect(AppDatabase.splitFullName('Priya'), ('Priya', ''));
+    expect(AppDatabase.splitFullName(''), ('', ''));
+  });
+
   test(
     'v2 → v4 migration preserves data, adds fillablePdfPath and the backup opt-in',
     () async {
@@ -67,7 +74,7 @@ void main() {
     ''');
       await v2.customStatement(
         "INSERT INTO user_profile (id, full_name, scan_count, is_purchased) "
-        "VALUES (1, 'Pat', 2, 1)",
+        "VALUES (1, 'Pat Q Morgan', 2, 1)",
       );
       // A pre-fix "fillable" export: status/pressedPdfPath set the old way.
       await v2.customStatement(
@@ -102,7 +109,7 @@ void main() {
       // v3 → v4: the backup opt-in is added switched off, and the existing
       // profile (including the purchase) is untouched.
       final profile = (await db.select(db.userProfile).get()).single;
-      expect(profile.fullName, 'Pat');
+      expect(profile.fullName, 'Pat Q Morgan');
       expect(profile.scanCount, 2);
       expect(profile.isPurchased, isTrue);
       expect(
@@ -117,6 +124,12 @@ void main() {
       expect(await db.select(db.fieldHints).get(), isEmpty);
       // v6 → v7: existing documents haven't used a free-allowance slot.
       expect(row.countedFree, isFalse);
+      // v7 → v8: the saved name is split for My Details; new details empty.
+      expect(profile.firstName, 'Pat Q');
+      expect(profile.lastName, 'Morgan');
+      expect(profile.middleName, '');
+      expect(profile.country, '');
+      expect(profile.dateOfBirth, isNull);
 
       await db.close();
       if (dbFile.existsSync()) dbFile.deleteSync();

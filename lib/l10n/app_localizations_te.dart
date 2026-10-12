@@ -382,24 +382,6 @@ class AppLocalizationsTe extends AppLocalizations {
   String get fillEnterValueHint => 'విలువను నమోదు చేయండి…';
 
   @override
-  String get fillChipName => 'పేరు';
-
-  @override
-  String get fillChipEmail => 'ఇ-మెయిల్';
-
-  @override
-  String get fillChipPhone => 'ఫోన్';
-
-  @override
-  String get fillChipAddress => 'చిరునామా';
-
-  @override
-  String get fillChipCompany => 'సంస్థ';
-
-  @override
-  String get fillChipToday => 'ఈ రోజు';
-
-  @override
   String get fillTapToFill => 'పూరించడానికి నొక్కండి…';
 
   @override
@@ -620,7 +602,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settingsTitle => 'సెట్టింగ్‌లు';
 
   @override
-  String get settingsSectionProfile => 'నా ప్రొఫైల్';
+  String get settingsSectionProfile => 'నా వివరాలు';
 
   @override
   String get settingsSectionSignatures => 'సంతకాలు';
@@ -1018,4 +1000,106 @@ class AppLocalizationsTe extends AppLocalizations {
   String onboardFreeBody(int count, int pages) {
     return '$count పత్రాలను ఉచితంగా పూర్తి చేయండి, ఒక్కొక్కటి గరిష్ఠంగా $pages పేజీలు. తర్వాత ఒకేసారి కొనుగోలుతో అన్‌లిమిటెడ్ అన్‌లాక్ చేయండి — సబ్‌స్క్రిప్షన్ లేదు.';
   }
+
+  @override
+  String get settingsMyDetailsSubtitle =>
+      'ఒకసారి సేవ్ చేయండి; PreFill వీటితో ఫారమ్‌లను నింపుతుంది';
+
+  @override
+  String get myDetailsNote =>
+      'ఈ పరికరంలో మాత్రమే సేవ్ అవుతాయి. మీరు ఆన్ చేస్తేనే పరికర బ్యాకప్‌లో చేరుతాయి. PreFill వీటితో మీ ఫారమ్‌లలో సరిపోలే ఫీల్డ్‌లను నింపుతుంది; మీరు నింపు నొక్కే వరకు ఏదీ నింపబడదు.';
+
+  @override
+  String get prefillFill => 'నింపు';
+
+  @override
+  String get myDetailsGroupName => 'పేరు';
+
+  @override
+  String get myDetailsGroupContact => 'సంప్రదింపు';
+
+  @override
+  String get myDetailsGroupAddress => 'చిరునామా';
+
+  @override
+  String get myDetailsGroupWork => 'ఉద్యోగం';
+
+  @override
+  String get myDetailsGroupPersonal => 'వ్యక్తిగతం';
+
+  @override
+  String get detailFirstName => 'మొదటి పేరు';
+
+  @override
+  String get detailMiddleName => 'మధ్య పేరు';
+
+  @override
+  String get detailLastName => 'ఇంటి పేరు';
+
+  @override
+  String get detailAddress1 => 'వీధి చిరునామా';
+
+  @override
+  String get detailAddress2 => 'ఫ్లాట్ / యూనిట్';
+
+  @override
+  String get detailState => 'రాష్ట్రం';
+
+  @override
+  String get detailZip => 'పిన్ కోడ్';
+
+  @override
+  String get detailCountry => 'దేశం';
+
+  @override
+  String get detailJobTitle => 'హోదా';
+
+  @override
+  String get detailDateOfBirth => 'పుట్టిన తేదీ';
+
+  @override
+  String get myDetailsDelete => 'నా వివరాలను తొలగించు';
+
+  @override
+  String get myDetailsDeleteBody =>
+      'ఈ పేజీలోని అన్ని వివరాలు తొలగిపోతాయి. మీరు ఇప్పటికే నింపిన పత్రాలు మారవు.';
+
+  @override
+  String prefillOffer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'నా వివరాల నుండి $count ఫీల్డ్‌లు నింపు',
+      one: 'నా వివరాల నుండి 1 ఫీల్డ్ నింపు',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prefillFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ఫీల్డ్‌లు నింపబడ్డాయి',
+      one: '1 ఫీల్డ్ నింపబడింది',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prefillSetup =>
+      'ఫారమ్‌లను త్వరగా నింపడానికి మీ వివరాలను ఒకసారి సేవ్ చేయండి';
+
+  @override
+  String get prefillSetupAction => 'జోడించు';
+
+  @override
+  String get prefillSuggestions => 'నా వివరాల నుండి';
+
+  @override
+  String get onboardPrefillTitle => 'ఒక్క ట్యాప్‌తో ఫారమ్‌లు నింపండి';
+
+  @override
+  String get onboardPrefillBody =>
+      'ఫీల్డ్‌లు ఆటోమేటిక్‌గా గుర్తించబడి, పేర్లు పెట్టబడతాయి. నా వివరాలలో మీ వివరాలను ఒకసారి సేవ్ చేస్తే, PreFill సరిపోలే ఫీల్డ్‌లను నింపుతుంది. ఈ పరికరంలో మాత్రమే సేవ్ అవుతాయి.';
 }

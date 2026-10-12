@@ -117,7 +117,7 @@ void main() {
         'fieldTypeRadioShort',
         'settingsSectionSignatures',
       },
-      'es': {'filterOriginal', 'statusEditable'},
+      'es': {'filterOriginal', 'statusEditable', 'myDetailsGroupPersonal'},
       'pt': {'filterOriginal'},
       'hi': {},
       'ta': {},

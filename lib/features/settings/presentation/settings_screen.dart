@@ -14,7 +14,6 @@ import '../../../core/services/profile_repository.dart';
 import '../../../core/services/review_prompt_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
-import '../../../shared/widgets/text_edit_dialog.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/l10n_ext.dart';
 
@@ -49,54 +48,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           return ListView(
             children: [
               _SectionHeader(context.l10n.settingsSectionProfile),
-              _ProfileField(
-                label: context.l10n.settingsFullName,
-                value: profile.fullName,
-                onSave: (v) => profileRepo.update(
-                  UserProfileCompanion(fullName: Value(v)),
+              // The details PreFill fills forms with, on their own screen.
+              ListTile(
+                leading: const Icon(Icons.badge_outlined),
+                title: Text(
+                  [
+                        profile.firstName,
+                        profile.lastName,
+                      ].where((s) => s.isNotEmpty).join(' ').isNotEmpty
+                      ? [
+                          profile.firstName,
+                          profile.lastName,
+                        ].where((s) => s.isNotEmpty).join(' ')
+                      : context.l10n.settingsSectionProfile,
                 ),
-              ),
-              _ProfileField(
-                label: context.l10n.settingsEmail,
-                value: profile.email,
-                onSave: (v) =>
-                    profileRepo.update(UserProfileCompanion(email: Value(v))),
-              ),
-              _ProfileField(
-                label: context.l10n.settingsPhone,
-                value: profile.phone,
-                onSave: (v) =>
-                    profileRepo.update(UserProfileCompanion(phone: Value(v))),
-              ),
-              _ProfileField(
-                label: context.l10n.settingsAddress,
-                value: profile.address,
-                onSave: (v) =>
-                    profileRepo.update(UserProfileCompanion(address: Value(v))),
-              ),
-              _ProfileField(
-                label: context.l10n.settingsCity,
-                value: profile.city,
-                onSave: (v) =>
-                    profileRepo.update(UserProfileCompanion(city: Value(v))),
-              ),
-              _ProfileField(
-                label: context.l10n.settingsState,
-                value: profile.state,
-                onSave: (v) =>
-                    profileRepo.update(UserProfileCompanion(state: Value(v))),
-              ),
-              _ProfileField(
-                label: context.l10n.settingsZip,
-                value: profile.zip,
-                onSave: (v) =>
-                    profileRepo.update(UserProfileCompanion(zip: Value(v))),
-              ),
-              _ProfileField(
-                label: context.l10n.settingsCompany,
-                value: profile.company,
-                onSave: (v) =>
-                    profileRepo.update(UserProfileCompanion(company: Value(v))),
+                subtitle: Text(context.l10n.settingsMyDetailsSubtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.myDetails),
               ),
               _SectionHeader(context.l10n.settingsSectionSignatures),
               ListTile(
@@ -269,37 +237,6 @@ class _SectionHeader extends StatelessWidget {
           color: Theme.of(context).colorScheme.primary,
         ),
       ),
-    );
-  }
-}
-
-class _ProfileField extends StatelessWidget {
-  const _ProfileField({
-    required this.label,
-    required this.value,
-    required this.onSave,
-  });
-  final String label;
-  final String value;
-  final Future<void> Function(String) onSave;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(label),
-      subtitle: Text(value.isEmpty ? context.l10n.settingsTapToSet : value),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () async {
-        final result = await showDialog<String>(
-          context: context,
-          builder: (ctx) => TextEditDialog(
-            title: context.l10n.settingsEditLabel(label),
-            initialValue: value,
-            hint: label,
-          ),
-        );
-        if (result != null) await onSave(result);
-      },
     );
   }
 }

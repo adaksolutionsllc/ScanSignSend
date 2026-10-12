@@ -381,24 +381,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fillEnterValueHint => 'Introduza um valor…';
 
   @override
-  String get fillChipName => 'Nome';
-
-  @override
-  String get fillChipEmail => 'E-mail';
-
-  @override
-  String get fillChipPhone => 'Telefone';
-
-  @override
-  String get fillChipAddress => 'Morada';
-
-  @override
-  String get fillChipCompany => 'Empresa';
-
-  @override
-  String get fillChipToday => 'Hoje';
-
-  @override
   String get fillTapToFill => 'Toque para preencher…';
 
   @override
@@ -617,7 +599,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsTitle => 'Definições';
 
   @override
-  String get settingsSectionProfile => 'O meu perfil';
+  String get settingsSectionProfile => 'Os meus dados';
 
   @override
   String get settingsSectionSignatures => 'Assinaturas';
@@ -1016,4 +998,106 @@ class AppLocalizationsPt extends AppLocalizations {
   String onboardFreeBody(int count, int pages) {
     return 'Conclua $count documentos grátis, de até $pages páginas cada. Depois, desbloqueie o Ilimitado com uma única compra — sem assinatura.';
   }
+
+  @override
+  String get settingsMyDetailsSubtitle =>
+      'Guardados uma vez e usados pelo PreFill para preencher formulários';
+
+  @override
+  String get myDetailsNote =>
+      'Guardados apenas neste dispositivo. Incluídos na cópia de segurança do dispositivo só se a ativar. O PreFill usa-os para preencher os campos correspondentes nos seus formulários; nada é preenchido até tocar em Preencher.';
+
+  @override
+  String get prefillFill => 'Preencher';
+
+  @override
+  String get myDetailsGroupName => 'Nome';
+
+  @override
+  String get myDetailsGroupContact => 'Contacto';
+
+  @override
+  String get myDetailsGroupAddress => 'Morada';
+
+  @override
+  String get myDetailsGroupWork => 'Trabalho';
+
+  @override
+  String get myDetailsGroupPersonal => 'Pessoal';
+
+  @override
+  String get detailFirstName => 'Nome próprio';
+
+  @override
+  String get detailMiddleName => 'Nome do meio';
+
+  @override
+  String get detailLastName => 'Apelido';
+
+  @override
+  String get detailAddress1 => 'Morada';
+
+  @override
+  String get detailAddress2 => 'Andar / porta';
+
+  @override
+  String get detailState => 'Estado / distrito';
+
+  @override
+  String get detailZip => 'Código postal';
+
+  @override
+  String get detailCountry => 'País';
+
+  @override
+  String get detailJobTitle => 'Cargo';
+
+  @override
+  String get detailDateOfBirth => 'Data de nascimento';
+
+  @override
+  String get myDetailsDelete => 'Apagar os meus dados';
+
+  @override
+  String get myDetailsDeleteBody =>
+      'Isto apaga todos os dados desta página. Os documentos que já preencheu não mudam.';
+
+  @override
+  String prefillOffer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Preencher $count campos com Os meus dados',
+      one: 'Preencher 1 campo com Os meus dados',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String prefillFilled(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count campos preenchidos',
+      one: '1 campo preenchido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get prefillSetup =>
+      'Guarde os seus dados uma vez para preencher formulários mais depressa';
+
+  @override
+  String get prefillSetupAction => 'Adicionar';
+
+  @override
+  String get prefillSuggestions => 'De Os meus dados';
+
+  @override
+  String get onboardPrefillTitle => 'Preencha formulários com um toque';
+
+  @override
+  String get onboardPrefillBody =>
+      'Os campos são detetados e identificados automaticamente. Guarde os seus dados uma vez em Os meus dados e o PreFill preenche os campos correspondentes. Guardados apenas neste dispositivo.';
 }

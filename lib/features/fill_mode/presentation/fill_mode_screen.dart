@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/models/my_details_ext.dart';
+import '../../../core/services/prefill_matcher.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
@@ -37,6 +40,37 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
   late final Stream<List<db.Field>> _fieldsStream = ref
       .read(fieldRepositoryProvider)
       .watchFields(widget.docId);
+  late final Stream<db.UserProfileData> _profileStream = ref
+      .read(profileRepositoryProvider)
+      .watch();
+
+  // PreFill, for this visit to the form: fields it filled (tinted until the
+  // user edits them), and whether its bars were closed.
+  final Set<int> _prefilled = {};
+  bool _offerClosed = false;
+  bool _setupClosed = false;
+
+  /// The latest PreFill state, for a field opened from Review & Finish.
+  _Prefill? _lastPrefill;
+
+  /// Documents that have already shown "Save your details once": the nudge
+  /// appears at most once per document.
+  static const _setupShownKey = 'prefill_setup_shown_docs';
+  bool _setupShownBefore = true; // until read; avoids a flash
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs) {
+      final shown = prefs.getStringList(_setupShownKey) ?? const [];
+      if (!mounted) return;
+      setState(() => _setupShownBefore = shown.contains('${widget.docId}'));
+      if (!shown.contains('${widget.docId}')) {
+        prefs.setStringList(_setupShownKey, [...shown, '${widget.docId}']);
+      }
+    });
+  }
+
   late final Stream<db.Document?> _docStream = ref
       .read(documentRepositoryProvider)
       .watchAll()
@@ -123,56 +157,190 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
               final safePage = _currentPage.clamp(0, pages.length - 1);
               final page = pages[safePage];
 
-              return StreamBuilder<List<db.Field>>(
-                stream: _fieldsStream,
-                builder: (context, fieldsSnap) {
-                  final allFields = fieldsSnap.data ?? [];
-                  final pageFields = allFields
-                      .where((f) => f.pageIndex == safePage)
-                      .toList();
+              return StreamBuilder<db.UserProfileData>(
+                stream: _profileStream,
+                builder: (context, profileSnap) => StreamBuilder<List<db.Field>>(
+                  stream: _fieldsStream,
+                  builder: (context, fieldsSnap) {
+                    final allFields = fieldsSnap.data ?? [];
+                    final pageFields = allFields
+                        .where((f) => f.pageIndex == safePage)
+                        .toList();
+                    final prefill = _prefillFor(
+                      context,
+                      allFields,
+                      profileSnap.data,
+                    );
 
-                  return Column(
-                    children: [
-                      // ── Smart-fill chip bar ───────────────────────────────
-                      _SmartFillBar(docId: widget.docId, fields: pageFields),
-                      // ── Page image + overlay ──────────────────────────────
-                      Expanded(
-                        child: PageCanvas(
-                          key: ValueKey(page.id),
-                          storedPath: page.imagePath,
-                          overlayBuilder: (context, pageRect) => [
-                            for (final field in pageFields)
-                              _fillFieldBox(
-                                context,
-                                field,
-                                pageRect,
-                                doc?.textSize,
-                                neighbours: [
-                                  for (final other in pageFields)
-                                    if (other.id != field.id)
-                                      BoundingBox.fromJsonString(
-                                        other.boundingBoxJson,
-                                      ).inPageRect(pageRect),
-                                ],
-                              ),
-                          ],
+                    return Column(
+                      children: [
+                        // ── PreFill: offer, or set up My Details ──────────────
+                        _prefillBar(context, prefill),
+                        // ── Page image + overlay ──────────────────────────────
+                        Expanded(
+                          child: PageCanvas(
+                            key: ValueKey(page.id),
+                            storedPath: page.imagePath,
+                            overlayBuilder: (context, pageRect) => [
+                              for (final field in pageFields)
+                                _fillFieldBox(
+                                  context,
+                                  field,
+                                  pageRect,
+                                  doc?.textSize,
+                                  prefill: prefill,
+                                  neighbours: [
+                                    for (final other in pageFields)
+                                      if (other.id != field.id)
+                                        BoundingBox.fromJsonString(
+                                          other.boundingBoxJson,
+                                        ).inPageRect(pageRect),
+                                  ],
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                      // ── Page picker ───────────────────────────────────────
-                      if (pages.length > 1)
-                        _PagePicker(
-                          pageCount: pages.length,
-                          currentIndex: safePage,
-                          onSelect: (i) => setState(() => _currentPage = i),
-                        ),
-                    ],
-                  );
-                },
+                        // ── Page picker ───────────────────────────────────────
+                        if (pages.length > 1)
+                          _PagePicker(
+                            pageCount: pages.length,
+                            currentIndex: safePage,
+                            onSelect: (i) => setState(() => _currentPage = i),
+                          ),
+                      ],
+                    );
+                  },
+                ),
               );
             },
           ),
         );
       },
+    );
+  }
+
+  // ── PreFill ────────────────────────────────────────────────────────────────
+
+  _Prefill _prefillFor(
+    BuildContext context,
+    List<db.Field> fields,
+    db.UserProfileData? profile,
+  ) {
+    final forms = [
+      for (final f in fields)
+        PrefillField(id: f.id, label: f.label, type: f.type.toFieldType()),
+    ];
+    final slots = PrefillMatcher.matchForm(forms);
+    final details = profile?.myDetails ?? const MyDetails();
+    final dateFormat = DateFormat(
+      context.l10n.dateFormatInput,
+      Localizations.localeOf(context).toString(),
+    );
+    final values = <int, String>{};
+    for (final id in slots.keys) {
+      final v = PrefillMatcher.valueForField(
+        forms,
+        slots,
+        id,
+        details,
+        dateFormat: dateFormat,
+      );
+      if (v != null) values[id] = v;
+    }
+    final empty = {
+      for (final f in fields)
+        if (!f.isFilled) f.id,
+    };
+    return _lastPrefill = _Prefill(
+      loaded: profile != null,
+      details: details,
+      dateFormat: dateFormat,
+      values: values,
+      toFill: [
+        for (final f in fields)
+          if (empty.contains(f.id) && values.containsKey(f.id)) f,
+      ],
+      anyMatch: slots.isNotEmpty,
+    );
+  }
+
+  Widget _prefillBar(BuildContext context, _Prefill prefill) {
+    if (!prefill.loaded) return const SizedBox.shrink();
+    final l10n = context.l10n;
+    if (prefill.details.isEmpty) {
+      // Nothing saved yet: a gentle pointer to My Details, at most once per
+      // document and only on a form PreFill could help with.
+      if (_setupShownBefore || _setupClosed || !prefill.anyMatch) {
+        return const SizedBox.shrink();
+      }
+      return _PrefillBanner(
+        icon: Icons.badge_outlined,
+        text: l10n.prefillSetup,
+        action: l10n.prefillSetupAction,
+        onAction: () => context.push(AppRoutes.myDetails),
+        onClose: () => setState(() => _setupClosed = true),
+      );
+    }
+    if (_offerClosed || prefill.toFill.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return _PrefillBanner(
+      icon: Icons.auto_awesome,
+      text: l10n.prefillOffer(prefill.toFill.length),
+      action: l10n.prefillFill,
+      onAction: () => _fillFromMyDetails(context, prefill),
+      onClose: () => setState(() => _offerClosed = true),
+    );
+  }
+
+  /// Fills the empty fields that match a saved detail. Never touches a field
+  /// that has a value. Undo empties exactly those fields again, unless the
+  /// user has since changed one.
+  Future<void> _fillFromMyDetails(
+    BuildContext context,
+    _Prefill prefill,
+  ) async {
+    final repo = ref.read(fieldRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final filled = <int, String>{};
+    for (final f in prefill.toFill) {
+      final v = prefill.values[f.id]!;
+      await repo.updateField(
+        db.FieldsCompanion(
+          id: Value(f.id),
+          value: Value(v),
+          isFilled: const Value(true),
+        ),
+      );
+      filled[f.id] = v;
+    }
+    if (!mounted) return;
+    setState(() => _prefilled.addAll(filled.keys));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.prefillFilled(filled.length)),
+        action: SnackBarAction(
+          label: l10n.actionUndo,
+          onPressed: () async {
+            final now = await repo.watchFields(widget.docId).first;
+            for (final f in now) {
+              if (filled[f.id] != null && f.value == filled[f.id]) {
+                await repo.updateField(
+                  db.FieldsCompanion(
+                    id: Value(f.id),
+                    value: const Value(''),
+                    isFilled: const Value(false),
+                  ),
+                );
+              }
+            }
+            if (mounted) {
+              setState(() => _prefilled.removeAll(filled.keys));
+            }
+          },
+        ),
+      ),
     );
   }
 
@@ -191,7 +359,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     if (field == null || !mounted) return;
     setState(() => _currentPage = field.pageIndex);
     if (!context.mounted) return;
-    await _openFieldInput(context, field);
+    await _openFieldInput(context, field, prefill: _lastPrefill);
   }
 
   Widget _fillFieldBox(
@@ -199,15 +367,20 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     db.Field field,
     Rect pageRect,
     double? textSize, {
+    required _Prefill prefill,
     List<Rect> neighbours = const [],
   }) {
     final type = field.type.toFieldType();
+    final prefilled = field.isFilled && _prefilled.contains(field.id);
     return FieldBox(
       key: ValueKey(field.id),
       bbox: BoundingBox.fromJsonString(field.boundingBoxJson),
       pageRect: pageRect,
       neighbours: neighbours,
-      color: field.isFilled && !type.isToggle
+      // Filled by PreFill: its own tint until the user edits the field.
+      color: prefilled
+          ? Colors.teal.shade600
+          : field.isFilled && !type.isToggle
           ? Colors.amber.shade700
           : colorFor(type),
       shape: shapeFor(type),
@@ -217,7 +390,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
       movable: false,
       resizable: false,
       showHandles: false,
-      onTap: () => _openFieldInput(context, field),
+      onTap: () => _openFieldInput(context, field, prefill: prefill),
       onChanged: (bbox) => ref
           .read(fieldRepositoryProvider)
           .updateField(
@@ -242,7 +415,11 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     unicode: true,
   );
 
-  Future<void> _openFieldInput(BuildContext context, db.Field field) async {
+  Future<void> _openFieldInput(
+    BuildContext context,
+    db.Field field, {
+    _Prefill? prefill,
+  }) async {
     final type = field.type.toFieldType();
     switch (type) {
       case FieldType.signature:
@@ -304,8 +481,13 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         return;
 
       case FieldType.text:
-        final result = await _showTextInput(context, field);
+        final result = await _showTextInput(
+          context,
+          field,
+          _suggestionsFor(field, prefill),
+        );
         if (result == null) return;
+        _prefilled.remove(field.id);
         await ref
             .read(fieldRepositoryProvider)
             .updateField(
@@ -318,12 +500,48 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     }
   }
 
-  Future<String?> _showTextInput(BuildContext context, db.Field field) {
+  Future<String?> _showTextInput(
+    BuildContext context,
+    db.Field field,
+    List<String> suggestions,
+  ) {
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => _TextInputSheet(field: field),
+      builder: (ctx) => _TextInputSheet(field: field, suggestions: suggestions),
     );
+  }
+
+  /// Saved details to offer in a text field's sheet: the one matching its
+  /// label first, then the rest.
+  List<String> _suggestionsFor(db.Field field, _Prefill? prefill) {
+    if (prefill == null) return const [];
+    final d = prefill.details;
+    final all = [
+      prefill.values[field.id],
+      for (final slot in const [
+        PrefillSlot.fullName,
+        PrefillSlot.firstName,
+        PrefillSlot.lastName,
+        PrefillSlot.email,
+        PrefillSlot.phone,
+        PrefillSlot.address,
+        PrefillSlot.city,
+        PrefillSlot.state,
+        PrefillSlot.zip,
+        PrefillSlot.cityStateZip,
+        PrefillSlot.country,
+        PrefillSlot.company,
+        PrefillSlot.jobTitle,
+        PrefillSlot.dateOfBirth,
+      ])
+        d.valueFor(slot, dateFormat: prefill.dateFormat),
+    ];
+    final seen = <String>{};
+    return [
+      for (final v in all)
+        if (v != null && seen.add(v)) v,
+    ];
   }
 }
 
@@ -332,8 +550,11 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
 // tree — disposing manually right after the pop future resolves races the
 // still-animating TextField and corrupts the widget tree.
 class _TextInputSheet extends StatefulWidget {
-  const _TextInputSheet({required this.field});
+  const _TextInputSheet({required this.field, this.suggestions = const []});
   final db.Field field;
+
+  /// Saved My Details values, best match first; tapping one fills the box.
+  final List<String> suggestions;
 
   @override
   State<_TextInputSheet> createState() => _TextInputSheetState();
@@ -386,6 +607,38 @@ class _TextInputSheetState extends State<_TextInputSheet> {
               hintText: context.l10n.fillEnterValueHint,
             ),
           ),
+          if (widget.suggestions.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              context.l10n.prefillSuggestions,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.suggestions.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 6),
+                itemBuilder: (context, i) {
+                  final v = widget.suggestions[i];
+                  return ActionChip(
+                    avatar: i == 0
+                        ? const Icon(Icons.auto_awesome, size: 14)
+                        : null,
+                    label: Text(v, overflow: TextOverflow.ellipsis),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => setState(() {
+                      _ctrl.text = v;
+                      _ctrl.selection = TextSelection.collapsed(
+                        offset: v.length,
+                      );
+                    }),
+                  );
+                },
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -406,106 +659,78 @@ class _TextInputSheetState extends State<_TextInputSheet> {
   }
 }
 
-// ── Smart-fill chip bar ───────────────────────────────────────────────────────
+// ── PreFill ───────────────────────────────────────────────────────────────────
 
-class _SmartFillBar extends ConsumerWidget {
-  const _SmartFillBar({required this.docId, required this.fields});
-  final int docId;
-  final List<db.Field> fields;
+/// What PreFill can do on this form right now.
+class _Prefill {
+  const _Prefill({
+    required this.loaded,
+    required this.details,
+    required this.dateFormat,
+    required this.values,
+    required this.toFill,
+    required this.anyMatch,
+  });
+
+  /// The profile has been read (bars stay hidden until then).
+  final bool loaded;
+  final MyDetails details;
+  final DateFormat dateFormat;
+
+  /// Field id → the saved detail for it.
+  final Map<int, String> values;
+
+  /// Empty fields that have a saved detail: what Fill would fill.
+  final List<db.Field> toFill;
+
+  /// Some field on the form asks for something My Details can hold.
+  final bool anyMatch;
+}
+
+class _PrefillBanner extends StatelessWidget {
+  const _PrefillBanner({
+    required this.icon,
+    required this.text,
+    required this.action,
+    required this.onAction,
+    required this.onClose,
+  });
+  final IconData icon;
+  final String text;
+  final String action;
+  final VoidCallback onAction;
+  final VoidCallback onClose;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder<db.UserProfileData>(
-      future: ref.read(profileRepositoryProvider).getOrCreate(),
-      builder: (context, snap) {
-        final profile = snap.data;
-        if (profile == null) return const SizedBox.shrink();
-
-        final today = DateFormat(
-          context.l10n.dateFormatInput,
-          Localizations.localeOf(context).toString(),
-        ).format(DateTime.now());
-        final chips = <_ChipData>[
-          if (profile.fullName.isNotEmpty)
-            _ChipData(
-              context.l10n.fillChipName,
-              profile.fullName,
-              FieldType.text,
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: scheme.onSecondaryContainer),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSecondaryContainer,
+                ),
+              ),
             ),
-          if (profile.email.isNotEmpty)
-            _ChipData(
-              context.l10n.fillChipEmail,
-              profile.email,
-              FieldType.text,
+            FilledButton.tonal(onPressed: onAction, child: Text(action)),
+            IconButton(
+              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: onClose,
             ),
-          if (profile.phone.isNotEmpty)
-            _ChipData(
-              context.l10n.fillChipPhone,
-              profile.phone,
-              FieldType.text,
-            ),
-          if (profile.address.isNotEmpty)
-            _ChipData(
-              context.l10n.fillChipAddress,
-              profile.address,
-              FieldType.text,
-            ),
-          if (profile.company.isNotEmpty)
-            _ChipData(
-              context.l10n.fillChipCompany,
-              profile.company,
-              FieldType.text,
-            ),
-          _ChipData(context.l10n.fillChipToday, today, FieldType.date),
-        ];
-
-        if (chips.isEmpty) return const SizedBox.shrink();
-
-        return SizedBox(
-          height: 44,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            itemCount: chips.length,
-            separatorBuilder: (_, i) => const SizedBox(width: 6),
-            itemBuilder: (ctx, i) {
-              final chip = chips[i];
-              return ActionChip(
-                label: Text(chip.label, style: const TextStyle(fontSize: 12)),
-                onPressed: () => _fillMatchingFields(ref, chip),
-                avatar: const Icon(Icons.auto_awesome, size: 14),
-                visualDensity: VisualDensity.compact,
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _fillMatchingFields(WidgetRef ref, _ChipData chip) async {
-    final repo = ref.read(fieldRepositoryProvider);
-    // Fill the first unfilled text/date field on the current page
-    final candidates = fields
-        .where((f) => f.type.toFieldType() == chip.type && !f.isFilled)
-        .toList();
-    if (candidates.isEmpty) return;
-    final target = candidates.first;
-    await repo.updateField(
-      db.FieldsCompanion(
-        id: Value(target.id),
-        value: Value(chip.value),
-        isFilled: const Value(true),
+          ],
+        ),
       ),
     );
   }
-}
-
-class _ChipData {
-  final String label;
-  final String value;
-  final FieldType type;
-  const _ChipData(this.label, this.value, this.type);
 }
 
 // ── Fill overlay ──────────────────────────────────────────────────────────────
