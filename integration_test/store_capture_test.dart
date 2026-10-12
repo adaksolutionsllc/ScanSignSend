@@ -128,14 +128,19 @@ void main() {
     final lang = l10n.localeName.split('_').first;
     final who = _applicants[lang] ?? _applicants['en']!;
 
+    // The applicant's My Details, saved once — PreFill fills the form.
+    final (first, last) = AppDatabase.splitFullName(who.$1);
     await container
         .read(profileRepositoryProvider)
         .update(
           UserProfileCompanion(
-            fullName: Value(who.$1),
+            firstName: Value(first),
+            lastName: Value(last),
             email: Value(who.$2),
             phone: Value(who.$3),
             address: Value(who.$4),
+            company: Value(who.$5),
+            dateOfBirth: Value(DateTime(1994, 3, 14)),
             isPurchased: const Value(true),
           ),
         );
@@ -194,31 +199,32 @@ void main() {
     int indexOf(bool Function(Field f) test) => fields.indexWhere(test);
     Finder box(int i) => find.byType(FieldBox).at(i);
 
-    // Type the name by hand, as a user would.
+    // Tap the name: its sheet shows the label printed on the form and the
+    // matching detail from My Details first; one tap puts it in.
     final nameIdx = indexOf((f) => f.type == 'text');
+    _mark('BEAT:labels');
     await tester.tap(box(nameIdx));
-    await _waitFor(tester, find.byType(TextField));
-    await _pause(tester, _video ? 500 : 200);
-    if (_video) {
-      for (var i = 1; i <= who.$1.length; i++) {
-        await tester.enterText(find.byType(TextField), who.$1.substring(0, i));
-        await _pause(tester, 70);
-      }
-    } else {
-      await tester.enterText(find.byType(TextField), who.$1);
-    }
-    await _pause(tester, _video ? 500 : 200);
+    await _waitFor(tester, find.widgetWithText(ActionChip, who.$1));
+    await _pause(tester, _video ? 1400 : 200);
+    await _capture(tester, 'label');
+    await tester.tap(find.widgetWithText(ActionChip, who.$1));
+    await _pause(tester, _video ? 700 : 200);
     await tester.tap(find.text(l10n.actionSave));
     await _pause(tester, _video ? 900 : 400);
 
-    // The rest arrives the way autofill and the date picker would put it.
-    final values = <String, String>{
-      'email': who.$2,
-      'phone': who.$3,
-      'address': who.$4,
-      'employer': who.$5,
-      'income': who.$6,
-    };
+    // PreFill: the bar offers the rest of the matching fields; one tap.
+    _mark('BEAT:prefill');
+    await _waitFor(tester, find.text(l10n.prefillFill));
+    await _pause(tester, _video ? 1200 : 300);
+    await tester.tap(find.text(l10n.prefillFill));
+    await _pause(tester, _video ? 1800 : 600);
+    ScaffoldMessenger.of(
+      tester.element(find.text(l10n.fillReviewAndFinish)),
+    ).hideCurrentSnackBar();
+    await _pause(tester, _video ? 400 : 300);
+
+    // What My Details doesn't hold — income, start date — typed as usual.
+    final values = <String, String>{'income': who.$6};
     String? valueFor(Field f) {
       final l = f.label.toLowerCase();
       bool has(List<String> keys) => keys.any(l.contains);
@@ -232,10 +238,6 @@ void main() {
         return null; // the signing date fills itself in
       }
       const byLabel = {
-        'email': ['mail'],
-        'phone': ['phone', 'téléphone', 'teléfono', 'telefone'],
-        'address': ['address', 'adresse', 'domicilio', 'endereço'],
-        'employer': ['employ', 'empresa', 'empregador'],
         'income': ['income', 'revenu', 'ingreso', 'renda'],
       };
       for (final e in byLabel.entries) {

@@ -237,6 +237,12 @@ class PrefillMatcher {
     'children', 'son', 'daughter', 'emergency', 'reference', 'landlord',
     'landlords', 'bank', 'employers', 'beneficiary', 'agent', 'doctor',
     'physician', 'previous', 'former', 'contact person',
+    // ID numbers: PreFill never stores them, so their boxes never match
+    // ("Employer identification number", "PAN", "Passport no.").
+    'identification', 'ein', 'tin', 'ssn', 'social security', 'aadhaar',
+    'aadhar', 'pan', 'passport', 'licence', 'license', 'account',
+    'iban', 'ifsc', 'nif', 'nie', 'dni', 'cpf', 'rg', 'आधार', 'पैन',
+    'पासपोर्ट',
     // Money lines on tax and finance forms ("6b State and local taxes")
     // never ask for a personal detail.
     'tax', 'taxes', 'income', 'amount', 'amounts', 'total', 'wages',
@@ -245,13 +251,13 @@ class PrefillMatcher {
     'impuestos', 'importe', 'imposto', 'valor', 'कर', 'राशि',
     // fr
     'père', 'mère', 'conjoint', 'époux', 'épouse', 'tuteur', 'enfant',
-    'témoin', 'banque', 'urgence', 'employeur',
+    'témoin', 'banque', 'urgence',
     // es
     'padre', 'madre', 'cónyuge', 'esposo', 'esposa', 'tutor', 'hijo',
-    'hija', 'testigo', 'banco', 'emergencia', 'empleador',
+    'hija', 'testigo', 'banco', 'emergencia',
     // pt
     'pai', 'mãe', 'cônjuge', 'marido', 'filho', 'filha', 'testemunha',
-    'emergência', 'empregador',
+    'emergência',
     // hi
     'पिता', 'माता', 'पति', 'पत्नी', 'अभिभावक', 'नामांकित', 'गवाह',
     'बैंक',
@@ -561,6 +567,12 @@ class PrefillMatcher {
         'company name',
         'organisation',
         'organization',
+        // A plain "Employer" on an application is the applicant's own;
+        // "Employer's name" (the W-4's employer section) is excluded above.
+        'employer',
+        'employeur',
+        'empleador',
+        'empregador',
         'current employer',
         'employer name',
         'société',

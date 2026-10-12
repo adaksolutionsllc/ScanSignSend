@@ -26,6 +26,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           title: context.l10n.onboardScanTitle,
           subtitle: context.l10n.onboardScanBody,
         ),
+        // PreFill: fields found and labelled, then filled from My Details.
+        _OnboardingPage(
+          icon: Icons.auto_awesome,
+          color: const Color(0xFF00897B),
+          title: context.l10n.onboardPrefillTitle,
+          subtitle: context.l10n.onboardPrefillBody,
+        ),
         _OnboardingPage(
           icon: Icons.draw,
           color: const Color(0xFF6A1B9A),

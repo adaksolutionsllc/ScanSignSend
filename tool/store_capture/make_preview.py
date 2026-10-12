@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Cut the App Store preview from a `capture.sh --video` recording.
 
-    python3 tool/store_capture/make_preview.py [lang]
+    python3 tool/store_capture/make_preview.py [lang] [device-dir]
 
-Input:  build/store_capture/raw/iPhone_17_Pro_Max/<lang>/preview_raw.mov + beats.txt
+Input:  build/store_capture/raw/<device-dir>/<lang>/video/preview_raw.mov + beats.txt
+        (device-dir defaults to iPhone_17_Pro_Max; any 1320x2868 iPhone works)
 Output: build/store_capture/preview/<lang>/preview_886x1920.mp4
 
 Apple's 6.9" preview spec: 886x1920, ≤30 fps, 15–30 s, H.264, and an audio
@@ -26,8 +27,9 @@ W, H, FPS, MAX_S = 886, 1920, 30, 29.5
 CAPTIONS = {
     "en": {
         "import": "Scan or import any form",
-        "detect": "Finds the blanks for you",
-        "fill": "Tap a field. Fill it in.",
+        "detect": "Finds every field for you",
+        "labels": "Each field, clearly labelled",
+        "prefill": "Your details in one tap",
         "sign": "Sign with your finger",
         "finish": "One tap to a final PDF",
         "pdf": "Signed. Dated. Offline.",
@@ -66,7 +68,8 @@ def duration(path: str) -> float:
 
 def main() -> int:
     lang = sys.argv[1] if len(sys.argv) > 1 else "en"
-    src_dir = os.path.join(ROOT, "build", "store_capture", "raw", "iPhone_17_Pro_Max", lang, "video")
+    device = sys.argv[2] if len(sys.argv) > 2 else "iPhone_17_Pro_Max"
+    src_dir = os.path.join(ROOT, "build", "store_capture", "raw", device, lang, "video")
     raw = os.path.join(src_dir, "preview_raw.mov")
     beats = [
         (float(t), name)

@@ -7,6 +7,7 @@
 // a test); everything else — database, PDF viewer, the store rating sheet and
 // the store listing — is the real thing.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
@@ -25,6 +26,7 @@ import 'package:scan_sign_send/features/fill_mode/presentation/fill_mode_screen.
 import 'package:scan_sign_send/shared/widgets/field_box.dart';
 import 'package:scan_sign_send/core/utils/router.dart';
 import 'package:scan_sign_send/features/library/presentation/library_screen.dart';
+import 'package:scan_sign_send/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:scan_sign_send/features/send/presentation/send_screen.dart';
 import 'package:scan_sign_send/l10n/app_localizations.dart';
 import 'package:scan_sign_send/main.dart' as app;
@@ -58,6 +60,22 @@ void main() {
     final router = container.read(routerProvider);
     await _waitGone(tester, find.byType(CircularProgressIndicator));
     await _capture(tester, 'library');
+
+    // The first-run tour's PreFill page (page 2).
+    unawaited(
+      Navigator.of(ctx).push(
+        MaterialPageRoute<void>(
+          builder: (c) => OnboardingScreen(onDone: () => Navigator.pop(c)),
+        ),
+      ),
+    );
+    await _waitFor(tester, find.byType(PageView));
+    await _pause(tester, 600);
+    await tester.fling(find.byType(PageView), const Offset(-300, 0), 1200);
+    await _waitFor(tester, find.text(l10n.onboardPrefillTitle));
+    await _capture(tester, 'tour_prefill');
+    Navigator.of(ctx).pop();
+    await _waitFor(tester, find.byType(LibraryScreen).hitTestable());
 
     // My Details, as a user would save them (a made-up person).
     await container

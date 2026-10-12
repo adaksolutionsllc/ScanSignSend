@@ -102,6 +102,12 @@ void main() {
 
     test('work and personal', () {
       expect(m('Company name'), PrefillSlot.company);
+      expect(m('Employer'), PrefillSlot.company);
+      expect(m('PAN'), isNull);
+      expect(m('Passport No.'), isNull);
+      expect(m('Aadhaar number'), isNull);
+      expect(m('Account number'), isNull);
+      expect(m('Current employer'), PrefillSlot.company);
       expect(m('Designation'), PrefillSlot.jobTitle);
       expect(m('Date of Birth'), PrefillSlot.dateOfBirth);
       expect(m('DOB'), PrefillSlot.dateOfBirth);
@@ -154,6 +160,7 @@ void main() {
       expect(m('Date de naissance'), PrefillSlot.dateOfBirth);
       expect(m('Téléphone'), PrefillSlot.phone);
       expect(m('Nom du père'), isNull);
+      expect(m('Employeur'), PrefillSlot.company);
     });
 
     test('Spanish', () {
