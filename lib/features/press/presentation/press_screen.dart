@@ -12,7 +12,7 @@ import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/field_type_labels.dart';
 import '../../../core/services/free_usage_service.dart';
 import '../../../core/services/iap_service.dart' show isPurchasedProvider;
-import '../../../shared/widgets/paywall_screen.dart';
+import 'finish_flow.dart';
 
 class PressScreen extends ConsumerStatefulWidget {
   const PressScreen({super.key, required this.docId});
@@ -37,18 +37,17 @@ class _PressScreenState extends ConsumerState<PressScreen> {
       stream: _fieldsStream,
       builder: (context, snapshot) {
         final fields = snapshot.data ?? [];
-        // Finishing a document with no fields produces nothing to fill or
-        // sign — and on the free tier it would use up a document.
+        // No fields: nothing to fill or sign, but the user may still keep the
+        // scan as a plain PDF (after confirming — see saveWithoutFields).
         final noFields = snapshot.hasData && fields.isEmpty;
         return Scaffold(
           appBar: AppBar(title: Text(context.l10n.pressTitle)),
           body: noFields
               ? _NoFields(docId: widget.docId)
               : _body(context, fields),
-          bottomNavigationBar: _actions(
-            context,
-            canFinish: snapshot.hasData && !noFields,
-          ),
+          bottomNavigationBar: noFields
+              ? _saveWithoutFieldsBar(context)
+              : _actions(context, canFinish: snapshot.hasData),
         );
       },
     );
@@ -107,6 +106,40 @@ class _PressScreenState extends ConsumerState<PressScreen> {
     );
   }
 
+  /// No fields: one way out, Save PDF. Flatten & Sign isn't offered — its
+  /// certificate page records a signing, and there's nothing signed.
+  Widget _saveWithoutFieldsBar(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: _busy
+            ? const _BusyBar()
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _FreeAllowanceNote(),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: FilledButton.icon(
+                      onPressed: () => saveWithoutFields(
+                        context,
+                        ref,
+                        widget.docId,
+                        onBusy: (b) {
+                          if (mounted) setState(() => _busy = b);
+                        },
+                      ),
+                      icon: const Icon(Icons.picture_as_pdf_outlined),
+                      label: Text(context.l10n.pressSavePdf),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
   Widget _actions(BuildContext context, {required bool canFinish}) {
     return SafeArea(
       child: Padding(
@@ -116,7 +149,6 @@ class _PressScreenState extends ConsumerState<PressScreen> {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // No allowance talk while finishing is blocked.
                   if (canFinish) const _FreeAllowanceNote(),
                   // Primary, safe default: keep fields editable.
                   SizedBox(
@@ -168,46 +200,19 @@ class _PressScreenState extends ConsumerState<PressScreen> {
     );
   }
 
-  /// Save-as-Fillable exit: exports a live AcroForm PDF (fields stay editable).
-  /// Free tier: may this document be finished? Opens the paywall (and
-  /// returns false) when not. See FreeUsageService.
+  /// Free tier: may this document be finished? A document whose fields were
+  /// all removed meanwhile isn't finished from here: the screen switches to
+  /// Save PDF, which asks first.
   Future<bool> _mayFinish(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final noFields = context.l10n.pressNoFieldsBody;
     final fields = await ref
         .read(fieldRepositoryProvider)
         .watchFields(widget.docId)
         .first;
-    if (fields.isEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(noFields)));
-      return false;
-    }
-    final usage = ref.read(freeUsageServiceProvider);
-    final doc = await ref
-        .read(documentRepositoryProvider)
-        .getById(widget.docId);
-    final pages = await ref
-        .read(pageRepositoryProvider)
-        .watchPages(widget.docId)
-        .first;
-    if (doc == null) return false;
-    final check = await usage.checkFinish(doc, pageCount: pages.length);
-    if (check == FinishCheck.allowed) return true;
-    if (!context.mounted) return false;
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => PaywallScreen(
-          reason: check == FinishCheck.tooManyPages
-              ? PaywallReason.tooManyPages
-              : PaywallReason.allowanceUsed,
-        ),
-      ),
-    );
-    // Bought it on the paywall → carry on; otherwise stay here.
-    return usage.isPremium();
+    if (fields.isEmpty || !context.mounted) return false;
+    return mayFinishDocument(context, ref, widget.docId);
   }
 
+  /// Save-as-Fillable exit: exports a live AcroForm PDF (fields stay editable).
   Future<void> _exportFillable(BuildContext context) async {
     if (_busy) return; // a second tap must not export twice
     if (!await _mayFinish(context) || !context.mounted) return;
@@ -383,7 +388,7 @@ class _NoFields extends StatelessWidget {
               ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 24),
-            FilledButton.icon(
+            OutlinedButton.icon(
               onPressed: () => context.push(
                 AppRoutes.fieldDetection.replaceAll(':docId', '$docId'),
               ),

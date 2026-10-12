@@ -211,13 +211,12 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
           ? Colors.amber.shade700
           : colorFor(type),
       shape: shapeFor(type),
-      // Real AcroForm fields keep the position the source form gave them;
-      // they can still be resized (e.g. to fit a signature).
-      movable: field.sourceKind == 'app',
-      // Pinch resizes any field; the handle is shown only where resizing
-      // after filling is common — a signature or initials that came out
-      // too small — so the page isn't covered in handles.
-      showHandles: type.isInk && field.isFilled,
+      // Fill mode is for filling: a field's position and size are frozen
+      // here (move or resize it in Edit Fields), so a tap or a scroll can
+      // never shift it by accident.
+      movable: false,
+      resizable: false,
+      showHandles: false,
       onTap: () => _openFieldInput(context, field),
       onChanged: (bbox) => ref
           .read(fieldRepositoryProvider)

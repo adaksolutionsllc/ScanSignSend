@@ -466,10 +466,20 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get pressNoFieldsBody =>
-      'முடிப்பதற்கு முன், நிரப்ப அல்லது கையொப்பமிட குறைந்தது ஒரு புலத்தைச் சேர்க்கவும்.';
+      'இங்கே நிரப்பவோ கையொப்பமிடவோ எதுவும் இல்லை. இருந்தாலும் இதை PDF ஆகச் சேமித்து வைத்துப் பகிரலாம், அல்லது முதலில் புலங்களைச் சேர்க்கலாம்.';
 
   @override
   String get pressAddFields => 'புலங்களைச் சேர்';
+
+  @override
+  String get pressSavePdf => 'PDF ஆகச் சேமி';
+
+  @override
+  String get saveNoFieldsTitle => 'புலங்கள் இல்லாமல் சேமிக்கவா?';
+
+  @override
+  String get saveNoFieldsBody =>
+      'இந்த ஆவணத்தில் நிரப்பவோ கையொப்பமிடவோ புலங்கள் இல்லை. இது PDF ஆகச் சேமிக்கப்படும்; அதை வைத்துக்கொண்டு பகிரலாம்.';
 
   @override
   String pressFailed(String error) {

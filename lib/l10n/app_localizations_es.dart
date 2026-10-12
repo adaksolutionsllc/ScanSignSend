@@ -464,10 +464,20 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pressNoFieldsBody =>
-      'Añade al menos un campo para rellenar o firmar antes de terminar.';
+      'Aquí no hay nada que rellenar ni firmar. Aun así puedes guardarlo como PDF para conservarlo y compartirlo, o añadir campos primero.';
 
   @override
   String get pressAddFields => 'Añadir campos';
+
+  @override
+  String get pressSavePdf => 'Guardar PDF';
+
+  @override
+  String get saveNoFieldsTitle => '¿Guardar sin campos?';
+
+  @override
+  String get saveNoFieldsBody =>
+      'Este documento no tiene campos para rellenar ni firmar. Se guardará como un PDF que puedes conservar y compartir.';
 
   @override
   String pressFailed(String error) {

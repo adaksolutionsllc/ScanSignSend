@@ -466,10 +466,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pressNoFieldsBody =>
-      'Ajoutez au moins un champ à remplir ou à signer avant de terminer.';
+      'Rien à remplir ni à signer ici. Vous pouvez quand même l’enregistrer en PDF pour le conserver et le partager, ou ajouter d’abord des champs.';
 
   @override
   String get pressAddFields => 'Ajouter des champs';
+
+  @override
+  String get pressSavePdf => 'Enregistrer en PDF';
+
+  @override
+  String get saveNoFieldsTitle => 'Enregistrer sans champs ?';
+
+  @override
+  String get saveNoFieldsBody =>
+      'Ce document n’a aucun champ à remplir ou à signer. Il sera enregistré en PDF, que vous pourrez conserver et partager.';
 
   @override
   String pressFailed(String error) {

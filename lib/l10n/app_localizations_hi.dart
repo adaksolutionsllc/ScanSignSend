@@ -464,10 +464,20 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get pressNoFieldsBody =>
-      'पूरा करने से पहले भरने या साइन करने के लिए कम से कम एक फ़ील्ड जोड़ें।';
+      'यहाँ भरने या साइन करने के लिए कुछ नहीं है। फिर भी आप इसे PDF के रूप में सहेजकर रख और शेयर कर सकते हैं, या पहले फ़ील्ड जोड़ सकते हैं।';
 
   @override
   String get pressAddFields => 'फ़ील्ड जोड़ें';
+
+  @override
+  String get pressSavePdf => 'PDF सहेजें';
+
+  @override
+  String get saveNoFieldsTitle => 'बिना फ़ील्ड के सहेजें?';
+
+  @override
+  String get saveNoFieldsBody =>
+      'इस दस्तावेज़ में भरने या साइन करने के लिए कोई फ़ील्ड नहीं है। इसे PDF के रूप में सहेजा जाएगा, जिसे आप रख और शेयर कर सकते हैं।';
 
   @override
   String pressFailed(String error) {

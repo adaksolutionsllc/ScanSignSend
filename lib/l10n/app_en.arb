@@ -248,8 +248,11 @@
   "pressConfirmNote": "Note: a drawn signature here is a visual mark, not a certified digital e-signature.",
   "pressFlattenAndLock": "Flatten & Lock",
   "pressNoFieldsTitle": "No fields yet",
-  "pressNoFieldsBody": "Add at least one field to fill or sign before finishing.",
+  "pressNoFieldsBody": "Nothing to fill or sign here. You can still save it as a PDF to keep and share, or add fields first.",
   "pressAddFields": "Add Fields",
+  "pressSavePdf": "Save PDF",
+  "saveNoFieldsTitle": "Save without fields?",
+  "saveNoFieldsBody": "This document has no fields to fill or sign. It will be saved as a PDF that you can keep and share.",
   "pressFailed": "Couldn't finish the document: {error}",
   "@pressFailed": {
     "placeholders": {
@@ -530,7 +533,30 @@
   "libraryUnlimitedPrice": "Unlimited, one-time {price}",
   "onboardFreeTitle": "Try it free",
   "onboardFreeBody": "Finish {count} documents free, up to {pages} pages each. Then unlock Unlimited with one purchase — no subscription.",
-  "@libraryFreeLeft": {"description": "Library banner for free users: free documents remaining.", "placeholders": {"left": {"type": "int"}}},
-  "@libraryUnlimitedPrice": {"description": "Library banner call to action; price is the store-localized price.", "placeholders": {"price": {"type": "String"}}},
-  "@onboardFreeBody": {"placeholders": {"count": {"type": "int"}, "pages": {"type": "int"}}}
+  "@libraryFreeLeft": {
+    "description": "Library banner for free users: free documents remaining.",
+    "placeholders": {
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "@libraryUnlimitedPrice": {
+    "description": "Library banner call to action; price is the store-localized price.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "@onboardFreeBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "pages": {
+        "type": "int"
+      }
+    }
+  }
 }

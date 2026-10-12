@@ -462,10 +462,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pressNoFieldsBody =>
-      'Add at least one field to fill or sign before finishing.';
+      'Nothing to fill or sign here. You can still save it as a PDF to keep and share, or add fields first.';
 
   @override
   String get pressAddFields => 'Add Fields';
+
+  @override
+  String get pressSavePdf => 'Save PDF';
+
+  @override
+  String get saveNoFieldsTitle => 'Save without fields?';
+
+  @override
+  String get saveNoFieldsBody =>
+      'This document has no fields to fill or sign. It will be saved as a PDF that you can keep and share.';
 
   @override
   String pressFailed(String error) {

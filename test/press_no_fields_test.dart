@@ -1,15 +1,18 @@
-// A document with no fields can't be finished: there's nothing to fill or
-// sign, and on the free tier it would use up a document for nothing.
+// A document with no fields can still be kept as a plain PDF (the scanner /
+// organiser use), after the user confirms. Flatten & Sign isn't offered:
+// there's nothing signed for its certificate page to record.
 
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/db/database_provider.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/utils/l10n_ext.dart';
+import 'package:scan_sign_send/core/utils/router.dart';
 import 'package:scan_sign_send/features/press/presentation/press_screen.dart';
 import 'package:scan_sign_send/l10n/app_localizations_en.dart';
 
@@ -50,10 +53,18 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [appDatabaseProvider.overrideWithValue(db)],
-        child: MaterialApp(
+        child: MaterialApp.router(
           localizationsDelegates: kLocalizationsDelegates,
           supportedLocales: kSupportedLocales,
-          home: PressScreen(docId: docId),
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(path: '/', builder: (_, _) => PressScreen(docId: docId)),
+              GoRoute(
+                path: AppRoutes.send,
+                builder: (_, s) => Text('send ${s.pathParameters['docId']}'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -80,15 +91,30 @@ void main() {
         ),
       );
 
-  testWidgets('no fields: both finish buttons are off, with a way forward', (
+  testWidgets('no fields: Save PDF asks first, and Cancel keeps the doc', (
     tester,
   ) async {
-    await open(tester, await newDoc(tester, withField: false));
+    final docId = await newDoc(tester, withField: false);
+    await open(tester, docId);
     expect(find.text(l10n.pressNoFieldsTitle), findsOneWidget);
     expect(find.text(l10n.pressAddFields), findsOneWidget);
-    expect(find.textContaining('free documents'), findsNothing);
-    expect(button(tester, l10n.pressSaveDraft).onPressed, isNull);
-    expect(button(tester, l10n.pressFlattenAndSign).onPressed, isNull);
+    expect(find.text(l10n.pressFlattenAndSign), findsNothing);
+    expect(find.text(l10n.pressSaveDraft), findsNothing);
+    expect(button(tester, l10n.pressSavePdf).onPressed, isNotNull);
+
+    await tester.tap(find.text(l10n.pressSavePdf));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.saveNoFieldsTitle), findsOneWidget);
+    expect(find.text(l10n.saveNoFieldsBody), findsOneWidget);
+
+    await tester.tap(find.text(l10n.actionCancel));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.saveNoFieldsTitle), findsNothing);
+    final doc = await tester.runAsync(
+      () => DocumentRepository(db).getById(docId),
+    );
+    expect(doc!.fillablePdfPath, isNull, reason: 'Cancel must not save');
+    expect(doc.countedFree, isFalse);
     await close(tester);
   });
 
@@ -101,12 +127,12 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('adding a field enables finishing without leaving the screen', (
+  testWidgets('adding a field brings back the usual finish buttons', (
     tester,
   ) async {
     final docId = await newDoc(tester, withField: false);
     await open(tester, docId);
-    expect(button(tester, l10n.pressSaveDraft).onPressed, isNull);
+    expect(find.text(l10n.pressSaveDraft), findsNothing);
     await tester.runAsync(
       () => FieldRepository(db).addField(
         FieldsCompanion.insert(
@@ -124,6 +150,8 @@ void main() {
       await tester.pump();
     }
     expect(button(tester, l10n.pressSaveDraft).onPressed, isNotNull);
+    expect(button(tester, l10n.pressFlattenAndSign).onPressed, isNotNull);
+    expect(find.text(l10n.pressSavePdf), findsNothing);
     await close(tester);
   });
 }

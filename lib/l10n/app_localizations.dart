@@ -945,7 +945,7 @@ abstract class AppLocalizations {
   /// No description provided for @pressNoFieldsBody.
   ///
   /// In en, this message translates to:
-  /// **'Add at least one field to fill or sign before finishing.'**
+  /// **'Nothing to fill or sign here. You can still save it as a PDF to keep and share, or add fields first.'**
   String get pressNoFieldsBody;
 
   /// No description provided for @pressAddFields.
@@ -953,6 +953,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Fields'**
   String get pressAddFields;
+
+  /// No description provided for @pressSavePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Save PDF'**
+  String get pressSavePdf;
+
+  /// No description provided for @saveNoFieldsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save without fields?'**
+  String get saveNoFieldsTitle;
+
+  /// No description provided for @saveNoFieldsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This document has no fields to fill or sign. It will be saved as a PDF that you can keep and share.'**
+  String get saveNoFieldsBody;
 
   /// No description provided for @pressFailed.
   ///

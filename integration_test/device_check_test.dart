@@ -25,6 +25,7 @@ import 'package:scan_sign_send/features/fill_mode/presentation/fill_mode_screen.
 import 'package:scan_sign_send/shared/widgets/field_box.dart';
 import 'package:scan_sign_send/core/utils/router.dart';
 import 'package:scan_sign_send/features/library/presentation/library_screen.dart';
+import 'package:scan_sign_send/features/send/presentation/send_screen.dart';
 import 'package:scan_sign_send/l10n/app_localizations.dart';
 import 'package:scan_sign_send/main.dart' as app;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -104,6 +105,46 @@ void main() {
     await _waitFor(tester, find.byType(FieldBox));
     await _pause(tester, 1500);
     await _capture(tester, 'w4_fill');
+
+    // Fill mode freezes fields: dragging one (an app-made field, which Edit
+    // Fields can move) leaves its position and size as they were.
+    final w4Doc =
+        (await container.read(documentRepositoryProvider).watchAll().first)
+            .firstWhere((d) => d.title == 'fw4');
+    const lockedBox = '{"x":0.55,"y":0.9,"w":0.3,"h":0.04}';
+    final lockedId = await container
+        .read(fieldRepositoryProvider)
+        .addField(
+          FieldsCompanion.insert(
+            documentId: w4Doc.id,
+            pageIndex: 0,
+            type: 'text',
+            boundingBoxJson: lockedBox,
+            label: const Value('Locked check'),
+          ),
+        );
+    await _waitFor(tester, find.byKey(ValueKey(lockedId)));
+    await _pause(tester, 500);
+    await tester.timedDrag(
+      find.byKey(ValueKey(lockedId)),
+      const Offset(-120, -160),
+      const Duration(milliseconds: 600),
+    );
+    await _pause(tester, 800);
+    final locked =
+        (await container
+                .read(fieldRepositoryProvider)
+                .watchFields(w4Doc.id)
+                .first)
+            .firstWhere((f) => f.id == lockedId);
+    expect(
+      locked.boundingBoxJson,
+      lockedBox,
+      reason: 'fill mode moved a field',
+    );
+    _mark('INFO:fill-mode field stayed put');
+    await container.read(fieldRepositoryProvider).deleteField(lockedId);
+    await _pause(tester, 500);
     await tester.tap(find.byType(FieldBox).first);
     await _waitFor(tester, find.text('First name and middle initial'));
     await _capture(tester, 'w4_field_label');
@@ -121,6 +162,30 @@ void main() {
     await _capture(tester, 'w4_review_tap_opens_field');
     await tester.tap(find.text(l10n.actionCancel));
     await _pause(tester, 600);
+
+    // Straight after scanning: Save PDF on the Review screen keeps the scan as
+    // a plain PDF, after a confirmation, and opens Send.
+    final scanId = await _scannedDocument(container);
+    router.go(AppRoutes.review.replaceAll(':docId', '$scanId'));
+    await _waitFor(tester, find.text(l10n.pressSavePdf));
+    await _pause(tester, 1500);
+    await _capture(tester, 'scan_review_save_pdf');
+    await tester.tap(find.text(l10n.pressSavePdf));
+    await _waitFor(tester, find.text(l10n.saveNoFieldsTitle));
+    await _capture(tester, 'scan_save_confirm');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(l10n.pressSavePdf),
+      ),
+    );
+    await _waitFor(tester, find.byType(SendScreen), seconds: 60);
+    await _capture(tester, 'scan_saved_send');
+    final scan = await container
+        .read(documentRepositoryProvider)
+        .getById(scanId);
+    expect(scan?.fillablePdfPath, isNotNull, reason: 'no PDF saved');
+    _mark('INFO:scan saved without fields');
 
     // A finished document on the Send screen.
     final docId = await _pressedDocument(container);
@@ -179,6 +244,33 @@ void main() {
 }
 
 bool _leftApp = false;
+
+/// A freshly scanned one-page document: pages, no fields.
+Future<int> _scannedDocument(ProviderContainer container) async {
+  final doc = await container
+      .read(documentRepositoryProvider)
+      .createDocument('Receipt');
+  final pdf = PdfDocument();
+  pdf.pages.add().graphics.drawString(
+    'Receipt  #1042\nThank you for your purchase.',
+    PdfStandardFont(PdfFontFamily.helvetica, 22),
+    bounds: const Rect.fromLTWH(40, 40, 460, 120),
+  );
+  final bytes = await pdf.save();
+  pdf.dispose();
+  final dir = await getApplicationDocumentsDirectory();
+  final file = File(p.join(dir.path, 'imports', 'scan_${doc.id}', 'scan.pdf'));
+  await file.parent.create(recursive: true);
+  await file.writeAsBytes(bytes);
+  await container
+      .read(pageRepositoryProvider)
+      .addPage(
+        documentId: doc.id,
+        pageIndex: 0,
+        imagePath: '${file.path}#page=0',
+      );
+  return doc.id;
+}
 
 /// A one-page document that has been through Flatten & Sign.
 Future<int> _pressedDocument(ProviderContainer container) async {

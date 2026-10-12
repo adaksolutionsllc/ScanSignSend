@@ -468,10 +468,20 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get pressNoFieldsBody =>
-      'పూర్తి చేసే ముందు, నింపడానికి లేదా సంతకం చేయడానికి కనీసం ఒక ఫీల్డ్‌ను జోడించండి.';
+      'ఇక్కడ నింపడానికి లేదా సంతకం చేయడానికి ఏమీ లేదు. అయినా దీన్ని PDFగా సేవ్ చేసి ఉంచుకోవచ్చు, షేర్ చేయవచ్చు, లేదా ముందు ఫీల్డ్‌లను జోడించవచ్చు.';
 
   @override
   String get pressAddFields => 'ఫీల్డ్‌లను జోడించండి';
+
+  @override
+  String get pressSavePdf => 'PDF సేవ్ చేయి';
+
+  @override
+  String get saveNoFieldsTitle => 'ఫీల్డ్‌లు లేకుండా సేవ్ చేయాలా?';
+
+  @override
+  String get saveNoFieldsBody =>
+      'ఈ పత్రంలో నింపడానికి లేదా సంతకం చేయడానికి ఫీల్డ్‌లు లేవు. ఇది PDFగా సేవ్ అవుతుంది; దాన్ని ఉంచుకుని షేర్ చేయవచ్చు.';
 
   @override
   String pressFailed(String error) {

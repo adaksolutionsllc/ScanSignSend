@@ -11,6 +11,7 @@ import '../../../core/services/page_raster_service.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../press/presentation/finish_flow.dart';
 
 enum PageFilter { original, enhanced, bw }
 
@@ -101,18 +102,46 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           );
         },
       ),
+      // Detect Fields is the main path; Save PDF keeps a plain scan (the
+      // organiser use) without adding any fields.
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton.icon(
-              onPressed: _proceed,
-              icon: const Icon(Icons.auto_awesome),
-              label: Text(context.l10n.reviewDetectFields),
-            ),
-          ),
+          child: _saving
+              ? const SizedBox(
+                  height: 52,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : SizedBox(
+                  height: 52,
+                  child: Row(
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 52),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        onPressed: _savePdf,
+                        icon: const Icon(Icons.picture_as_pdf_outlined),
+                        label: Text(context.l10n.pressSavePdf),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 52),
+                          ),
+                          onPressed: _proceed,
+                          icon: const Icon(Icons.auto_awesome),
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(context.l10n.reviewDetectFields),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ),
     );
@@ -187,6 +216,32 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     // in one transaction, and updates the page count.
     await ref.read(pageRepositoryProvider).deletePage(page.id);
     if (mounted) setState(() => _pages.removeWhere((p) => p.id == page.id));
+  }
+
+  bool _saving = false;
+
+  /// Saves the scan as a plain PDF. A document that already has fields (the
+  /// user came back here) goes to Review & Finish instead, which keeps them.
+  Future<void> _savePdf() async {
+    if (_dirty) await _saveOrder();
+    if (!mounted) return;
+    final fields = await ref
+        .read(fieldRepositoryProvider)
+        .watchFields(widget.docId)
+        .first;
+    if (!mounted) return;
+    if (fields.isNotEmpty) {
+      context.push(AppRoutes.press.replaceAll(':docId', '${widget.docId}'));
+      return;
+    }
+    await saveWithoutFields(
+      context,
+      ref,
+      widget.docId,
+      onBusy: (b) {
+        if (mounted) setState(() => _saving = b);
+      },
+    );
   }
 
   void _proceed() {
