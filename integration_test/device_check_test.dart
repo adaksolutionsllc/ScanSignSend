@@ -70,6 +70,13 @@ void main() {
     );
     await _pause(tester, 400);
     await _capture(tester, 'settings_support');
+    await tester.scrollUntilVisible(
+      find.text(l10n.settingsSectionDetection),
+      -300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await _pause(tester, 400);
+    await _capture(tester, 'settings_detection');
 
     // A form with its own fields (the IRS W-4, from test/fixtures), opened
     // the way a PDF arrives from Files or Mail: fields carry the captions
@@ -102,13 +109,18 @@ void main() {
     await _capture(tester, 'w4_field_label');
     await tester.tap(find.text(l10n.actionCancel));
     await _pause(tester, 600);
-    final w4Doc =
-        (await container.read(documentRepositoryProvider).watchAll().first)
-            .firstWhere((d) => d.title == 'fw4');
-    router.push(AppRoutes.press.replaceAll(':docId', '${w4Doc.id}'));
+    // Review & Finish from fill mode; tapping a field there comes back to
+    // fill mode with that field's input open.
+    await tester.tap(find.text(l10n.fillReviewAndFinish));
     await _waitFor(tester, find.text('Last name'));
     await _capture(tester, 'w4_review_list');
     _mark('INFO:w4 labels ok');
+    await tester.tap(find.text('Last name'));
+    await _waitFor(tester, find.byType(TextField));
+    await _waitFor(tester, find.text(l10n.fillEnterValueHint));
+    await _capture(tester, 'w4_review_tap_opens_field');
+    await tester.tap(find.text(l10n.actionCancel));
+    await _pause(tester, 600);
 
     // A finished document on the Send screen.
     final docId = await _pressedDocument(container);

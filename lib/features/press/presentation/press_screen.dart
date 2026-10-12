@@ -93,7 +93,14 @@ class _PressScreenState extends ConsumerState<PressScreen> {
         const SizedBox(height: 8),
 
         // Field list
-        ...fields.map((f) => _FieldTile(field: f)),
+        // Tapping a field goes back to fill mode, on that field's
+        // page, with its input open (see FillModeScreen._openReview).
+        ...fields.map(
+          (f) => _FieldTile(
+            field: f,
+            onTap: _busy ? null : () => context.pop(f.id),
+          ),
+        ),
 
         const SizedBox(height: 80),
       ],
@@ -445,14 +452,16 @@ class _SummaryRow extends StatelessWidget {
 }
 
 class _FieldTile extends StatelessWidget {
-  const _FieldTile({required this.field});
+  const _FieldTile({required this.field, this.onTap});
   final Field field;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final type = field.type.toFieldType();
     return ListTile(
       dense: true,
+      onTap: onTap,
       leading: Icon(
         field.isFilled
             ? Icons.check_circle_outline

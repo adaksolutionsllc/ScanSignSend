@@ -619,7 +619,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settingsSectionSecurity => 'భద్రత';
 
   @override
-  String get settingsSectionAi => 'AI గుర్తింపు (v1.1)';
+  String get settingsSectionDetection => 'ఫీల్డ్ గుర్తింపు';
 
   @override
   String get settingsSectionPurchase => 'కొనుగోలు';
@@ -661,13 +661,6 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get settingsNoBiometrics =>
       'ఈ పరికరంలో బయోమెట్రిక్ నమోదు కాలేదు. ముందుగా Face ID / వేలిముద్రను సెట్ చేయండి.';
-
-  @override
-  String get settingsAiDetection => 'మెరుగైన AI గుర్తింపు';
-
-  @override
-  String get settingsAiDetectionSubtitle =>
-      'ఫీల్డ్‌లను మెరుగ్గా గుర్తించడానికి పరికరంలోని మోడల్‌ను వాడుతుంది';
 
   @override
   String get settingsUnlockFullAccess => 'అన్‌లిమిటెడ్ అన్‌లాక్ చేయి';

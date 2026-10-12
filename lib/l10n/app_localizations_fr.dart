@@ -617,7 +617,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsSectionSecurity => 'Sécurité';
 
   @override
-  String get settingsSectionAi => 'Détection IA (v1.1)';
+  String get settingsSectionDetection => 'Détection des champs';
 
   @override
   String get settingsSectionPurchase => 'Achat';
@@ -659,13 +659,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsNoBiometrics =>
       'Aucune donnée biométrique enregistrée sur cet appareil. Configurez d\'abord Face ID / l\'empreinte digitale.';
-
-  @override
-  String get settingsAiDetection => 'Détection IA améliorée';
-
-  @override
-  String get settingsAiDetectionSubtitle =>
-      'Utilise un modèle embarqué pour mieux reconnaître les champs';
 
   @override
   String get settingsUnlockFullAccess => 'Débloquer Illimité';

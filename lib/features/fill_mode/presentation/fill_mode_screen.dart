@@ -87,12 +87,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(0, 52),
                         ),
-                        onPressed: () => context.push(
-                          AppRoutes.press.replaceAll(
-                            ':docId',
-                            '${widget.docId}',
-                          ),
-                        ),
+                        onPressed: () => _openReview(context),
                         icon: const Icon(Icons.task_alt),
                         label: FittedBox(
                           fit: BoxFit.scaleDown,
@@ -179,6 +174,24 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         );
       },
     );
+  }
+
+  /// Opens Review & Finish. Tapping a field there comes back with its id:
+  /// show that field's page and open its input, as if tapped on the page.
+  Future<void> _openReview(BuildContext context) async {
+    final fieldId = await context.push<int>(
+      AppRoutes.press.replaceAll(':docId', '${widget.docId}'),
+    );
+    if (fieldId == null || !mounted) return;
+    final fields = await ref
+        .read(fieldRepositoryProvider)
+        .watchFields(widget.docId)
+        .first;
+    final field = fields.where((f) => f.id == fieldId).firstOrNull;
+    if (field == null || !mounted) return;
+    setState(() => _currentPage = field.pageIndex);
+    if (!context.mounted) return;
+    await _openFieldInput(context, field);
   }
 
   Widget _fillFieldBox(

@@ -616,7 +616,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsSectionSecurity => 'सुरक्षा';
 
   @override
-  String get settingsSectionAi => 'AI पहचान (v1.1)';
+  String get settingsSectionDetection => 'फ़ील्ड पहचान';
 
   @override
   String get settingsSectionPurchase => 'ख़रीद';
@@ -658,13 +658,6 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get settingsNoBiometrics =>
       'इस डिवाइस पर कोई बायोमेट्रिक पंजीकृत नहीं है। पहले Face ID / फ़िंगरप्रिंट सेट करें।';
-
-  @override
-  String get settingsAiDetection => 'उन्नत AI पहचान';
-
-  @override
-  String get settingsAiDetectionSubtitle =>
-      'फ़ील्ड बेहतर पहचानने के लिए डिवाइस पर ही मॉडल चलाता है';
 
   @override
   String get settingsUnlockFullAccess => 'अनलिमिटेड अनलॉक करें';

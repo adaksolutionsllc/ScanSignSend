@@ -617,7 +617,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get settingsSectionSecurity => 'பாதுகாப்பு';
 
   @override
-  String get settingsSectionAi => 'AI கண்டறிதல் (v1.1)';
+  String get settingsSectionDetection => 'புலம் கண்டறிதல்';
 
   @override
   String get settingsSectionPurchase => 'கொள்முதல்';
@@ -659,13 +659,6 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get settingsNoBiometrics =>
       'இந்தச் சாதனத்தில் பயோமெட்ரிக் பதிவு செய்யப்படவில்லை. முதலில் Face ID / கைரேகையை அமைக்கவும்.';
-
-  @override
-  String get settingsAiDetection => 'மேம்பட்ட AI கண்டறிதல்';
-
-  @override
-  String get settingsAiDetectionSubtitle =>
-      'புலங்களைச் சிறப்பாக அறிய சாதனத்திலேயே ஒரு மாதிரியைப் பயன்படுத்துகிறது';
 
   @override
   String get settingsUnlockFullAccess => 'அன்லிமிடெட்டைத் திற';

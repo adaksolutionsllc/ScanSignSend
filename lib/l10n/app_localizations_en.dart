@@ -612,7 +612,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionSecurity => 'Security';
 
   @override
-  String get settingsSectionAi => 'AI Detection (v1.1)';
+  String get settingsSectionDetection => 'Field detection';
 
   @override
   String get settingsSectionPurchase => 'Purchase';
@@ -654,13 +654,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsNoBiometrics =>
       'No biometrics enrolled on this device. Set up Face ID / fingerprint first.';
-
-  @override
-  String get settingsAiDetection => 'Enhanced AI Detection';
-
-  @override
-  String get settingsAiDetectionSubtitle =>
-      'Uses on-device model for smarter field recognition';
 
   @override
   String get settingsUnlockFullAccess => 'Unlock Unlimited';

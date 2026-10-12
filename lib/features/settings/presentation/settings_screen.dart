@@ -18,17 +18,29 @@ import '../../../shared/widgets/text_edit_dialog.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/l10n_ext.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  // Watched, not read once: every switch and profile edit writes the row and
+  // relies on this stream to redraw. A one-shot read left the switches stuck.
+  // Created once — see fill_mode_screen.dart on streams built in build().
+  late final Stream<UserProfileData> _profileStream = ref
+      .read(profileRepositoryProvider)
+      .watch();
+
+  @override
+  Widget build(BuildContext context) {
     final profileRepo = ref.watch(profileRepositoryProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settingsTitle)),
-      body: FutureBuilder<UserProfileData>(
-        future: profileRepo.getOrCreate(),
+      body: StreamBuilder<UserProfileData>(
+        stream: _profileStream,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -138,15 +150,7 @@ class SettingsScreen extends ConsumerWidget {
                   await ref.read(backupServiceProvider).apply(v);
                 },
               ),
-              _SectionHeader(context.l10n.settingsSectionAi),
-              SwitchListTile(
-                title: Text(context.l10n.settingsAiDetection),
-                subtitle: Text(context.l10n.settingsAiDetectionSubtitle),
-                value: profile.aiEnhancedDetection,
-                onChanged: (v) => profileRepo.update(
-                  UserProfileCompanion(aiEnhancedDetection: Value(v)),
-                ),
-              ),
+              _SectionHeader(context.l10n.settingsSectionDetection),
               // Detection learns from the user's own field edits, on this device
               // only; this is the way to start over.
               ListTile(

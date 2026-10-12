@@ -1224,11 +1224,11 @@ abstract class AppLocalizations {
   /// **'Security'**
   String get settingsSectionSecurity;
 
-  /// No description provided for @settingsSectionAi.
+  /// No description provided for @settingsSectionDetection.
   ///
   /// In en, this message translates to:
-  /// **'AI Detection (v1.1)'**
-  String get settingsSectionAi;
+  /// **'Field detection'**
+  String get settingsSectionDetection;
 
   /// No description provided for @settingsSectionPurchase.
   ///
@@ -1307,18 +1307,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No biometrics enrolled on this device. Set up Face ID / fingerprint first.'**
   String get settingsNoBiometrics;
-
-  /// No description provided for @settingsAiDetection.
-  ///
-  /// In en, this message translates to:
-  /// **'Enhanced AI Detection'**
-  String get settingsAiDetection;
-
-  /// No description provided for @settingsAiDetectionSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Uses on-device model for smarter field recognition'**
-  String get settingsAiDetectionSubtitle;
 
   /// No description provided for @settingsUnlockFullAccess.
   ///

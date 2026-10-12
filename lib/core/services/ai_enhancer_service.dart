@@ -16,6 +16,8 @@ final aiEnhancerServiceProvider = Provider<AiEnhancerService>((ref) {
 /// form fields from the OCR text, returning structured DetectedField results.
 /// The native side is currently a stub that returns no fields, and Android has
 /// no handler, so detection always falls back to the heuristic engine.
+/// The Settings switch for `aiEnhancedDetection` was removed until the model
+/// call is real; the column stays (default off) so it can come back.
 class AiEnhancerService {
   AiEnhancerService(this._profileRepo);
   final ProfileRepository _profileRepo;
