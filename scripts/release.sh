@@ -142,6 +142,10 @@ fi
 if [[ "$target" == android || "$target" == all ]]; then
   : "${GOOGLE_PLAY_JSON_KEY:?}"
   [[ -f android/key.properties ]] || { echo "android/key.properties missing (upload keystore)" >&2; exit 1; }
+  # Release notes for this version code, from store/listings (≤500 chars).
+  python3 scripts/play_release_notes.py
+  [[ -z "$(git status --porcelain android/fastlane/metadata)" ]] ||
+    { echo "Play release notes differ from the commit — commit them first." >&2; exit 1; }
   echo "▶ Android: building App Bundle"
   flutter build appbundle --release
   echo "▶ Android: uploading to Play internal testing"

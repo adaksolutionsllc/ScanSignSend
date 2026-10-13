@@ -1,0 +1,5 @@
+Novedad: PreFill. Guarda tus datos una vez en Mis datos y rellena con un toque los campos que coinciden en un formulario. Se guardan solo en este dispositivo.
+Guarda un escaneo como PDF simple justo después de escanear, sin campos.
+Toca un campo en «Revisar y finalizar» para volver y rellenarlo.
+Los campos no se mueven mientras rellenas; muévelos o cambia su tamaño en «Editar campos».
+Los interruptores de Ajustes ahora se actualizan al momento.

@@ -1,0 +1,5 @@
+Nouveau : PreFill. Enregistrez vos informations une fois dans Mes informations, puis remplissez d’un geste les champs correspondants. Enregistrées uniquement sur cet appareil.
+Enregistrez un scan en PDF simple juste après la numérisation, sans champs.
+Touchez un champ dans « Vérifier et terminer » pour revenir le remplir.
+Les champs restent en place pendant le remplissage ; déplacez-les dans « Modifier les champs ».
+Les interrupteurs des Réglages se mettent à jour immédiatement.

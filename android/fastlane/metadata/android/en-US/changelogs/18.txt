@@ -1,0 +1,5 @@
+New: PreFill. Save your details once in My Details, then fill the matching fields on a form with one tap. Saved only on this device.
+Save a scan as a plain PDF straight after scanning — no fields needed.
+Tap a field in “Review & Finish” to go back and fill it.
+Fields stay in place while you fill; move or resize them in “Edit Fields”.
+Settings switches now update straight away.

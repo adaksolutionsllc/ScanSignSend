@@ -1,0 +1,5 @@
+Novidade: PreFill. Salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes de um formulário. Ficam salvos só neste aparelho.
+Salve uma digitalização como PDF simples logo após digitalizar, sem campos.
+Toque em um campo em “Rever e concluir” para voltar e preenchê-lo.
+Os campos não se movem enquanto você preenche; mova ou redimensione em “Editar campos”.
+As chaves das Definições agora se atualizam na hora.
