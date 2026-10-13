@@ -109,6 +109,8 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
               // Secondary "Edit fields" beside the primary "Review & Finish",
               // both labelled — the old app-bar icon wasn't readable. While
               // PreFill has fields to fill, its button sits between them.
+              // Every button gets an equal share of the row (halves or
+              // thirds); labels shrink to fit rather than stretch it.
               child: SizedBox(
                 height: 52,
                 child: ValueListenableBuilder<_Prefill?>(
@@ -121,12 +123,12 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                     final narrow = toFill > 0;
                     return Row(
                       children: [
-                        Flexible(
+                        Expanded(
                           child: OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size(0, 52),
                               padding: EdgeInsets.symmetric(
-                                horizontal: narrow ? 12 : 16,
+                                horizontal: narrow ? 10 : 16,
                               ),
                             ),
                             onPressed: () => context.push(
@@ -144,13 +146,13 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                         ),
                         if (toFill > 0) ...[
                           const SizedBox(width: 8),
-                          Flexible(
+                          Expanded(
                             child: FilledButton.icon(
                               key: const ValueKey('prefill-fill-bottom'),
                               style: FilledButton.styleFrom(
                                 minimumSize: const Size(0, 52),
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
+                                  horizontal: 10,
                                 ),
                                 backgroundColor: Colors.teal.shade600,
                                 foregroundColor: Colors.white,
@@ -175,6 +177,9 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                           child: FilledButton.icon(
                             style: FilledButton.styleFrom(
                               minimumSize: const Size(0, 52),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: narrow ? 10 : 16,
+                              ),
                             ),
                             onPressed: () => _openReview(context),
                             icon: const Icon(Icons.task_alt),

@@ -229,11 +229,21 @@ void main() {
     await _waitFor(tester, find.byKey(bottomFill));
     await _pause(tester, 600);
     await _capture(tester, 'w4_prefill_offer');
+    _expectEqualWidths(tester, [
+      _button(l10n.fillEditFields),
+      find.byKey(bottomFill),
+      _button(l10n.fillReviewAndFinish),
+    ]);
     await tester.tap(find.byKey(bottomFill));
     // Both buttons go once there's nothing left to fill.
     await _waitGone(tester, find.byKey(bottomFill), seconds: 5);
     await _waitGone(tester, find.byKey(barFill), seconds: 5);
     await _pause(tester, 800);
+    _expectEqualWidths(tester, [
+      _button(l10n.fillEditFields),
+      _button(l10n.fillReviewAndFinish),
+    ]);
+    _mark('INFO:bottom buttons equal width');
     final filled = await w4Values();
     expect(filled['First name and middle initial'], 'Priya K');
     expect(filled['Last name'], 'Raman');
@@ -413,6 +423,20 @@ Future<int> _pressedDocument(ProviderContainer container) async {
   );
   return doc.id;
 }
+
+/// The bottom-row buttons share the row equally.
+void _expectEqualWidths(WidgetTester tester, List<Finder> buttons) {
+  final widths = [for (final b in buttons) tester.getSize(b).width];
+  for (final w in widths) {
+    expect(w, closeTo(widths.first, 1.0), reason: 'button widths $widths');
+  }
+}
+
+/// The button whose label is [label].
+Finder _button(String label) => find.ancestor(
+  of: find.text(label),
+  matching: find.bySubtype<ButtonStyleButton>(),
+);
 
 /// Asks device_check.sh for a screenshot.
 Future<void> _capture(WidgetTester tester, String name) async {
