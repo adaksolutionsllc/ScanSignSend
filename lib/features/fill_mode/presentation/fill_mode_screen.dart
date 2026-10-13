@@ -48,10 +48,21 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
   // user edits them), and whether its bars were closed.
   final Set<int> _prefilled = {};
   bool _offerClosed = false;
+  bool _filling = false;
   bool _setupClosed = false;
 
   /// The latest PreFill state, for a field opened from Review & Finish.
   _Prefill? _lastPrefill;
+
+  /// The same, for the bottom bar, which is built outside the streams that
+  /// compute it. Set after each frame so the bar never lags behind.
+  final _prefillNote = ValueNotifier<_Prefill?>(null);
+
+  @override
+  void dispose() {
+    _prefillNote.dispose();
+    super.dispose();
+  }
 
   /// Documents that have already shown "Save your details once": the nudge
   /// appears at most once per document.
@@ -96,40 +107,86 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               // Secondary "Edit fields" beside the primary "Review & Finish",
-              // both labelled — the old app-bar icon wasn't readable.
+              // both labelled — the old app-bar icon wasn't readable. While
+              // PreFill has fields to fill, its button sits between them.
               child: SizedBox(
                 height: 52,
-                child: Row(
-                  children: [
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 52),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                      onPressed: () => context.push(
-                        AppRoutes.fieldDetection.replaceAll(
-                          ':docId',
-                          '${widget.docId}',
+                child: ValueListenableBuilder<_Prefill?>(
+                  valueListenable: _prefillNote,
+                  builder: (context, prefill, _) {
+                    final toFill =
+                        prefill == null || prefill.details.isEmpty || _filling
+                        ? 0
+                        : prefill.toFill.length;
+                    final narrow = toFill > 0;
+                    return Row(
+                      children: [
+                        Flexible(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 52),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: narrow ? 12 : 16,
+                              ),
+                            ),
+                            onPressed: () => context.push(
+                              AppRoutes.fieldDetection.replaceAll(
+                                ':docId',
+                                '${widget.docId}',
+                              ),
+                            ),
+                            icon: const Icon(Icons.edit_note),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(context.l10n.fillEditFields),
+                            ),
+                          ),
                         ),
-                      ),
-                      icon: const Icon(Icons.edit_note),
-                      label: Text(context.l10n.fillEditFields),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 52),
+                        if (toFill > 0) ...[
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: FilledButton.icon(
+                              key: const ValueKey('prefill-fill-bottom'),
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size(0, 52),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                ),
+                                backgroundColor: Colors.teal.shade600,
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: () =>
+                                  _fillFromMyDetails(context, prefill!),
+                              icon: Badge(
+                                label: Text('$toFill'),
+                                backgroundColor: Colors.white,
+                                textColor: Colors.teal.shade800,
+                                child: const Icon(Icons.auto_awesome),
+                              ),
+                              label: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(context.l10n.prefillFill),
+                              ),
+                            ),
+                          ),
+                        ],
+                        SizedBox(width: narrow ? 8 : 12),
+                        Expanded(
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 52),
+                            ),
+                            onPressed: () => _openReview(context),
+                            icon: const Icon(Icons.task_alt),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(context.l10n.fillReviewAndFinish),
+                            ),
+                          ),
                         ),
-                        onPressed: () => _openReview(context),
-                        icon: const Icon(Icons.task_alt),
-                        label: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(context.l10n.fillReviewAndFinish),
-                        ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -249,9 +306,9 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     }
     final empty = {
       for (final f in fields)
-        if (!f.isFilled) f.id,
+        if (!f.isFilled && !_prefilled.contains(f.id)) f.id,
     };
-    return _lastPrefill = _Prefill(
+    final result = _Prefill(
       loaded: profile != null,
       details: details,
       dateFormat: dateFormat,
@@ -262,6 +319,11 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
       ],
       anyMatch: slots.isNotEmpty,
     );
+    _lastPrefill = result;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _prefillNote.value = result;
+    });
+    return result;
   }
 
   Widget _prefillBar(BuildContext context, _Prefill prefill) {
@@ -281,10 +343,13 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         onClose: () => setState(() => _setupClosed = true),
       );
     }
-    if (_offerClosed || prefill.toFill.isEmpty) {
+    if (_offerClosed || _filling || prefill.toFill.isEmpty) {
       return const SizedBox.shrink();
     }
     return _PrefillBanner(
+      key: const ValueKey('prefill-offer'),
+      actionKey: const ValueKey('prefill-fill-bar'),
+      emphasis: true,
       icon: Icons.auto_awesome,
       text: l10n.prefillOffer(prefill.toFill.length),
       action: l10n.prefillFill,
@@ -300,41 +365,63 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     BuildContext context,
     _Prefill prefill,
   ) async {
+    // A second tap while filling does nothing; both Fill buttons hide at
+    // once rather than when the writes land.
+    if (_filling) return;
+    setState(() => _filling = true);
     final repo = ref.read(fieldRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    final filled = <int, String>{};
-    for (final f in prefill.toFill) {
-      final v = prefill.values[f.id]!;
-      await repo.updateField(
-        db.FieldsCompanion(
-          id: Value(f.id),
-          value: Value(v),
-          isFilled: const Value(true),
-        ),
-      );
-      filled[f.id] = v;
+    final filled = <int, String>{
+      for (final f in prefill.toFill) f.id: prefill.values[f.id]!,
+    };
+    var done = false;
+    try {
+      // One transaction: the fields update together, in one redraw.
+      await ref.read(documentRepositoryProvider).transaction(() async {
+        for (final e in filled.entries) {
+          await repo.updateField(
+            db.FieldsCompanion(
+              id: Value(e.key),
+              value: Value(e.value),
+              isFilled: const Value(true),
+            ),
+          );
+        }
+      });
+      done = true;
+    } finally {
+      // Marked prefilled in the same frame the guard lifts, so the Fill
+      // buttons can't flash back before the field stream catches up.
+      if (mounted) {
+        setState(() {
+          if (done) _prefilled.addAll(filled.keys);
+          _filling = false;
+        });
+      }
     }
-    if (!mounted) return;
-    setState(() => _prefilled.addAll(filled.keys));
+    if (!mounted || !done) return;
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.prefillFilled(filled.length)),
         action: SnackBarAction(
           label: l10n.actionUndo,
           onPressed: () async {
-            final now = await repo.watchFields(widget.docId).first;
-            for (final f in now) {
-              if (filled[f.id] != null && f.value == filled[f.id]) {
-                await repo.updateField(
-                  db.FieldsCompanion(
-                    id: Value(f.id),
-                    value: const Value(''),
-                    isFilled: const Value(false),
-                  ),
-                );
+            // Together, like the fill; a field the user changed since stays.
+            await ref.read(documentRepositoryProvider).transaction(() async {
+              final now = await repo.watchFields(widget.docId).first;
+              for (final f in now) {
+                if (filled[f.id] != null && f.value == filled[f.id]) {
+                  await repo.updateField(
+                    db.FieldsCompanion(
+                      id: Value(f.id),
+                      value: const Value(''),
+                      isFilled: const Value(false),
+                    ),
+                  );
+                }
               }
-            }
+            });
             if (mounted) {
               setState(() => _prefilled.removeAll(filled.keys));
             }
@@ -689,12 +776,20 @@ class _Prefill {
 
 class _PrefillBanner extends StatelessWidget {
   const _PrefillBanner({
+    super.key,
+    this.actionKey,
+    this.emphasis = false,
     required this.icon,
     required this.text,
     required this.action,
     required this.onAction,
     required this.onClose,
   });
+  final Key? actionKey;
+
+  /// The PreFill offer: solid teal (the prefilled-field colour) with a white
+  /// button, sliding in, so it can't be missed. The set-up nudge stays quiet.
+  final bool emphasis;
   final IconData icon;
   final String text;
   final String action;
@@ -704,31 +799,65 @@ class _PrefillBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: scheme.secondaryContainer,
+    final bg = emphasis ? Colors.teal.shade600 : scheme.secondaryContainer;
+    final fg = emphasis ? Colors.white : scheme.onSecondaryContainer;
+    final banner = Material(
+      color: bg,
+      elevation: emphasis ? 2 : 0,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+        padding: EdgeInsets.fromLTRB(14, emphasis ? 8 : 4, 4, emphasis ? 8 : 4),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: scheme.onSecondaryContainer),
+            Icon(icon, size: emphasis ? 22 : 18, color: fg),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 text,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSecondaryContainer,
+                  color: fg,
+                  fontWeight: emphasis ? FontWeight.w600 : null,
                 ),
               ),
             ),
-            FilledButton.tonal(onPressed: onAction, child: Text(action)),
+            emphasis
+                ? FilledButton(
+                    key: actionKey,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.teal.shade800,
+                      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    onPressed: onAction,
+                    child: Text(action),
+                  )
+                : FilledButton.tonal(
+                    key: actionKey,
+                    onPressed: onAction,
+                    child: Text(action),
+                  ),
             IconButton(
               tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-              icon: const Icon(Icons.close, size: 18),
+              icon: Icon(Icons.close, size: 18, color: fg),
               onPressed: onClose,
             ),
           ],
         ),
       ),
+    );
+    if (!emphasis) return banner;
+    // Slides down into place the first time it appears.
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutBack,
+      builder: (context, t, child) => ClipRect(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          heightFactor: t.clamp(0.0, 1.0),
+          child: child,
+        ),
+      ),
+      child: banner,
     );
   }
 }

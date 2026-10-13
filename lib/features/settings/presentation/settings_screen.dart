@@ -16,6 +16,7 @@ import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../onboarding/presentation/onboarding_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -157,6 +158,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   subtitle: Text(context.l10n.settingsThankYou),
                 ),
               _SectionHeader(context.l10n.settingsSectionSupport),
+              // The whole tour again, on demand.
+              ListTile(
+                leading: const Icon(Icons.slideshow_outlined),
+                title: Text(context.l10n.settingsTour),
+                subtitle: Text(context.l10n.settingsTourSubtitle),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    fullscreenDialog: true,
+                    builder: (c) =>
+                        OnboardingScreen(onDone: () => Navigator.of(c).pop()),
+                  ),
+                ),
+              ),
               ListTile(
                 leading: const Icon(Icons.star_outline),
                 title: Text(context.l10n.settingsRateApp),

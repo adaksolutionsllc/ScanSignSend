@@ -94,12 +94,14 @@ class ScanSignSendApp extends ConsumerStatefulWidget {
 }
 
 class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
-  late Future<bool> _onboardingDoneFuture;
+  /// Null: first run, the whole tour. Empty: straight to the app. Otherwise
+  /// the tour pages added since the user last saw it ("What's new").
+  late Future<Set<String>?> _tourFuture;
 
   @override
   void initState() {
     super.initState();
-    _onboardingDoneFuture = isOnboardingDone();
+    _tourFuture = unseenTourPages();
     // Start listening to the store at launch, not when the paywall first
     // opens. Purchases that complete while the app is closed (Ask to Buy,
     // interrupted payments, Play "pending" purchases) are delivered on the
@@ -124,10 +126,10 @@ class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: _onboardingDoneFuture,
+    return FutureBuilder<Set<String>?>(
+      future: _tourFuture,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState != ConnectionState.done) {
           // Splash while checking prefs
           return MaterialApp(
             theme: AppTheme.light,
@@ -141,7 +143,8 @@ class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
             ),
           );
         }
-        if (!snapshot.data!) {
+        final unseen = snapshot.data;
+        if (unseen == null || unseen.isNotEmpty) {
           return MaterialApp(
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
@@ -150,8 +153,9 @@ class _ScanSignSendAppState extends ConsumerState<ScanSignSendApp> {
             localizationsDelegates: kLocalizationsDelegates,
             supportedLocales: kSupportedLocales,
             home: OnboardingScreen(
+              only: unseen,
               onDone: () => setState(() {
-                _onboardingDoneFuture = Future.value(true);
+                _tourFuture = Future.value(const <String>{});
               }),
             ),
           );

@@ -39,6 +39,8 @@ void main() {
 
   testWidgets('device check', (tester) async {
     // One earlier send, so this run's send is the one that asks for a rating.
+    // The tour was finished on an earlier version (no pages recorded), as
+    // for everyone updating from 1.1.0: launch shows "What's new".
     SharedPreferences.setMockInitialValues({
       'onboarding_done': true,
       'review_send_count': 1,
@@ -51,31 +53,29 @@ void main() {
     final testOnError = FlutterError.onError;
     final testErrorWidget = ErrorWidget.builder;
     app.main();
-    await _waitFor(tester, find.byType(LibraryScreen));
+    await _waitFor(tester, find.byType(OnboardingScreen));
     FlutterError.onError = testOnError;
     ErrorWidget.builder = testErrorWidget;
+    {
+      final tl10n = AppLocalizations.of(
+        tester.element(find.byType(OnboardingScreen)),
+      );
+      await _waitFor(tester, find.text(tl10n.tourWhatsNew));
+      expect(find.text(tl10n.onboardPrefillTitle), findsOneWidget);
+      expect(find.text(tl10n.onboardScanTitle), findsNothing);
+      await _capture(tester, 'whats_new');
+      await tester.tap(find.text(tl10n.tourGotIt));
+    }
+    await _waitFor(tester, find.byType(LibraryScreen));
+    final seen = await SharedPreferences.getInstance();
+    expect(seen.getStringList(kTourPagesSeen), kTourPageIds);
+    _mark('INFO:whats new shown once');
     final ctx = tester.element(find.byType(LibraryScreen));
     final container = ProviderScope.containerOf(ctx);
     final l10n = AppLocalizations.of(ctx);
     final router = container.read(routerProvider);
     await _waitGone(tester, find.byType(CircularProgressIndicator));
     await _capture(tester, 'library');
-
-    // The first-run tour's PreFill page (page 2).
-    unawaited(
-      Navigator.of(ctx).push(
-        MaterialPageRoute<void>(
-          builder: (c) => OnboardingScreen(onDone: () => Navigator.pop(c)),
-        ),
-      ),
-    );
-    await _waitFor(tester, find.byType(PageView));
-    await _pause(tester, 600);
-    await tester.fling(find.byType(PageView), const Offset(-300, 0), 1200);
-    await _waitFor(tester, find.text(l10n.onboardPrefillTitle));
-    await _capture(tester, 'tour_prefill');
-    Navigator.of(ctx).pop();
-    await _waitFor(tester, find.byType(LibraryScreen).hitTestable());
 
     // My Details, as a user would save them (a made-up person).
     await container
@@ -114,6 +114,20 @@ void main() {
     );
     await _pause(tester, 400);
     await _capture(tester, 'settings_support');
+
+    // Settings → App tour replays the whole tour; page 2 is PreFill.
+    await tester.tap(find.text(l10n.settingsTour));
+    await _waitFor(tester, find.text(l10n.onboardScanTitle));
+    await _pause(tester, 600);
+    await tester.fling(find.byType(PageView), const Offset(-300, 0), 1200);
+    await _waitFor(tester, find.text(l10n.onboardPrefillTitle));
+    await _capture(tester, 'tour_prefill');
+    await tester.tap(find.text(l10n.actionBack));
+    await _waitFor(tester, find.text(l10n.actionSkip));
+    await _pause(tester, 500);
+    await tester.tap(find.text(l10n.actionSkip));
+    await _waitFor(tester, find.text(l10n.settingsTour).hitTestable());
+    _mark('INFO:app tour from settings ok');
     await tester.scrollUntilVisible(
       find.text(l10n.settingsSectionDetection),
       -300,
@@ -207,10 +221,19 @@ void main() {
               .first)
         if (f.isFilled) f.label: f.value,
     };
-    await _waitFor(tester, find.text(l10n.prefillFill));
+    // Offered twice: the teal bar on top and a Fill button in the bottom
+    // row. First fill from the bottom button.
+    const barFill = ValueKey('prefill-fill-bar');
+    const bottomFill = ValueKey('prefill-fill-bottom');
+    await _waitFor(tester, find.byKey(barFill));
+    await _waitFor(tester, find.byKey(bottomFill));
+    await _pause(tester, 600);
     await _capture(tester, 'w4_prefill_offer');
-    await tester.tap(find.text(l10n.prefillFill));
-    await _pause(tester, 1500);
+    await tester.tap(find.byKey(bottomFill));
+    // Both buttons go once there's nothing left to fill.
+    await _waitGone(tester, find.byKey(bottomFill), seconds: 5);
+    await _waitGone(tester, find.byKey(barFill), seconds: 5);
+    await _pause(tester, 800);
     final filled = await w4Values();
     expect(filled['First name and middle initial'], 'Priya K');
     expect(filled['Last name'], 'Raman');
@@ -226,12 +249,18 @@ void main() {
     _mark('INFO:prefill filled ${filled.length}: ${filled.keys.join(' | ')}');
     await _capture(tester, 'w4_prefilled');
     await tester.tap(find.text(l10n.actionUndo));
-    await _pause(tester, 1500);
+    final undoBy = DateTime.now().add(const Duration(seconds: 5));
+    while ((await w4Values()).isNotEmpty && DateTime.now().isBefore(undoBy)) {
+      await _pause(tester, 200);
+    }
     expect(await w4Values(), isEmpty, reason: 'Undo left values behind');
     _mark('INFO:prefill undo ok');
-    await _waitFor(tester, find.text(l10n.prefillFill));
-    await tester.tap(find.text(l10n.prefillFill));
+    // Then from the bar.
+    await _waitFor(tester, find.byKey(barFill));
+    await tester.tap(find.byKey(barFill));
     await _pause(tester, 1500);
+    expect((await w4Values()).length, filled.length);
+    _mark('INFO:prefill bar + bottom button ok');
     // Let the snackbar go before the next taps.
     ScaffoldMessenger.of(
       tester.element(find.byType(FillModeScreen)),

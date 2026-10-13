@@ -20,6 +20,7 @@ import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
 import 'package:scan_sign_send/features/library/presentation/library_screen.dart';
+import 'package:scan_sign_send/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:scan_sign_send/l10n/app_localizations.dart';
 import 'package:scan_sign_send/shared/widgets/field_box.dart';
 import 'package:scan_sign_send/core/utils/router.dart';
@@ -109,6 +110,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
+    await prefs.setStringList(kTourPagesSeen, kTourPageIds);
     FilePicker.platform = _DemoPicker();
 
     // main() installs its own FlutterError.onError and ErrorWidget.builder; the
@@ -214,9 +216,10 @@ void main() {
 
     // PreFill: the bar offers the rest of the matching fields; one tap.
     _mark('BEAT:prefill');
-    await _waitFor(tester, find.text(l10n.prefillFill));
+    await _waitFor(tester, find.byKey(const ValueKey('prefill-fill-bar')));
     await _pause(tester, _video ? 1200 : 300);
-    await tester.tap(find.text(l10n.prefillFill));
+    await _capture(tester, 'prefill_offer');
+    await tester.tap(find.byKey(const ValueKey('prefill-fill-bar')));
     await _pause(tester, _video ? 1800 : 600);
     ScaffoldMessenger.of(
       tester.element(find.text(l10n.fillReviewAndFinish)),
@@ -317,9 +320,11 @@ void main() {
 
       // App Review screenshot for the Full Access in-app purchase.
       final nav = tester.state<NavigatorState>(find.byType(Navigator).last);
-      unawaited(nav.push(
-        MaterialPageRoute<void>(builder: (_) => const PaywallScreen()),
-      ));
+      unawaited(
+        nav.push(
+          MaterialPageRoute<void>(builder: (_) => const PaywallScreen()),
+        ),
+      );
       await _waitFor(tester, find.byType(PaywallScreen));
       await _pause(tester, 1500);
       await _capture(tester, 'paywall');
