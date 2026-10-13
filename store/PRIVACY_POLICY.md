@@ -1,6 +1,6 @@
 # Privacy Policy — Scan Sign Send
 
-Effective: 26 September 2026
+Effective: 13 October 2026
 
 Publisher: ADAK Ventures LLC
 
