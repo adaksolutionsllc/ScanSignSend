@@ -24,6 +24,8 @@ import tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "build", "store_capture", "raw")
 OUT = os.path.join(ROOT, "ios", "fastlane", "screenshots")
+# Google Play: supply's layout, phone screenshots in file-name order.
+PLAY_OUT = os.path.join(ROOT, "android", "fastlane", "metadata", "android")
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 # Shots in store order: the strongest (auto-detection) first.
@@ -33,6 +35,19 @@ SHOTS = ["detect", "fill", "sign", "pdf", "library"]
 DEVICES = {
     "iPhone_17_Pro_Max": dict(size=(1320, 2868), device_w=0.84, radius=0.13),
     "iPad_Pro_13-inch_(M5)": dict(size=(2064, 2752), device_w=0.78, radius=0.035),
+    # Google Play phone: 9:16 at 1080px (≤2:1, and promotion-eligible). The
+    # emulator's taller screen sits narrower under the caption.
+    "Android_Phone": dict(size=(1080, 1920), device_w=0.84, radius=0.07, store="play"),
+}
+
+PLAY_LOCALES = {
+    "en": ["en-US"],
+    "fr": ["fr-FR"],
+    "es": ["es-ES", "es-419"],
+    "pt": ["pt-BR"],
+    "hi": ["hi-IN"],
+    "ta": ["ta-IN"],
+    "te": ["te-IN"],
 }
 
 ASC_LOCALES = {
@@ -172,11 +187,17 @@ def frame(device: str, spec: dict, lang: str, raw_dir: str) -> list[str]:
             glow=round(w * 1.3), glow_top=round(h * 0.25),
             title=html.escape(title), sub=html.escape(sub),
             img=base64.b64encode(open(src, "rb").read()).decode())
-        for loc in ASC_LOCALES[lang]:
-            d = os.path.join(OUT, loc)
+        play = spec.get("store") == "play"
+        locales = (PLAY_LOCALES if play else ASC_LOCALES)[lang]
+        for loc in locales:
+            if play:
+                d = os.path.join(PLAY_OUT, loc, "images", "phoneScreenshots")
+                out = os.path.join(d, f"{n:02d}_{shot}.png")
+            else:
+                d = os.path.join(OUT, loc)
+                out = os.path.join(d, f"{n:02d}_{shot}_{device}.png")
             os.makedirs(d, exist_ok=True)
-            out = os.path.join(d, f"{n:02d}_{shot}_{device}.png")
-            if loc == ASC_LOCALES[lang][0]:
+            if loc == locales[0]:
                 render(doc, w, h, out)
                 first = out
             else:
@@ -194,9 +215,16 @@ def main() -> int:
         for lang in CAPTIONS:
             ldir = os.path.join(ddir, lang)
             if os.path.isdir(ldir):
+                if spec.get("store") == "play":
+                    # Replace the language's Play set, never add to it.
+                    for loc in PLAY_LOCALES[lang]:
+                        old = os.path.join(PLAY_OUT, loc, "images", "phoneScreenshots")
+                        if os.path.isdir(old):
+                            shutil.rmtree(old)
                 total += len(frame(device, spec, lang, ldir))
                 print(f"{device} {lang}")
-    print(f"{total} screenshots in {os.path.relpath(OUT, ROOT)}")
+    print(f"{total} screenshots in {os.path.relpath(OUT, ROOT)} and "
+          f"{os.path.relpath(PLAY_OUT, ROOT)}/*/images")
     return 0
 
 

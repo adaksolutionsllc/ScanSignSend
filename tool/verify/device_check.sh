@@ -124,6 +124,11 @@ run() {  # run <test file> [flutter test args...]
       shot "$OUT/$(printf %02d "$n")_${BASH_REMATCH[1]}.png"
     elif [[ "$line" == *NEED:w4* ]]; then
       provide
+    elif [[ "$line" == *NEED:form* ]]; then
+      # The store flow's demo form, into the app's cache (Android only).
+      adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \
+        sh -c 'cat > cache/Rental_Application.pdf' \
+        < tool/store_capture/forms/Rental_Application.pdf
     elif [[ "$line" =~ LEAVE:([a-z0-9_]+) ]]; then
       # The app is about to leave for another app: shoot that, then return.
       n=$((n + 1))
@@ -143,13 +148,11 @@ if [[ $FULL == --full && $status == 0 ]]; then
     trap - EXIT; restore  # capture.sh sets itself up
     tool/store_capture/capture.sh "$DEV" en || status=$?
   else
-    # The emulator can't read the Mac's files: push the demo form to the
-    # app-readable public Download folder.
+    # The emulator can't read the Mac's files: the test asks (NEED:form)
+    # and run() copies the demo form into the app's cache.
     python3 tool/store_capture/make_forms.py >/dev/null
-    adb -s "$DEV" push tool/store_capture/forms/Rental_Application.pdf \
-      /sdcard/Download/Rental_Application.pdf >/dev/null
     run integration_test/store_capture_test.dart \
-      --dart-define=FORM=/sdcard/Download/Rental_Application.pdf \
+      --dart-define=FORM=cache:Rental_Application.pdf \
       --dart-define=MODE=stills || status=$?
   fi
 fi

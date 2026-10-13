@@ -53,6 +53,29 @@ platform :android do
     )
   end
 
+  # Phone screenshots in every language, framed by
+  # tool/store_capture/frame.py into metadata/android/<locale>/images/
+  # phoneScreenshots (each language's set replaces what Play has). Nothing
+  # else. VALIDATE_ONLY=1 checks the edit without saving it.
+  desc "Upload the Play phone screenshots (all languages)"
+  lane :play_screenshots do
+    build = File.read("../../pubspec.yaml")[/^version:\s*[\d.]+\+(\d+)/, 1]
+    upload_to_play_store(
+      package_name: "com.adakventures.scansignsend",
+      track: "production",
+      version_code: build.to_i,
+      json_key: ENV["GOOGLE_PLAY_JSON_KEY"],
+      metadata_path: "./fastlane/metadata/android",
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: false,
+      validate_only: ENV["VALIDATE_ONLY"] == "1",
+    )
+  end
+
   desc "Promote the pubspec build from internal to production (manual)"
   lane :promote_to_production do
     # Name the build explicitly: with a draft newer release on internal,

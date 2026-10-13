@@ -16,6 +16,20 @@ python3 tool/store_capture/make_preview.py   # -> build/store_capture/preview/en
 python3 scripts/appstore_metadata.py         # -> ios/fastlane/metadata/ (from store/listings)
 ```
 
+Google Play (phone screenshots, 1080×1920, all 7 languages):
+
+```bash
+tool/store_capture/capture_android.sh emulator-5554 en fr es pt hi ta te
+python3 tool/store_capture/frame.py          # also -> android/fastlane/metadata/android/<locale>/images/phoneScreenshots/
+cd android && VALIDATE_ONLY=1 fastlane play_screenshots   # dry run, then without VALIDATE_ONLY
+python3 scripts/play_listing.py && cd android && fastlane play_listing   # listing text
+```
+
+The emulator's language can't be switched from a script, so the test sets
+the app's (`--dart-define=LOCALE`); the demo form goes into the app's cache
+(`NEED:form`), since the emulator can't read the Mac's files. The status bar
+runs in demo mode (9:41) for the capture.
+
 UDIDs: `xcrun simctl list devices` — use an *iPhone 17 Pro Max* (1320×2868,
 the 6.9" slot) and an *iPad Pro 13-inch* (2064×2752).
 

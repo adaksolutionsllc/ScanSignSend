@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
@@ -30,7 +31,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 
 /// Host path of the demo form (the simulator can read the Mac's filesystem).
+/// On the Android emulator, which can't, `cache:<name>`: the test asks with
+/// `NEED:form` and capture_android.sh copies the form into the app's cache.
 const _form = String.fromEnvironment('FORM');
+
+/// The demo form's path on the device, once it's there.
+String _formPath = _form;
+
+/// The app's language for the run (e.g. `fr`), where the device's own can't
+/// be switched from a script (the Android emulator). Empty: the device's.
+const _locale = String.fromEnvironment('LOCALE');
 
 /// `video` paces the run for the preview recording; `stills` is quick.
 const _mode = String.fromEnvironment('MODE', defaultValue: 'stills');
@@ -88,7 +98,7 @@ class _DemoPicker extends FilePicker {
     bool lockParentWindow = false,
     bool readSequential = false,
   }) async {
-    final f = File(_form);
+    final f = File(_formPath);
     return FilePickerResult([
       PlatformFile(
         path: f.path,
@@ -107,11 +117,27 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('store capture', (tester) async {
+    if (_locale.isNotEmpty) {
+      binding.platformDispatcher.localesTestValue = [Locale(_locale)];
+      binding.platformDispatcher.localeTestValue = Locale(_locale);
+    }
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
     await prefs.setStringList(kTourPagesSeen, kTourPageIds);
     FilePicker.platform = _DemoPicker();
+    if (_form.startsWith('cache:')) {
+      final tmp = await getTemporaryDirectory();
+      final f = File('${tmp.path}/${_form.substring(6)}');
+      _mark('NEED:form');
+      final until = DateTime.now().add(const Duration(seconds: 30));
+      while (!f.existsSync() || f.lengthSync() == 0) {
+        if (DateTime.now().isAfter(until)) fail('the demo form was not provided');
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      _formPath = f.path;
+    }
 
     // main() installs its own FlutterError.onError and ErrorWidget.builder; the
     // test binding needs its own back so failures are reported instead of tripping an assert.
@@ -195,6 +221,8 @@ void main() {
     _mark('BEAT:fill');
     await tester.tap(find.text(l10n.detectFillFields(fields.length)));
     await _waitFor(tester, find.text(l10n.fillReviewAndFinish));
+    // The page renders before its field boxes appear (slower on Android).
+    await _waitFor(tester, find.byType(FieldBox));
     await _pause(tester, _video ? 1200 : 600);
 
     // Field boxes are built in field order.
@@ -221,9 +249,12 @@ void main() {
     await _capture(tester, 'prefill_offer');
     await tester.tap(find.byKey(const ValueKey('prefill-fill-bar')));
     await _pause(tester, _video ? 1800 : 600);
+    // The "N fields filled · Undo" bar comes once the fill has landed: wait
+    // for it, then clear it at once (a hide still animates into the shot).
+    await _waitFor(tester, find.byType(SnackBar), seconds: 10);
     ScaffoldMessenger.of(
       tester.element(find.text(l10n.fillReviewAndFinish)),
-    ).hideCurrentSnackBar();
+    ).clearSnackBars();
     await _pause(tester, _video ? 400 : 300);
 
     // What My Details doesn't hold — income, start date — typed as usual.
@@ -302,11 +333,24 @@ void main() {
     if (!_video) {
       await tester.tap(find.text(l10n.sendSaveAsTemplate));
       await _pause(tester, 1500);
+      // Its "Saved to Templates" snackbar would sit over the PDF shot.
+      ScaffoldMessenger.of(
+        tester.element(find.text(l10n.sendPreviewDocument)),
+      ).clearSnackBars();
+      await _pause(tester, 500);
     }
 
     _mark('BEAT:pdf');
     await tester.tap(find.text(l10n.sendPreviewDocument));
-    await _pause(tester, 3000);
+    await _pause(tester, 1500);
+    // The viewer shows a spinner until the PDF is drawn (slower on Android
+    // and with Indic text).
+    final drawnBy = DateTime.now().add(const Duration(seconds: 20));
+    while (find.byType(CircularProgressIndicator).evaluate().isNotEmpty &&
+        DateTime.now().isBefore(drawnBy)) {
+      await _pause(tester, 250);
+    }
+    await _pause(tester, 1500);
     await _capture(tester, 'pdf');
     _mark('REC:stop');
 
