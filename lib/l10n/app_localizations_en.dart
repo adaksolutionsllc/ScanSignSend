@@ -80,7 +80,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardSignBody =>
-      'Tap fields to fill them in. Add your signature with your finger. Your data never leaves your device.';
+      'Tap fields to fill them in. Add your signature with your finger. Your documents are saved only on this device.';
 
   @override
   String get onboardSendTitle => 'Send';
@@ -1092,4 +1092,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardPrefillBody =>
       'Fields are found and labelled for you. Save your details once in My Details, and PreFill fills the matching fields. Saved only on this device.';
+
+  @override
+  String get tourWhatsNew => 'What\'s new';
+
+  @override
+  String get tourGotIt => 'Got it';
+
+  @override
+  String get settingsTour => 'App tour';
+
+  @override
+  String get settingsTourSubtitle => 'See what Scan Sign Send can do';
 }

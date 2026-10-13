@@ -81,7 +81,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get onboardSignBody =>
-      'फ़ील्ड भरने के लिए उन पर टैप करें। अपनी उँगली से हस्ताक्षर जोड़ें। आपका डेटा कभी भी आपके डिवाइस से बाहर नहीं जाता।';
+      'फ़ील्ड भरने के लिए उन पर टैप करें। अपनी उँगली से हस्ताक्षर जोड़ें। आपके दस्तावेज़ सिर्फ़ इसी डिवाइस पर सहेजे जाते हैं।';
 
   @override
   String get onboardSendTitle => 'भेजें';
@@ -1098,4 +1098,17 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get onboardPrefillBody =>
       'फ़ील्ड अपने-आप पहचाने और नामित किए जाते हैं। मेरा विवरण में अपना विवरण एक बार सहेजें, और PreFill मिलते-जुलते फ़ील्ड भर देगा। सिर्फ़ इसी डिवाइस पर सहेजा जाता है।';
+
+  @override
+  String get tourWhatsNew => 'नया क्या है';
+
+  @override
+  String get tourGotIt => 'ठीक है';
+
+  @override
+  String get settingsTour => 'ऐप का परिचय';
+
+  @override
+  String get settingsTourSubtitle =>
+      'देखें कि Scan Sign Send क्या-क्या कर सकता है';
 }

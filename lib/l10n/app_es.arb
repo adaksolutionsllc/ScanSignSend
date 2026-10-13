@@ -23,7 +23,7 @@
   "onboardScanTitle": "Escanear",
   "onboardScanBody": "Usa la cámara para escanear cualquier documento en papel. Detecta los bordes y limpia la imagen automáticamente.",
   "onboardSignTitle": "Firmar",
-  "onboardSignBody": "Toca los campos para rellenarlos. Añade tu firma con el dedo. Tus datos nunca salen de tu dispositivo.",
+  "onboardSignBody": "Toca los campos para rellenarlos. Añade tu firma con el dedo. Tus documentos se guardan solo en este dispositivo.",
   "onboardSendTitle": "Enviar",
   "onboardSendBody": "Comparte el PDF firmado por correo, mensajería o cualquier app. Pago único: documentos ilimitados para siempre.",
   "onboardGetStarted": "Empezar",
@@ -310,5 +310,9 @@
   "prefillSetupAction": "Añadir",
   "prefillSuggestions": "De Mis datos",
   "onboardPrefillTitle": "Rellena formularios con un toque",
-  "onboardPrefillBody": "Los campos se detectan y se nombran solos. Guarda tus datos una vez en Mis datos y PreFill rellena los campos que coinciden. Se guardan solo en este dispositivo."
+  "onboardPrefillBody": "Los campos se detectan y se nombran solos. Guarda tus datos una vez en Mis datos y PreFill rellena los campos que coinciden. Se guardan solo en este dispositivo.",
+  "tourWhatsNew": "Novedades",
+  "tourGotIt": "Entendido",
+  "settingsTour": "Recorrido por la app",
+  "settingsTourSubtitle": "Descubre lo que hace Scan Sign Send"
 }

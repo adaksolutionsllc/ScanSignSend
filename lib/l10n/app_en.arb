@@ -29,7 +29,7 @@
   "onboardScanTitle": "Scan",
   "onboardScanBody": "Use your camera to scan any paper document. Auto-detects edges and cleans up the image automatically.",
   "onboardSignTitle": "Sign",
-  "onboardSignBody": "Tap fields to fill them in. Add your signature with your finger. Your data never leaves your device.",
+  "onboardSignBody": "Tap fields to fill them in. Add your signature with your finger. Your documents are saved only on this device.",
   "onboardSendTitle": "Send",
   "onboardSendBody": "Share the signed PDF by email, messaging or any app. One-time purchase — unlimited documents forever.",
   "onboardGetStarted": "Get Started",
@@ -593,5 +593,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "tourWhatsNew": "What's new",
+  "tourGotIt": "Got it",
+  "settingsTour": "App tour",
+  "settingsTourSubtitle": "See what Scan Sign Send can do"
 }

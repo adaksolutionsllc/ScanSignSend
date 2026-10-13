@@ -23,7 +23,7 @@
   "onboardScanTitle": "Digitalizar",
   "onboardScanBody": "Use a câmara para digitalizar qualquer documento em papel. Deteta os limites e limpa a imagem automaticamente.",
   "onboardSignTitle": "Assinar",
-  "onboardSignBody": "Toque nos campos para os preencher. Adicione a sua assinatura com o dedo. Os seus dados nunca saem do dispositivo.",
+  "onboardSignBody": "Toque nos campos para os preencher. Adicione a sua assinatura com o dedo. Os seus documentos ficam guardados apenas neste dispositivo.",
   "onboardSendTitle": "Enviar",
   "onboardSendBody": "Compartilhe o PDF assinado por e-mail, mensagem ou qualquer app. Compra única — documentos ilimitados para sempre.",
   "onboardGetStarted": "Começar",
@@ -310,5 +310,9 @@
   "prefillSetupAction": "Adicionar",
   "prefillSuggestions": "De Os meus dados",
   "onboardPrefillTitle": "Preencha formulários com um toque",
-  "onboardPrefillBody": "Os campos são detetados e identificados automaticamente. Guarde os seus dados uma vez em Os meus dados e o PreFill preenche os campos correspondentes. Guardados apenas neste dispositivo."
+  "onboardPrefillBody": "Os campos são detetados e identificados automaticamente. Guarde os seus dados uma vez em Os meus dados e o PreFill preenche os campos correspondentes. Guardados apenas neste dispositivo.",
+  "tourWhatsNew": "Novidades",
+  "tourGotIt": "Entendido",
+  "settingsTour": "Visita guiada",
+  "settingsTourSubtitle": "Veja o que o Scan Sign Send faz"
 }

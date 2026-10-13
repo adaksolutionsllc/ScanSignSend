@@ -81,7 +81,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get onboardSignBody =>
-      'புலங்களைத் தட்டி நிரப்புங்கள். விரலால் உங்கள் கையொப்பத்தைச் சேர்க்கவும். உங்கள் தரவு ஒருபோதும் சாதனத்தை விட்டு வெளியேறாது.';
+      'புலங்களைத் தட்டி நிரப்புங்கள். விரலால் உங்கள் கையொப்பத்தைச் சேர்க்கவும். உங்கள் ஆவணங்கள் இந்தச் சாதனத்தில் மட்டுமே சேமிக்கப்படும்.';
 
   @override
   String get onboardSendTitle => 'அனுப்பு';
@@ -1101,4 +1101,17 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get onboardPrefillBody =>
       'புலங்கள் தானாகக் கண்டறியப்பட்டுப் பெயரிடப்படும். என் விவரங்களில் உங்கள் விவரங்களை ஒருமுறை சேமித்தால், PreFill பொருந்தும் புலங்களை நிரப்பும். இந்தச் சாதனத்தில் மட்டுமே சேமிக்கப்படும்.';
+
+  @override
+  String get tourWhatsNew => 'புதியவை';
+
+  @override
+  String get tourGotIt => 'சரி';
+
+  @override
+  String get settingsTour => 'ஆப் சுற்றுப்பார்வை';
+
+  @override
+  String get settingsTourSubtitle =>
+      'Scan Sign Send என்ன செய்யும் என்று பாருங்கள்';
 }

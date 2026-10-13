@@ -81,7 +81,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardSignBody =>
-      'Toca los campos para rellenarlos. Añade tu firma con el dedo. Tus datos nunca salen de tu dispositivo.';
+      'Toca los campos para rellenarlos. Añade tu firma con el dedo. Tus documentos se guardan solo en este dispositivo.';
 
   @override
   String get onboardSendTitle => 'Enviar';
@@ -1098,4 +1098,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get onboardPrefillBody =>
       'Los campos se detectan y se nombran solos. Guarda tus datos una vez en Mis datos y PreFill rellena los campos que coinciden. Se guardan solo en este dispositivo.';
+
+  @override
+  String get tourWhatsNew => 'Novedades';
+
+  @override
+  String get tourGotIt => 'Entendido';
+
+  @override
+  String get settingsTour => 'Recorrido por la app';
+
+  @override
+  String get settingsTourSubtitle => 'Descubre lo que hace Scan Sign Send';
 }

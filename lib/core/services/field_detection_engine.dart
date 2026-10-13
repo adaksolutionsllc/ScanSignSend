@@ -255,7 +255,7 @@ class FieldDetectionEngine {
           _Field(
             FieldType.checkbox,
             _box(w.box.left, w.box.top, side / layout.aspect, side),
-            _cleanLabel(_wordsAfter(l, w.box)),
+            _checkboxLabel(l, w.box),
           ),
         );
       }
@@ -613,6 +613,33 @@ class FieldDetectionEngine {
       .map((w) => w.text)
       .join(' ')
       .replaceAll(LayoutLine.blankRun, ' ');
+
+  /// A checkbox's text is what follows it on the line, up to the next box
+  /// ("☐ I have pets  ☐ Non-smoking household" → "I have pets"), not the
+  /// last words of the line — that's the next box's text.
+  static String _checkboxLabel(LayoutLine line, Rect glyph) {
+    final after = line.words
+        .where((w) => w.box.left >= glyph.right - 0.002)
+        .toList()
+      ..sort((a, b) => a.box.left.compareTo(b.box.left));
+    final words = <String>[];
+    for (final w in after) {
+      final t = w.text.trim();
+      if (_checkboxGlyph.hasMatch(t)) break;
+      if (t.isNotEmpty) words.add(t);
+    }
+    var label = words
+        .join(' ')
+        .replaceAll(LayoutLine.blankRun, ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(RegExp(r'[\s,:;.\-–—]+$'), '')
+        .trim();
+    if (label.length > 40) {
+      final cut = label.lastIndexOf(' ', 40);
+      label = label.substring(0, cut > 0 ? cut : 40);
+    }
+    return label;
+  }
 
   static String _lastWords(String s, int n) {
     final parts = s.trim().split(RegExp(r'\s+'));

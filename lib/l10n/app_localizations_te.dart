@@ -81,7 +81,7 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get onboardSignBody =>
-      'ఫీల్డ్‌లను నొక్కి పూరించండి. మీ వేలితో సంతకం జోడించండి. మీ డేటా ఎప్పుడూ మీ పరికరాన్ని విడిచిపెట్టదు.';
+      'ఫీల్డ్‌లను నొక్కి పూరించండి. మీ వేలితో సంతకం జోడించండి. మీ పత్రాలు ఈ పరికరంలో మాత్రమే సేవ్ అవుతాయి.';
 
   @override
   String get onboardSendTitle => 'పంపు';
@@ -1102,4 +1102,16 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get onboardPrefillBody =>
       'ఫీల్డ్‌లు ఆటోమేటిక్‌గా గుర్తించబడి, పేర్లు పెట్టబడతాయి. నా వివరాలలో మీ వివరాలను ఒకసారి సేవ్ చేస్తే, PreFill సరిపోలే ఫీల్డ్‌లను నింపుతుంది. ఈ పరికరంలో మాత్రమే సేవ్ అవుతాయి.';
+
+  @override
+  String get tourWhatsNew => 'కొత్తవి';
+
+  @override
+  String get tourGotIt => 'సరే';
+
+  @override
+  String get settingsTour => 'యాప్ పరిచయం';
+
+  @override
+  String get settingsTourSubtitle => 'Scan Sign Send ఏమేమి చేయగలదో చూడండి';
 }

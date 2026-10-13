@@ -290,6 +290,47 @@ void main() {
     });
   });
 
+  test('two checkboxes on one line each get their own text', () {
+    final layout = PageLayout(
+      lines: ocrLayout(
+        _ocr([
+          (
+            const Rect.fromLTRB(100, 600, 900, 620),
+            [
+              ('☐', const Rect.fromLTRB(100, 600, 120, 620)),
+              ('I', const Rect.fromLTRB(130, 600, 136, 620)),
+              ('have', const Rect.fromLTRB(140, 600, 190, 620)),
+              ('pets', const Rect.fromLTRB(195, 600, 240, 620)),
+              ('☐', const Rect.fromLTRB(500, 600, 520, 620)),
+              ('Non-smoking', const Rect.fromLTRB(530, 600, 650, 620)),
+              ('household', const Rect.fromLTRB(655, 600, 760, 620)),
+            ],
+          ),
+        ]),
+      ),
+      rules: const [],
+      aspect: 1000 / 1414,
+    );
+    final labels = [
+      for (final f in _engine.detect(layout).fields)
+        if (f.type == FieldType.checkbox) f.label,
+    ];
+    expect(labels, ['I have pets', 'Non-smoking household']);
+  });
+
+  test('the demo rental form: one checkbox per item, each with its text', () {
+    final r = _detectPdf('tool/store_capture/forms/Rental_Application.pdf', 0);
+    final labels = [
+      for (final f in r.fields)
+        if (f.type == FieldType.checkbox) f.label,
+    ]..sort();
+    expect(labels, [
+      'I have pets',
+      'Non-smoking household',
+      'Parking space needed',
+    ]);
+  });
+
   test('line detector finds a free line, ignores text, underlines and boxes', () {
     final image = img.Image(width: 1000, height: 1414)
       ..clear(img.ColorRgb8(255, 255, 255));

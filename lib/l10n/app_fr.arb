@@ -23,7 +23,7 @@
   "onboardScanTitle": "Numériser",
   "onboardScanBody": "Utilisez votre appareil photo pour numériser n'importe quel document papier. Les bords sont détectés et l'image est nettoyée automatiquement.",
   "onboardSignTitle": "Signer",
-  "onboardSignBody": "Touchez les champs pour les remplir. Ajoutez votre signature du bout du doigt. Vos données ne quittent jamais votre appareil.",
+  "onboardSignBody": "Touchez les champs pour les remplir. Ajoutez votre signature du bout du doigt. Vos documents sont enregistrés uniquement sur cet appareil.",
   "onboardSendTitle": "Envoyer",
   "onboardSendBody": "Partagez le PDF signé par e-mail, messagerie ou toute autre app. Achat unique — documents illimités pour toujours.",
   "onboardGetStarted": "Commencer",
@@ -310,5 +310,9 @@
   "prefillSetupAction": "Ajouter",
   "prefillSuggestions": "Depuis Mes informations",
   "onboardPrefillTitle": "Remplissez vos formulaires d’un geste",
-  "onboardPrefillBody": "Les champs sont repérés et nommés pour vous. Enregistrez vos informations une fois dans Mes informations, et PreFill remplit les champs correspondants. Enregistrées uniquement sur cet appareil."
+  "onboardPrefillBody": "Les champs sont repérés et nommés pour vous. Enregistrez vos informations une fois dans Mes informations, et PreFill remplit les champs correspondants. Enregistrées uniquement sur cet appareil.",
+  "tourWhatsNew": "Nouveautés",
+  "tourGotIt": "Compris",
+  "settingsTour": "Visite de l’app",
+  "settingsTourSubtitle": "Découvrez ce que fait Scan Sign Send"
 }

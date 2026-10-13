@@ -249,7 +249,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardSignBody.
   ///
   /// In en, this message translates to:
-  /// **'Tap fields to fill them in. Add your signature with your finger. Your data never leaves your device.'**
+  /// **'Tap fields to fill them in. Add your signature with your finger. Your documents are saved only on this device.'**
   String get onboardSignBody;
 
   /// No description provided for @onboardSendTitle.
@@ -1973,6 +1973,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fields are found and labelled for you. Save your details once in My Details, and PreFill fills the matching fields. Saved only on this device.'**
   String get onboardPrefillBody;
+
+  /// No description provided for @tourWhatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get tourWhatsNew;
+
+  /// No description provided for @tourGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get tourGotIt;
+
+  /// No description provided for @settingsTour.
+  ///
+  /// In en, this message translates to:
+  /// **'App tour'**
+  String get settingsTour;
+
+  /// No description provided for @settingsTourSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See what Scan Sign Send can do'**
+  String get settingsTourSubtitle;
 }
 
 class _AppLocalizationsDelegate
