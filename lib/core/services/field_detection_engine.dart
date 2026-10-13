@@ -125,6 +125,19 @@ class FieldDetectionEngine {
         in formLike
             ? _wordGaps(lines, layout.aspect, textSize)
             : const <({Rect rect, LayoutLine line})>[]) {
+      // A blank is empty: never a field over words already printed there
+      // (lines whose boxes overlap, as wrapped table cells can).
+      if (lines.any(
+        (l) => l.words.any(
+          (w) =>
+              !LayoutLine.blankRun.hasMatch(w.text) &&
+              _hOverlap(w.box, gap.rect) > w.box.width * 0.5 &&
+              w.box.top < gap.rect.bottom - lineH * 0.25 &&
+              w.box.bottom > gap.rect.top + lineH * 0.25,
+        ),
+      )) {
+        continue;
+      }
       if (found.any(
         (c) =>
             _hOverlap(c.rect, gap.rect) > 0 &&
@@ -521,10 +534,32 @@ class FieldDetectionEngine {
             LayoutLine.blankRun.hasMatch(next)) {
           continue;
         }
-        final labelled = prev.endsWith(':');
+        // "…jointly):" ends a sentence; it isn't a label.
+        final labelled = prev.endsWith(':') && !prev.endsWith('):');
         final midSentence =
             _continues.hasMatch(next) && !_endsSentence.hasMatch(prev);
         if (!labelled && !midSentence) continue;
+        // A "Label:" gap is trusted. An unlabelled one needs more: the page
+        // furniture, tables and columns of invoices and letters are full of
+        // wide gaps that are layout, not blanks.
+        if (!labelled) {
+          // Header and footer bands: URLs, page numbers, print dates.
+          if (line.box.top < 0.06 || line.box.bottom > 0.94) continue;
+          // The word before must read as a label: a real word, not a URL,
+          // an email, an amount or a code.
+          if (!_wordLike.hasMatch(prev)) continue;
+          // What follows must carry the sentence on: a lowercase word, or a
+          // short plain number ("aged ___ 42"), not a date or an amount.
+          if (!_continuesSentence.hasMatch(next)) continue;
+          // A column gutter: other lines have a word starting where this
+          // gap ends, or ending where the next word ends (right-aligned
+          // columns: dates, amounts).
+          if (_aligned(lines, line, (w) => w.box.left, b.box.left) ||
+              (i + 2 == words.length &&
+                  _aligned(lines, line, (w) => w.box.right, b.box.right))) {
+            continue;
+          }
+        }
         yield (
           rect: Rect.fromLTRB(
             a.box.right + pad,
@@ -539,7 +574,8 @@ class FieldDetectionEngine {
       // Short only — "…declare on oath that:" ends a sentence, not a label.
       if (words.isNotEmpty &&
           words.length <= 4 &&
-          words.last.text.trim().endsWith(':')) {
+          words.last.text.trim().endsWith(':') &&
+          !words.last.text.trim().endsWith('):')) {
         final last = words.last.box;
         final right = (last.right + 0.4).clamp(0.0, 0.92);
         if (right - last.right > 0.12) {
@@ -555,6 +591,33 @@ class FieldDetectionEngine {
         }
       }
     }
+  }
+
+  static final _wordLike = RegExp(
+    r"^[\p{L}\p{M}][\p{L}\p{M}'’\-]*[,]?$",
+    unicode: true,
+  );
+  static final _continuesSentence = RegExp(
+    r'^(\p{Ll}|\d{1,4}[,.]?$)',
+    unicode: true,
+  );
+
+  /// Whether at least two other lines have a word whose [edge] is at [x]
+  /// (within half a percent of the page width): a column.
+  static bool _aligned(
+    List<LayoutLine> lines,
+    LayoutLine line,
+    double Function(LayoutWord w) edge,
+    double x,
+  ) {
+    var n = 0;
+    for (final l in lines) {
+      if (identical(l, line)) continue;
+      if (l.words.any((w) => (edge(w) - x).abs() < 0.005)) {
+        if (++n >= 2) return true;
+      }
+    }
+    return false;
   }
 
   static double? _median(List<double> xs) {
@@ -618,10 +681,9 @@ class FieldDetectionEngine {
   /// ("☐ I have pets  ☐ Non-smoking household" → "I have pets"), not the
   /// last words of the line — that's the next box's text.
   static String _checkboxLabel(LayoutLine line, Rect glyph) {
-    final after = line.words
-        .where((w) => w.box.left >= glyph.right - 0.002)
-        .toList()
-      ..sort((a, b) => a.box.left.compareTo(b.box.left));
+    final after =
+        line.words.where((w) => w.box.left >= glyph.right - 0.002).toList()
+          ..sort((a, b) => a.box.left.compareTo(b.box.left));
     final words = <String>[];
     for (final w in after) {
       final t = w.text.trim();

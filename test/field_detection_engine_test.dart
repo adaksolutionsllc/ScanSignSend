@@ -397,6 +397,225 @@ void main() {
     );
   });
 
+  test('an invoice: table columns, header and footer get no fields', () {
+    // Shaped like a real invoice (made-up business and customer): a header
+    // with text beside a logo, a bill-to block with dates on the right, a
+    // table (Description / Rate / Qty / Amount) with wrapped descriptions,
+    // and a footer URL with the print date. Table borders count as drawn
+    // lines, which makes the page look form-like — the hard case.
+    final doc = PdfDocument();
+    doc.pageSettings.size = const Size(612, 792);
+    doc.pageSettings.margins.all = 0;
+    final page = doc.pages.add();
+    final font = PdfStandardFont(PdfFontFamily.helvetica, 9);
+    final right = PdfStringFormat(alignment: PdfTextAlignment.right);
+    void at(double x, double y, String t, {bool alignRight = false}) =>
+        page.graphics.drawString(
+          t,
+          font,
+          brush: PdfSolidBrush(PdfColor(0, 0, 0)),
+          bounds: alignRight
+              ? Rect.fromLTWH(x - 120, y, 120, 12)
+              : Rect.fromLTWH(x, y, 400, 12),
+          format: alignRight ? right : null,
+        );
+    at(60, 60, 'Northwind Builders LLC');
+    at(60, 76, 'Jordan Lee');
+    at(60, 90, 'Business Number 5550104477');
+    at(60, 104, 'jordan.lee@example.com');
+    at(470, 104, '555-010-4477'); // text inside the logo
+    at(60, 150, 'BILL TO');
+    at(560, 150, 'DATE', alignRight: true);
+    at(60, 164, 'Sam Rivera');
+    at(560, 164, '04/06/2026', alignRight: true);
+    at(60, 178, '12 Example Way, Springfield 00000');
+    at(560, 190, 'DUE DATE', alignRight: true);
+    at(560, 204, '04/06/2026', alignRight: true);
+    at(72, 240, 'DESCRIPTION');
+    at(440, 240, 'RATE', alignRight: true);
+    at(500, 240, 'QTY');
+    at(590, 240, 'AMOUNT', alignRight: true);
+    const rows = [
+      (
+        'Framing',
+        r'$3,000.00',
+        'Framing of the rear walls, including a new door frame.',
+      ),
+      (
+        'Drywall',
+        r'$10,000.00',
+        'Installation of drywall, with all joints and sanding.',
+      ),
+      (
+        'Flooring',
+        r'$6,000.00',
+        'Surface preparation of the entire living space.',
+      ),
+      (
+        'Lighting',
+        r'$5,000.00',
+        'Installation of recessed light fixtures and switches.',
+      ),
+      (
+        'Paint',
+        r'$1,000.00',
+        'Painted the entire base to achieve a finished appearance.',
+      ),
+      ('Plumbing', r'$1,150.00', 'Installation of a new toilet and sink.'),
+    ];
+    var y = 262.0;
+    for (final (item, rate, desc) in rows) {
+      at(72, y, item);
+      at(440, y, rate, alignRight: true);
+      at(500, y, '1');
+      at(590, y, rate, alignRight: true);
+      at(72, y + 13, desc);
+      y += 40;
+    }
+    at(40, 770, 'https://app.example.com/v/abc123XYZ');
+    at(500, 770, '4/7/26, 9:54 AM');
+    final path =
+        '${Directory.systemTemp.path}/sss_invoice_${DateTime.now().microsecondsSinceEpoch}.pdf';
+    File(path).writeAsBytesSync(doc.saveSync());
+    doc.dispose();
+
+    final (lines, aspect) = pdfTextLayout((path, 0))!;
+    File(path).deleteSync();
+    final r = _engine.detect(
+      PageLayout(
+        lines: lines,
+        // A table border under the header row.
+        rules: const [Rect.fromLTRB(0.1, 0.32, 0.92, 0.321)],
+        aspect: aspect,
+      ),
+    );
+    expect([for (final f in r.fields) '${f.type.name} "${f.label}"'], isEmpty);
+  });
+
+  test('a table row gap (rate, then qty) is a column, not a blank', () {
+    // Each row: an amount, a wide gap, the quantity, then the total close
+    // by — the gap stands out on its own line, but every row has it.
+    final layout = PageLayout(
+      lines: ocrLayout(
+        _ocr([
+          for (var row = 0; row < 5; row++)
+            (
+              Rect.fromLTWH(100, 400.0 + row * 50, 800, 24),
+              [
+                ('Item', Rect.fromLTWH(100, 400.0 + row * 50, 60, 24)),
+                ('cost', Rect.fromLTWH(170, 400.0 + row * 50, 50, 24)),
+                ('total', Rect.fromLTWH(230, 400.0 + row * 50, 60, 24)),
+                ('due', Rect.fromLTWH(300, 400.0 + row * 50, 40, 24)),
+                ('now', Rect.fromLTWH(560, 400.0 + row * 50, 40, 24)),
+                ('ok', Rect.fromLTWH(610, 400.0 + row * 50, 30, 24)),
+              ],
+            ),
+        ]),
+      ),
+      // A table border right under the first row (an underline, not a
+      // blank), which makes the page look form-like.
+      rules: const [Rect.fromLTRB(0.1, 0.2996, 0.9, 0.3003)],
+      aspect: 1000 / 1414,
+    );
+    expect([
+      for (final f in _engine.detect(layout).fields)
+        '${f.type.name} "${f.label}" x=${f.bbox.x.toStringAsFixed(3)} y=${f.bbox.y.toStringAsFixed(3)}',
+    ], isEmpty);
+  });
+
+  group('unlabelled gaps need a reason to be a blank', () {
+    // One line of words (x positions in a 1000-wide page) at [y], on a page
+    // made form-like by an underline elsewhere; returns the fields found.
+    List<String> detectLine(double y, List<(String, double, double)> words) {
+      final layout = PageLayout(
+        lines: ocrLayout(
+          _ocr([
+            (
+              Rect.fromLTRB(words.first.$2, y, words.last.$3, y + 20),
+              [
+                for (final (t, l, r) in words)
+                  (t, Rect.fromLTRB(l, y, r, y + 20)),
+              ],
+            ),
+            // An underlined heading: form-like, but itself no blank.
+            (
+              const Rect.fromLTRB(100, 300, 300, 320),
+              [('Application', const Rect.fromLTRB(100, 300, 300, 320))],
+            ),
+          ]),
+        ),
+        rules: const [Rect.fromLTRB(0.1, 0.2264, 0.3, 0.2268)],
+        aspect: 1000 / 1414,
+      );
+      return [for (final f in _engine.detect(layout).fields) f.label];
+    }
+
+    test('the same sentence mid-page is a blank (control)', () {
+      expect(
+        detectLine(700, [
+          ('I', 100, 110),
+          ('am', 120, 150),
+          ('aged', 160, 210),
+          ('years', 500, 560),
+          ('old', 570, 610),
+        ]),
+        ['aged'],
+      );
+    });
+
+    test('in the footer band it is not', () {
+      expect(
+        detectLine(1360, [
+          ('I', 100, 110),
+          ('am', 120, 150),
+          ('aged', 160, 210),
+          ('years', 500, 560),
+          ('old', 570, 610),
+        ]),
+        isEmpty,
+      );
+    });
+
+    test('after an email address or a URL it is not', () {
+      expect(
+        detectLine(700, [
+          ('Write', 100, 160),
+          ('to', 170, 190),
+          ('sam@example.com', 200, 380),
+          ('for', 640, 670),
+          ('help', 680, 730),
+        ]),
+        isEmpty,
+      );
+    });
+
+    test('before a date or an amount it is not', () {
+      expect(
+        detectLine(700, [
+          ('Bill', 100, 140),
+          ('to', 150, 170),
+          ('Sam', 180, 220),
+          ('Rivera', 230, 300),
+          ('04/06/2026', 640, 760),
+        ]),
+        isEmpty,
+      );
+    });
+
+    test('after a colon that ends a sentence it is not', () {
+      expect(
+        detectLine(700, [
+          ('Married', 100, 180),
+          ('filing', 190, 250),
+          ('jointly):', 260, 350),
+          ('enter', 640, 700),
+          ('both', 710, 760),
+        ]),
+        isEmpty,
+      );
+    });
+  });
+
   test('an article with headings and a "following:" line has no fields', () {
     // Shaped like a help page: paragraphs, short title-case headings after
     // white space, a sentence ending in a colon and a "(Note:" aside.
