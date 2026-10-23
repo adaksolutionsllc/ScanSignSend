@@ -1,8 +1,9 @@
 # Ease of use (1.3.0) — plan
 
 Status: **draft for review** (2026-10-23). Nothing here is built yet.
-Arun, 2026-10-23: **one release** (1.3.0); documents should be **sorted
-automatically by what they are**, using on-device intelligence (§3.9).
+Arun, 2026-10-23: **one release** (1.3.0). Documents are **sorted
+automatically by what they are**: by the on-device language model where the
+phone has one, otherwise by keyword rules (§3.9).
 
 ## 1. Goal
 
@@ -48,7 +49,7 @@ free tier stays at 2 finished documents of up to 2 pages each
 
 ## 3. How it works
 
-One release, 1.3.0 (≈ 15–16 days). The headings below group the work;
+One release, 1.3.0 (≈ 17–18 days). The headings below group the work;
 each item lists its size in days, with tests and 7 locales included.
 Password protection (§3.12) is built last because a spike gates it. If
 the spike fails, that item drops without holding the release.
@@ -153,7 +154,7 @@ boxes and add a one-line "status as of 2026-10-23" note (B3 still deferred).
   final; there the menu offers "Use as template" or merge instead.
 - Free users get the page-limit prompt when the total would go over 2.
 
-#### 3.9 Categories, assigned automatically (3 d)
+#### 3.9 Categories, assigned automatically (5 d)
 One concept instead of folders *and* tags: every document has one
 **category**. The app picks it from the document's text; the user can change
 it, or create their own categories, which then work like folders.
@@ -162,13 +163,23 @@ it, or create their own categories, which then work like folders.
   breaks them): Tax · Bank & money · Insurance · Medical · Home & rental ·
   Work · School · ID & travel · Agreements & legal · Bills & receipts ·
   Other. User-created ones are added to the list.
-- **How it decides, on every device:** a keyword classifier over the
-  document's text, built like `PrefillMatcher` (phrase lists per category ×
-  the Latin-script locales, weighted, with the title and page 1 counting
-  most). Examples: "W-9", "1040", "PAN", "Form 16", "IRS", "impôt" → Tax;
-  "lease", "tenant", "landlord", "rental", "bail" → Home & rental. It only
-  assigns a category when one clearly wins; otherwise the document stays
-  **Uncategorised**. A wrong category is worse than none.
+- **How it decides:** one Dart interface, `DocumentClassifier.classify(title,
+  text) → categoryKey?`, with two engines behind it:
+  1. **On-device language model, where the phone has one.** On iOS this is
+     Apple's Foundation Models; on Android it's Gemini Nano through ML Kit's
+     Prompt API (§3.9a). The model gets the title plus the first ~2,000
+     characters and must answer with one built-in key or `none`
+     (structured output, so free text is impossible).
+  2. **Keyword rules everywhere else**, and whenever the model is unavailable,
+     busy, over quota or errors. Built like `PrefillMatcher` (phrase lists per
+     category × the Latin-script locales, weighted, with the title and page 1
+     counting most). Examples: "W-9", "1040", "PAN", "Form 16", "IRS",
+     "impôt" → Tax; "lease", "tenant", "landlord", "rental", "bail" → Home &
+     rental.
+
+  Both engines may say "not sure". The document then stays
+  **Uncategorised**, because a wrong category is worse than none. Learned
+  hints (below) are checked first and win over both engines.
 - **Text source:** scans use the page-1 OCR that auto-naming (§3.2) already
   runs, plus the detection OCR when there is one. Imported PDFs use their text
   layer (`PdfTextExtractor`, already used in `page_layout_service.dart`) and
@@ -195,63 +206,57 @@ it, or create their own categories, which then work like folders.
 - **Multi-select** in the Library (long-press → select): Change category,
   Merge, Delete.
 
-**Why not an on-device language model for this.** Apple's Foundation Models
-need iOS 26 on an iPhone 15 Pro or newer, and Android's Gemini Nano Prompt API
-is an alpha, limited to a short list of flagships (Pixel 9/10, some Samsung,
-OnePlus, Xiaomi and others). Most users would get nothing. The same document
-could also land in different categories on two phones, and results can't be
-pinned by tests. The keyword classifier works offline on every device, is
-explainable and is testable against the sample forms. If its accuracy
-on real documents turns out poor, a model can be added later as an *optional
-upgrade* behind the same `classify(text) → category?` interface on devices
-that have one, without changing the UI.
+Accepted trade-off: the same document can get different categories on two
+phones (model vs keywords). The user's own choice always wins, and nothing is
+shared between phones, so nobody sees both results.
 
-#### 3.10 Merge and split (2 d)
-- **Merge:** select 2 or more documents → Merge → a new draft with their pages
-  in selection order (user can reorder in Review) and every field copied with
-  its `pageIndex` offset. The originals are kept. The user can delete them.
-  - Completed (flattened) documents join as imported pages of their
-    exported PDF (`path#page=N` refs), with no fields.
-  - Page files are referenced, not copied, so the existing
-    `_isFolderStillReferenced` / unreferenced-file checks in
-    `DocumentRepository` must cover the shared files. That needs a test that
-    deletes an original and then opens the merge.
-- **Split / Extract pages:** in Review, select pages → "Extract to new
-  document" (copy, original untouched) or "Split here". Fields go with
-  their page.
-- AcroForm fields from an imported form keep their `pdfFieldName`. When two
-  merged forms share a field name, the second one's name is given a suffix
-  on export so the live form doesn't link them.
+#### 3.9a The on-device model channel
+Facts checked 2026-10-23:
+- **Apple Foundation Models:** iOS 26+, Apple Intelligence devices only
+  (iPhone 15 Pro and newer), with Apple Intelligence switched on. The
+  supported languages include English, French, Spanish and Portuguese, but
+  **not Hindi**. Developers report that the model is unavailable when the
+  *device* language is unsupported, so a phone set to Hindi, Tamil or Telugu
+  falls back to keywords.
+- **ML Kit Prompt API (Gemini Nano):** **still beta** (1.0.0-beta4, July
+  2026; there is no stable release). Android API 26+, input under 4,000 tokens,
+  "AICore enforces an inference quota per app", and it doesn't work on devices
+  with an unlocked bootloader. `checkStatus()` returns AVAILABLE /
+  DOWNLOADABLE / DOWNLOADING / UNAVAILABLE. Supported phones are recent
+  flagships (Pixel 9/10, some Samsung, OnePlus, Xiaomi, etc.).
 
-#### 3.11 Smaller files (1 d)
-- **Always:** the press and fillable exports downscale scanned pages to 200
-  dpi at the page size (an A4 page is ≈ 1654×2339 px) and re-encode at JPEG
-  q85. Scanned documents should shrink a lot with no visible loss; measure
-  it with the 10-page Phase 1 test batch before settling the numbers.
-- **On Send:** a "Smaller file" switch (150 dpi, q65; grayscale if the page
-  filter is B&W) that writes a separate copy for sharing. The Send screen
-  shows the file size for both options ("2.1 MB → 640 KB").
-- Imported vector PDFs aren't recompressed. The switch is hidden when nothing
-  can shrink.
-
-#### 3.12 Password-protected PDF (1.5 d)
-- The Send screen gets a "Password-protect" switch: enter it twice, a
-  "can't be recovered" note, and a minimum of 6 characters. It writes an
-  AES-256 encrypted copy for sharing only. The password is **never stored**,
-  and the in-app copy stays unencrypted (it's already behind app lock and the
-  sandbox).
-- **iOS: use PDFKit** (`PDFDocument.write(to:withOptions:)` with
-  `userPasswordOption`/`ownerPasswordOption`) through a small method
-  channel. That's the OS's encryption, which keeps the export-compliance
-  answer simple (§4).
-- **Android: Syncfusion `PdfSecurity`** (AES-256). No questionnaire applies,
-  but see the legal flag.
-- **Spike first (0.5 d, gates the item):** confirm that a *fillable* export
-  encrypted by PDFKit still opens and fills in Acrobat, Preview and Chrome.
-  PDFKit rewrites the file and may drop AcroForm appearances. If it fails,
-  password protection applies only to completed (flattened) PDFs on iOS.
-- Wording: "Password-protect" / "Anyone opening this PDF needs the password".
-  Never "secure", "encrypted to military grade" or "unbreakable".
+Design:
+- Reuse the existing `com.scansignsend/ai_enhancer` channel, renamed
+  `com.scansignsend/on_device_ai`, with methods `isAvailable` and
+  `classifyDocument`. The field-detection `enhance` stub goes (§3.14).
+  Update CLAUDE.md's channel table.
+- **iOS:** `import FoundationModels` behind `if #available(iOS 26, *)`. The
+  deployment target stays 15.0 (local Xcode is 27.1, and CI uses
+  latest-stable). `isAvailable` = `SystemLanguageModel.default.availability
+  == .available`. A `@Generable enum DocumentCategory` gives guided
+  generation, so the answer is always a valid key. Session instructions: "Pick
+  the category for this document, or none if unsure."
+- **Android:** a Kotlin handler in `MainActivity` using
+  `com.google.mlkit:genai-prompt` with structured output (beta3+). It's used
+  only when `checkStatus() == AVAILABLE`, and the app never starts a model
+  download itself. This raises **minSdk from 24 (Flutter default) to 26**
+  (Android 8.0), dropping Android 7.x phones. That needs your sign-off (§6).
+- **When it runs:** after a document is saved, in the foreground, one
+  document at a time, with a timeout (about 10 s), then keyword fallback. On
+  upgrade, it classifies the 20 most recent documents with the model (quota)
+  and the rest with keywords.
+- **Settings:** a "Sort documents automatically" switch (default on), shown
+  on every device; the model is an internal detail. No "AI" badge on
+  devices without it, and nothing implies those phones are missing a
+  feature.
+- **Testing:** Dart tests use a fake channel (model answers, `none`,
+  timeout, error → keyword fallback). For accuracy, a tool script runs
+  both engines over the sample forms in `tool/store_capture/forms`, plus
+  10–15 more labelled samples (tax, lease, medical, insurance, bank, school).
+  Target: correct or Uncategorised for ≥ 90%, wrong ≤ 10%, for each engine.
+  It needs one Apple Intelligence iPhone (or the simulator on a Mac with Apple
+  Intelligence on) and one supported Android phone. Without the Android phone,
+  the Android model path ships off (see §6).
 
 ### Learning and AI
 
@@ -269,16 +274,13 @@ that have one, without changing the UI.
 - It's cleared by the existing "Clear learned hints" control in Settings
   (renamed to cover both), and also by "Delete my details".
 
-#### 3.14 AI field detection — park it, remove the stub
-The plan is to stop carrying a stub. (§3.9 keeps a
-`classify` interface a model could plug into later, so nothing is lost.) Apple's on-device model needs iOS 26 on
-Apple Intelligence hardware (a small share of users, none on Android). The
-heuristics plus learning (FieldHints, PrefillHints) already give the
-"gets smarter" story offline on every device. Remove
-`AiFieldEnhancerPlugin.swift`, `AiEnhancerService` and the
-`aiEnhancedDetection` column. That column stays in the schema (drift can't
-drop it cheaply), unused. Update CLAUDE.md's Phase 5 line to "parked".
-This can be revisited when Android has an equivalent.
+#### 3.14 AI field detection — remove the stub
+The field-detection `enhance` method and `AiEnhancerService` go. The channel
+itself lives on for categories (§3.9a). Field detection stays heuristic plus
+learning (FieldHints, PrefillHints), which works on every device. The
+`aiEnhancedDetection` column stays in the schema unused (drift can't drop it
+cheaply). Update CLAUDE.md's Phase 5 line: "on-device model used for
+document categories; field detection stays heuristic."
 
 ## 4. Store review — risks and mitigations
 
@@ -290,7 +292,10 @@ This can be revisited when Android has an equivalent.
 | 4 | Listing over-claims ("secure", "protects your documents") | 2.3 / Play Misrepresentation | Wording table below. |
 | 5 | New file types received on Android | Play: no permission needed for shared content URIs | No new permissions. Data safety is unchanged (nothing leaves the device). |
 | 6 | Typed-signature font licence | — | OFL font with its licence file bundled, registered with `LicenseRegistry`, and a new Settings → Support → Licences row (`showLicensePage`); there's no such row today. |
-| 7 | Privacy policy | Apple 5.1.1 / Play User Data | PrefillHints, categories and CategoryHints stay on the device. Add one line ("the app remembers which of your details you choose for a form label, on this device only") to the My Details section. |
+| 8 | Reviewer can't see model sorting (no Apple Intelligence on the review device) | 2.1(a) Reviewability | Sorting works on every device via keywords, so there's nothing hidden. The review notes say it uses the on-device model where available and keywords otherwise. |
+| 9 | Trademarks in metadata | 2.3.7 / Play Metadata | Don't name Apple Intelligence or Gemini in the listing or keywords. |
+| 10 | Foundation Models acceptable use | Apple's acceptable-use requirements for the framework | Classifying the user's own document into fixed categories is an ordinary use. Re-read the requirements at build time. |
+| 7 | Privacy policy | Apple 5.1.1 / Play User Data | PrefillHints, categories and CategoryHints stay on the device, and the on-device model runs on the phone (document text is never sent anywhere). Add one line ("the app remembers which of your details you choose for a form label, on this device only") to the My Details section. |
 
 **Wording rules** (all 7 locales; translations must not make the claim stronger):
 
@@ -301,6 +306,7 @@ This can be revisited when Android has an equivalent.
 | Legally binding typed signature | Type your signature |
 | Smart AI naming / AI detection | Names your scan from its title |
 | AI sorts your documents / understands your documents | Sorts your documents into categories you can change |
+| Apple Intelligence / Gemini (in name, subtitle, keywords, short description) | (nothing; describe the result, not the model) |
 | Fully accessible | Supports larger text and VoiceOver (only what's declared) |
 | Compresses without any loss | Smaller file for email |
 
@@ -318,13 +324,14 @@ One release, 1.3.0. Each phase ends with the pre-commit review routine
    `categoryId` + `categoryManual`, `CategoryHints`, `PrefillHints`, with a
    migration test from v8. Summary text fix and Workbench doc tidy (§3.1).
 2. **Text and sorting:** page-1 OCR after save, auto-naming (§3.2), the
-   category classifier and its tests on the sample forms (§3.9 logic, no UI).
+   keyword classifier and its tests (§3.9), then the `on_device_ai` channel
+   on iOS and Android with the fallback tests and the accuracy script (§3.9a).
 3. **Filling:** Next field (§3.3), typed signature (§3.4), PreFill learning
    (§3.13).
 4. **Library:** category chips, change category, multi-select (§3.9 UI),
    add pages (§3.8), merge and split with the delete-safety test (§3.10).
 5. **Getting files in and out:** quick actions and receiving images (§3.6–3.7),
-   smaller files (§3.11), removing the AI stub (§3.14).
+   smaller files (§3.11), removing the field-detection stub (§3.14).
 6. **Accessibility pass (§3.5)** across *all* the new screens. It goes last
    so it covers everything that shipped in phases 1–5.
 7. **PDFKit spike, then password protection (§3.12).** Dropped from 1.3.0
@@ -337,20 +344,27 @@ One release, 1.3.0. Each phase ends with the pre-commit review routine
 
 **Decided (Arun, 2026-10-23):**
 - One release (1.3.0).
-- Documents are sorted automatically by what they are. The plan uses
-  categories (one per document, auto-assigned and changeable, user can add
-  their own) instead of manual folders or multiple tags (§3.9).
+- Documents are sorted automatically into categories (one per document,
+  changeable, user can add their own) instead of manual folders or tags.
+- Sorting uses the on-device language model where available, and keyword
+  rules otherwise (§3.9, §3.9a).
 
 Open, with my recommendation:
 
-1. **How documents are sorted.** Recommend a keyword classifier on every
-   device rather than an on-device language model (§3.9, last paragraph).
-2. **iOS Share Extension.** Recommend not now; images from Files only on
+1. **Android model path while the Prompt API is beta.** Recommend shipping
+   it, guarded (AVAILABLE only, timeout, keyword fallback on any error),
+   *if* it's tested on a supported Android phone. Without one, ship iOS model
+   + Android keywords and turn Android on in a point release.
+2. **Raise Android minSdk 24 → 26.** This is required by the Prompt API.
+   Recommend yes (Android 7.x is a very small share). Check Play Console's
+   device catalogue for current installs on API 24–25 first.
+3. **Test devices.** Which Apple Intelligence iPhone and which supported
+   Android phone can be used for the accuracy run?
+4. **iOS Share Extension.** Recommend not now; images from Files only on
    iOS (§3.7).
-3. **AI detection stub.** Recommend removing it (§3.14).
-4. **Accessibility labels.** Recommend declaring only the features that pass
+5. **Accessibility labels.** Recommend declaring only the features that pass
    testing. VoiceOver goes in only after a full device run.
-5. **Password on iOS through PDFKit.** Recommend yes. The spike decides
+6. **Password on iOS through PDFKit.** Recommend yes. The spike decides
    whether it covers fillable PDFs too.
-6. **Default compression on every export.** Recommend yes, after measuring
+7. **Default compression on every export.** Recommend yes, after measuring
    on the Phase 1 batch. It changes the output of existing flows.
