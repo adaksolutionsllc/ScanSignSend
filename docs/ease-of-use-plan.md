@@ -1,6 +1,8 @@
-# Ease of use (1.3.0 and 1.4.0) — plan
+# Ease of use (1.3.0) — plan
 
 Status: **draft for review** (2026-10-23). Nothing here is built yet.
+Arun, 2026-10-23: **one release** (1.3.0); documents should be **sorted
+automatically by what they are**, using on-device intelligence (§3.9).
 
 ## 1. Goal
 
@@ -46,10 +48,12 @@ free tier stays at 2 finished documents of up to 2 pages each
 
 ## 3. How it works
 
-Grouped into two releases. Each item lists its size in days, with tests and
-7 locales included.
+One release, 1.3.0 (≈ 15–16 days). The headings below group the work;
+each item lists its size in days, with tests and 7 locales included.
+Password protection (§3.12) is built last because a spike gates it. If
+the spike fails, that item drops without holding the release.
 
-### Release 1.3.0 — "faster filling" (≈ 6–7 days)
+### Faster filling
 
 #### 3.1 Fix the summary text (0.25 d)
 Replace the English `field(s)` with a plural ICU key
@@ -139,7 +143,7 @@ boxes and add a one-line "status as of 2026-10-23" note (B3 still deferred).
   (new target, App Group, extra signing profiles in fastlane) is not worth its
   maintenance cost yet. That gets revisited if users ask for it.
 
-### Release 1.4.0 — "a real library" (≈ 7–8 days)
+### A real library
 
 #### 3.8 Add pages to an existing document (1.5 d)
 - Review and the document menu get **Add pages** → scanner or photo import.
@@ -149,18 +153,58 @@ boxes and add a one-line "status as of 2026-10-23" note (B3 still deferred).
   final; there the menu offers "Use as template" or merge instead.
 - Free users get the page-limit prompt when the total would go over 2.
 
-#### 3.9 Folders (2 d)
-- One level of folders (no nesting, no tags). Most people sort by
-  life area ("Tax 2026", "House", "Kids' school"), and tags add choices
-  without adding value at this size.
-- Schema v9/v10 adds a `Folders` table (`id`, `name`, `createdAt`) and a
-  nullable `Documents.folderId`. Deleting a folder moves its documents back to
-  "No folder"; it **never deletes documents**.
-- The Library gets a folder row of chips above the status tabs (All · Tax 2026 ·
-  House · +). Tabs and search work inside the chosen folder. "Move to folder"
-  goes in the long-press menu and in multi-select.
-- **Multi-select** in the Library (long-press → select): Move, Merge, Delete.
-- Search also matches the folder name.
+#### 3.9 Categories, assigned automatically (3 d)
+One concept instead of folders *and* tags: every document has one
+**category**. The app picks it from the document's text; the user can change
+it, or create their own categories, which then work like folders.
+
+- **Built-in categories** (translated, fixed keys so a language switch never
+  breaks them): Tax · Bank & money · Insurance · Medical · Home & rental ·
+  Work · School · ID & travel · Agreements & legal · Bills & receipts ·
+  Other. User-created ones are added to the list.
+- **How it decides, on every device:** a keyword classifier over the
+  document's text, built like `PrefillMatcher` (phrase lists per category ×
+  the Latin-script locales, weighted, with the title and page 1 counting
+  most). Examples: "W-9", "1040", "PAN", "Form 16", "IRS", "impôt" → Tax;
+  "lease", "tenant", "landlord", "rental", "bail" → Home & rental. It only
+  assigns a category when one clearly wins; otherwise the document stays
+  **Uncategorised**. A wrong category is worse than none.
+- **Text source:** scans use the page-1 OCR that auto-naming (§3.2) already
+  runs, plus the detection OCR when there is one. Imported PDFs use their text
+  layer (`PdfTextExtractor`, already used in `page_layout_service.dart`) and
+  fall back to OCR. Hindi/Tamil/Telugu text isn't OCR'd (ML Kit Latin only),
+  so those documents stay Uncategorised unless they contain English (as
+  most Indian government and bank forms do).
+- **The user is in charge:** a category chip on each card ("Tax ✎") changes
+  it in one tap. Once set by hand, the app never changes it again
+  (`Documents.categoryManual`). Its "Changed by you" tooltip makes the
+  automatic ones distinguishable for screen readers.
+- **It learns:** when a user changes an automatic category, the document's
+  distinctive title words are recorded against the chosen category in
+  `CategoryHints` (same threshold-of-2 rule as `FieldHints`). Cleared by the
+  same Settings control.
+- **Schema v9:** `Categories` (`id`, `builtInKey?`, `name?`, `createdAt`),
+  `Documents.categoryId` (nullable) and `Documents.categoryManual`. Built-ins
+  are seeded in the migration, and existing documents are classified once in
+  the background after upgrade. Deleting a user category moves its documents to
+  Uncategorised and **never deletes documents**.
+- **Library:** a chip row above the status tabs (All · Tax · Medical · … · +),
+  showing only categories that have documents. Tabs and search work inside the
+  chosen category, and search matches category names. Long-press menu and
+  multi-select: **Change category**.
+- **Multi-select** in the Library (long-press → select): Change category,
+  Merge, Delete.
+
+**Why not an on-device language model for this.** Apple's Foundation Models
+need iOS 26 on an iPhone 15 Pro or newer, and Android's Gemini Nano Prompt API
+is an alpha, limited to a short list of flagships (Pixel 9/10, some Samsung,
+OnePlus, Xiaomi and others). Most users would get nothing. The same document
+could also land in different categories on two phones, and results can't be
+pinned by tests. The keyword classifier works offline on every device, is
+explainable and is testable against the sample forms. If its accuracy
+on real documents turns out poor, a model can be added later as an *optional
+upgrade* behind the same `classify(text) → category?` interface on devices
+that have one, without changing the UI.
 
 #### 3.10 Merge and split (2 d)
 - **Merge:** select 2 or more documents → Merge → a new draft with their pages
@@ -211,7 +255,7 @@ boxes and add a one-line "status as of 2026-10-23" note (B3 still deferred).
 
 ### Learning and AI
 
-#### 3.13 PreFill learns from your picks (1.5 d, can ship in either release)
+#### 3.13 PreFill learns from your picks (1.5 d)
 - When the user picks one of their own details from a field's suggestion
   chips (e.g. picks *Phone* for a field labelled "Contact no."), record the
   normalised phrase → slot. Undoing or clearing a PreFilled value records a
@@ -226,7 +270,8 @@ boxes and add a one-line "status as of 2026-10-23" note (B3 still deferred).
   (renamed to cover both), and also by "Delete my details".
 
 #### 3.14 AI field detection — park it, remove the stub
-The plan is to stop carrying a stub. Apple's on-device model needs iOS 26 on
+The plan is to stop carrying a stub. (§3.9 keeps a
+`classify` interface a model could plug into later, so nothing is lost.) Apple's on-device model needs iOS 26 on
 Apple Intelligence hardware (a small share of users, none on Android). The
 heuristics plus learning (FieldHints, PrefillHints) already give the
 "gets smarter" story offline on every device. Remove
@@ -245,7 +290,7 @@ This can be revisited when Android has an equivalent.
 | 4 | Listing over-claims ("secure", "protects your documents") | 2.3 / Play Misrepresentation | Wording table below. |
 | 5 | New file types received on Android | Play: no permission needed for shared content URIs | No new permissions. Data safety is unchanged (nothing leaves the device). |
 | 6 | Typed-signature font licence | — | OFL font with its licence file bundled, registered with `LicenseRegistry`, and a new Settings → Support → Licences row (`showLicensePage`); there's no such row today. |
-| 7 | Privacy policy | Apple 5.1.1 / Play User Data | PrefillHints and folders stay on the device. Add one line ("the app remembers which of your details you choose for a form label, on this device only") to the My Details section. |
+| 7 | Privacy policy | Apple 5.1.1 / Play User Data | PrefillHints, categories and CategoryHints stay on the device. Add one line ("the app remembers which of your details you choose for a form label, on this device only") to the My Details section. |
 
 **Wording rules** (all 7 locales; translations must not make the claim stronger):
 
@@ -255,6 +300,7 @@ This can be revisited when Android has an equivalent.
 | Unbreakable, military-grade | (nothing; just the password note) |
 | Legally binding typed signature | Type your signature |
 | Smart AI naming / AI detection | Names your scan from its title |
+| AI sorts your documents / understands your documents | Sorts your documents into categories you can change |
 | Fully accessible | Supports larger text and VoiceOver (only what's declared) |
 | Compresses without any loss | Smaller file for email |
 
@@ -265,44 +311,46 @@ acceptable for a given use. The app makes no claim either way.
 
 ## 5. Build phases
 
-Each phase ends with the pre-commit review routine (analyze, tests,
-simulator + emulator run, screenshots).
+One release, 1.3.0. Each phase ends with the pre-commit review routine
+(analyze, tests, simulator + emulator run, screenshots).
 
-**1.3.0**
-1. Summary text fix + Workbench doc tidy (§3.1). Schema v9 with `titleEdited`
-   and auto-naming (§3.2).
-2. Next-field filling (§3.3) and typed signature (§3.4).
-3. Accessibility pass (§3.5), then the quick actions and receiving images
-   (§3.6–3.7).
-4. PreFill learning (§3.13) and removing the AI stub (§3.14).
-5. Store: What's New ×7, review notes, privacy policy line, accessibility
-   labels in App Store Connect. Store screenshots: one new caption
-   ("Fill field by field") is worth regenerating; the rest can stay.
-
-**1.4.0**
-1. Schema v10: Folders and `folderId`. Add pages (§3.8).
-2. Library folders and multi-select (§3.9).
-3. Merge and split (§3.10), plus the delete-safety test.
-4. Smaller files (§3.11). PDFKit spike, then password protection (§3.12).
-5. Store: What's New, review notes, re-answer the encryption questionnaire,
-   screenshots (a Library-with-folders shot).
+1. **Schema v9 in one migration:** `Documents.titleEdited`, `Categories` +
+   `categoryId` + `categoryManual`, `CategoryHints`, `PrefillHints`, with a
+   migration test from v8. Summary text fix and Workbench doc tidy (§3.1).
+2. **Text and sorting:** page-1 OCR after save, auto-naming (§3.2), the
+   category classifier and its tests on the sample forms (§3.9 logic, no UI).
+3. **Filling:** Next field (§3.3), typed signature (§3.4), PreFill learning
+   (§3.13).
+4. **Library:** category chips, change category, multi-select (§3.9 UI),
+   add pages (§3.8), merge and split with the delete-safety test (§3.10).
+5. **Getting files in and out:** quick actions and receiving images (§3.6–3.7),
+   smaller files (§3.11), removing the AI stub (§3.14).
+6. **Accessibility pass (§3.5)** across *all* the new screens. It goes last
+   so it covers everything that shipped in phases 1–5.
+7. **PDFKit spike, then password protection (§3.12).** Dropped from 1.3.0
+   if the spike fails.
+8. **Store:** What's New ×7, review notes for every new path, privacy policy
+   line, re-answer the encryption questionnaire, accessibility labels, and
+   screenshots (Library with categories, "Fill field by field").
 
 ## 6. Decisions
 
+**Decided (Arun, 2026-10-23):**
+- One release (1.3.0).
+- Documents are sorted automatically by what they are. The plan uses
+  categories (one per document, auto-assigned and changeable, user can add
+  their own) instead of manual folders or multiple tags (§3.9).
+
 Open, with my recommendation:
 
-1. **Two releases or one?** Recommend two: 1.3.0 (filling and accessibility,
-   about a week) and then 1.4.0 (library and export). Each one is smaller to
-   test and review, and there's something to show sooner.
-2. **Folders or tags?** Recommend one level of folders (§3.9).
-3. **iOS Share Extension.** Recommend not now; images from Files only on
+1. **How documents are sorted.** Recommend a keyword classifier on every
+   device rather than an on-device language model (§3.9, last paragraph).
+2. **iOS Share Extension.** Recommend not now; images from Files only on
    iOS (§3.7).
-4. **AI detection.** Recommend removing the stub and parking the idea (§3.14).
-5. **Accessibility labels.** Recommend declaring only the features that pass
+3. **AI detection stub.** Recommend removing it (§3.14).
+4. **Accessibility labels.** Recommend declaring only the features that pass
    testing. VoiceOver goes in only after a full device run.
-6. **Password on iOS through PDFKit.** Recommend yes. It keeps the
-   export-compliance answer simple. The PDFKit spike decides whether it also
-   covers fillable PDFs.
-7. **Default compression on every export** (not just the switch).
-   Recommend yes, after measuring on the Phase 1 batch. It changes the output
-   of existing flows, so it needs your go-ahead.
+5. **Password on iOS through PDFKit.** Recommend yes. The spike decides
+   whether it covers fillable PDFs too.
+6. **Default compression on every export.** Recommend yes, after measuring
+   on the Phase 1 batch. It changes the output of existing flows.
