@@ -219,6 +219,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String autoDocumentTitle(String title, String date) {
+    return '$title – $date';
+  }
+
+  @override
   String get reviewTitle => 'Revisar páginas';
 
   @override
@@ -407,10 +412,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pressFieldSummary => 'Resumen de campos';
 
   @override
-  String get pressFilled => 'Rellenado';
+  String pressFilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count campos rellenados',
+      one: '1 campo rellenado',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get pressUnfilled => 'Sin rellenar';
+  String pressUnfilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count campos sin rellenar',
+      one: '1 campo sin rellenar',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get pressSaveDraft => 'Guardar borrador';

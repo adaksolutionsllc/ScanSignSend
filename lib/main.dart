@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/services/document_sorter.dart';
 import 'core/services/backup_service.dart';
 import 'core/services/iap_service.dart';
 import 'core/services/import_service.dart';
@@ -187,6 +188,8 @@ class _MainAppState extends ConsumerState<_MainApp> {
     service.start();
     // Forms imported before 1.1.0 show internal field names; relabel them.
     unawaited(ref.read(importServiceProvider).relabelLegacyAcroforms());
+    // Documents from before categories existed are sorted once.
+    unawaited(ref.read(documentSorterProvider).backfillOnce());
   }
 
   @override

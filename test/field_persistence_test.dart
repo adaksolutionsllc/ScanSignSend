@@ -11,13 +11,11 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/models/field_model.dart';
-import 'package:scan_sign_send/core/services/ai_enhancer_service.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/field_hints.dart';
 import 'package:scan_sign_send/core/services/ocr_service.dart';
 import 'package:scan_sign_send/core/services/page_layout_service.dart';
 import 'package:scan_sign_send/core/services/page_raster_service.dart';
-import 'package:scan_sign_send/core/services/profile_repository.dart';
 import 'package:scan_sign_send/features/field_detection/presentation/field_detection_notifier.dart';
 import 'package:scan_sign_send/shared/widgets/page_canvas.dart';
 
@@ -26,7 +24,6 @@ FieldDetectionNotifier _editor(AppDatabase db, int docId) =>
       docId: docId,
       layouts: PageLayoutService(OcrService(), PageRasterService()),
       hintRepo: FieldHintRepository(db),
-      aiEnhancer: AiEnhancerService(ProfileRepository(db)),
       docRepo: DocumentRepository(db),
       pageRepo: PageRepository(db),
       fieldRepo: FieldRepository(db),

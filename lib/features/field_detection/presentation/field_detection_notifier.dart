@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/painting.dart' show Offset;
@@ -7,7 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
-import '../../../core/services/ai_enhancer_service.dart';
+import '../../../core/services/document_sorter.dart';
 import '../../../core/services/field_detection_engine.dart';
 import '../../../core/services/field_hints.dart';
 import '../../../core/services/page_layout.dart';
@@ -135,10 +137,10 @@ final fieldDetectionNotifierProvider = StateNotifierProvider.autoDispose
         docId: docId,
         layouts: ref.watch(pageLayoutServiceProvider),
         hintRepo: ref.watch(fieldHintRepositoryProvider),
-        aiEnhancer: ref.watch(aiEnhancerServiceProvider),
         docRepo: ref.watch(documentRepositoryProvider),
         pageRepo: ref.watch(pageRepositoryProvider),
         fieldRepo: ref.watch(fieldRepositoryProvider),
+        sorter: ref.watch(documentSorterProvider),
       ),
     );
 
@@ -153,16 +155,19 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
     required this.docId,
     required this.layouts,
     required this.hintRepo,
-    required this.aiEnhancer,
     required this.docRepo,
     required this.pageRepo,
     required this.fieldRepo,
+    this.sorter,
   }) : super(const FieldDetectionState());
 
   final int docId;
   final PageLayoutService layouts;
   final FieldHintRepository hintRepo;
-  final AiEnhancerService aiEnhancer;
+  static final _engine = FieldDetectionEngine();
+
+  /// Sorts a still-Uncategorised document once every page has been read.
+  final DocumentSorter? sorter;
 
   /// Page layouts analysed this session, by page position — the text a
   /// user-placed field sits after, for learning.
@@ -213,7 +218,7 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
           final (layout, text) = await layouts.analyse(pages[i].imagePath);
           _layoutCache[i] = layout;
           pageTexts.add(text);
-          final result = await aiEnhancer.detect(layout, hints: hints);
+          final result = _engine.detect(layout, hints: hints);
           if (result.textSize != null) textSizes.add(result.textSize!);
           for (final d in result.fields) {
             detected.add(
@@ -257,6 +262,7 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
           updatedAt: Value(DateTime.now()),
         ),
       );
+      unawaited(sorter?.afterDetection(docId));
 
       if (!mounted) return;
       state = state.copyWith(

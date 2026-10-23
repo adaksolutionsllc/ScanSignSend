@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +11,7 @@ import 'dart:io';
 
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/document_sorter.dart';
 import '../../../core/services/import_service.dart';
 import '../../../core/services/opened_file_service.dart';
 import '../../../core/services/free_usage_service.dart';
@@ -81,6 +85,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     // Resolve the localized default title first: everything below runs past an
     // async gap, where reading `context` is unsafe.
     _defaultTitle = context.l10n.captureDefaultDocumentName(_dateStamp());
+    _nameFor = _namer(context);
+    _sorter = ref.read(documentSorterProvider);
 
     // Scanning is always free; the free tier is enforced when a document is
     // finished (FreeUsageService). Free users' scans are capped at the free
@@ -113,6 +119,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       if (mounted) setState(() => _loadingMessageKey = 'saving');
       final docId = await _saveScannedPages(paths);
       await _enforcePageLimit(docId);
+      _sortInBackground(docId);
 
       if (mounted) {
         setState(() => _loading = false);
@@ -139,6 +146,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   Future<void> _importFile(Future<Document?> Function() import) async {
     // Importing is always free; the free tier is enforced when a document is
     // finished (FreeUsageService).
+    _nameFor = _namer(context);
+    _sorter = ref.read(documentSorterProvider);
     setState(() {
       _loading = true;
       _loadingMessageKey = 'importing';
@@ -151,6 +160,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         return;
       }
       await _enforcePageLimit(doc.id);
+      _sortInBackground(doc.id);
       if (mounted) {
         setState(() => _loading = false);
         // A PDF that already carries a fillable form goes straight to Fill
@@ -185,6 +195,31 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   /// Captured in the caller (which has a BuildContext) before the async work.
   String _defaultTitle = 'Document';
+
+  /// Names a document from the title found on its page; resolved with the
+  /// BuildContext before any await, like [_defaultTitle].
+  String Function(String title) _nameFor = (t) => t;
+
+  /// Read with [_nameFor], before any await: `ref` is unusable once this
+  /// screen is gone.
+  DocumentSorter? _sorter;
+
+  static String Function(String title) _namer(BuildContext context) {
+    final l10n = context.l10n;
+    final date = DateFormat.MMMd(
+      Localizations.localeOf(context).toString(),
+    ).format(DateTime.now());
+    return (title) => l10n.autoDocumentTitle(title, date);
+  }
+
+  /// Names (a scan or photo) and sorts the new document without holding up
+  /// the user; the Library and Review update when it lands.
+  void _sortInBackground(int docId) {
+    final sorter = _sorter;
+    if (sorter != null) {
+      unawaited(sorter.sortNew(docId, nameFor: _nameFor));
+    }
+  }
 
   Future<int> _saveScannedPages(List<String> tempPaths) async {
     final uuid = const Uuid().v4();

@@ -20,7 +20,7 @@ void main() {
   });
 
   test(
-    'v2 → v4 migration preserves data, adds fillablePdfPath and the backup opt-in',
+    'v2 → v9 migration preserves data and adds every later column and table',
     () async {
       final dbFile = File(
         '${Directory.systemTemp.path}/sss_migration_v3_${DateTime.now().microsecondsSinceEpoch}.db',
@@ -130,6 +130,27 @@ void main() {
       expect(profile.middleName, '');
       expect(profile.country, '');
       expect(profile.dateOfBirth, isNull);
+      // v8 → v9: existing documents are Uncategorised, chosen by nobody, and
+      // their titles count as the user's own (never renamed from content).
+      expect(row.category, isNull);
+      expect(row.categoryManual, isFalse);
+      expect(row.titleEdited, isTrue);
+      expect(row.title, 'Old Fillable Doc');
+      expect(await db.select(db.userCategories).get(), isEmpty);
+      expect(await db.select(db.categoryHints).get(), isEmpty);
+      expect(await db.select(db.prefillHints).get(), isEmpty);
+      // A document created after the upgrade starts with a default title.
+      final fresh = await db
+          .into(db.documents)
+          .insertReturning(
+            DocumentsCompanion.insert(
+              uuid: 'u2',
+              title: 'New',
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          );
+      expect(fresh.titleEdited, isFalse);
 
       await db.close();
       if (dbFile.existsSync()) dbFile.deleteSync();

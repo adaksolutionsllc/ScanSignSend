@@ -75,15 +75,13 @@ class _PressScreenState extends ConsumerState<PressScreen> {
                 _SummaryRow(
                   icon: Icons.check_circle,
                   color: Colors.green,
-                  label: context.l10n.pressFilled,
-                  count: filled,
+                  text: context.l10n.pressFilledCount(filled),
                 ),
                 if (unfilled > 0)
                   _SummaryRow(
                     icon: Icons.warning_amber_rounded,
                     color: Colors.amber.shade700,
-                    label: context.l10n.pressUnfilled,
-                    count: unfilled,
+                    text: context.l10n.pressUnfilledCount(unfilled),
                   ),
               ],
             ),
@@ -433,13 +431,11 @@ class _SummaryRow extends StatelessWidget {
   const _SummaryRow({
     required this.icon,
     required this.color,
-    required this.label,
-    required this.count,
+    required this.text,
   });
   final IconData icon;
   final Color color;
-  final String label;
-  final int count;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +445,7 @@ class _SummaryRow extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 18),
           const SizedBox(width: 8),
-          Text('$count $label field${count == 1 ? '' : 's'}'),
+          Flexible(child: Text(text)),
         ],
       ),
     );

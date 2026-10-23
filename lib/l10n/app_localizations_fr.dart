@@ -220,6 +220,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String autoDocumentTitle(String title, String date) {
+    return '$title – $date';
+  }
+
+  @override
   String get reviewTitle => 'Vérifier les pages';
 
   @override
@@ -408,10 +413,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pressFieldSummary => 'Récapitulatif des champs';
 
   @override
-  String get pressFilled => 'Rempli';
+  String pressFilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count champs remplis',
+      one: '1 champ rempli',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get pressUnfilled => 'Non rempli';
+  String pressUnfilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count champs non remplis',
+      one: '1 champ non rempli',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get pressSaveDraft => 'Enregistrer le brouillon';

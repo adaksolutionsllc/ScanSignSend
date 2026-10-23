@@ -112,6 +112,18 @@
       }
     }
   },
+  "autoDocumentTitle": "{title} – {date}",
+  "@autoDocumentTitle": {
+    "description": "A scan named from the title found on its first page, plus the short date (e.g. 'Rental application – 23 Oct'). Keep the ' – ' separator: learning strips the date after it.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "reviewTitle": "Review Pages",
   "reviewSaveOrder": "Save Order",
   "reviewNoPagesFound": "No pages found.",
@@ -224,8 +236,22 @@
   "fillScanOrImport": "Scan or import a new document",
   "pressTitle": "Review & Finish",
   "pressFieldSummary": "Field Summary",
-  "pressFilled": "Filled",
-  "pressUnfilled": "Unfilled",
+  "pressFilledCount": "{count, plural, =1{1 field filled} other{{count} fields filled}}",
+  "@pressFilledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pressUnfilledCount": "{count, plural, =1{1 field not filled} other{{count} fields not filled}}",
+  "@pressUnfilledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pressSaveDraft": "Save Draft",
   "pressFlattenAndSign": "Flatten & Sign (locks the document)",
   "pressExportFailed": "Export failed: {error}",

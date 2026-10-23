@@ -33,8 +33,18 @@ class PageLayoutService {
   final PageRasterService _raster;
 
   /// Returns the layout and the OCR/PDF full text (for search).
-  Future<(PageLayout, String)> analyse(String storedPath) async {
-    final imagePath = await _raster.imageFor(storedPath);
+  Future<(PageLayout, String)> analyse(String storedPath) =>
+      _analyse(storedPath, withRules: true);
+
+  /// [analyse] without looking for drawn lines: just the text, for naming and
+  /// sorting a document. A PDF with a text layer isn't rendered at all.
+  Future<(PageLayout, String)> textOnly(String storedPath) =>
+      _analyse(storedPath, withRules: false);
+
+  Future<(PageLayout, String)> _analyse(
+    String storedPath, {
+    required bool withRules,
+  }) async {
 
     List<LayoutLine>? lines;
     double? aspect;
@@ -51,12 +61,15 @@ class PageLayoutService {
     }
 
     if (lines == null) {
+      final imagePath = await _raster.imageFor(storedPath);
       final ocr = await _ocr.processPage(imagePath);
       lines = ocrLayout(ocr);
       aspect = ocr.imageWidth / math.max(ocr.imageHeight, 1);
     }
 
-    final rules = await compute(detectRules, imagePath);
+    final rules = withRules
+        ? await compute(detectRules, await _raster.imageFor(storedPath))
+        : const <Rect>[];
     final layout = PageLayout(
       lines: lines,
       rules: rules,

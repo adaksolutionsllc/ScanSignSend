@@ -1,5 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- ML Kit's Prompt API (Gemini Nano) declares Android 8.0; the app
+         supports 7.0. Every use is behind an API 26 check in OnDeviceAiPlugin,
+         so Android 7 phones never load it and sort by keywords instead. -->
+    <uses-sdk tools:overrideLibrary="com.google.mlkit.genai.prompt, com.google.mlkit.genai.common" />
     <!-- Actively strip broad media/storage permissions in case a plugin's
          manifest ever adds them: imports go through the system picker, so the
          app never needs them, and declaring READ_MEDIA_IMAGES/VIDEO triggers

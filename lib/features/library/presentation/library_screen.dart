@@ -249,6 +249,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             DocumentsCompanion(
               id: Value(doc.id),
               title: Value(result.trim()),
+              titleEdited: const Value(true),
               updatedAt: Value(DateTime.now()),
             ),
           );

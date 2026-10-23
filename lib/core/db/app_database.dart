@@ -37,6 +37,17 @@ class Documents extends Table {
   // Schema v7. This document has used one of the free allowance's finished
   // documents, so flattening or exporting it again doesn't use another.
   BoolColumn get countedFree => boolean().withDefault(const Constant(false))();
+  // Schema v9. The user renamed this document, so automatic naming from its
+  // content must never overwrite the title again.
+  BoolColumn get titleEdited => boolean().withDefault(const Constant(false))();
+  // Schema v9. The document's category: a built-in key ('tax', 'medical', …)
+  // or `u:<id>` for one of the user's own [UserCategories]. Null is
+  // Uncategorised.
+  TextColumn get category => text().nullable()();
+  // Schema v9. The user chose [category] by hand; automatic sorting never
+  // changes it again.
+  BoolColumn get categoryManual =>
+      boolean().withDefault(const Constant(false))();
 }
 
 class Pages extends Table {
@@ -146,10 +157,67 @@ class FieldHints extends Table {
   ];
 }
 
+/// Schema v9. Categories the user created, alongside the built-in ones (which
+/// live in code, so a language change never breaks them). Documents point at
+/// one as `u:<id>`.
+class UserCategories extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+/// Schema v9. What the user's category changes have taught sorting: a title
+/// word seen on documents they moved to a category. Same evidence model as
+/// [FieldHints]; on-device only, cleared from Settings.
+class CategoryHints extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  // Normalised word from a document title.
+  TextColumn get phrase => text()();
+  // A category key, as in Documents.category.
+  TextColumn get category => text()();
+  IntColumn get accepted => integer().withDefault(const Constant(0))();
+  IntColumn get rejected => integer().withDefault(const Constant(0))();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {phrase, category},
+  ];
+}
+
+/// Schema v9. What the user's picks have taught PreFill: a field label phrase
+/// and the My Details slot they chose for it. Stores the slot name, never the
+/// value. Same evidence model as [FieldHints]; cleared from Settings.
+class PrefillHints extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  // Normalised label phrase.
+  TextColumn get phrase => text()();
+  // A PrefillSlot name.
+  TextColumn get slot => text()();
+  IntColumn get accepted => integer().withDefault(const Constant(0))();
+  IntColumn get rejected => integer().withDefault(const Constant(0))();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {phrase, slot},
+  ];
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
 @DriftDatabase(
-  tables: [Documents, Pages, Fields, Signatures, UserProfile, FieldHints],
+  tables: [
+    Documents,
+    Pages,
+    Fields,
+    Signatures,
+    UserProfile,
+    FieldHints,
+    UserCategories,
+    CategoryHints,
+    PrefillHints,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -160,7 +228,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -220,6 +288,18 @@ class AppDatabase extends _$AppDatabase {
             ),
           );
         }
+      }
+      // v8 → v9: categories, naming from content, PreFill learning. Existing
+      // documents start Uncategorised and keep their titles as if the user
+      // had chosen them (they may well have).
+      if (from < 9) {
+        await m.addColumn(documents, documents.titleEdited);
+        await m.addColumn(documents, documents.category);
+        await m.addColumn(documents, documents.categoryManual);
+        await m.createTable(userCategories);
+        await m.createTable(categoryHints);
+        await m.createTable(prefillHints);
+        await customStatement('UPDATE documents SET title_edited = 1');
       }
     },
   );

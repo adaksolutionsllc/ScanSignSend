@@ -159,6 +159,47 @@ class $DocumentsTable extends Documents
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _titleEditedMeta = const VerificationMeta(
+    'titleEdited',
+  );
+  @override
+  late final GeneratedColumn<bool> titleEdited = GeneratedColumn<bool>(
+    'title_edited',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("title_edited" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _categoryManualMeta = const VerificationMeta(
+    'categoryManual',
+  );
+  @override
+  late final GeneratedColumn<bool> categoryManual = GeneratedColumn<bool>(
+    'category_manual',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("category_manual" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -174,6 +215,9 @@ class $DocumentsTable extends Documents
     isTemplate,
     textSize,
     countedFree,
+    titleEdited,
+    category,
+    categoryManual,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -279,6 +323,30 @@ class $DocumentsTable extends Documents
         ),
       );
     }
+    if (data.containsKey('title_edited')) {
+      context.handle(
+        _titleEditedMeta,
+        titleEdited.isAcceptableOrUnknown(
+          data['title_edited']!,
+          _titleEditedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('category_manual')) {
+      context.handle(
+        _categoryManualMeta,
+        categoryManual.isAcceptableOrUnknown(
+          data['category_manual']!,
+          _categoryManualMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -340,6 +408,18 @@ class $DocumentsTable extends Documents
         DriftSqlType.bool,
         data['${effectivePrefix}counted_free'],
       )!,
+      titleEdited: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}title_edited'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
+      categoryManual: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}category_manual'],
+      )!,
     );
   }
 
@@ -363,6 +443,9 @@ class Document extends DataClass implements Insertable<Document> {
   final bool isTemplate;
   final double? textSize;
   final bool countedFree;
+  final bool titleEdited;
+  final String? category;
+  final bool categoryManual;
   const Document({
     required this.id,
     required this.uuid,
@@ -377,6 +460,9 @@ class Document extends DataClass implements Insertable<Document> {
     required this.isTemplate,
     this.textSize,
     required this.countedFree,
+    required this.titleEdited,
+    this.category,
+    required this.categoryManual,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -400,6 +486,11 @@ class Document extends DataClass implements Insertable<Document> {
       map['text_size'] = Variable<double>(textSize);
     }
     map['counted_free'] = Variable<bool>(countedFree);
+    map['title_edited'] = Variable<bool>(titleEdited);
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    map['category_manual'] = Variable<bool>(categoryManual);
     return map;
   }
 
@@ -424,6 +515,11 @@ class Document extends DataClass implements Insertable<Document> {
           ? const Value.absent()
           : Value(textSize),
       countedFree: Value(countedFree),
+      titleEdited: Value(titleEdited),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      categoryManual: Value(categoryManual),
     );
   }
 
@@ -446,6 +542,9 @@ class Document extends DataClass implements Insertable<Document> {
       isTemplate: serializer.fromJson<bool>(json['isTemplate']),
       textSize: serializer.fromJson<double?>(json['textSize']),
       countedFree: serializer.fromJson<bool>(json['countedFree']),
+      titleEdited: serializer.fromJson<bool>(json['titleEdited']),
+      category: serializer.fromJson<String?>(json['category']),
+      categoryManual: serializer.fromJson<bool>(json['categoryManual']),
     );
   }
   @override
@@ -465,6 +564,9 @@ class Document extends DataClass implements Insertable<Document> {
       'isTemplate': serializer.toJson<bool>(isTemplate),
       'textSize': serializer.toJson<double?>(textSize),
       'countedFree': serializer.toJson<bool>(countedFree),
+      'titleEdited': serializer.toJson<bool>(titleEdited),
+      'category': serializer.toJson<String?>(category),
+      'categoryManual': serializer.toJson<bool>(categoryManual),
     };
   }
 
@@ -482,6 +584,9 @@ class Document extends DataClass implements Insertable<Document> {
     bool? isTemplate,
     Value<double?> textSize = const Value.absent(),
     bool? countedFree,
+    bool? titleEdited,
+    Value<String?> category = const Value.absent(),
+    bool? categoryManual,
   }) => Document(
     id: id ?? this.id,
     uuid: uuid ?? this.uuid,
@@ -500,6 +605,9 @@ class Document extends DataClass implements Insertable<Document> {
     isTemplate: isTemplate ?? this.isTemplate,
     textSize: textSize.present ? textSize.value : this.textSize,
     countedFree: countedFree ?? this.countedFree,
+    titleEdited: titleEdited ?? this.titleEdited,
+    category: category.present ? category.value : this.category,
+    categoryManual: categoryManual ?? this.categoryManual,
   );
   Document copyWithCompanion(DocumentsCompanion data) {
     return Document(
@@ -524,6 +632,13 @@ class Document extends DataClass implements Insertable<Document> {
       countedFree: data.countedFree.present
           ? data.countedFree.value
           : this.countedFree,
+      titleEdited: data.titleEdited.present
+          ? data.titleEdited.value
+          : this.titleEdited,
+      category: data.category.present ? data.category.value : this.category,
+      categoryManual: data.categoryManual.present
+          ? data.categoryManual.value
+          : this.categoryManual,
     );
   }
 
@@ -542,7 +657,10 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('fillablePdfPath: $fillablePdfPath, ')
           ..write('isTemplate: $isTemplate, ')
           ..write('textSize: $textSize, ')
-          ..write('countedFree: $countedFree')
+          ..write('countedFree: $countedFree, ')
+          ..write('titleEdited: $titleEdited, ')
+          ..write('category: $category, ')
+          ..write('categoryManual: $categoryManual')
           ..write(')'))
         .toString();
   }
@@ -562,6 +680,9 @@ class Document extends DataClass implements Insertable<Document> {
     isTemplate,
     textSize,
     countedFree,
+    titleEdited,
+    category,
+    categoryManual,
   );
   @override
   bool operator ==(Object other) =>
@@ -579,7 +700,10 @@ class Document extends DataClass implements Insertable<Document> {
           other.fillablePdfPath == this.fillablePdfPath &&
           other.isTemplate == this.isTemplate &&
           other.textSize == this.textSize &&
-          other.countedFree == this.countedFree);
+          other.countedFree == this.countedFree &&
+          other.titleEdited == this.titleEdited &&
+          other.category == this.category &&
+          other.categoryManual == this.categoryManual);
 }
 
 class DocumentsCompanion extends UpdateCompanion<Document> {
@@ -596,6 +720,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<bool> isTemplate;
   final Value<double?> textSize;
   final Value<bool> countedFree;
+  final Value<bool> titleEdited;
+  final Value<String?> category;
+  final Value<bool> categoryManual;
   const DocumentsCompanion({
     this.id = const Value.absent(),
     this.uuid = const Value.absent(),
@@ -610,6 +737,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.isTemplate = const Value.absent(),
     this.textSize = const Value.absent(),
     this.countedFree = const Value.absent(),
+    this.titleEdited = const Value.absent(),
+    this.category = const Value.absent(),
+    this.categoryManual = const Value.absent(),
   });
   DocumentsCompanion.insert({
     this.id = const Value.absent(),
@@ -625,6 +755,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.isTemplate = const Value.absent(),
     this.textSize = const Value.absent(),
     this.countedFree = const Value.absent(),
+    this.titleEdited = const Value.absent(),
+    this.category = const Value.absent(),
+    this.categoryManual = const Value.absent(),
   }) : uuid = Value(uuid),
        title = Value(title),
        createdAt = Value(createdAt),
@@ -643,6 +776,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Expression<bool>? isTemplate,
     Expression<double>? textSize,
     Expression<bool>? countedFree,
+    Expression<bool>? titleEdited,
+    Expression<String>? category,
+    Expression<bool>? categoryManual,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -658,6 +794,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       if (isTemplate != null) 'is_template': isTemplate,
       if (textSize != null) 'text_size': textSize,
       if (countedFree != null) 'counted_free': countedFree,
+      if (titleEdited != null) 'title_edited': titleEdited,
+      if (category != null) 'category': category,
+      if (categoryManual != null) 'category_manual': categoryManual,
     });
   }
 
@@ -675,6 +814,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Value<bool>? isTemplate,
     Value<double?>? textSize,
     Value<bool>? countedFree,
+    Value<bool>? titleEdited,
+    Value<String?>? category,
+    Value<bool>? categoryManual,
   }) {
     return DocumentsCompanion(
       id: id ?? this.id,
@@ -690,6 +832,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       isTemplate: isTemplate ?? this.isTemplate,
       textSize: textSize ?? this.textSize,
       countedFree: countedFree ?? this.countedFree,
+      titleEdited: titleEdited ?? this.titleEdited,
+      category: category ?? this.category,
+      categoryManual: categoryManual ?? this.categoryManual,
     );
   }
 
@@ -735,6 +880,15 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (countedFree.present) {
       map['counted_free'] = Variable<bool>(countedFree.value);
     }
+    if (titleEdited.present) {
+      map['title_edited'] = Variable<bool>(titleEdited.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (categoryManual.present) {
+      map['category_manual'] = Variable<bool>(categoryManual.value);
+    }
     return map;
   }
 
@@ -753,7 +907,10 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('fillablePdfPath: $fillablePdfPath, ')
           ..write('isTemplate: $isTemplate, ')
           ..write('textSize: $textSize, ')
-          ..write('countedFree: $countedFree')
+          ..write('countedFree: $countedFree, ')
+          ..write('titleEdited: $titleEdited, ')
+          ..write('category: $category, ')
+          ..write('categoryManual: $categoryManual')
           ..write(')'))
         .toString();
   }
@@ -3903,6 +4060,1049 @@ class FieldHintsCompanion extends UpdateCompanion<FieldHint> {
   }
 }
 
+class $UserCategoriesTable extends UserCategories
+    with TableInfo<$UserCategoriesTable, UserCategory> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserCategoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_categories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserCategory> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserCategory map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserCategory(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $UserCategoriesTable createAlias(String alias) {
+    return $UserCategoriesTable(attachedDatabase, alias);
+  }
+}
+
+class UserCategory extends DataClass implements Insertable<UserCategory> {
+  final int id;
+  final String name;
+  final DateTime createdAt;
+  const UserCategory({
+    required this.id,
+    required this.name,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  UserCategoriesCompanion toCompanion(bool nullToAbsent) {
+    return UserCategoriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory UserCategory.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserCategory(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  UserCategory copyWith({int? id, String? name, DateTime? createdAt}) =>
+      UserCategory(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  UserCategory copyWithCompanion(UserCategoriesCompanion data) {
+    return UserCategory(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserCategory(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserCategory &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.createdAt == this.createdAt);
+}
+
+class UserCategoriesCompanion extends UpdateCompanion<UserCategory> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<DateTime> createdAt;
+  const UserCategoriesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  UserCategoriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required DateTime createdAt,
+  }) : name = Value(name),
+       createdAt = Value(createdAt);
+  static Insertable<UserCategory> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  UserCategoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime>? createdAt,
+  }) {
+    return UserCategoriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserCategoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CategoryHintsTable extends CategoryHints
+    with TableInfo<$CategoryHintsTable, CategoryHint> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CategoryHintsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _phraseMeta = const VerificationMeta('phrase');
+  @override
+  late final GeneratedColumn<String> phrase = GeneratedColumn<String>(
+    'phrase',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _acceptedMeta = const VerificationMeta(
+    'accepted',
+  );
+  @override
+  late final GeneratedColumn<int> accepted = GeneratedColumn<int>(
+    'accepted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _rejectedMeta = const VerificationMeta(
+    'rejected',
+  );
+  @override
+  late final GeneratedColumn<int> rejected = GeneratedColumn<int>(
+    'rejected',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    phrase,
+    category,
+    accepted,
+    rejected,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'category_hints';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CategoryHint> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('phrase')) {
+      context.handle(
+        _phraseMeta,
+        phrase.isAcceptableOrUnknown(data['phrase']!, _phraseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_phraseMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('accepted')) {
+      context.handle(
+        _acceptedMeta,
+        accepted.isAcceptableOrUnknown(data['accepted']!, _acceptedMeta),
+      );
+    }
+    if (data.containsKey('rejected')) {
+      context.handle(
+        _rejectedMeta,
+        rejected.isAcceptableOrUnknown(data['rejected']!, _rejectedMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {phrase, category},
+  ];
+  @override
+  CategoryHint map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CategoryHint(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      phrase: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phrase'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      accepted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}accepted'],
+      )!,
+      rejected: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rejected'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CategoryHintsTable createAlias(String alias) {
+    return $CategoryHintsTable(attachedDatabase, alias);
+  }
+}
+
+class CategoryHint extends DataClass implements Insertable<CategoryHint> {
+  final int id;
+  final String phrase;
+  final String category;
+  final int accepted;
+  final int rejected;
+  final DateTime updatedAt;
+  const CategoryHint({
+    required this.id,
+    required this.phrase,
+    required this.category,
+    required this.accepted,
+    required this.rejected,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['phrase'] = Variable<String>(phrase);
+    map['category'] = Variable<String>(category);
+    map['accepted'] = Variable<int>(accepted);
+    map['rejected'] = Variable<int>(rejected);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CategoryHintsCompanion toCompanion(bool nullToAbsent) {
+    return CategoryHintsCompanion(
+      id: Value(id),
+      phrase: Value(phrase),
+      category: Value(category),
+      accepted: Value(accepted),
+      rejected: Value(rejected),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory CategoryHint.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CategoryHint(
+      id: serializer.fromJson<int>(json['id']),
+      phrase: serializer.fromJson<String>(json['phrase']),
+      category: serializer.fromJson<String>(json['category']),
+      accepted: serializer.fromJson<int>(json['accepted']),
+      rejected: serializer.fromJson<int>(json['rejected']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'phrase': serializer.toJson<String>(phrase),
+      'category': serializer.toJson<String>(category),
+      'accepted': serializer.toJson<int>(accepted),
+      'rejected': serializer.toJson<int>(rejected),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  CategoryHint copyWith({
+    int? id,
+    String? phrase,
+    String? category,
+    int? accepted,
+    int? rejected,
+    DateTime? updatedAt,
+  }) => CategoryHint(
+    id: id ?? this.id,
+    phrase: phrase ?? this.phrase,
+    category: category ?? this.category,
+    accepted: accepted ?? this.accepted,
+    rejected: rejected ?? this.rejected,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  CategoryHint copyWithCompanion(CategoryHintsCompanion data) {
+    return CategoryHint(
+      id: data.id.present ? data.id.value : this.id,
+      phrase: data.phrase.present ? data.phrase.value : this.phrase,
+      category: data.category.present ? data.category.value : this.category,
+      accepted: data.accepted.present ? data.accepted.value : this.accepted,
+      rejected: data.rejected.present ? data.rejected.value : this.rejected,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryHint(')
+          ..write('id: $id, ')
+          ..write('phrase: $phrase, ')
+          ..write('category: $category, ')
+          ..write('accepted: $accepted, ')
+          ..write('rejected: $rejected, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, phrase, category, accepted, rejected, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CategoryHint &&
+          other.id == this.id &&
+          other.phrase == this.phrase &&
+          other.category == this.category &&
+          other.accepted == this.accepted &&
+          other.rejected == this.rejected &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CategoryHintsCompanion extends UpdateCompanion<CategoryHint> {
+  final Value<int> id;
+  final Value<String> phrase;
+  final Value<String> category;
+  final Value<int> accepted;
+  final Value<int> rejected;
+  final Value<DateTime> updatedAt;
+  const CategoryHintsCompanion({
+    this.id = const Value.absent(),
+    this.phrase = const Value.absent(),
+    this.category = const Value.absent(),
+    this.accepted = const Value.absent(),
+    this.rejected = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  CategoryHintsCompanion.insert({
+    this.id = const Value.absent(),
+    required String phrase,
+    required String category,
+    this.accepted = const Value.absent(),
+    this.rejected = const Value.absent(),
+    required DateTime updatedAt,
+  }) : phrase = Value(phrase),
+       category = Value(category),
+       updatedAt = Value(updatedAt);
+  static Insertable<CategoryHint> custom({
+    Expression<int>? id,
+    Expression<String>? phrase,
+    Expression<String>? category,
+    Expression<int>? accepted,
+    Expression<int>? rejected,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (phrase != null) 'phrase': phrase,
+      if (category != null) 'category': category,
+      if (accepted != null) 'accepted': accepted,
+      if (rejected != null) 'rejected': rejected,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  CategoryHintsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? phrase,
+    Value<String>? category,
+    Value<int>? accepted,
+    Value<int>? rejected,
+    Value<DateTime>? updatedAt,
+  }) {
+    return CategoryHintsCompanion(
+      id: id ?? this.id,
+      phrase: phrase ?? this.phrase,
+      category: category ?? this.category,
+      accepted: accepted ?? this.accepted,
+      rejected: rejected ?? this.rejected,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (phrase.present) {
+      map['phrase'] = Variable<String>(phrase.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (accepted.present) {
+      map['accepted'] = Variable<int>(accepted.value);
+    }
+    if (rejected.present) {
+      map['rejected'] = Variable<int>(rejected.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryHintsCompanion(')
+          ..write('id: $id, ')
+          ..write('phrase: $phrase, ')
+          ..write('category: $category, ')
+          ..write('accepted: $accepted, ')
+          ..write('rejected: $rejected, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PrefillHintsTable extends PrefillHints
+    with TableInfo<$PrefillHintsTable, PrefillHint> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PrefillHintsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _phraseMeta = const VerificationMeta('phrase');
+  @override
+  late final GeneratedColumn<String> phrase = GeneratedColumn<String>(
+    'phrase',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _slotMeta = const VerificationMeta('slot');
+  @override
+  late final GeneratedColumn<String> slot = GeneratedColumn<String>(
+    'slot',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _acceptedMeta = const VerificationMeta(
+    'accepted',
+  );
+  @override
+  late final GeneratedColumn<int> accepted = GeneratedColumn<int>(
+    'accepted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _rejectedMeta = const VerificationMeta(
+    'rejected',
+  );
+  @override
+  late final GeneratedColumn<int> rejected = GeneratedColumn<int>(
+    'rejected',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    phrase,
+    slot,
+    accepted,
+    rejected,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'prefill_hints';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PrefillHint> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('phrase')) {
+      context.handle(
+        _phraseMeta,
+        phrase.isAcceptableOrUnknown(data['phrase']!, _phraseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_phraseMeta);
+    }
+    if (data.containsKey('slot')) {
+      context.handle(
+        _slotMeta,
+        slot.isAcceptableOrUnknown(data['slot']!, _slotMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_slotMeta);
+    }
+    if (data.containsKey('accepted')) {
+      context.handle(
+        _acceptedMeta,
+        accepted.isAcceptableOrUnknown(data['accepted']!, _acceptedMeta),
+      );
+    }
+    if (data.containsKey('rejected')) {
+      context.handle(
+        _rejectedMeta,
+        rejected.isAcceptableOrUnknown(data['rejected']!, _rejectedMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {phrase, slot},
+  ];
+  @override
+  PrefillHint map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PrefillHint(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      phrase: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phrase'],
+      )!,
+      slot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}slot'],
+      )!,
+      accepted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}accepted'],
+      )!,
+      rejected: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rejected'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PrefillHintsTable createAlias(String alias) {
+    return $PrefillHintsTable(attachedDatabase, alias);
+  }
+}
+
+class PrefillHint extends DataClass implements Insertable<PrefillHint> {
+  final int id;
+  final String phrase;
+  final String slot;
+  final int accepted;
+  final int rejected;
+  final DateTime updatedAt;
+  const PrefillHint({
+    required this.id,
+    required this.phrase,
+    required this.slot,
+    required this.accepted,
+    required this.rejected,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['phrase'] = Variable<String>(phrase);
+    map['slot'] = Variable<String>(slot);
+    map['accepted'] = Variable<int>(accepted);
+    map['rejected'] = Variable<int>(rejected);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PrefillHintsCompanion toCompanion(bool nullToAbsent) {
+    return PrefillHintsCompanion(
+      id: Value(id),
+      phrase: Value(phrase),
+      slot: Value(slot),
+      accepted: Value(accepted),
+      rejected: Value(rejected),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PrefillHint.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PrefillHint(
+      id: serializer.fromJson<int>(json['id']),
+      phrase: serializer.fromJson<String>(json['phrase']),
+      slot: serializer.fromJson<String>(json['slot']),
+      accepted: serializer.fromJson<int>(json['accepted']),
+      rejected: serializer.fromJson<int>(json['rejected']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'phrase': serializer.toJson<String>(phrase),
+      'slot': serializer.toJson<String>(slot),
+      'accepted': serializer.toJson<int>(accepted),
+      'rejected': serializer.toJson<int>(rejected),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PrefillHint copyWith({
+    int? id,
+    String? phrase,
+    String? slot,
+    int? accepted,
+    int? rejected,
+    DateTime? updatedAt,
+  }) => PrefillHint(
+    id: id ?? this.id,
+    phrase: phrase ?? this.phrase,
+    slot: slot ?? this.slot,
+    accepted: accepted ?? this.accepted,
+    rejected: rejected ?? this.rejected,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PrefillHint copyWithCompanion(PrefillHintsCompanion data) {
+    return PrefillHint(
+      id: data.id.present ? data.id.value : this.id,
+      phrase: data.phrase.present ? data.phrase.value : this.phrase,
+      slot: data.slot.present ? data.slot.value : this.slot,
+      accepted: data.accepted.present ? data.accepted.value : this.accepted,
+      rejected: data.rejected.present ? data.rejected.value : this.rejected,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PrefillHint(')
+          ..write('id: $id, ')
+          ..write('phrase: $phrase, ')
+          ..write('slot: $slot, ')
+          ..write('accepted: $accepted, ')
+          ..write('rejected: $rejected, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, phrase, slot, accepted, rejected, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PrefillHint &&
+          other.id == this.id &&
+          other.phrase == this.phrase &&
+          other.slot == this.slot &&
+          other.accepted == this.accepted &&
+          other.rejected == this.rejected &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PrefillHintsCompanion extends UpdateCompanion<PrefillHint> {
+  final Value<int> id;
+  final Value<String> phrase;
+  final Value<String> slot;
+  final Value<int> accepted;
+  final Value<int> rejected;
+  final Value<DateTime> updatedAt;
+  const PrefillHintsCompanion({
+    this.id = const Value.absent(),
+    this.phrase = const Value.absent(),
+    this.slot = const Value.absent(),
+    this.accepted = const Value.absent(),
+    this.rejected = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  PrefillHintsCompanion.insert({
+    this.id = const Value.absent(),
+    required String phrase,
+    required String slot,
+    this.accepted = const Value.absent(),
+    this.rejected = const Value.absent(),
+    required DateTime updatedAt,
+  }) : phrase = Value(phrase),
+       slot = Value(slot),
+       updatedAt = Value(updatedAt);
+  static Insertable<PrefillHint> custom({
+    Expression<int>? id,
+    Expression<String>? phrase,
+    Expression<String>? slot,
+    Expression<int>? accepted,
+    Expression<int>? rejected,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (phrase != null) 'phrase': phrase,
+      if (slot != null) 'slot': slot,
+      if (accepted != null) 'accepted': accepted,
+      if (rejected != null) 'rejected': rejected,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  PrefillHintsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? phrase,
+    Value<String>? slot,
+    Value<int>? accepted,
+    Value<int>? rejected,
+    Value<DateTime>? updatedAt,
+  }) {
+    return PrefillHintsCompanion(
+      id: id ?? this.id,
+      phrase: phrase ?? this.phrase,
+      slot: slot ?? this.slot,
+      accepted: accepted ?? this.accepted,
+      rejected: rejected ?? this.rejected,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (phrase.present) {
+      map['phrase'] = Variable<String>(phrase.value);
+    }
+    if (slot.present) {
+      map['slot'] = Variable<String>(slot.value);
+    }
+    if (accepted.present) {
+      map['accepted'] = Variable<int>(accepted.value);
+    }
+    if (rejected.present) {
+      map['rejected'] = Variable<int>(rejected.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PrefillHintsCompanion(')
+          ..write('id: $id, ')
+          ..write('phrase: $phrase, ')
+          ..write('slot: $slot, ')
+          ..write('accepted: $accepted, ')
+          ..write('rejected: $rejected, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3912,6 +5112,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SignaturesTable signatures = $SignaturesTable(this);
   late final $UserProfileTable userProfile = $UserProfileTable(this);
   late final $FieldHintsTable fieldHints = $FieldHintsTable(this);
+  late final $UserCategoriesTable userCategories = $UserCategoriesTable(this);
+  late final $CategoryHintsTable categoryHints = $CategoryHintsTable(this);
+  late final $PrefillHintsTable prefillHints = $PrefillHintsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3923,6 +5126,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     signatures,
     userProfile,
     fieldHints,
+    userCategories,
+    categoryHints,
+    prefillHints,
   ];
 }
 
@@ -3941,6 +5147,9 @@ typedef $$DocumentsTableCreateCompanionBuilder =
       Value<bool> isTemplate,
       Value<double?> textSize,
       Value<bool> countedFree,
+      Value<bool> titleEdited,
+      Value<String?> category,
+      Value<bool> categoryManual,
     });
 typedef $$DocumentsTableUpdateCompanionBuilder =
     DocumentsCompanion Function({
@@ -3957,6 +5166,9 @@ typedef $$DocumentsTableUpdateCompanionBuilder =
       Value<bool> isTemplate,
       Value<double?> textSize,
       Value<bool> countedFree,
+      Value<bool> titleEdited,
+      Value<String?> category,
+      Value<bool> categoryManual,
     });
 
 final class $$DocumentsTableReferences
@@ -4073,6 +5285,21 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<bool> get countedFree => $composableBuilder(
     column: $table.countedFree,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get titleEdited => $composableBuilder(
+    column: $table.titleEdited,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get categoryManual => $composableBuilder(
+    column: $table.categoryManual,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4200,6 +5427,21 @@ class $$DocumentsTableOrderingComposer
     column: $table.countedFree,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get titleEdited => $composableBuilder(
+    column: $table.titleEdited,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get categoryManual => $composableBuilder(
+    column: $table.categoryManual,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -4255,6 +5497,19 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<bool> get countedFree => $composableBuilder(
     column: $table.countedFree,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get titleEdited => $composableBuilder(
+    column: $table.titleEdited,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<bool> get categoryManual => $composableBuilder(
+    column: $table.categoryManual,
     builder: (column) => column,
   );
 
@@ -4350,6 +5605,9 @@ class $$DocumentsTableTableManager
                 Value<bool> isTemplate = const Value.absent(),
                 Value<double?> textSize = const Value.absent(),
                 Value<bool> countedFree = const Value.absent(),
+                Value<bool> titleEdited = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<bool> categoryManual = const Value.absent(),
               }) => DocumentsCompanion(
                 id: id,
                 uuid: uuid,
@@ -4364,6 +5622,9 @@ class $$DocumentsTableTableManager
                 isTemplate: isTemplate,
                 textSize: textSize,
                 countedFree: countedFree,
+                titleEdited: titleEdited,
+                category: category,
+                categoryManual: categoryManual,
               ),
           createCompanionCallback:
               ({
@@ -4380,6 +5641,9 @@ class $$DocumentsTableTableManager
                 Value<bool> isTemplate = const Value.absent(),
                 Value<double?> textSize = const Value.absent(),
                 Value<bool> countedFree = const Value.absent(),
+                Value<bool> titleEdited = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<bool> categoryManual = const Value.absent(),
               }) => DocumentsCompanion.insert(
                 id: id,
                 uuid: uuid,
@@ -4394,6 +5658,9 @@ class $$DocumentsTableTableManager
                 isTemplate: isTemplate,
                 textSize: textSize,
                 countedFree: countedFree,
+                titleEdited: titleEdited,
+                category: category,
+                categoryManual: categoryManual,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6210,6 +7477,590 @@ typedef $$FieldHintsTableProcessedTableManager =
       FieldHint,
       PrefetchHooks Function()
     >;
+typedef $$UserCategoriesTableCreateCompanionBuilder =
+    UserCategoriesCompanion Function({
+      Value<int> id,
+      required String name,
+      required DateTime createdAt,
+    });
+typedef $$UserCategoriesTableUpdateCompanionBuilder =
+    UserCategoriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<DateTime> createdAt,
+    });
+
+class $$UserCategoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $UserCategoriesTable> {
+  $$UserCategoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserCategoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserCategoriesTable> {
+  $$UserCategoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserCategoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserCategoriesTable> {
+  $$UserCategoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$UserCategoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserCategoriesTable,
+          UserCategory,
+          $$UserCategoriesTableFilterComposer,
+          $$UserCategoriesTableOrderingComposer,
+          $$UserCategoriesTableAnnotationComposer,
+          $$UserCategoriesTableCreateCompanionBuilder,
+          $$UserCategoriesTableUpdateCompanionBuilder,
+          (
+            UserCategory,
+            BaseReferences<_$AppDatabase, $UserCategoriesTable, UserCategory>,
+          ),
+          UserCategory,
+          PrefetchHooks Function()
+        > {
+  $$UserCategoriesTableTableManager(
+    _$AppDatabase db,
+    $UserCategoriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserCategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserCategoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserCategoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => UserCategoriesCompanion(
+                id: id,
+                name: name,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required DateTime createdAt,
+              }) => UserCategoriesCompanion.insert(
+                id: id,
+                name: name,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserCategoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserCategoriesTable,
+      UserCategory,
+      $$UserCategoriesTableFilterComposer,
+      $$UserCategoriesTableOrderingComposer,
+      $$UserCategoriesTableAnnotationComposer,
+      $$UserCategoriesTableCreateCompanionBuilder,
+      $$UserCategoriesTableUpdateCompanionBuilder,
+      (
+        UserCategory,
+        BaseReferences<_$AppDatabase, $UserCategoriesTable, UserCategory>,
+      ),
+      UserCategory,
+      PrefetchHooks Function()
+    >;
+typedef $$CategoryHintsTableCreateCompanionBuilder =
+    CategoryHintsCompanion Function({
+      Value<int> id,
+      required String phrase,
+      required String category,
+      Value<int> accepted,
+      Value<int> rejected,
+      required DateTime updatedAt,
+    });
+typedef $$CategoryHintsTableUpdateCompanionBuilder =
+    CategoryHintsCompanion Function({
+      Value<int> id,
+      Value<String> phrase,
+      Value<String> category,
+      Value<int> accepted,
+      Value<int> rejected,
+      Value<DateTime> updatedAt,
+    });
+
+class $$CategoryHintsTableFilterComposer
+    extends Composer<_$AppDatabase, $CategoryHintsTable> {
+  $$CategoryHintsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phrase => $composableBuilder(
+    column: $table.phrase,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accepted => $composableBuilder(
+    column: $table.accepted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rejected => $composableBuilder(
+    column: $table.rejected,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CategoryHintsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CategoryHintsTable> {
+  $$CategoryHintsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phrase => $composableBuilder(
+    column: $table.phrase,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accepted => $composableBuilder(
+    column: $table.accepted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rejected => $composableBuilder(
+    column: $table.rejected,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CategoryHintsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CategoryHintsTable> {
+  $$CategoryHintsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get phrase =>
+      $composableBuilder(column: $table.phrase, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<int> get accepted =>
+      $composableBuilder(column: $table.accepted, builder: (column) => column);
+
+  GeneratedColumn<int> get rejected =>
+      $composableBuilder(column: $table.rejected, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$CategoryHintsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CategoryHintsTable,
+          CategoryHint,
+          $$CategoryHintsTableFilterComposer,
+          $$CategoryHintsTableOrderingComposer,
+          $$CategoryHintsTableAnnotationComposer,
+          $$CategoryHintsTableCreateCompanionBuilder,
+          $$CategoryHintsTableUpdateCompanionBuilder,
+          (
+            CategoryHint,
+            BaseReferences<_$AppDatabase, $CategoryHintsTable, CategoryHint>,
+          ),
+          CategoryHint,
+          PrefetchHooks Function()
+        > {
+  $$CategoryHintsTableTableManager(_$AppDatabase db, $CategoryHintsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CategoryHintsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CategoryHintsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CategoryHintsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> phrase = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<int> accepted = const Value.absent(),
+                Value<int> rejected = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => CategoryHintsCompanion(
+                id: id,
+                phrase: phrase,
+                category: category,
+                accepted: accepted,
+                rejected: rejected,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String phrase,
+                required String category,
+                Value<int> accepted = const Value.absent(),
+                Value<int> rejected = const Value.absent(),
+                required DateTime updatedAt,
+              }) => CategoryHintsCompanion.insert(
+                id: id,
+                phrase: phrase,
+                category: category,
+                accepted: accepted,
+                rejected: rejected,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CategoryHintsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CategoryHintsTable,
+      CategoryHint,
+      $$CategoryHintsTableFilterComposer,
+      $$CategoryHintsTableOrderingComposer,
+      $$CategoryHintsTableAnnotationComposer,
+      $$CategoryHintsTableCreateCompanionBuilder,
+      $$CategoryHintsTableUpdateCompanionBuilder,
+      (
+        CategoryHint,
+        BaseReferences<_$AppDatabase, $CategoryHintsTable, CategoryHint>,
+      ),
+      CategoryHint,
+      PrefetchHooks Function()
+    >;
+typedef $$PrefillHintsTableCreateCompanionBuilder =
+    PrefillHintsCompanion Function({
+      Value<int> id,
+      required String phrase,
+      required String slot,
+      Value<int> accepted,
+      Value<int> rejected,
+      required DateTime updatedAt,
+    });
+typedef $$PrefillHintsTableUpdateCompanionBuilder =
+    PrefillHintsCompanion Function({
+      Value<int> id,
+      Value<String> phrase,
+      Value<String> slot,
+      Value<int> accepted,
+      Value<int> rejected,
+      Value<DateTime> updatedAt,
+    });
+
+class $$PrefillHintsTableFilterComposer
+    extends Composer<_$AppDatabase, $PrefillHintsTable> {
+  $$PrefillHintsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phrase => $composableBuilder(
+    column: $table.phrase,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get slot => $composableBuilder(
+    column: $table.slot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accepted => $composableBuilder(
+    column: $table.accepted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rejected => $composableBuilder(
+    column: $table.rejected,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PrefillHintsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PrefillHintsTable> {
+  $$PrefillHintsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phrase => $composableBuilder(
+    column: $table.phrase,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get slot => $composableBuilder(
+    column: $table.slot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accepted => $composableBuilder(
+    column: $table.accepted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rejected => $composableBuilder(
+    column: $table.rejected,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PrefillHintsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PrefillHintsTable> {
+  $$PrefillHintsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get phrase =>
+      $composableBuilder(column: $table.phrase, builder: (column) => column);
+
+  GeneratedColumn<String> get slot =>
+      $composableBuilder(column: $table.slot, builder: (column) => column);
+
+  GeneratedColumn<int> get accepted =>
+      $composableBuilder(column: $table.accepted, builder: (column) => column);
+
+  GeneratedColumn<int> get rejected =>
+      $composableBuilder(column: $table.rejected, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PrefillHintsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PrefillHintsTable,
+          PrefillHint,
+          $$PrefillHintsTableFilterComposer,
+          $$PrefillHintsTableOrderingComposer,
+          $$PrefillHintsTableAnnotationComposer,
+          $$PrefillHintsTableCreateCompanionBuilder,
+          $$PrefillHintsTableUpdateCompanionBuilder,
+          (
+            PrefillHint,
+            BaseReferences<_$AppDatabase, $PrefillHintsTable, PrefillHint>,
+          ),
+          PrefillHint,
+          PrefetchHooks Function()
+        > {
+  $$PrefillHintsTableTableManager(_$AppDatabase db, $PrefillHintsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PrefillHintsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PrefillHintsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PrefillHintsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> phrase = const Value.absent(),
+                Value<String> slot = const Value.absent(),
+                Value<int> accepted = const Value.absent(),
+                Value<int> rejected = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => PrefillHintsCompanion(
+                id: id,
+                phrase: phrase,
+                slot: slot,
+                accepted: accepted,
+                rejected: rejected,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String phrase,
+                required String slot,
+                Value<int> accepted = const Value.absent(),
+                Value<int> rejected = const Value.absent(),
+                required DateTime updatedAt,
+              }) => PrefillHintsCompanion.insert(
+                id: id,
+                phrase: phrase,
+                slot: slot,
+                accepted: accepted,
+                rejected: rejected,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PrefillHintsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PrefillHintsTable,
+      PrefillHint,
+      $$PrefillHintsTableFilterComposer,
+      $$PrefillHintsTableOrderingComposer,
+      $$PrefillHintsTableAnnotationComposer,
+      $$PrefillHintsTableCreateCompanionBuilder,
+      $$PrefillHintsTableUpdateCompanionBuilder,
+      (
+        PrefillHint,
+        BaseReferences<_$AppDatabase, $PrefillHintsTable, PrefillHint>,
+      ),
+      PrefillHint,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6226,4 +8077,10 @@ class $AppDatabaseManager {
       $$UserProfileTableTableManager(_db, _db.userProfile);
   $$FieldHintsTableTableManager get fieldHints =>
       $$FieldHintsTableTableManager(_db, _db.fieldHints);
+  $$UserCategoriesTableTableManager get userCategories =>
+      $$UserCategoriesTableTableManager(_db, _db.userCategories);
+  $$CategoryHintsTableTableManager get categoryHints =>
+      $$CategoryHintsTableTableManager(_db, _db.categoryHints);
+  $$PrefillHintsTableTableManager get prefillHints =>
+      $$PrefillHintsTableTableManager(_db, _db.prefillHints);
 }

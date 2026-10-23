@@ -221,6 +221,11 @@ class AppLocalizationsTe extends AppLocalizations {
   }
 
   @override
+  String autoDocumentTitle(String title, String date) {
+    return '$title – $date';
+  }
+
+  @override
   String get reviewTitle => 'పేజీలను సమీక్షించు';
 
   @override
@@ -410,10 +415,26 @@ class AppLocalizationsTe extends AppLocalizations {
   String get pressFieldSummary => 'ఫీల్డ్ సారాంశం';
 
   @override
-  String get pressFilled => 'పూరించబడింది';
+  String pressFilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ఫీల్డ్‌లు పూరించబడ్డాయి',
+      one: '1 ఫీల్డ్ పూరించబడింది',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get pressUnfilled => 'పూరించలేదు';
+  String pressUnfilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ఫీల్డ్‌లు పూరించలేదు',
+      one: '1 ఫీల్డ్ పూరించలేదు',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get pressSaveDraft => 'డ్రాఫ్ట్ సేవ్ చేయి';

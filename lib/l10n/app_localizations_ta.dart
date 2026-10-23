@@ -219,6 +219,11 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
+  String autoDocumentTitle(String title, String date) {
+    return '$title – $date';
+  }
+
+  @override
   String get reviewTitle => 'பக்கங்களைச் சரிபார்';
 
   @override
@@ -408,10 +413,26 @@ class AppLocalizationsTa extends AppLocalizations {
   String get pressFieldSummary => 'புலச் சுருக்கம்';
 
   @override
-  String get pressFilled => 'நிரப்பப்பட்டது';
+  String pressFilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count புலங்கள் நிரப்பப்பட்டன',
+      one: '1 புலம் நிரப்பப்பட்டது',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get pressUnfilled => 'நிரப்பப்படவில்லை';
+  String pressUnfilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count புலங்கள் நிரப்பப்படவில்லை',
+      one: '1 புலம் நிரப்பப்படவில்லை',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get pressSaveDraft => 'வரைவைச் சேமி';

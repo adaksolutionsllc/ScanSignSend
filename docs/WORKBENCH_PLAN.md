@@ -7,6 +7,10 @@ flattened/locked PDF **or** a live AcroForm PDF (user's choice).
 
 **Status legend:** ☐ not started · ◐ in progress · ☑ done
 
+> **Status 2026-10-23:** phases A–D are done (see the progress log at the
+> bottom). Only B3 (annotations/highlights) is still deferred. This file is
+> kept as the record of how the workbench was built.
+
 > This file is the durable source of truth for the workbench effort. It's
 > written so any session (or teammate) can resume mid-phase. Update the status
 > boxes and the "Progress log" at the bottom as work lands.
@@ -89,13 +93,13 @@ Round-trip test: `pdfToNorm(normToPdf(b)) ≈ b` within epsilon.
 
 ---
 
-# Phase A — Fill *real* AcroForm fields  ☐
+# Phase A — Fill *real* AcroForm fields  ☑
 
 **Why first:** highest App-Store search demand ("fill PDF form"), and it forces
 the three-way field mapping + coordinate transform before any UI is stacked on
 top. Ships as a standalone release.
 
-### A0 — Library spike (GATE) ☐
+### A0 — Library spike (GATE) ☑
 - New throwaway `tool/acroform_spike.dart` (or a test): author a PDF with a
   text field, checkbox, and signature field via Syncfusion; write to disk.
 - Manually open in Acrobat, Preview, Chrome. Confirm fields are fillable and
@@ -103,7 +107,7 @@ top. Ships as a standalone release.
 - **Decision:** PASS → continue Phase A. FAIL → open `docs/PDF_ENGINE_EVAL.md`,
   evaluate alternatives, do not proceed.
 
-### A1 — Schema: make Fields AcroForm-aware ☐
+### A1 — Schema: make Fields AcroForm-aware ☑
 Add columns to `Fields` (`app_database.dart`), bump `schemaVersion`, add a
 migration in `onUpgrade`:
 - `pdfFieldName TEXT NULL` — the AcroForm field's fully-qualified name (the key
@@ -115,7 +119,7 @@ migration in `onUpgrade`:
 Run `dart run build_runner build --delete-conflicting-outputs`.
 **Migration must be additive + tested** (open an old DB, confirm no data loss).
 
-### A2 — Read existing AcroForm fields on import ☐
+### A2 — Read existing AcroForm fields on import ☑
 In `import_service.dart` `_importPdf`, when `pdfDoc.form.fields.count > 0`:
 - Iterate `pdfDoc.form.fields`; for each supported field type
   (`PdfTextBoxField`, `PdfCheckBoxField`, `PdfComboBoxField`,
@@ -128,7 +132,7 @@ In `import_service.dart` `_importPdf`, when `pdfDoc.form.fields.count > 0`:
   invert it: imported AcroForms are the *best* input, not a thing to avoid.
 - Map unsupported types to a read-only visual so nothing silently vanishes.
 
-### A3 — Fill UI reuses the existing editor ☐
+### A3 — Fill UI reuses the existing editor ☑
 - `field_detection_screen.dart` / `fill_mode_screen.dart` already render
   draggable, typed field overlays. Feed the `sourceKind='acroform'` fields into
   the same UI. For v1, **acroform fields are fill-only, not movable** (moving a
@@ -137,7 +141,7 @@ In `import_service.dart` `_importPdf`, when `pdfDoc.form.fields.count > 0`:
 - Combo/radio need a picker input (new small sheet); text/checkbox/signature
   reuse current inputs.
 
-### A4 — Second exporter: `FillableFormExportService` ☐
+### A4 — Second exporter: `FillableFormExportService` ☑
 New `lib/core/services/fillable_form_export_service.dart`, structured like
 `press_service.dart` (isolate via `compute`, serializable job):
 - **Imported-PDF case:** load the original bytes, get `pdfDoc.form`, find each
@@ -150,13 +154,13 @@ New `lib/core/services/fillable_form_export_service.dart`, structured like
 - Save → new PDF path; store on the document (needs a `fillablePdfPath?` column,
   or reuse a generic `exportPath` — decide in A1).
 
-### A5 — Two exits wired (minimal) ☐
+### A5 — Two exits wired (minimal) ☑
 - Replace the single "Press & Lock" CTA with a choice. Default action =
   **Save as Fillable**; secondary/confirmed = **Flatten & Sign** (keep the
   existing confirm dialog, strengthen the copy).
 - Both land on `send_screen` (already generic over a PDF path).
 
-### A6 — Tests ☐
+### A6 — Tests ☑
 - `pdf_geometry` round-trip unit tests.
 - Export service: author → re-open with Syncfusion → assert field count/values
   match (programmatic, no human needed).
@@ -168,7 +172,7 @@ flattened. Analyze clean, tests green, debug build passes both platforms.
 
 ---
 
-# Phase B — Faithful viewing as a first-class surface  ☐
+# Phase B — Faithful viewing as a first-class surface  ☑
 
 Mostly integration of the already-embedded `SfPdfViewer`; low novel risk.
 
@@ -186,7 +190,7 @@ reachable as a first-class action from the Library.
 
 ---
 
-# Phase C — Authoring (create fillable forms)  ☐
+# Phase C — Authoring (create fillable forms)  ☑
 
 Only after A proves the field round-trip. Authoring = A's export path + a
 placement canvas you mostly already have.
@@ -206,7 +210,7 @@ exported PDF is fillable in all three target renderers.
 
 ---
 
-# Phase D — Two-exit resolution & mode clarity  ☐
+# Phase D — Two-exit resolution & mode clarity  ☑
 
 Harden the "both modes" UX so users never destroy work by accident.
 

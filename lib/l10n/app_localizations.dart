@@ -492,6 +492,12 @@ abstract class AppLocalizations {
   /// **'Document {date}'**
   String captureDefaultDocumentName(String date);
 
+  /// A scan named from the title found on its first page, plus the short date (e.g. 'Rental application – 23 Oct'). Keep the ' – ' separator: learning strips the date after it.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} – {date}'**
+  String autoDocumentTitle(String title, String date);
+
   /// No description provided for @reviewTitle.
   ///
   /// In en, this message translates to:
@@ -840,17 +846,17 @@ abstract class AppLocalizations {
   /// **'Field Summary'**
   String get pressFieldSummary;
 
-  /// No description provided for @pressFilled.
+  /// No description provided for @pressFilledCount.
   ///
   /// In en, this message translates to:
-  /// **'Filled'**
-  String get pressFilled;
+  /// **'{count, plural, =1{1 field filled} other{{count} fields filled}}'**
+  String pressFilledCount(int count);
 
-  /// No description provided for @pressUnfilled.
+  /// No description provided for @pressUnfilledCount.
   ///
   /// In en, this message translates to:
-  /// **'Unfilled'**
-  String get pressUnfilled;
+  /// **'{count, plural, =1{1 field not filled} other{{count} fields not filled}}'**
+  String pressUnfilledCount(int count);
 
   /// No description provided for @pressSaveDraft.
   ///

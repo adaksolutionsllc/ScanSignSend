@@ -125,7 +125,8 @@ void main() {
     };
     for (final locale in _expectedLocales.where((l) => l != 'en')) {
       final arb = _readArb(locale);
-      final allowed = {'appTitle', ...?cognates[locale]};
+      // autoDocumentTitle is only placeholders and a dash, no words.
+      final allowed = {'appTitle', 'autoDocumentTitle', ...?cognates[locale]};
       final untranslated =
           englishKeys
               .where((k) => !allowed.contains(k))

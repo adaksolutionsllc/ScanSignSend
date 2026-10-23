@@ -78,4 +78,9 @@ dependencies {
     // Keeps the free-allowance counter across uninstall/reinstall (with the
     // user's Google Backup on). See MainActivity's entitlement channel.
     implementation("com.google.android.gms:play-services-auth-blockstore:16.4.0")
+    // Gemini Nano on the phone, for sorting documents into categories (see
+    // OnDeviceAiPlugin). Beta: every call is guarded and falls back to
+    // keyword sorting in Dart.
+    implementation("com.google.mlkit:genai-prompt:1.0.0-beta4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 }

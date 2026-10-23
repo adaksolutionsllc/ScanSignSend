@@ -16,7 +16,7 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     DocumentScannerPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "DocumentScannerPlugin")!)
-    AiFieldEnhancerPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "AiFieldEnhancerPlugin")!)
+    OnDeviceAiPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "OnDeviceAiPlugin")!)
     BackupPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "BackupPlugin")!)
     EntitlementPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "EntitlementPlugin")!)
     OpenFilePlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "OpenFilePlugin")!)

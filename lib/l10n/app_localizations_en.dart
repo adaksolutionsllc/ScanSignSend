@@ -218,6 +218,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String autoDocumentTitle(String title, String date) {
+    return '$title – $date';
+  }
+
+  @override
   String get reviewTitle => 'Review Pages';
 
   @override
@@ -405,10 +410,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pressFieldSummary => 'Field Summary';
 
   @override
-  String get pressFilled => 'Filled';
+  String pressFilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields filled',
+      one: '1 field filled',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get pressUnfilled => 'Unfilled';
+  String pressUnfilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields not filled',
+      one: '1 field not filled',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get pressSaveDraft => 'Save Draft';

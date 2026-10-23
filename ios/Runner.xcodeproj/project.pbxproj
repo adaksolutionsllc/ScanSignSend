@@ -22,7 +22,7 @@
 		9CDCB7CF24803B7EA243F068 /* BackupPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059E24256D0B6B0BFC4783C /* BackupPlugin.swift */; };
 		A1E4F11E00A1B2C3D4E5F601 /* OpenFilePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E4F11E00A1B2C3D4E5F602 /* OpenFilePlugin.swift */; };
 		AA1111111111111111111111 /* DocumentScannerPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2222222222222222222222 /* DocumentScannerPlugin.swift */; };
-		AA3333333333333333333333 /* AiFieldEnhancerPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4444444444444444444444 /* AiFieldEnhancerPlugin.swift */; };
+		AA3333333333333333333333 /* OnDeviceAiPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4444444444444444444444 /* OnDeviceAiPlugin.swift */; };
 		AA5555555555555555555555 /* PrivacyOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6666666666666666666666 /* PrivacyOverlay.swift */; };
 		FDF1D91D1EBC56A18E3C2BDA /* EntitlementPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6843126E466836A3B4C5FD60 /* EntitlementPlugin.swift */; };
 /* End PBXBuildFile section */
@@ -84,7 +84,7 @@
 		A03F35BB9E0AF9323CC51896 /* hi */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A361318EECE672265CCFCEFD /* ta */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = ta; path = ta.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		AA2222222222222222222222 /* DocumentScannerPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentScannerPlugin.swift; sourceTree = "<group>"; };
-		AA4444444444444444444444 /* AiFieldEnhancerPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiFieldEnhancerPlugin.swift; sourceTree = "<group>"; };
+		AA4444444444444444444444 /* OnDeviceAiPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceAiPlugin.swift; sourceTree = "<group>"; };
 		AA6666666666666666666666 /* PrivacyOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyOverlay.swift; sourceTree = "<group>"; };
 		EA9F14996CFA95A850038EDC /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		F8044FB14EEA4113B0564E8B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -178,7 +178,7 @@
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				AA2222222222222222222222 /* DocumentScannerPlugin.swift */,
-				AA4444444444444444444444 /* AiFieldEnhancerPlugin.swift */,
+				AA4444444444444444444444 /* OnDeviceAiPlugin.swift */,
 				AA6666666666666666666666 /* PrivacyOverlay.swift */,
 				D11326A48AAE4D0AADAC0B5C /* InfoPlist.strings */,
 				5059E24256D0B6B0BFC4783C /* BackupPlugin.swift */,
@@ -439,7 +439,7 @@
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				AA1111111111111111111111 /* DocumentScannerPlugin.swift in Sources */,
-				AA3333333333333333333333 /* AiFieldEnhancerPlugin.swift in Sources */,
+				AA3333333333333333333333 /* OnDeviceAiPlugin.swift in Sources */,
 				AA5555555555555555555555 /* PrivacyOverlay.swift in Sources */,
 				9CDCB7CF24803B7EA243F068 /* BackupPlugin.swift in Sources */,
 				A1E4F11E00A1B2C3D4E5F601 /* OpenFilePlugin.swift in Sources */,
@@ -553,6 +553,11 @@
 				DEVELOPMENT_TEAM = T995T8G6Z2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					FoundationModels,
+				);
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -736,6 +741,11 @@
 				DEVELOPMENT_TEAM = T995T8G6Z2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					FoundationModels,
+				);
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -759,6 +769,11 @@
 				DEVELOPMENT_TEAM = T995T8G6Z2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					FoundationModels,
+				);
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

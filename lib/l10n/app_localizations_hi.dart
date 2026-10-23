@@ -219,6 +219,11 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String autoDocumentTitle(String title, String date) {
+    return '$title – $date';
+  }
+
+  @override
   String get reviewTitle => 'पृष्ठ जाँचें';
 
   @override
@@ -406,10 +411,26 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pressFieldSummary => 'फ़ील्ड सारांश';
 
   @override
-  String get pressFilled => 'भरा हुआ';
+  String pressFilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count फ़ील्ड भरे गए',
+      one: '1 फ़ील्ड भरा गया',
+    );
+    return '$_temp0';
+  }
 
   @override
-  String get pressUnfilled => 'ख़ाली';
+  String pressUnfilledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count फ़ील्ड ख़ाली',
+      one: '1 फ़ील्ड ख़ाली',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get pressSaveDraft => 'ड्राफ़्ट सहेजें';

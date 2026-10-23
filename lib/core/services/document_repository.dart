@@ -199,6 +199,9 @@ class PageRepository {
   Future<List<Page>> _orderedPages(int documentId) =>
       watchPages(documentId).first;
 
+  /// The document's pages in order (a field's `pageIndex` is a position here).
+  Future<List<Page>> pagesOf(int documentId) => _orderedPages(documentId);
+
   Future<int> addPage({
     required int documentId,
     required int pageIndex,
