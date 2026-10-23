@@ -139,10 +139,18 @@ boxes and add a one-line "status as of 2026-10-23" note (B3 still deferred).
   No storage permission is needed, because the URIs come with read grants.
 - **iOS:** add `public.jpeg`, `public.png` and `public.heic` to
   `CFBundleDocumentTypes` (Alternate rank) so images can be opened from Files
-  and other apps. Photos' share sheet lists only share extensions, so photos
-  shared from **Photos** still need the in-app import. A real Share Extension
-  (new target, App Group, extra signing profiles in fastlane) is not worth its
-  maintenance cost yet. That gets revisited if users ask for it.
+  and other apps.
+- **iOS Share Extension (decided 2026-10-23, +3–4 d):** a `ShareExtension`
+  target (bundle `com.adakventures.scansignsend.ShareExtension`) that accepts
+  images and PDFs from any app, Photos included. It copies the files into an
+  App Group container (`group.com.adakventures.scansignsend`), writes a small
+  manifest, and opens the main app via a URL scheme
+  (`scansignsend://import?batch=<uuid>`). The main app imports the batch
+  through the same path as Android `SEND`, then deletes it. The extension holds
+  no Flutter code (memory limit ~120 MB), no UI beyond a progress sheet, and
+  no access to the database. Fastlane gets the second App ID, App Group
+  capability and provisioning profile. Strings for the extension go in its own
+  `Localizable.strings` × 7.
 
 ### A real library
 
@@ -378,13 +386,11 @@ One release, 1.3.0. Each phase ends with the pre-commit review routine
   language), in Settings and once as a Library tip.
 - Accuracy is a best-effort target, not a release gate.
 
-Open, with my recommendation:
+- **iOS Share Extension: build it** (§3.7). Photos → Share → Scan Sign Send.
+- **Accessibility labels:** declare only what passes a device run; VoiceOver
+  only after a full scan→fill→sign→send run.
+- **Password on iOS through PDFKit**, after the spike (§3.12).
+- **Smaller files by default** (200 dpi) plus the Send switch, after measuring
+  on the Phase 1 batch (§3.11).
 
-1. **iOS Share Extension.** Recommend not now; images from Files only on
-   iOS (§3.7).
-2. **Accessibility labels.** Recommend declaring only the features that pass
-   testing. VoiceOver goes in only after a full device run.
-3. **Password on iOS through PDFKit.** Recommend yes. The spike decides
-   whether it covers fillable PDFs too.
-4. **Default compression on every export.** Recommend yes, after measuring
-   on the Phase 1 batch. It changes the output of existing flows.
+No open decisions remain.
