@@ -239,24 +239,47 @@ Design:
 - **Android:** a Kotlin handler in `MainActivity` using
   `com.google.mlkit:genai-prompt` with structured output (beta3+). It's used
   only when `checkStatus() == AVAILABLE`, and the app never starts a model
-  download itself. This raises **minSdk from 24 (Flutter default) to 26**
-  (Android 8.0), dropping Android 7.x phones. That needs your sign-off (§6).
+  download itself. **minSdk stays 24.** The library needs API 26, so the
+  manifest gets `tools:overrideLibrary` for the genai packages (exact list
+  taken from the manifest-merger report at build time). All Prompt API code
+  lives in one Kotlin class that's only touched behind
+  `Build.VERSION.SDK_INT >= 26`. Android 7.x phones use keywords. Test:
+  launch and categorise on an API 24 emulator to prove nothing loads there.
 - **When it runs:** after a document is saved, in the foreground, one
   document at a time, with a timeout (about 10 s), then keyword fallback. On
   upgrade, it classifies the 20 most recent documents with the model (quota)
   and the rest with keywords.
 - **Settings:** a "Sort documents automatically" switch (default on), shown
-  on every device; the model is an internal detail. No "AI" badge on
-  devices without it, and nothing implies those phones are missing a
-  feature.
+  on every device. Its subtitle says which method is in use and, when it's
+  keywords, why and what (if anything) the user can do:
+
+  | Reason (from the platform) | Message (English; 7 locales) |
+  |---|---|
+  | Model available | "Sorted by on-device AI." |
+  | iOS: device not eligible (`deviceNotEligible`) | "Sorted by keywords. On-device AI sorting needs iPhone 15 Pro or later." |
+  | iOS < 26 on an eligible iPhone | "Sorted by keywords. Update to iOS 26 or later for on-device AI sorting." |
+  | iOS: Apple Intelligence off (`appleIntelligenceNotEnabled`) | "Sorted by keywords. Turn on Apple Intelligence in Settings for on-device AI sorting." |
+  | iOS: model not ready (`modelNotReady`) / Android DOWNLOADABLE or DOWNLOADING | "Sorted by keywords for now. On-device AI is still being set up on this phone." |
+  | iOS: device language not supported | "Sorted by keywords. On-device AI sorting isn't available in your phone's language yet." |
+  | Android < 8.0, or UNAVAILABLE | "Sorted by keywords. This phone doesn't support on-device AI sorting." |
+
+- **Telling the user once:** the first time a document is sorted by
+  keywords, a dismissible tip on the Library shows the same message with
+  "Got it" (stored in prefs, never shown again). It's never repeated or turned
+  into a nag, and it never points at buying a new phone. Only the tip and
+  Settings mention it.
+- Wording: "on-device AI" is fine (it's true and stays on the phone). Never
+  "smart AI that understands your documents".
 - **Testing:** Dart tests use a fake channel (model answers, `none`,
   timeout, error → keyword fallback). For accuracy, a tool script runs
   both engines over the sample forms in `tool/store_capture/forms`, plus
   10–15 more labelled samples (tax, lease, medical, insurance, bank, school).
-  Target: correct or Uncategorised for ≥ 90%, wrong ≤ 10%, for each engine.
-  It needs one Apple Intelligence iPhone (or the simulator on a Mac with Apple
-  Intelligence on) and one supported Android phone. Without the Android phone,
-  the Android model path ships off (see §6).
+  Target (a goal to tune toward, not a release gate; Arun 2026-10-23: "a
+  decent effort"): correct or Uncategorised ≥ 90%, wrong ≤ 10%, for each
+  engine. iOS model: the simulator on this Mac with Apple Intelligence on, or
+  any eligible iPhone available. Android model: a supported phone if one is
+  available. Without one, the Android path ships guarded (AVAILABLE only,
+  timeout, keyword fallback), with the fallback paths tested.
 
 ### Learning and AI
 
@@ -348,23 +371,20 @@ One release, 1.3.0. Each phase ends with the pre-commit review routine
   changeable, user can add their own) instead of manual folders or tags.
 - Sorting uses the on-device language model where available, and keyword
   rules otherwise (§3.9, §3.9a).
+- The Android model path ships while the Prompt API is beta, guarded.
+- minSdk stays 24. Android 7.x uses keywords (`tools:overrideLibrary` +
+  version guard).
+- Where keywords are used, the user is told why (hardware, OS, setting,
+  language), in Settings and once as a Library tip.
+- Accuracy is a best-effort target, not a release gate.
 
 Open, with my recommendation:
 
-1. **Android model path while the Prompt API is beta.** Recommend shipping
-   it, guarded (AVAILABLE only, timeout, keyword fallback on any error),
-   *if* it's tested on a supported Android phone. Without one, ship iOS model
-   + Android keywords and turn Android on in a point release.
-2. **Raise Android minSdk 24 → 26.** This is required by the Prompt API.
-   Recommend yes (Android 7.x is a very small share). Check Play Console's
-   device catalogue for current installs on API 24–25 first.
-3. **Test devices.** Which Apple Intelligence iPhone and which supported
-   Android phone can be used for the accuracy run?
-4. **iOS Share Extension.** Recommend not now; images from Files only on
+1. **iOS Share Extension.** Recommend not now; images from Files only on
    iOS (§3.7).
-5. **Accessibility labels.** Recommend declaring only the features that pass
+2. **Accessibility labels.** Recommend declaring only the features that pass
    testing. VoiceOver goes in only after a full device run.
-6. **Password on iOS through PDFKit.** Recommend yes. The spike decides
+3. **Password on iOS through PDFKit.** Recommend yes. The spike decides
    whether it covers fillable PDFs too.
-7. **Default compression on every export.** Recommend yes, after measuring
+4. **Default compression on every export.** Recommend yes, after measuring
    on the Phase 1 batch. It changes the output of existing flows.
