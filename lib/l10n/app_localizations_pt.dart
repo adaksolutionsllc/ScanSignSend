@@ -935,11 +935,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get libraryImport => 'Importar';
 
   @override
-  String get settingsForgetLearned => 'Esquecer campos aprendidos';
+  String get settingsForgetLearned => 'Esquecer o que a aplicação aprendeu';
 
   @override
   String get settingsForgetLearnedSubtitle =>
-      'A detecção aprende com os campos que você adiciona, altera e exclui, somente neste dispositivo.';
+      'A deteção de campos, o PreFill e a organização aprendem com as suas alterações, apenas neste dispositivo.';
 
   @override
   String get settingsForgetLearnedDone => 'Campos aprendidos apagados';
@@ -1133,4 +1133,131 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsTourSubtitle => 'Veja o que o Scan Sign Send faz';
+
+  @override
+  String get categoryTax => 'Impostos';
+
+  @override
+  String get categoryMoney => 'Banco e dinheiro';
+
+  @override
+  String get categoryInsurance => 'Seguros';
+
+  @override
+  String get categoryMedical => 'Saúde';
+
+  @override
+  String get categoryHome => 'Casa e arrendamento';
+
+  @override
+  String get categoryWork => 'Trabalho';
+
+  @override
+  String get categorySchool => 'Escola';
+
+  @override
+  String get categoryIdTravel => 'Identificação e viagens';
+
+  @override
+  String get categoryLegal => 'Contratos e jurídico';
+
+  @override
+  String get categoryBills => 'Faturas e recibos';
+
+  @override
+  String get categoryNone => 'Sem categoria';
+
+  @override
+  String get categoryNew => 'Nova categoria';
+
+  @override
+  String get categoryNameHint => 'Nome da categoria';
+
+  @override
+  String get categoryChange => 'Mudar de categoria';
+
+  @override
+  String get categorySortedAutomatically => 'Organizado automaticamente';
+
+  @override
+  String get categoryRename => 'Mudar o nome da categoria';
+
+  @override
+  String get categoryDelete => 'Eliminar categoria';
+
+  @override
+  String categoryDeleteBody(String name) {
+    return '«$name» será eliminada. Os documentos continuam na sua biblioteca, sem categoria.';
+  }
+
+  @override
+  String get librarySelect => 'Selecionar';
+
+  @override
+  String librarySelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selecionados',
+      one: '1 selecionado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryDeleteManyTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eliminar $count documentos?',
+      one: 'Eliminar 1 documento?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryDeleteManyBody => 'Esta ação não pode ser anulada.';
+
+  @override
+  String get libraryMoreTooltip => 'Mais';
+
+  @override
+  String get settingsSectionLibrary => 'Biblioteca';
+
+  @override
+  String get settingsAutoSortTitle => 'Organizar documentos automaticamente';
+
+  @override
+  String get aiSortAvailable => 'Organizados pela IA do dispositivo.';
+
+  @override
+  String get aiSortDeviceNotEligible =>
+      'Organizados por palavras-chave. A organização com a IA do dispositivo requer um iPhone 15 Pro ou posterior.';
+
+  @override
+  String get aiSortOsTooOld =>
+      'Organizados por palavras-chave. Atualize para o iOS 26 ou posterior para organizar com a IA do dispositivo.';
+
+  @override
+  String get aiSortNotEnabled =>
+      'Organizados por palavras-chave. Ative o Apple Intelligence nas Definições para organizar com a IA do dispositivo.';
+
+  @override
+  String get aiSortNotReady =>
+      'Organizados por palavras-chave, por agora. A IA do dispositivo ainda está a ser configurada neste telemóvel.';
+
+  @override
+  String get aiSortLanguage =>
+      'Organizados por palavras-chave. A organização com a IA do dispositivo ainda não está disponível no idioma do seu telemóvel.';
+
+  @override
+  String get aiSortUnsupported =>
+      'Organizados por palavras-chave. Este telemóvel não suporta a organização com a IA do dispositivo.';
+
+  @override
+  String get aiSortOff =>
+      'Os documentos não são organizados. Escolha a categoria de cada um.';
+
+  @override
+  String get actionGotIt => 'Entendi';
 }

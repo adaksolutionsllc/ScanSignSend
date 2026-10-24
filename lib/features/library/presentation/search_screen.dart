@@ -29,9 +29,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final repo = ref.watch(documentRepositoryProvider);
-    final stream = _query.isEmpty
-        ? repo.watchAll()
-        : repo.watchByQuery(_query);
+    final stream = _query.isEmpty ? repo.watchAll() : repo.watchByQuery(_query);
 
     return Scaffold(
       appBar: AppBar(
@@ -60,9 +58,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         builder: (context, snapshot) {
           final docs = snapshot.data ?? [];
           if (docs.isEmpty && _query.isNotEmpty) {
-            return Center(
-              child: Text(context.l10n.searchNoResults(_query)),
-            );
+            return Center(child: Text(context.l10n.searchNoResults(_query)));
           }
           return ListView.builder(
             itemCount: docs.length,
@@ -74,8 +70,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   status == DocumentStatus.pressed
                       ? Icons.lock
                       : status == DocumentStatus.template
-                          ? Icons.layers
-                          : Icons.description_outlined,
+                      ? Icons.layers
+                      : Icons.description_outlined,
                   color: switch (status) {
                     DocumentStatus.pressed => AppTheme.statusPressed,
                     DocumentStatus.fillable => AppTheme.statusFillable,
@@ -85,7 +81,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ),
                 title: Text(doc.title),
                 subtitle: Text(
-                    '${doc.pageCount} page${doc.pageCount == 1 ? '' : 's'}'),
+                  '${doc.pageCount} page${doc.pageCount == 1 ? '' : 's'}',
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(
                   status == DocumentStatus.pressed

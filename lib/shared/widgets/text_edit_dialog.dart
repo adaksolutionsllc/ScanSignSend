@@ -26,8 +26,9 @@ class TextEditDialog extends StatefulWidget {
 }
 
 class _TextEditDialogState extends State<TextEditDialog> {
-  late final TextEditingController _ctrl =
-      TextEditingController(text: widget.initialValue);
+  late final TextEditingController _ctrl = TextEditingController(
+    text: widget.initialValue,
+  );
 
   @override
   void dispose() {

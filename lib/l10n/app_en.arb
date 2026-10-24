@@ -488,8 +488,8 @@
   "actionUndo": "Undo",
   "detectFormFieldLocked": "This field is part of the PDF's own form. Fill it in on the next step.",
   "libraryImport": "Import",
-  "settingsForgetLearned": "Forget learned field patterns",
-  "settingsForgetLearnedSubtitle": "Field detection learns from the fields you add, retype and delete, on this device only.",
+  "settingsForgetLearned": "Forget what the app has learned",
+  "settingsForgetLearnedSubtitle": "Field detection, PreFill and sorting learn from your changes, on this device only.",
   "settingsForgetLearnedDone": "Learned field patterns cleared",
   "paywallReasonAllowance": "You've used your {count} free documents.",
   "@paywallReasonAllowance": {
@@ -623,5 +623,63 @@
   "tourWhatsNew": "What's new",
   "tourGotIt": "Got it",
   "settingsTour": "App tour",
-  "settingsTourSubtitle": "See what Scan Sign Send can do"
+  "settingsTourSubtitle": "See what Scan Sign Send can do",
+  "categoryTax": "Tax",
+  "categoryMoney": "Bank & money",
+  "categoryInsurance": "Insurance",
+  "categoryMedical": "Medical",
+  "categoryHome": "Home & rental",
+  "categoryWork": "Work",
+  "categorySchool": "School",
+  "categoryIdTravel": "ID & travel",
+  "categoryLegal": "Agreements & legal",
+  "categoryBills": "Bills & receipts",
+  "categoryNone": "No category",
+  "categoryNew": "New category",
+  "categoryNameHint": "Category name",
+  "categoryChange": "Change category",
+  "categorySortedAutomatically": "Sorted automatically",
+  "categoryRename": "Rename category",
+  "categoryDelete": "Delete category",
+  "categoryDeleteBody": "“{name}” will be removed. Its documents stay in your library, with no category.",
+  "@categoryDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "librarySelect": "Select",
+  "librarySelectedCount": "{count, plural, =1{1 selected} other{{count} selected}}",
+  "@librarySelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleteManyTitle": "{count, plural, =1{Delete 1 document?} other{Delete {count} documents?}}",
+  "@libraryDeleteManyTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryDeleteManyBody": "This cannot be undone.",
+  "libraryMoreTooltip": "More",
+  "settingsSectionLibrary": "Library",
+  "settingsAutoSortTitle": "Sort documents automatically",
+  "aiSortAvailable": "Sorted by on-device AI.",
+  "aiSortDeviceNotEligible": "Sorted by keywords. On-device AI sorting needs iPhone 15 Pro or later.",
+  "aiSortOsTooOld": "Sorted by keywords. Update to iOS 26 or later for on-device AI sorting.",
+  "aiSortNotEnabled": "Sorted by keywords. Turn on Apple Intelligence in Settings for on-device AI sorting.",
+  "@aiSortNotEnabled": {
+    "description": "Apple Intelligence is Apple's product name; keep it in English."
+  },
+  "aiSortNotReady": "Sorted by keywords for now. On-device AI is still being set up on this phone.",
+  "aiSortLanguage": "Sorted by keywords. On-device AI sorting isn't available in your phone's language yet.",
+  "aiSortUnsupported": "Sorted by keywords. This phone doesn't support on-device AI sorting.",
+  "aiSortOff": "Documents aren't sorted. Choose a category for each one yourself.",
+  "actionGotIt": "Got it"
 }

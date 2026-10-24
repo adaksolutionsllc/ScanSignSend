@@ -929,11 +929,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryImport => 'Import';
 
   @override
-  String get settingsForgetLearned => 'Forget learned field patterns';
+  String get settingsForgetLearned => 'Forget what the app has learned';
 
   @override
   String get settingsForgetLearnedSubtitle =>
-      'Field detection learns from the fields you add, retype and delete, on this device only.';
+      'Field detection, PreFill and sorting learn from your changes, on this device only.';
 
   @override
   String get settingsForgetLearnedDone => 'Learned field patterns cleared';
@@ -1125,4 +1125,131 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTourSubtitle => 'See what Scan Sign Send can do';
+
+  @override
+  String get categoryTax => 'Tax';
+
+  @override
+  String get categoryMoney => 'Bank & money';
+
+  @override
+  String get categoryInsurance => 'Insurance';
+
+  @override
+  String get categoryMedical => 'Medical';
+
+  @override
+  String get categoryHome => 'Home & rental';
+
+  @override
+  String get categoryWork => 'Work';
+
+  @override
+  String get categorySchool => 'School';
+
+  @override
+  String get categoryIdTravel => 'ID & travel';
+
+  @override
+  String get categoryLegal => 'Agreements & legal';
+
+  @override
+  String get categoryBills => 'Bills & receipts';
+
+  @override
+  String get categoryNone => 'No category';
+
+  @override
+  String get categoryNew => 'New category';
+
+  @override
+  String get categoryNameHint => 'Category name';
+
+  @override
+  String get categoryChange => 'Change category';
+
+  @override
+  String get categorySortedAutomatically => 'Sorted automatically';
+
+  @override
+  String get categoryRename => 'Rename category';
+
+  @override
+  String get categoryDelete => 'Delete category';
+
+  @override
+  String categoryDeleteBody(String name) {
+    return '“$name” will be removed. Its documents stay in your library, with no category.';
+  }
+
+  @override
+  String get librarySelect => 'Select';
+
+  @override
+  String librarySelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '1 selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryDeleteManyTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count documents?',
+      one: 'Delete 1 document?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryDeleteManyBody => 'This cannot be undone.';
+
+  @override
+  String get libraryMoreTooltip => 'More';
+
+  @override
+  String get settingsSectionLibrary => 'Library';
+
+  @override
+  String get settingsAutoSortTitle => 'Sort documents automatically';
+
+  @override
+  String get aiSortAvailable => 'Sorted by on-device AI.';
+
+  @override
+  String get aiSortDeviceNotEligible =>
+      'Sorted by keywords. On-device AI sorting needs iPhone 15 Pro or later.';
+
+  @override
+  String get aiSortOsTooOld =>
+      'Sorted by keywords. Update to iOS 26 or later for on-device AI sorting.';
+
+  @override
+  String get aiSortNotEnabled =>
+      'Sorted by keywords. Turn on Apple Intelligence in Settings for on-device AI sorting.';
+
+  @override
+  String get aiSortNotReady =>
+      'Sorted by keywords for now. On-device AI is still being set up on this phone.';
+
+  @override
+  String get aiSortLanguage =>
+      'Sorted by keywords. On-device AI sorting isn\'t available in your phone\'s language yet.';
+
+  @override
+  String get aiSortUnsupported =>
+      'Sorted by keywords. This phone doesn\'t support on-device AI sorting.';
+
+  @override
+  String get aiSortOff =>
+      'Documents aren\'t sorted. Choose a category for each one yourself.';
+
+  @override
+  String get actionGotIt => 'Got it';
 }

@@ -936,11 +936,11 @@ class AppLocalizationsTe extends AppLocalizations {
   String get libraryImport => 'దిగుమతి';
 
   @override
-  String get settingsForgetLearned => 'నేర్చుకున్న ఫీల్డ్ నమూనాలను మరచిపో';
+  String get settingsForgetLearned => 'యాప్ నేర్చుకున్నది మర్చిపోండి';
 
   @override
   String get settingsForgetLearnedSubtitle =>
-      'మీరు జోడించే, మార్చే, తొలగించే ఫీల్డ్‌ల నుండి గుర్తింపు నేర్చుకుంటుంది — ఈ పరికరంలో మాత్రమే.';
+      'ఫీల్డ్ గుర్తింపు, PreFill, వర్గీకరణ మీ మార్పుల నుండి నేర్చుకుంటాయి, ఈ పరికరంలో మాత్రమే.';
 
   @override
   String get settingsForgetLearnedDone =>
@@ -1135,4 +1135,132 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get settingsTourSubtitle => 'Scan Sign Send ఏమేమి చేయగలదో చూడండి';
+
+  @override
+  String get categoryTax => 'పన్ను';
+
+  @override
+  String get categoryMoney => 'బ్యాంక్ & డబ్బు';
+
+  @override
+  String get categoryInsurance => 'బీమా';
+
+  @override
+  String get categoryMedical => 'వైద్యం';
+
+  @override
+  String get categoryHome => 'ఇల్లు & అద్దె';
+
+  @override
+  String get categoryWork => 'ఉద్యోగం';
+
+  @override
+  String get categorySchool => 'పాఠశాల';
+
+  @override
+  String get categoryIdTravel => 'గుర్తింపు & ప్రయాణం';
+
+  @override
+  String get categoryLegal => 'ఒప్పందాలు & చట్టపరమైనవి';
+
+  @override
+  String get categoryBills => 'బిల్లులు & రసీదులు';
+
+  @override
+  String get categoryNone => 'వర్గం లేదు';
+
+  @override
+  String get categoryNew => 'కొత్త వర్గం';
+
+  @override
+  String get categoryNameHint => 'వర్గం పేరు';
+
+  @override
+  String get categoryChange => 'వర్గాన్ని మార్చండి';
+
+  @override
+  String get categorySortedAutomatically => 'ఆటోమేటిక్‌గా వర్గీకరించబడింది';
+
+  @override
+  String get categoryRename => 'వర్గం పేరు మార్చండి';
+
+  @override
+  String get categoryDelete => 'వర్గాన్ని తొలగించండి';
+
+  @override
+  String categoryDeleteBody(String name) {
+    return '“$name” తొలగించబడుతుంది. దాని పత్రాలు వర్గం లేకుండా మీ లైబ్రరీలోనే ఉంటాయి.';
+  }
+
+  @override
+  String get librarySelect => 'ఎంచుకోండి';
+
+  @override
+  String librarySelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ఎంచుకోబడ్డాయి',
+      one: '1 ఎంచుకోబడింది',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryDeleteManyTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count పత్రాలను తొలగించాలా?',
+      one: '1 పత్రాన్ని తొలగించాలా?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryDeleteManyBody => 'దీన్ని తిరిగి పొందలేరు.';
+
+  @override
+  String get libraryMoreTooltip => 'మరిన్ని';
+
+  @override
+  String get settingsSectionLibrary => 'లైబ్రరీ';
+
+  @override
+  String get settingsAutoSortTitle => 'పత్రాలను ఆటోమేటిక్‌గా వర్గీకరించండి';
+
+  @override
+  String get aiSortAvailable =>
+      'పరికరంలోనే పనిచేసే AI ద్వారా వర్గీకరించబడతాయి.';
+
+  @override
+  String get aiSortDeviceNotEligible =>
+      'కీవర్డ్‌ల ద్వారా వర్గీకరించబడతాయి. పరికరంలోనే AI వర్గీకరణకు iPhone 15 Pro లేదా కొత్తది కావాలి.';
+
+  @override
+  String get aiSortOsTooOld =>
+      'కీవర్డ్‌ల ద్వారా వర్గీకరించబడతాయి. పరికరంలోనే AI వర్గీకరణ కోసం iOS 26 లేదా కొత్తదానికి అప్‌డేట్ చేయండి.';
+
+  @override
+  String get aiSortNotEnabled =>
+      'కీవర్డ్‌ల ద్వారా వర్గీకరించబడతాయి. పరికరంలోనే AI వర్గీకరణ కోసం సెట్టింగ్‌లలో Apple Intelligenceను ఆన్ చేయండి.';
+
+  @override
+  String get aiSortNotReady =>
+      'ప్రస్తుతానికి కీవర్డ్‌ల ద్వారా వర్గీకరించబడతాయి. ఈ ఫోన్‌లో పరికర AI ఇంకా సిద్ధమవుతోంది.';
+
+  @override
+  String get aiSortLanguage =>
+      'కీవర్డ్‌ల ద్వారా వర్గీకరించబడతాయి. మీ ఫోన్ భాషలో పరికర AI వర్గీకరణ ఇంకా అందుబాటులో లేదు.';
+
+  @override
+  String get aiSortUnsupported =>
+      'కీవర్డ్‌ల ద్వారా వర్గీకరించబడతాయి. ఈ ఫోన్ పరికర AI వర్గీకరణకు మద్దతు ఇవ్వదు.';
+
+  @override
+  String get aiSortOff =>
+      'పత్రాలు వర్గీకరించబడవు. ప్రతిదాని వర్గాన్ని మీరే ఎంచుకోండి.';
+
+  @override
+  String get actionGotIt => 'సరే';
 }

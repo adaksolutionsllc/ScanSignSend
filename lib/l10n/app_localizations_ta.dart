@@ -936,11 +936,11 @@ class AppLocalizationsTa extends AppLocalizations {
   String get libraryImport => 'இறக்குமதி';
 
   @override
-  String get settingsForgetLearned => 'கற்ற புல முறைகளை மறந்துவிடு';
+  String get settingsForgetLearned => 'ஆப் கற்றுக்கொண்டதை மறந்துவிடு';
 
   @override
   String get settingsForgetLearnedSubtitle =>
-      'நீங்கள் சேர்க்கும், மாற்றும், நீக்கும் புலங்களிலிருந்து கண்டறிதல் கற்றுக்கொள்கிறது — இந்தச் சாதனத்தில் மட்டும்.';
+      'புலம் கண்டறிதல், PreFill, வகைப்படுத்தல் ஆகியவை உங்கள் மாற்றங்களிலிருந்து கற்றுக்கொள்கின்றன — இந்தச் சாதனத்தில் மட்டும்.';
 
   @override
   String get settingsForgetLearnedDone => 'கற்ற புல முறைகள் அழிக்கப்பட்டன';
@@ -1135,4 +1135,132 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get settingsTourSubtitle =>
       'Scan Sign Send என்ன செய்யும் என்று பாருங்கள்';
+
+  @override
+  String get categoryTax => 'வரி';
+
+  @override
+  String get categoryMoney => 'வங்கி & பணம்';
+
+  @override
+  String get categoryInsurance => 'காப்பீடு';
+
+  @override
+  String get categoryMedical => 'மருத்துவம்';
+
+  @override
+  String get categoryHome => 'வீடு & வாடகை';
+
+  @override
+  String get categoryWork => 'வேலை';
+
+  @override
+  String get categorySchool => 'பள்ளி';
+
+  @override
+  String get categoryIdTravel => 'அடையாளம் & பயணம்';
+
+  @override
+  String get categoryLegal => 'ஒப்பந்தங்கள் & சட்டம்';
+
+  @override
+  String get categoryBills => 'பில்கள் & ரசீதுகள்';
+
+  @override
+  String get categoryNone => 'வகை இல்லை';
+
+  @override
+  String get categoryNew => 'புதிய வகை';
+
+  @override
+  String get categoryNameHint => 'வகையின் பெயர்';
+
+  @override
+  String get categoryChange => 'வகையை மாற்று';
+
+  @override
+  String get categorySortedAutomatically => 'தானாக வகைப்படுத்தப்பட்டது';
+
+  @override
+  String get categoryRename => 'வகையின் பெயரை மாற்று';
+
+  @override
+  String get categoryDelete => 'வகையை நீக்கு';
+
+  @override
+  String categoryDeleteBody(String name) {
+    return '“$name” நீக்கப்படும். அதன் ஆவணங்கள் வகை இல்லாமல் உங்கள் நூலகத்திலேயே இருக்கும்.';
+  }
+
+  @override
+  String get librarySelect => 'தேர்ந்தெடு';
+
+  @override
+  String librarySelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count தேர்ந்தெடுக்கப்பட்டன',
+      one: '1 தேர்ந்தெடுக்கப்பட்டது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryDeleteManyTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ஆவணங்களை நீக்கவா?',
+      one: '1 ஆவணத்தை நீக்கவா?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryDeleteManyBody => 'இதைத் திரும்பப் பெற முடியாது.';
+
+  @override
+  String get libraryMoreTooltip => 'மேலும்';
+
+  @override
+  String get settingsSectionLibrary => 'நூலகம்';
+
+  @override
+  String get settingsAutoSortTitle => 'ஆவணங்களைத் தானாக வகைப்படுத்து';
+
+  @override
+  String get aiSortAvailable =>
+      'சாதனத்திலேயே இயங்கும் AI மூலம் வகைப்படுத்தப்படுகின்றன.';
+
+  @override
+  String get aiSortDeviceNotEligible =>
+      'முக்கியச் சொற்கள் மூலம் வகைப்படுத்தப்படுகின்றன. சாதனத்திலேயே AI வகைப்படுத்தலுக்கு iPhone 15 Pro அல்லது புதியது தேவை.';
+
+  @override
+  String get aiSortOsTooOld =>
+      'முக்கியச் சொற்கள் மூலம் வகைப்படுத்தப்படுகின்றன. சாதனத்திலேயே AI வகைப்படுத்தலுக்கு iOS 26 அல்லது புதியதற்குப் புதுப்பிக்கவும்.';
+
+  @override
+  String get aiSortNotEnabled =>
+      'முக்கியச் சொற்கள் மூலம் வகைப்படுத்தப்படுகின்றன. சாதனத்திலேயே AI வகைப்படுத்தலுக்கு அமைப்புகளில் Apple Intelligence-ஐ இயக்கவும்.';
+
+  @override
+  String get aiSortNotReady =>
+      'தற்போது முக்கியச் சொற்கள் மூலம் வகைப்படுத்தப்படுகின்றன. இந்தத் தொலைபேசியில் சாதன AI இன்னும் அமைக்கப்படுகிறது.';
+
+  @override
+  String get aiSortLanguage =>
+      'முக்கியச் சொற்கள் மூலம் வகைப்படுத்தப்படுகின்றன. உங்கள் தொலைபேசியின் மொழியில் சாதன AI வகைப்படுத்தல் இன்னும் கிடைக்கவில்லை.';
+
+  @override
+  String get aiSortUnsupported =>
+      'முக்கியச் சொற்கள் மூலம் வகைப்படுத்தப்படுகின்றன. இந்தத் தொலைபேசி சாதன AI வகைப்படுத்தலை ஆதரிக்கவில்லை.';
+
+  @override
+  String get aiSortOff =>
+      'ஆவணங்கள் வகைப்படுத்தப்படாது. ஒவ்வொன்றின் வகையையும் நீங்களே தேர்ந்தெடுங்கள்.';
+
+  @override
+  String get actionGotIt => 'சரி';
 }

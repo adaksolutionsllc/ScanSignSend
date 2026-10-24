@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,6 +52,13 @@ class DocumentSorter {
 
   /// SharedPreferences: the one-time Library tip about keyword sorting.
   static const keywordTipShownKey = 'keyword_sorting_tip_shown';
+
+  /// SharedPreferences: a document was sorted by keywords because the phone's
+  /// model isn't available, so the tip has something to explain.
+  static const keywordTipPendingKey = 'keyword_sorting_tip_pending';
+
+  /// Tells a visible Library that the tip just became due.
+  final keywordTipDue = ValueNotifier<bool>(false);
 
   /// SharedPreferences: existing documents were sorted once after upgrade.
   static const backfilledKey = 'categories_backfilled_v1';
@@ -165,7 +173,20 @@ class DocumentSorter {
     await docRepo.updateDocument(
       DocumentsCompanion(id: Value(doc.id), category: Value(key)),
     );
+    if (by == SortedBy.keywords &&
+        await ai.status() != OnDeviceAiStatus.available) {
+      await _markKeywordTipDue();
+    }
     return by;
+  }
+
+  Future<void> _markKeywordTipDue() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(keywordTipShownKey) ?? false) return;
+      await prefs.setBool(keywordTipPendingKey, true);
+      keywordTipDue.value = true;
+    } catch (_) {}
   }
 
   /// The category for a document with this [title] and [text], and which

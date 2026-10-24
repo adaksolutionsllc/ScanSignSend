@@ -4,17 +4,20 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/db/database_provider.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
+import 'package:scan_sign_send/core/services/document_sorter.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
 import 'package:scan_sign_send/core/utils/l10n_ext.dart';
 import 'package:scan_sign_send/features/press/presentation/press_screen.dart';
 import 'package:scan_sign_send/features/settings/presentation/settings_screen.dart';
 import 'package:scan_sign_send/l10n/app_localizations_en.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   final l10n = AppLocalizationsEn();
@@ -67,8 +70,7 @@ void main() {
         GoRoute(
           path: '/',
           builder: (context, _) => TextButton(
-            onPressed: () async =>
-                popped = await context.push<int>('/press'),
+            onPressed: () async => popped = await context.push<int>('/press'),
             child: const Text('open'),
           ),
         ),
@@ -124,9 +126,9 @@ void main() {
     // Written straight to the database, as the switch's onChanged does
     // before the platform call: the screen must follow the row.
     await tester.runAsync(
-      () => ProfileRepository(db).update(
-        const UserProfileCompanion(includeInDeviceBackup: Value(true)),
-      ),
+      () => ProfileRepository(
+        db,
+      ).update(const UserProfileCompanion(includeInDeviceBackup: Value(true))),
     );
     await settle(tester);
     expect(backupSwitch(), isTrue);
@@ -150,7 +152,66 @@ void main() {
       200,
     );
     expect(find.text(l10n.settingsSectionDetection), findsOneWidget);
-    expect(find.textContaining('AI'), findsNothing);
+    // The only AI mention is how documents are sorted; field detection has
+    // no switch of its own.
+    expect(find.textContaining('AI detection'), findsNothing);
+    expect(find.byType(SwitchListTile), findsNWidgets(3));
     await close(tester);
+  });
+
+  group('Sort documents automatically', () {
+    const channel = MethodChannel('com.scansignsend/on_device_ai');
+    tearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+
+    Future<void> open(WidgetTester tester, String status) async {
+      SharedPreferences.setMockInitialValues({});
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async => status);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [appDatabaseProvider.overrideWithValue(db)],
+          child: MaterialApp(
+            localizationsDelegates: kLocalizationsDelegates,
+            supportedLocales: kSupportedLocales,
+            home: const SettingsScreen(),
+          ),
+        ),
+      );
+      await settle(tester);
+      await tester.scrollUntilVisible(
+        find.text(l10n.settingsAutoSortTitle),
+        200,
+      );
+      await settle(tester);
+    }
+
+    for (final (status, message) in [
+      ('available', l10n.aiSortAvailable),
+      ('deviceNotEligible', l10n.aiSortDeviceNotEligible),
+      ('osTooOld', l10n.aiSortOsTooOld),
+      ('notEnabled', l10n.aiSortNotEnabled),
+      ('notReady', l10n.aiSortNotReady),
+      ('languageUnsupported', l10n.aiSortLanguage),
+      ('unsupported', l10n.aiSortUnsupported),
+    ]) {
+      testWidgets('says why: $status', (tester) async {
+        await open(tester, status);
+        expect(find.text(message), findsOneWidget);
+        await close(tester);
+      });
+    }
+
+    testWidgets('switching it off is saved and explained', (tester) async {
+      await open(tester, 'available');
+      await tester.tap(find.text(l10n.settingsAutoSortTitle));
+      await settle(tester);
+      expect(find.text(l10n.aiSortOff), findsOneWidget);
+      final prefs = await tester.runAsync(SharedPreferences.getInstance);
+      expect(prefs!.getBool(DocumentSorter.enabledKey), isFalse);
+      await close(tester);
+    });
   });
 }

@@ -933,11 +933,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get libraryImport => 'Importar';
 
   @override
-  String get settingsForgetLearned => 'Olvidar los campos aprendidos';
+  String get settingsForgetLearned => 'Olvidar lo que la app ha aprendido';
 
   @override
   String get settingsForgetLearnedSubtitle =>
-      'La detección aprende de los campos que añades, cambias y eliminas, solo en este dispositivo.';
+      'La detección de campos, PreFill y la ordenación aprenden de tus cambios, solo en este dispositivo.';
 
   @override
   String get settingsForgetLearnedDone => 'Campos aprendidos borrados';
@@ -1131,4 +1131,131 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsTourSubtitle => 'Descubre lo que hace Scan Sign Send';
+
+  @override
+  String get categoryTax => 'Impuestos';
+
+  @override
+  String get categoryMoney => 'Banco y dinero';
+
+  @override
+  String get categoryInsurance => 'Seguros';
+
+  @override
+  String get categoryMedical => 'Salud';
+
+  @override
+  String get categoryHome => 'Vivienda y alquiler';
+
+  @override
+  String get categoryWork => 'Trabajo';
+
+  @override
+  String get categorySchool => 'Escuela';
+
+  @override
+  String get categoryIdTravel => 'Identidad y viajes';
+
+  @override
+  String get categoryLegal => 'Contratos y legal';
+
+  @override
+  String get categoryBills => 'Facturas y recibos';
+
+  @override
+  String get categoryNone => 'Sin categoría';
+
+  @override
+  String get categoryNew => 'Nueva categoría';
+
+  @override
+  String get categoryNameHint => 'Nombre de la categoría';
+
+  @override
+  String get categoryChange => 'Cambiar categoría';
+
+  @override
+  String get categorySortedAutomatically => 'Ordenado automáticamente';
+
+  @override
+  String get categoryRename => 'Renombrar categoría';
+
+  @override
+  String get categoryDelete => 'Eliminar categoría';
+
+  @override
+  String categoryDeleteBody(String name) {
+    return 'Se eliminará «$name». Sus documentos seguirán en tu biblioteca, sin categoría.';
+  }
+
+  @override
+  String get librarySelect => 'Seleccionar';
+
+  @override
+  String librarySelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seleccionados',
+      one: '1 seleccionado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryDeleteManyTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Eliminar $count documentos?',
+      one: '¿Eliminar 1 documento?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryDeleteManyBody => 'Esta acción no se puede deshacer.';
+
+  @override
+  String get libraryMoreTooltip => 'Más';
+
+  @override
+  String get settingsSectionLibrary => 'Biblioteca';
+
+  @override
+  String get settingsAutoSortTitle => 'Ordenar documentos automáticamente';
+
+  @override
+  String get aiSortAvailable => 'Ordenados por la IA del dispositivo.';
+
+  @override
+  String get aiSortDeviceNotEligible =>
+      'Ordenados por palabras clave. La ordenación con IA del dispositivo requiere un iPhone 15 Pro o posterior.';
+
+  @override
+  String get aiSortOsTooOld =>
+      'Ordenados por palabras clave. Actualiza a iOS 26 o posterior para ordenar con la IA del dispositivo.';
+
+  @override
+  String get aiSortNotEnabled =>
+      'Ordenados por palabras clave. Activa Apple Intelligence en Ajustes para ordenar con la IA del dispositivo.';
+
+  @override
+  String get aiSortNotReady =>
+      'Ordenados por palabras clave por ahora. La IA del dispositivo aún se está configurando en este teléfono.';
+
+  @override
+  String get aiSortLanguage =>
+      'Ordenados por palabras clave. La ordenación con IA del dispositivo aún no está disponible en el idioma de tu teléfono.';
+
+  @override
+  String get aiSortUnsupported =>
+      'Ordenados por palabras clave. Este teléfono no admite la ordenación con IA del dispositivo.';
+
+  @override
+  String get aiSortOff =>
+      'Los documentos no se ordenan. Elige tú la categoría de cada uno.';
+
+  @override
+  String get actionGotIt => 'Entendido';
 }

@@ -933,11 +933,11 @@ class AppLocalizationsHi extends AppLocalizations {
   String get libraryImport => 'इम्पोर्ट';
 
   @override
-  String get settingsForgetLearned => 'सीखे गए फ़ील्ड पैटर्न भूलें';
+  String get settingsForgetLearned => 'ऐप ने जो सीखा है उसे भूलें';
 
   @override
   String get settingsForgetLearnedSubtitle =>
-      'फ़ील्ड पहचान आपके जोड़े, बदले और हटाए गए फ़ील्ड से सीखती है, सिर्फ़ इस डिवाइस पर।';
+      'फ़ील्ड पहचान, PreFill और छंटाई आपके बदलावों से सीखती हैं, सिर्फ़ इस डिवाइस पर।';
 
   @override
   String get settingsForgetLearnedDone => 'सीखे गए फ़ील्ड पैटर्न हटा दिए गए';
@@ -1132,4 +1132,131 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get settingsTourSubtitle =>
       'देखें कि Scan Sign Send क्या-क्या कर सकता है';
+
+  @override
+  String get categoryTax => 'कर';
+
+  @override
+  String get categoryMoney => 'बैंक और पैसा';
+
+  @override
+  String get categoryInsurance => 'बीमा';
+
+  @override
+  String get categoryMedical => 'चिकित्सा';
+
+  @override
+  String get categoryHome => 'घर और किराया';
+
+  @override
+  String get categoryWork => 'काम';
+
+  @override
+  String get categorySchool => 'स्कूल';
+
+  @override
+  String get categoryIdTravel => 'पहचान और यात्रा';
+
+  @override
+  String get categoryLegal => 'समझौते और कानूनी';
+
+  @override
+  String get categoryBills => 'बिल और रसीदें';
+
+  @override
+  String get categoryNone => 'कोई श्रेणी नहीं';
+
+  @override
+  String get categoryNew => 'नई श्रेणी';
+
+  @override
+  String get categoryNameHint => 'श्रेणी का नाम';
+
+  @override
+  String get categoryChange => 'श्रेणी बदलें';
+
+  @override
+  String get categorySortedAutomatically => 'अपने-आप छांटा गया';
+
+  @override
+  String get categoryRename => 'श्रेणी का नाम बदलें';
+
+  @override
+  String get categoryDelete => 'श्रेणी हटाएँ';
+
+  @override
+  String categoryDeleteBody(String name) {
+    return '“$name” हटा दी जाएगी। इसके दस्तावेज़ आपकी लाइब्रेरी में बिना श्रेणी के रहेंगे।';
+  }
+
+  @override
+  String get librarySelect => 'चुनें';
+
+  @override
+  String librarySelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count चुने गए',
+      one: '1 चुना गया',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String libraryDeleteManyTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count दस्तावेज़ हटाएँ?',
+      one: '1 दस्तावेज़ हटाएँ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryDeleteManyBody => 'इसे पूर्ववत नहीं किया जा सकता।';
+
+  @override
+  String get libraryMoreTooltip => 'और';
+
+  @override
+  String get settingsSectionLibrary => 'लाइब्रेरी';
+
+  @override
+  String get settingsAutoSortTitle => 'दस्तावेज़ अपने-आप छांटें';
+
+  @override
+  String get aiSortAvailable => 'डिवाइस पर चलने वाले AI से छांटे जाते हैं।';
+
+  @override
+  String get aiSortDeviceNotEligible =>
+      'कीवर्ड से छांटे जाते हैं। डिवाइस पर AI से छांटने के लिए iPhone 15 Pro या नया चाहिए।';
+
+  @override
+  String get aiSortOsTooOld =>
+      'कीवर्ड से छांटे जाते हैं। डिवाइस पर AI से छांटने के लिए iOS 26 या नए पर अपडेट करें।';
+
+  @override
+  String get aiSortNotEnabled =>
+      'कीवर्ड से छांटे जाते हैं। डिवाइस पर AI से छांटने के लिए सेटिंग्स में Apple Intelligence चालू करें।';
+
+  @override
+  String get aiSortNotReady =>
+      'अभी कीवर्ड से छांटे जा रहे हैं। इस फ़ोन पर डिवाइस वाला AI अभी तैयार हो रहा है।';
+
+  @override
+  String get aiSortLanguage =>
+      'कीवर्ड से छांटे जाते हैं। डिवाइस पर AI से छांटना अभी आपके फ़ोन की भाषा में उपलब्ध नहीं है।';
+
+  @override
+  String get aiSortUnsupported =>
+      'कीवर्ड से छांटे जाते हैं। यह फ़ोन डिवाइस पर AI से छांटना सपोर्ट नहीं करता।';
+
+  @override
+  String get aiSortOff =>
+      'दस्तावेज़ छांटे नहीं जाते। हर एक की श्रेणी खुद चुनें।';
+
+  @override
+  String get actionGotIt => 'ठीक है';
 }

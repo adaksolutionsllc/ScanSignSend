@@ -1719,13 +1719,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsForgetLearned.
   ///
   /// In en, this message translates to:
-  /// **'Forget learned field patterns'**
+  /// **'Forget what the app has learned'**
   String get settingsForgetLearned;
 
   /// No description provided for @settingsForgetLearnedSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Field detection learns from the fields you add, retype and delete, on this device only.'**
+  /// **'Field detection, PreFill and sorting learn from your changes, on this device only.'**
   String get settingsForgetLearnedSubtitle;
 
   /// No description provided for @settingsForgetLearnedDone.
@@ -2003,6 +2003,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See what Scan Sign Send can do'**
   String get settingsTourSubtitle;
+
+  /// No description provided for @categoryTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get categoryTax;
+
+  /// No description provided for @categoryMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank & money'**
+  String get categoryMoney;
+
+  /// No description provided for @categoryInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get categoryInsurance;
+
+  /// No description provided for @categoryMedical.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical'**
+  String get categoryMedical;
+
+  /// No description provided for @categoryHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home & rental'**
+  String get categoryHome;
+
+  /// No description provided for @categoryWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get categoryWork;
+
+  /// No description provided for @categorySchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get categorySchool;
+
+  /// No description provided for @categoryIdTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'ID & travel'**
+  String get categoryIdTravel;
+
+  /// No description provided for @categoryLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Agreements & legal'**
+  String get categoryLegal;
+
+  /// No description provided for @categoryBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills & receipts'**
+  String get categoryBills;
+
+  /// No description provided for @categoryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get categoryNone;
+
+  /// No description provided for @categoryNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get categoryNew;
+
+  /// No description provided for @categoryNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get categoryNameHint;
+
+  /// No description provided for @categoryChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change category'**
+  String get categoryChange;
+
+  /// No description provided for @categorySortedAutomatically.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted automatically'**
+  String get categorySortedAutomatically;
+
+  /// No description provided for @categoryRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename category'**
+  String get categoryRename;
+
+  /// No description provided for @categoryDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category'**
+  String get categoryDelete;
+
+  /// No description provided for @categoryDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” will be removed. Its documents stay in your library, with no category.'**
+  String categoryDeleteBody(String name);
+
+  /// No description provided for @librarySelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get librarySelect;
+
+  /// No description provided for @librarySelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected} other{{count} selected}}'**
+  String librarySelectedCount(int count);
+
+  /// No description provided for @libraryDeleteManyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete 1 document?} other{Delete {count} documents?}}'**
+  String libraryDeleteManyTitle(int count);
+
+  /// No description provided for @libraryDeleteManyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get libraryDeleteManyBody;
+
+  /// No description provided for @libraryMoreTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get libraryMoreTooltip;
+
+  /// No description provided for @settingsSectionLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get settingsSectionLibrary;
+
+  /// No description provided for @settingsAutoSortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort documents automatically'**
+  String get settingsAutoSortTitle;
+
+  /// No description provided for @aiSortAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by on-device AI.'**
+  String get aiSortAvailable;
+
+  /// No description provided for @aiSortDeviceNotEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by keywords. On-device AI sorting needs iPhone 15 Pro or later.'**
+  String get aiSortDeviceNotEligible;
+
+  /// No description provided for @aiSortOsTooOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by keywords. Update to iOS 26 or later for on-device AI sorting.'**
+  String get aiSortOsTooOld;
+
+  /// Apple Intelligence is Apple's product name; keep it in English.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by keywords. Turn on Apple Intelligence in Settings for on-device AI sorting.'**
+  String get aiSortNotEnabled;
+
+  /// No description provided for @aiSortNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by keywords for now. On-device AI is still being set up on this phone.'**
+  String get aiSortNotReady;
+
+  /// No description provided for @aiSortLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by keywords. On-device AI sorting isn\'t available in your phone\'s language yet.'**
+  String get aiSortLanguage;
+
+  /// No description provided for @aiSortUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by keywords. This phone doesn\'t support on-device AI sorting.'**
+  String get aiSortUnsupported;
+
+  /// No description provided for @aiSortOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents aren\'t sorted. Choose a category for each one yourself.'**
+  String get aiSortOff;
+
+  /// No description provided for @actionGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get actionGotIt;
 }
 
 class _AppLocalizationsDelegate

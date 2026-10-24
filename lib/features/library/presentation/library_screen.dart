@@ -13,8 +13,10 @@ import '../../../core/services/page_raster_service.dart';
 import '../../../core/services/template_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/category_ui.dart';
 import '../../../shared/widgets/text_edit_dialog.dart';
 import '../../../core/utils/l10n_ext.dart';
+import 'keyword_sorting_tip.dart';
 import 'unlimited_banner.dart';
 
 enum _LibraryTab { all, draft, pressed, template }
@@ -32,10 +34,23 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   String _query = '';
   late final TabController _tabController;
 
+  /// Category filter: null shows every document, [_noCategory] the
+  /// Uncategorised ones, anything else that category's key.
+  String? _category;
+  static const _noCategory = '\u0000none';
+
+  /// Selected documents (long-press a card); non-empty = selection mode.
+  final _selected = <int>{};
+  List<Document> _visible = const [];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 4, vsync: this)
+      // A selection belongs to the tab it was made on.
+      ..addListener(() {
+        if (_selected.isNotEmpty) setState(_selected.clear);
+      });
   }
 
   @override
@@ -48,12 +63,20 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   /// Streams are cached per (tab, query): creating fresh ones on every
   /// rebuild re-subscribed all four tabs whenever a tab was tapped or a key
   /// typed, and each flashed a loading spinner.
-  final _streams = <(_LibraryTab, String), Stream<List<Document>>>{};
+  final _streams = <(_LibraryTab, String, String?), Stream<List<Document>>>{};
 
   Stream<List<Document>> _stream(_LibraryTab tab) {
     if (_streams.length > 32) _streams.clear();
-    return _streams[(tab, _query)] ??= _createStream(tab);
+    return _streams[(tab, _query, _category)] ??= _createStream(
+      tab,
+    ).map(_inCategory);
   }
+
+  List<Document> _inCategory(List<Document> docs) => switch (_category) {
+    null => docs,
+    _noCategory => docs.where((d) => d.category == null).toList(),
+    final key => docs.where((d) => d.category == key).toList(),
+  };
 
   Stream<List<Document>> _createStream(_LibraryTab tab) {
     final repo = ref.read(documentRepositoryProvider);
@@ -72,15 +95,51 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   @override
   Widget build(BuildContext context) {
+    final selecting = _selected.isNotEmpty;
+    return PopScope(
+      canPop: !selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(_selected.clear);
+      },
+      child: _scaffold(context, selecting),
+    );
+  }
+
+  Widget _scaffold(BuildContext context, bool selecting) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.appTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push(AppRoutes.settings),
-          ),
-        ],
+        leading: selecting
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                onPressed: () => setState(_selected.clear),
+              )
+            : null,
+        title: Text(
+          selecting
+              ? context.l10n.librarySelectedCount(_selected.length)
+              : context.l10n.appTitle,
+        ),
+        actions: selecting
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.label_outline),
+                  tooltip: context.l10n.categoryChange,
+                  onPressed: _changeSelectedCategory,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: context.l10n.actionDelete,
+                  onPressed: _deleteSelected,
+                ),
+              ]
+            : [
+                IconButton(
+                  icon: const Icon(Icons.settings_outlined),
+                  tooltip: context.l10n.settingsTitle,
+                  onPressed: () => context.push(AppRoutes.settings),
+                ),
+              ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(104),
           child: Column(
@@ -121,11 +180,61 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       body: Column(
         children: [
           const UnlimitedBanner(),
+          const KeywordSortingTip(),
+          _CategoryFilterBar(
+            selected: _category,
+            noCategory: _noCategory,
+            onSelected: (key) => setState(() => _category = key),
+          ),
           Expanded(child: _tabs()),
         ],
       ),
-      floatingActionButton: _actions(),
+      floatingActionButton: selecting ? null : _actions(),
     );
+  }
+
+  void _toggle(Document doc) => setState(() {
+    if (!_selected.remove(doc.id)) _selected.add(doc.id);
+  });
+
+  List<Document> get _selectedDocs =>
+      _visible.where((d) => _selected.contains(d.id)).toList();
+
+  Future<void> _changeSelectedCategory() async {
+    await showCategorySheet(context, ref, _selectedDocs);
+    if (mounted) setState(_selected.clear);
+  }
+
+  Future<void> _deleteSelected() async {
+    final docs = _selectedDocs;
+    if (docs.isEmpty) return;
+    final l10n = context.l10n;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.libraryDeleteManyTitle(docs.length)),
+        content: Text(l10n.libraryDeleteManyBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: Text(l10n.actionDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    final repo = ref.read(documentRepositoryProvider);
+    for (final d in docs) {
+      await repo.deleteDocument(d.id);
+    }
+    if (mounted) setState(_selected.clear);
   }
 
   Widget _tabs() {
@@ -139,7 +248,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               return const Center(child: CircularProgressIndicator());
             }
             final docs = snapshot.data ?? [];
+            if (tab == _LibraryTab.values[_tabController.index]) {
+              _visible = docs;
+            }
             if (docs.isEmpty) return _EmptyState(tab: tab);
+            final names = ref.watch(userCategoryNamesProvider);
 
             return GridView.builder(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
@@ -153,6 +266,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               itemBuilder: (context, i) => _DocumentCard(
                 doc: docs[i],
                 tab: tab,
+                categoryText: categoryLabel(
+                  context.l10n,
+                  docs[i].category,
+                  names,
+                ),
+                selecting: _selected.isNotEmpty,
+                selected: _selected.contains(docs[i].id),
+                onToggleSelect: () => _toggle(docs[i]),
+                onCategory: () => showCategorySheet(context, ref, [docs[i]]),
                 onDelete: () => _deleteDoc(docs[i]),
                 onRename: () => _renameDoc(docs[i]),
                 onUseTemplate: docs[i].statusEnum == DocumentStatus.template
@@ -265,11 +387,23 @@ class _DocumentCard extends StatelessWidget {
     required this.tab,
     required this.onDelete,
     required this.onRename,
+    required this.categoryText,
+    required this.selecting,
+    required this.selected,
+    required this.onToggleSelect,
+    required this.onCategory,
     this.onUseTemplate,
   });
 
   final Document doc;
   final _LibraryTab tab;
+  final String categoryText;
+
+  /// Selection mode: a tap selects instead of opening.
+  final bool selecting;
+  final bool selected;
+  final VoidCallback onToggleSelect;
+  final VoidCallback onCategory;
   final VoidCallback onDelete;
   final VoidCallback onRename;
   final VoidCallback? onUseTemplate;
@@ -317,8 +451,20 @@ class _DocumentCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
+      shape: selected
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
+            )
+          : null,
       child: InkWell(
-        onTap: isTemplate
+        onLongPress: onToggleSelect,
+        onTap: selecting
+            ? onToggleSelect
+            : isTemplate
             ? onUseTemplate
             : isLocked
             ? () => context.push(
@@ -360,6 +506,19 @@ class _DocumentCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (selecting)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Icon(
+                        selected ? Icons.check_circle : Icons.circle_outlined,
+                        color: selected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.white,
+                        shadows: const [Shadow(blurRadius: 4)],
+                        semanticLabel: context.l10n.librarySelect,
+                      ),
+                    ),
                   // Status pill — only on All tab
                   if (showStatusPill)
                     Positioned(
@@ -427,12 +586,60 @@ class _DocumentCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
+              padding: const EdgeInsets.fromLTRB(10, 0, 6, 4),
               child: Text(
                 '$dateStr · ${doc.pageCount}p',
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+              ),
+            ),
+            // The document's category; tap to change it.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 4),
+              // Its own node: otherwise the card's tap target swallows it and
+              // a screen reader can't reach it.
+              child: Semantics(
+                container: true,
+                button: true,
+                label: '${context.l10n.categoryChange}: $categoryText',
+                excludeSemantics: true,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: selecting ? onToggleSelect : onCategory,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          categoryIcon(doc.category),
+                          size: 13,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            categoryText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
 
@@ -685,3 +892,68 @@ class _FirstPageThumbState extends ConsumerState<_FirstPageThumb> {
     );
   }
 }
+
+// ── Category filter ───────────────────────────────────────────────────────────
+
+/// One chip per category that has documents (plus "No category" when some
+/// have none), above the tabs' grids. Hidden until there is something to
+/// choose between.
+class _CategoryFilterBar extends ConsumerWidget {
+  const _CategoryFilterBar({
+    required this.selected,
+    required this.noCategory,
+    required this.onSelected,
+  });
+
+  final String? selected;
+  final String noCategory;
+  final ValueChanged<String?> onSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final docs = ref.watch(_allDocumentsProvider).valueOrNull ?? const [];
+    final names = ref.watch(userCategoryNamesProvider);
+    final used = <String>{for (final d in docs) ?d.category};
+    final hasNone = docs.any((d) => d.category == null);
+    if (used.isEmpty) return const SizedBox.shrink();
+
+    final l10n = context.l10n;
+    final keys = used.toList()
+      ..sort(
+        (a, b) => categoryLabel(
+          l10n,
+          a,
+          names,
+        ).toLowerCase().compareTo(categoryLabel(l10n, b, names).toLowerCase()),
+      );
+
+    Widget chip(String? key, String label, {IconData? icon}) => Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        avatar: icon == null ? null : Icon(icon, size: 16),
+        label: Text(label),
+        selected: selected == key,
+        onSelected: (_) => onSelected(selected == key ? null : key),
+      ),
+    );
+
+    return SizedBox(
+      height: 52,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 4),
+        children: [
+          chip(null, l10n.libraryTabAll),
+          for (final k in keys)
+            chip(k, categoryLabel(l10n, k, names), icon: categoryIcon(k)),
+          if (hasNone)
+            chip(noCategory, l10n.categoryNone, icon: categoryIcon(null)),
+        ],
+      ),
+    );
+  }
+}
+
+final _allDocumentsProvider = StreamProvider<List<Document>>(
+  (ref) => ref.watch(documentRepositoryProvider).watchAll(),
+);

@@ -8,13 +8,18 @@ import '../../../core/db/app_database.dart';
 import '../../../core/services/app_lock_provider.dart';
 import '../../../core/services/backup_service.dart';
 import '../../../core/services/biometric_service.dart';
+import '../../../core/services/category_hints.dart';
+import '../../../core/services/document_sorter.dart';
 import '../../../core/services/field_hints.dart';
 import '../../../core/services/iap_service.dart';
+import '../../../core/services/on_device_ai_service.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/services/review_prompt_service.dart';
 import '../../../core/utils/router.dart';
+import '../../../shared/widgets/ai_sort_status.dart';
 import '../../../shared/widgets/paywall_screen.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 
@@ -119,6 +124,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   await ref.read(backupServiceProvider).apply(v);
                 },
               ),
+              _SectionHeader(context.l10n.settingsSectionLibrary),
+              const _AutoSortTile(),
               _SectionHeader(context.l10n.settingsSectionDetection),
               // Detection learns from the user's own field edits, on this device
               // only; this is the way to start over.
@@ -130,6 +137,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   final messenger = ScaffoldMessenger.of(context);
                   final done = context.l10n.settingsForgetLearnedDone;
                   await ref.read(fieldHintRepositoryProvider).clear();
+                  await ref.read(categoryHintRepositoryProvider).clear();
                   messenger.showSnackBar(SnackBar(content: Text(done)));
                 },
               ),
@@ -251,6 +259,66 @@ class _SectionHeader extends StatelessWidget {
           color: Theme.of(context).colorScheme.primary,
         ),
       ),
+    );
+  }
+}
+
+/// "Sort documents automatically", with a line saying how this phone sorts
+/// (its own AI model, or keywords and why).
+class _AutoSortTile extends ConsumerStatefulWidget {
+  const _AutoSortTile();
+
+  @override
+  ConsumerState<_AutoSortTile> createState() => _AutoSortTileState();
+}
+
+class _AutoSortTileState extends ConsumerState<_AutoSortTile> {
+  bool? _enabled;
+  OnDeviceAiStatus? _status;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final enabled = await DocumentSorter.isEnabled();
+    final status = await ref
+        .read(onDeviceAiServiceProvider)
+        .status(refresh: true);
+    if (mounted) {
+      setState(() {
+        _enabled = enabled;
+        _status = status;
+      });
+    }
+  }
+
+  Future<void> _set(bool v) async {
+    setState(() => _enabled = v);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(DocumentSorter.enabledKey, v);
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = _enabled;
+    final status = _status;
+    return SwitchListTile(
+      secondary: const Icon(Icons.label_outline),
+      title: Text(context.l10n.settingsAutoSortTitle),
+      subtitle: enabled == null || status == null
+          ? null
+          : Text(
+              enabled
+                  ? aiSortMessage(context.l10n, status)
+                  : context.l10n.aiSortOff,
+            ),
+      value: enabled ?? true,
+      onChanged: enabled == null ? null : _set,
     );
   }
 }
