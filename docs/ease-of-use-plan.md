@@ -49,7 +49,7 @@ free tier stays at 2 finished documents of up to 2 pages each
 
 ## 3. How it works
 
-One release, 1.3.0 (≈ 17–18 days). The headings below group the work;
+One release, 1.3.0 (≈ 24 days, with voice). The headings below group the work;
 each item lists its size in days, with tests and 7 locales included.
 Password protection (§3.12) is built last because a spike gates it. If
 the spike fails, that item drops without holding the release.
@@ -313,6 +313,56 @@ learning (FieldHints, PrefillHints), which works on every device. The
 cheaply). Update CLAUDE.md's Phase 5 line: "on-device model used for
 document categories; field detection stays heuristic."
 
+### Voice (added 2026-10-23, ≈ 6 d)
+
+Arun asked for hands-free use after a Vision Pro idea was parked (Vision Pro
+camera access is enterprise-only, and Flutter has no visionOS target). Voice
+on the phone gets most of that value for everyone, and it pairs with
+Next-field filling (§3.3) and the accessibility pass (§3.5).
+
+#### 3.15a "Hey Siri" / Assistant shortcuts (2 d)
+- **iOS (App Intents, iOS 16+):** an `AppShortcutsProvider` in Runner with
+  three intents that open the app on a route: **Scan a document**, **Open my
+  last draft**, **Fill my last draft with my details** (opens Fill mode with
+  the PreFill offer showing; nothing is filled until the user taps). Phrases
+  in all 7 languages (`AppShortcuts.xcstrings`); Siri shows them in the
+  Shortcuts app with no setup. App lock still runs first.
+- **Android:** the same three as static shortcuts in `shortcuts.xml` (shared
+  with the quick actions in §3.6). "Open" phrases work with Assistant/Gemini
+  by name. App Actions built-in intents are still supported through
+  `shortcuts.xml` (`actions.xml` is gone); only `actions.intent.OPEN_APP_FEATURE`
+  fits, so nothing more is promised on Android.
+
+#### 3.15b Voice filling inside the app (4 d)
+- A mic button in Fill mode. While it listens, the user can say:
+  - a value: it goes into the current field ("Priya Raman"),
+  - **next / back / skip**: moves between empty fields (§3.3 order),
+  - **fill my details**: same as tapping the PreFill bar,
+  - **tick / untick**: for a checkbox,
+  - **sign**: opens the signature sheet (drawing or typing stays manual),
+  - **done / stop**: ends listening.
+  Commands are matched per locale from a small table (like PrefillMatcher),
+  and anything else is treated as a value. Every change shows on screen and
+  can be undone; nothing is finished, flattened or sent by voice.
+- **On-device recognition only.** iOS: `SFSpeechRecognizer` with
+  `requiresOnDeviceRecognition = true` (SpeechAnalyzer on iOS 26 if it
+  covers more languages). Android: `SpeechRecognizer.createOnDeviceSpeechRecognizer`
+  (API 31+). Audio never leaves the phone, so the privacy labels stay "no
+  data collected".
+- **Languages:** on-device support differs by phone and OS. Apple's documented
+  on-device list includes English, Spanish and Brazilian Portuguese, but
+  **not Hindi, Tamil or Telugu**. The app checks at runtime
+  (`supportsOnDeviceRecognition` / `checkRecognitionSupport`) for the app's
+  language. When it's unsupported, the mic shows a short reason, like the
+  sorting messages in §3.9a, instead of falling back to a server.
+- **Permissions:** iOS `NSMicrophoneUsageDescription` and
+  `NSSpeechRecognitionUsageDescription` (localized ×7, saying audio stays on
+  the phone); Android `RECORD_AUDIO`, asked the first time the mic is tapped,
+  never at launch. Without permission everything else works as before.
+- **Accessibility:** the mic button has a label, and each change is announced
+  (`SemanticsService.announce`), so VoiceOver/TalkBack users hear what was
+  filled.
+
 ## 4. Store review — risks and mitigations
 
 | # | Risk | Source | Mitigation |
@@ -326,6 +376,8 @@ document categories; field detection stays heuristic."
 | 8 | Reviewer can't see model sorting (no Apple Intelligence on the review device) | 2.1(a) Reviewability | Sorting works on every device via keywords, so there's nothing hidden. The review notes say it uses the on-device model where available and keywords otherwise. |
 | 9 | Trademarks in metadata | 2.3.7 / Play Metadata | Don't name Apple Intelligence or Gemini in the listing or keywords. |
 | 10 | Foundation Models acceptable use | Apple's acceptable-use requirements for the framework | Classifying the user's own document into fixed categories is an ordinary use. Re-read the requirements at build time. |
+| 11 | Microphone/speech permission and privacy labels | Apple 5.1.1, Play User Data | Ask only on first mic tap, with localized purpose strings; on-device recognition only, so no audio is collected; privacy policy line added. |
+| 12 | Voice wording | 2.3 | "Fill by voice", never "AI assistant" or "understands everything you say". |
 | 7 | Privacy policy | Apple 5.1.1 / Play User Data | PrefillHints, categories and CategoryHints stay on the device, and the on-device model runs on the phone (document text is never sent anywhere). Add one line ("the app remembers which of your details you choose for a form label, on this device only") to the My Details section. |
 
 **Wording rules** (all 7 locales; translations must not make the claim stronger):
@@ -363,6 +415,7 @@ One release, 1.3.0. Each phase ends with the pre-commit review routine
    add pages (§3.8), merge and split with the delete-safety test (§3.10).
 5. **Getting files in and out:** quick actions and receiving images (§3.6–3.7),
    smaller files (§3.11), removing the field-detection stub (§3.14).
+5b. **Voice:** Siri/Assistant shortcuts (§3.15a), then voice filling (§3.15b).
 6. **Accessibility pass (§3.5)** across *all* the new screens. It goes last
    so it covers everything that shipped in phases 1–5.
 7. **PDFKit spike, then password protection (§3.12).** Dropped from 1.3.0
@@ -392,5 +445,7 @@ One release, 1.3.0. Each phase ends with the pre-commit review routine
 - **Password on iOS through PDFKit**, after the spike (§3.12).
 - **Smaller files by default** (200 dpi) plus the Send switch, after measuring
   on the Phase 1 batch (§3.11).
+
+- **Voice is in 1.3.0** (Arun, 2026-10-23): shortcuts + in-app voice filling, on-device recognition only (§3.15).
 
 No open decisions remain.
