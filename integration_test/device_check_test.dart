@@ -339,6 +339,57 @@ void main() {
       'asks=${prefs.getInt('review_ask_count') ?? 0}',
     );
 
+    // Categories: the imported W-4 was sorted on its own (keywords on the
+    // simulator, the phone's model where it has one). The Library shows the
+    // chips; a card's category opens the Change category sheet.
+    final docs = container.read(documentRepositoryProvider);
+    for (var i = 0; i < 40; i++) {
+      final all = await docs.watchAll().first;
+      if (all.any((d) => d.category != null)) break;
+      await _pause(tester, 250);
+    }
+    final sorted = (await docs.watchAll().first)
+        .where((d) => d.category != null)
+        .map((d) => '${d.title}=${d.category}')
+        .join(', ');
+    _mark('INFO:sorted $sorted');
+    router.go(AppRoutes.library);
+    await _waitFor(tester, find.byType(ChoiceChip));
+    await _waitGone(tester, find.byType(CircularProgressIndicator));
+    await _pause(tester, 800);
+    await _capture(tester, 'library_categories');
+    await tester.tap(
+      find
+          .bySemanticsLabel(RegExp('^${RegExp.escape(l10n.categoryChange)}: '))
+          .first,
+    );
+    await _waitFor(tester, find.text(l10n.categoryNew));
+    await _pause(tester, 500);
+    await _capture(tester, 'category_sheet');
+    await tester.tap(find.text(l10n.categorySchool).last);
+    await _pause(tester, 800);
+    await tester.longPress(find.byType(Card).first);
+    await _waitFor(tester, find.text(l10n.librarySelectedCount(1)));
+    await _capture(tester, 'library_selecting');
+    await tester.tap(
+      find.byTooltip(
+        MaterialLocalizations.of(
+          tester.element(find.byType(LibraryScreen)),
+        ).closeButtonTooltip,
+      ),
+    );
+    await _pause(tester, 400);
+
+    router.go(AppRoutes.settings);
+    await _waitFor(tester, find.text(l10n.settingsSectionProfile));
+    await tester.scrollUntilVisible(
+      find.text(l10n.settingsAutoSortTitle),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await _pause(tester, 600);
+    await _capture(tester, 'settings_sorting');
+
     // Settings → Rate opens the store listing (leaves the app; keep last).
     router.go(AppRoutes.settings);
     // The list loads the profile first; wait for it, not just the app bar.
