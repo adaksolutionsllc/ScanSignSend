@@ -313,32 +313,6 @@ void main() {
     expect(scan?.fillablePdfPath, isNotNull, reason: 'no PDF saved');
     _mark('INFO:scan saved without fields');
 
-    // A finished document on the Send screen.
-    final docId = await _pressedDocument(container);
-    router.go(AppRoutes.send.replaceAll(':docId', '$docId'));
-    await _waitFor(tester, find.text(l10n.sendSharePressed));
-    await _capture(tester, 'send');
-
-    // The viewer still opens the pressed PDF.
-    await tester.tap(find.text(l10n.sendPreviewDocument));
-    await _pause(tester, 2500);
-    await _capture(tester, 'viewer');
-    router.pop();
-    // The Send screen stays mounted under the viewer: wait until it's on top.
-    await _waitFor(tester, find.text(l10n.sendSharePressed).hitTestable());
-
-    // Send → after ~1 s the store's own rating sheet (iOS simulator shows it;
-    // a sideloaded Android build gets no Play sheet, by design).
-    await tester.tap(find.text(l10n.sendSharePressed));
-    await _waitFor(tester, find.text(l10n.sendDocumentSent));
-    await _pause(tester, 2500);
-    await _capture(tester, 'review_prompt');
-    final prefs = await SharedPreferences.getInstance();
-    _mark(
-      'INFO:sends=${prefs.getInt('review_send_count')} '
-      'asks=${prefs.getInt('review_ask_count') ?? 0}',
-    );
-
     // Categories: the imported W-4 was sorted on its own (keywords on the
     // simulator, the phone's model where it has one). The Library shows the
     // chips; a card's category opens the Change category sheet.
@@ -389,6 +363,32 @@ void main() {
     );
     await _pause(tester, 600);
     await _capture(tester, 'settings_sorting');
+
+    // A finished document on the Send screen.
+    final docId = await _pressedDocument(container);
+    router.go(AppRoutes.send.replaceAll(':docId', '$docId'));
+    await _waitFor(tester, find.text(l10n.sendSharePressed));
+    await _capture(tester, 'send');
+
+    // The viewer still opens the pressed PDF.
+    await tester.tap(find.text(l10n.sendPreviewDocument));
+    await _pause(tester, 2500);
+    await _capture(tester, 'viewer');
+    router.pop();
+    // The Send screen stays mounted under the viewer: wait until it's on top.
+    await _waitFor(tester, find.text(l10n.sendSharePressed).hitTestable());
+
+    // Send → after ~1 s the store's own rating sheet (iOS simulator shows it;
+    // a sideloaded Android build gets no Play sheet, by design).
+    await tester.tap(find.text(l10n.sendSharePressed));
+    await _waitFor(tester, find.text(l10n.sendDocumentSent));
+    await _pause(tester, 2500);
+    await _capture(tester, 'review_prompt');
+    final prefs = await SharedPreferences.getInstance();
+    _mark(
+      'INFO:sends=${prefs.getInt('review_send_count')} '
+      'asks=${prefs.getInt('review_ask_count') ?? 0}',
+    );
 
     // Settings → Rate opens the store listing (leaves the app; keep last).
     router.go(AppRoutes.settings);
