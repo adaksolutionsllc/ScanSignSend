@@ -69,13 +69,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           // restored route) there is nothing to ask, so show Review.
           return candidates == null || candidates.isEmpty
               ? ReviewScreen(docId: docId)
-              : CropScreen(docId: docId, candidates: candidates);
+              : CropScreen(
+                  docId: docId,
+                  candidates: candidates,
+                  popWhenDone: state.uri.queryParameters['back'] == '1',
+                );
         },
       ),
       GoRoute(
         path: AppRoutes.fieldDetection,
         builder: (context, state) => FieldDetectionScreen(
           docId: int.parse(state.pathParameters['docId']!),
+          newPagesFrom: int.tryParse(state.uri.queryParameters['from'] ?? ''),
         ),
       ),
       GoRoute(

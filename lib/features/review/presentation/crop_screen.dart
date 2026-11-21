@@ -16,10 +16,19 @@ import '../../../core/utils/router.dart';
 /// drag. Only pages EdgeCheckService thought worth fixing come here; the
 /// rest go straight to Review. Ends on Review either way.
 class CropScreen extends ConsumerStatefulWidget {
-  const CropScreen({super.key, required this.docId, required this.candidates});
+  const CropScreen({
+    super.key,
+    required this.docId,
+    required this.candidates,
+    this.popWhenDone = false,
+  });
 
   final int docId;
   final List<EdgeCandidate> candidates;
+
+  /// Opened over a screen that continues afterwards (Add pages): go back to
+  /// it instead of on to Review.
+  final bool popWhenDone;
 
   @override
   ConsumerState<CropScreen> createState() => _CropScreenState();
@@ -61,6 +70,10 @@ class _CropScreenState extends ConsumerState<CropScreen> {
     }
     if (failed.isNotEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(failedText)));
+    }
+    if (widget.popWhenDone) {
+      router.pop();
+      return;
     }
     router.pushReplacement(
       AppRoutes.review.replaceAll(':docId', '${widget.docId}'),

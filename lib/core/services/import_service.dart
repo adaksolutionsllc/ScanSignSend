@@ -177,6 +177,97 @@ class ImportService {
     return (await _docRepo.getById(docId))!;
   }
 
+  /// Lets the user pick photos to add to a document. Returns them in the
+  /// order picked; empty when cancelled.
+  Future<List<OpenedFile>> pickPhotos() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: true,
+    );
+    return [
+      for (final f in result?.files ?? const <PlatformFile>[])
+        if (f.path != null) OpenedFile(path: f.path!, name: f.name),
+    ];
+  }
+
+  /// Appends photos to document [docId] as new last pages, upright and as
+  /// JPEG like an imported photo. Returns the new pages' ids, in order.
+  Future<List<int>> appendPhotos(int docId, List<OpenedFile> files) async {
+    try {
+      return await _append(docId, files.length, (i, dest) async {
+        await _writeUprightJpeg(files[i].path, dest);
+      });
+    } on ImportException {
+      rethrow;
+    } catch (_) {
+      throw ImportException(ImportFailure.unreadableImage);
+    } finally {
+      try {
+        await FilePicker.platform.clearTemporaryFiles();
+      } catch (_) {}
+    }
+  }
+
+  /// Appends pages from the document scanner (temporary files, removed once
+  /// copied) to document [docId]. Returns the new pages' ids, in order.
+  Future<List<int>> appendScans(int docId, List<String> tempPaths) =>
+      _append(docId, tempPaths.length, (i, dest) async {
+        final src = File(tempPaths[i]);
+        await src.copy(dest);
+        try {
+          await src.delete();
+        } catch (_) {}
+      });
+
+  /// Writes [count] page files into a new `pages/<uuid>/` folder with
+  /// [write], then adds their rows after the document's last page and
+  /// updates its page count, in one transaction. Fields stay where they are:
+  /// the existing pages keep their positions.
+  Future<List<int>> _append(
+    int docId,
+    int count,
+    Future<void> Function(int i, String dest) write,
+  ) async {
+    if (count == 0) return const [];
+    final appDir = await getApplicationDocumentsDirectory();
+    final dir = Directory(p.join(appDir.path, 'pages', _uuid.v4()));
+    await dir.create(recursive: true);
+    final dests = <String>[];
+    try {
+      for (var i = 0; i < count; i++) {
+        final dest = p.join(dir.path, 'page_$i.jpg');
+        await write(i, dest);
+        dests.add(dest);
+      }
+    } catch (_) {
+      try {
+        await dir.delete(recursive: true);
+      } catch (_) {}
+      rethrow;
+    }
+    return _docRepo.transaction(() async {
+      final first = (await _pageRepo.pagesOf(docId)).length;
+      final ids = <int>[];
+      for (var i = 0; i < dests.length; i++) {
+        ids.add(
+          await _pageRepo.addPage(
+            documentId: docId,
+            pageIndex: first + i,
+            imagePath: dests[i],
+          ),
+        );
+      }
+      await _docRepo.updateDocument(
+        DocumentsCompanion(
+          id: Value(docId),
+          pageCount: Value(first + dests.length),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      return ids;
+    });
+  }
+
   /// Re-encodes a picked photo as an upright JPEG.
   ///
   /// Phone photos are usually stored sideways with an EXIF "rotate me" tag.

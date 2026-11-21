@@ -20,6 +20,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
+import 'package:scan_sign_send/core/services/edge_check_service.dart';
+import 'package:scan_sign_send/core/services/import_service.dart';
 import 'package:scan_sign_send/core/services/opened_file_service.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
 import 'package:scan_sign_send/core/utils/path_resolver.dart';
@@ -359,6 +361,52 @@ void main() {
     expect(cropped.width, lessThan(1200), reason: 'photo was not cropped');
     await _pause(tester, 1500);
     await _capture(tester, 'photo_cropped_review');
+
+    // Add pages: Review offers scan or photos. The pickers are the system's,
+    // so the photo arrives through the same calls the flow makes after
+    // picking: appended, edge-checked on its own, cropped, back to Review.
+    await tester.tap(find.byKey(const ValueKey('add-pages')));
+    await _waitFor(tester, find.text(l10n.addPagesPhotos));
+    await _pause(tester, 600);
+    await _capture(tester, 'add_pages_sheet');
+    await tester.tapAt(const Offset(20, 120));
+    await _pause(tester, 800);
+    final page2 = await _tiltedPhoto(tmp, 'photo2', 'page_two.jpg');
+    final addedIds = await container.read(importServiceProvider).appendPhotos(
+      photoDoc.id,
+      [OpenedFile(path: page2, name: 'page_two.jpg')],
+    );
+    final addedCandidates = await container
+        .read(edgeCheckServiceProvider)
+        .candidatesFor(photoDoc.id, onlyPageIds: addedIds.toSet());
+    expect(
+      addedCandidates.map((c) => c.pageId),
+      addedIds,
+      reason: 'only the added photo is edge-checked',
+    );
+    router.push(
+      '${AppRoutes.crop.replaceAll(':docId', '${photoDoc.id}')}?back=1',
+      extra: addedCandidates,
+    );
+    await _waitFor(tester, find.byType(CropScreen), seconds: 60);
+    await _pause(tester, 1200);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    await _pause(tester, 1500);
+    expect(
+      (await container.read(pageRepositoryProvider).pagesOf(photoDoc.id))
+          .length,
+      2,
+    );
+    await _capture(tester, 'add_pages_review');
+    router.push(
+      '${AppRoutes.fieldDetection.replaceAll(':docId', '${photoDoc.id}')}'
+      '?from=1',
+    );
+    await _waitFor(tester, find.text(l10n.detectConfirmAll), seconds: 60);
+    await _pause(tester, 1000);
+    await _capture(tester, 'add_pages_detect');
+    _mark('INFO:add pages appended, cropped and detected page 2 only');
 
     // A PDF that is only a photo of paper gets the same check; "Use whole
     // image" keeps it as it was.

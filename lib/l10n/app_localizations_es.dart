@@ -1332,4 +1332,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get signTypeInitialsHint => 'Escribe tus iniciales';
+
+  @override
+  String get addPages => 'Añadir páginas';
+
+  @override
+  String get addPagesPhotos => 'Elegir fotos';
+
+  @override
+  String addPagesAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count páginas añadidas',
+      one: '1 página añadida',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addPagesFailed =>
+      'No se pudieron añadir las páginas. Inténtalo de nuevo.';
 }

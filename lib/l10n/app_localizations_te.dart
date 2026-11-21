@@ -1337,4 +1337,24 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get signTypeInitialsHint => 'మీ ఇనీషియల్స్ టైప్ చేయండి';
+
+  @override
+  String get addPages => 'పేజీలను జోడించు';
+
+  @override
+  String get addPagesPhotos => 'ఫోటోలను ఎంచుకోండి';
+
+  @override
+  String addPagesAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count పేజీలు జోడించబడ్డాయి',
+      one: '1 పేజీ జోడించబడింది',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addPagesFailed => 'పేజీలను జోడించలేకపోయాం. మళ్లీ ప్రయత్నించండి.';
 }

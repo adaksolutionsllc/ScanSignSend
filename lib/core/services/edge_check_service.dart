@@ -72,10 +72,19 @@ class EdgeCheckService {
 
   /// The pages of document [docId] worth offering a corner fix, in order.
   /// Empty when none are. Never throws: the check is a convenience.
-  Future<List<EdgeCandidate>> candidatesFor(int docId) async {
+  ///
+  /// [onlyPageIds]: check just these pages (photos added to a document);
+  /// the pages it already had were checked when they arrived.
+  Future<List<EdgeCandidate>> candidatesFor(
+    int docId, {
+    Set<int>? onlyPageIds,
+  }) async {
     try {
       final doc = await _docRepo.getById(docId);
-      final pages = await _pageRepo.pagesOf(docId);
+      final pages = [
+        for (final pg in await _pageRepo.pagesOf(docId))
+          if (onlyPageIds == null || onlyPageIds.contains(pg.id)) pg,
+      ];
       if (doc == null || pages.isEmpty) return const [];
 
       final pdf = _sourcePdf(pages);
@@ -158,6 +167,15 @@ class EdgeCheckService {
       }
     }
     return failed;
+  }
+
+  /// Turns an imported PDF's pages into images, so that image pages can join
+  /// them: the exports handle one kind of page per document. No-op for a
+  /// document whose pages are images already.
+  Future<void> convertPdfPages(int docId) async {
+    final pages = await _pageRepo.pagesOf(docId);
+    final pdf = _sourcePdf(pages);
+    if (pdf != null) await _pdfToImages(pdf, pages);
   }
 
   /// The imported PDF behind [pages], or null for image pages.

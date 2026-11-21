@@ -193,7 +193,10 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
   /// Resolves once every edit made so far is on disk.
   Future<void> flush() => _queue;
 
-  Future<void> run() async {
+  /// Detects fields on every page, or — [fromPage] > 0, after pages were
+  /// added to a document — only on the pages from there on, keeping the
+  /// fields the document already has.
+  Future<void> run({int fromPage = 0}) async {
     state = state.copyWith(
       phase: DetectionPhase.running,
       progressCurrent: 0,
@@ -202,15 +205,18 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
     try {
       final pages = await pageRepo.watchPages(docId).first;
       final hints = await hintRepo.load();
+      final existing = fromPage > 0
+          ? await fieldRepo.watchFields(docId).first
+          : const <Field>[];
       final detected = <EditableField>[];
       final pageTexts = <String>[];
       final textSizes = <double>[];
 
-      for (var i = 0; i < pages.length; i++) {
+      for (var i = fromPage; i < pages.length; i++) {
         if (!mounted) return;
         state = state.copyWith(
-          progressCurrent: i + 1,
-          progressTotal: pages.length,
+          progressCurrent: i - fromPage + 1,
+          progressTotal: pages.length - fromPage,
         );
         try {
           // The PDF's own text layer when it has one, OCR otherwise; plus the
@@ -255,21 +261,29 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
       ];
 
       // Index every page's text for search, not only the first page's.
-      await docRepo.updateDocument(
-        DocumentsCompanion(
-          id: Value(docId),
-          ocrText: Value(pageTexts.where((t) => t.isNotEmpty).join('\n')),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-      unawaited(sorter?.afterDetection(docId));
+      // Added pages were indexed when they were added.
+      if (fromPage == 0) {
+        await docRepo.updateDocument(
+          DocumentsCompanion(
+            id: Value(docId),
+            ocrText: Value(pageTexts.where((t) => t.isNotEmpty).join('\n')),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        unawaited(sorter?.afterDetection(docId));
+      }
 
+      final doc = fromPage > 0 ? await docRepo.getById(docId) : null;
       if (!mounted) return;
       state = state.copyWith(
         phase: DetectionPhase.done,
         foundCount: persisted.length,
-        fields: persisted,
-        textSize: textSize,
+        fields: [..._editable(existing), ...persisted],
+        // The document's text size was settled on its first pages.
+        textSize: doc?.textSize ?? textSize,
+        formFields: existing.where((f) => f.sourceKind != 'app').toList(),
+        // Open on the first added page: that's where the new fields are.
+        currentPageIndex: fromPage,
       );
     } catch (e) {
       if (!mounted) return;
@@ -285,26 +299,7 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
   /// fill-only and never editable in this screen.
   Future<void> loadExisting() async {
     final existing = await fieldRepo.watchFields(docId).first;
-    final appFields = [
-      for (final f in existing.where((f) => f.sourceKind == 'app'))
-        EditableField(
-            dbId: f.id,
-            type: f.type.toFieldType(),
-            bbox: BoundingBox.fromJsonString(f.boundingBoxJson),
-            label: f.label,
-            pageIndex: f.pageIndex,
-            confirmed: true,
-            isRequired: f.isRequired,
-            // Every stored option must round-trip: an edit rewrites
-            // optionsJson from these, so a dropped one would be erased.
-            radioGroup: radioGroupOf(f.optionsJson),
-            autoToday: autoTodayOf(f.optionsJson),
-            detected: detectedOf(f.optionsJson),
-          )
-          // Taught (or not) in the session that created it; reopening the
-          // document mustn't count the same fields again.
-          ..learned = true,
-    ];
+    final appFields = _editable(existing);
     final doc = await docRepo.getById(docId);
     if (!mounted) return;
     state = state.copyWith(
@@ -315,6 +310,28 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
       formFields: existing.where((f) => f.sourceKind != 'app').toList(),
     );
   }
+
+  /// The saved 'app' fields among [existing], as editor fields.
+  static List<EditableField> _editable(List<Field> existing) => [
+    for (final f in existing.where((f) => f.sourceKind == 'app'))
+      EditableField(
+          dbId: f.id,
+          type: f.type.toFieldType(),
+          bbox: BoundingBox.fromJsonString(f.boundingBoxJson),
+          label: f.label,
+          pageIndex: f.pageIndex,
+          confirmed: true,
+          isRequired: f.isRequired,
+          // Every stored option must round-trip: an edit rewrites
+          // optionsJson from these, so a dropped one would be erased.
+          radioGroup: radioGroupOf(f.optionsJson),
+          autoToday: autoTodayOf(f.optionsJson),
+          detected: detectedOf(f.optionsJson),
+        )
+        // Taught (or not) in the session that created it; reopening the
+        // document mustn't count the same fields again.
+        ..learned = true,
+  ];
 
   void setPageIndex(int i) => state = state.copyWith(currentPageIndex: i);
 

@@ -1338,4 +1338,25 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get signTypeInitialsHint =>
       'உங்கள் முதலெழுத்துகளைத் தட்டச்சு செய்யுங்கள்';
+
+  @override
+  String get addPages => 'பக்கங்களைச் சேர்';
+
+  @override
+  String get addPagesPhotos => 'புகைப்படங்களைத் தேர்ந்தெடு';
+
+  @override
+  String addPagesAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count பக்கங்கள் சேர்க்கப்பட்டன',
+      one: '1 பக்கம் சேர்க்கப்பட்டது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addPagesFailed =>
+      'பக்கங்களைச் சேர்க்க முடியவில்லை. மீண்டும் முயலவும்.';
 }

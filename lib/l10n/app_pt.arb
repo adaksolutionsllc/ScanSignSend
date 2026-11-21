@@ -367,5 +367,9 @@
   "signModeDraw": "Desenhar",
   "signModeType": "Digitar",
   "signTypeHint": "Digite seu nome",
-  "signTypeInitialsHint": "Digite suas iniciais"
+  "signTypeInitialsHint": "Digite suas iniciais",
+  "addPages": "Adicionar páginas",
+  "addPagesPhotos": "Escolher fotos",
+  "addPagesAdded": "{count, plural, =1{1 página adicionada} other{{count} páginas adicionadas}}",
+  "addPagesFailed": "Não foi possível adicionar as páginas. Tente novamente."
 }

@@ -14,8 +14,16 @@ import '../../../shared/widgets/page_canvas.dart';
 import 'field_detection_notifier.dart';
 
 class FieldDetectionScreen extends ConsumerStatefulWidget {
-  const FieldDetectionScreen({super.key, required this.docId});
+  const FieldDetectionScreen({
+    super.key,
+    required this.docId,
+    this.newPagesFrom,
+  });
   final int docId;
+
+  /// Pages were added to the document from this position: find fields on
+  /// those only, keeping the ones it has.
+  final int? newPagesFrom;
 
   @override
   ConsumerState<FieldDetectionScreen> createState() =>
@@ -42,6 +50,11 @@ class _FieldDetectionScreenState extends ConsumerState<FieldDetectionScreen> {
       //    user can add more around them), or
       //  - the user has been here before (e.g. "Edit fields" from Fill
       //    mode) — re-detecting would discard their positions and edits.
+      final from = widget.newPagesFrom;
+      if (from != null && from > 0 && !(doc?.hasFormFields ?? false)) {
+        notifier.run(fromPage: from);
+        return;
+      }
       if ((doc?.hasFormFields ?? false) ||
           existingFields.any((f) => f.sourceKind == 'app')) {
         await notifier.loadExisting();

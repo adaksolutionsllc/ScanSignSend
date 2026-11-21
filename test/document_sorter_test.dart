@@ -239,6 +239,40 @@ void main() {
       expect(found.map((x) => x.id), [d.id]);
     });
 
+    test('added pages join the search text; earlier text stays', () async {
+      final pdf = PdfDocument();
+      final font = PdfStandardFont(PdfFontFamily.helvetica, 18);
+      for (final words in ['Lease terms', 'Zebracorn appendix']) {
+        pdf.pages.add().graphics.drawString(
+          words,
+          font,
+          bounds: const Rect.fromLTWH(40, 40, 400, 40),
+        );
+      }
+      final file = File('${tmp.path}/added.pdf')
+        ..writeAsBytesSync(await pdf.save());
+      pdf.dispose();
+      final d = await doc('Lease');
+      await docs.updateDocument(
+        DocumentsCompanion(
+          id: Value(d.id),
+          ocrText: const Value('Lease terms'),
+        ),
+      );
+      for (var i = 0; i < 2; i++) {
+        await pages.addPage(
+          documentId: d.id,
+          pageIndex: i,
+          imagePath: '${file.path}#page=$i',
+        );
+      }
+      await sorter.storeAddedPagesText(d.id, fromPage: 1);
+      final text = (await docs.getById(d.id))!.ocrText;
+      expect(text, startsWith('Lease terms'));
+      expect(text, contains('Zebracorn'));
+      expect('Lease terms'.allMatches(text).length, 1);
+    });
+
     test(
       'a form with its own fields is searchable after the v10 backfill',
       () async {

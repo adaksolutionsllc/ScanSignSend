@@ -1333,4 +1333,25 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get signTypeInitialsHint => 'Digite suas iniciais';
+
+  @override
+  String get addPages => 'Adicionar páginas';
+
+  @override
+  String get addPagesPhotos => 'Escolher fotos';
+
+  @override
+  String addPagesAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count páginas adicionadas',
+      one: '1 página adicionada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addPagesFailed =>
+      'Não foi possível adicionar as páginas. Tente novamente.';
 }

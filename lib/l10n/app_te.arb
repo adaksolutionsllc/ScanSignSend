@@ -367,5 +367,9 @@
   "signModeDraw": "గీయండి",
   "signModeType": "టైప్ చేయండి",
   "signTypeHint": "మీ పేరును టైప్ చేయండి",
-  "signTypeInitialsHint": "మీ ఇనీషియల్స్ టైప్ చేయండి"
+  "signTypeInitialsHint": "మీ ఇనీషియల్స్ టైప్ చేయండి",
+  "addPages": "పేజీలను జోడించు",
+  "addPagesPhotos": "ఫోటోలను ఎంచుకోండి",
+  "addPagesAdded": "{count, plural, =1{1 పేజీ జోడించబడింది} other{{count} పేజీలు జోడించబడ్డాయి}}",
+  "addPagesFailed": "పేజీలను జోడించలేకపోయాం. మళ్లీ ప్రయత్నించండి."
 }

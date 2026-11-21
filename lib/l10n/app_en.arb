@@ -720,5 +720,16 @@
   "signModeDraw": "Draw",
   "signModeType": "Type",
   "signTypeHint": "Type your name",
-  "signTypeInitialsHint": "Type your initials"
+  "signTypeInitialsHint": "Type your initials",
+  "addPages": "Add pages",
+  "addPagesPhotos": "Choose photos",
+  "addPagesAdded": "{count, plural, =1{1 page added} other{{count} pages added}}",
+  "addPagesFailed": "Couldn't add the pages. Try again.",
+  "@addPagesAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

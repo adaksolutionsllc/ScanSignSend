@@ -15,12 +15,12 @@ what changes, in what order, and what still needs a decision.
 |---|---|---|---|
 | A1 | "Next field" guided filling | 1.5 d | ease-of-use-plan §3.3. Reading order, Next/Done on the input sheet, "N left →" in Fill mode. |
 | A2 | Typed signature and initials | 1 d | §3.4. Draw / Type tabs, bundled OFL script font. Needed for screen-reader users (C1). |
-| A3 | PreFill learns from your picks | 1.5 d | §3.13. `PrefillHints` table (schema v10), phrase → slot, never the value. |
+| A3 | ✅ PreFill learns from your picks | 1.5 d | §3.13. `PrefillHints` table (schema v10), phrase → slot, never the value. |
 
 ### B. A real library (≈ 4.5 d)
 | # | Item | Size | Notes |
 |---|---|---|---|
-| B1 | Add pages to a document | 1.5 d | §3.8. Scanner or photo import, appended. Photos go through the 1.3.0 edge check. Drafts and fillable only. |
+| B1 | ✅ Add pages to a document | 1.5 d | §3.8. Scanner or photo import, appended. Photos go through the 1.3.0 edge check. Drafts and fillable only. |
 | B2 | Merge and split | 2 d | Restored below (§3). Uses 1.3.0 multi-select. |
 | B3 | Search inside forms with their own fields | 1 d | New. Form PDFs are found only by name today, because `ocrText` holds the form marker. Move the marker to its own column (schema v10, with A3) and store the text. |
 

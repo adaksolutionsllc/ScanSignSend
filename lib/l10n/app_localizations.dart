@@ -2315,6 +2315,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type your initials'**
   String get signTypeInitialsHint;
+
+  /// No description provided for @addPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Add pages'**
+  String get addPages;
+
+  /// No description provided for @addPagesPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photos'**
+  String get addPagesPhotos;
+
+  /// No description provided for @addPagesAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 page added} other{{count} pages added}}'**
+  String addPagesAdded(int count);
+
+  /// No description provided for @addPagesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the pages. Try again.'**
+  String get addPagesFailed;
 }
 
 class _AppLocalizationsDelegate

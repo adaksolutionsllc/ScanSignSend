@@ -367,5 +367,9 @@
   "signModeDraw": "बनाएँ",
   "signModeType": "टाइप करें",
   "signTypeHint": "अपना नाम टाइप करें",
-  "signTypeInitialsHint": "अपने आद्याक्षर टाइप करें"
+  "signTypeInitialsHint": "अपने आद्याक्षर टाइप करें",
+  "addPages": "पेज जोड़ें",
+  "addPagesPhotos": "फ़ोटो चुनें",
+  "addPagesAdded": "{count, plural, =1{1 पेज जोड़ा गया} other{{count} पेज जोड़े गए}}",
+  "addPagesFailed": "पेज नहीं जुड़ सके। फिर से कोशिश करें।"
 }

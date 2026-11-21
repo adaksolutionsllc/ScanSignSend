@@ -13,6 +13,7 @@ import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/category_ui.dart';
 import '../../press/presentation/finish_flow.dart';
+import 'add_pages.dart';
 
 enum PageFilter { original, enhanced, bw }
 
@@ -33,6 +34,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   late final Stream<List<db.Page>> _pagesStream = ref
       .read(pageRepositoryProvider)
       .watchPages(widget.docId);
+  late final Stream<db.Document?> _docStream = ref
+      .read(documentRepositoryProvider)
+      .watchById(widget.docId);
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +50,26 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             TextButton(
               onPressed: _saveOrder,
               child: Text(context.l10n.reviewSaveOrder),
+            )
+          else
+            // Hidden while a new order is unsaved: added pages would land
+            // outside it.
+            StreamBuilder<db.Document?>(
+              stream: _docStream,
+              builder: (context, snap) {
+                final doc = snap.data;
+                if (doc == null || !canAddPages(doc)) {
+                  return const SizedBox.shrink();
+                }
+                return IconButton(
+                  key: const ValueKey('add-pages'),
+                  icon: const Icon(Icons.note_add_outlined),
+                  tooltip: context.l10n.addPages,
+                  onPressed: _saving
+                      ? null
+                      : () => addPages(context, ref, widget.docId),
+                );
+              },
             ),
         ],
       ),

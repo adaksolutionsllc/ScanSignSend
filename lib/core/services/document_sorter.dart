@@ -158,6 +158,31 @@ class DocumentSorter {
     );
   }
 
+  /// Pages added to a document: reads their text and adds it to the
+  /// document's, so search finds them too. Never throws.
+  Future<void> storeAddedPagesText(int docId, {required int fromPage}) async {
+    try {
+      final pages = (await pageRepo.pagesOf(docId)).skip(fromPage);
+      final texts = <String>[];
+      for (final page in pages) {
+        try {
+          texts.add((await layouts.textOnly(page.imagePath)).$2);
+        } catch (_) {}
+      }
+      final added = texts.where((t) => t.trim().isNotEmpty).join('\n');
+      final doc = await docRepo.getById(docId);
+      if (doc == null || added.isEmpty) return;
+      await docRepo.updateDocument(
+        DocumentsCompanion(
+          id: Value(docId),
+          ocrText: Value(
+            doc.ocrText.isEmpty ? added : '${doc.ocrText}\n$added',
+          ),
+        ),
+      );
+    } catch (_) {}
+  }
+
   /// Field detection has read every page. A document still Uncategorised gets
   /// another try with the fuller text.
   Future<SortedBy?> afterDetection(int docId) async {

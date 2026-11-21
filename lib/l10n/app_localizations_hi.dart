@@ -1331,4 +1331,24 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get signTypeInitialsHint => 'अपने आद्याक्षर टाइप करें';
+
+  @override
+  String get addPages => 'पेज जोड़ें';
+
+  @override
+  String get addPagesPhotos => 'फ़ोटो चुनें';
+
+  @override
+  String addPagesAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count पेज जोड़े गए',
+      one: '1 पेज जोड़ा गया',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addPagesFailed => 'पेज नहीं जुड़ सके। फिर से कोशिश करें।';
 }

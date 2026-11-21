@@ -21,6 +21,7 @@ import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/field_box.dart';
 import '../../../shared/widgets/field_type_labels.dart';
 import '../../../shared/widgets/page_canvas.dart';
+import '../../review/presentation/add_pages.dart';
 
 class FillModeScreen extends ConsumerStatefulWidget {
   const FillModeScreen({super.key, required this.docId});
@@ -113,6 +114,15 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         return Scaffold(
           appBar: AppBar(
             title: Text(doc?.title ?? context.l10n.fillFallbackTitle),
+            actions: [
+              if (doc != null && canAddPages(doc))
+                IconButton(
+                  key: const ValueKey('add-pages'),
+                  icon: const Icon(Icons.note_add_outlined),
+                  tooltip: context.l10n.addPages,
+                  onPressed: () => _addPages(context),
+                ),
+            ],
           ),
           // Primary next-step action: prominent, bottom-centre, always reachable.
           bottomNavigationBar: SafeArea(
@@ -469,6 +479,18 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
           },
         ),
       ),
+    );
+  }
+
+  /// Adds pages, then finds fields on them in the field editor (the pages
+  /// the document had keep their fields).
+  Future<void> _addPages(BuildContext context) async {
+    final from = await addPages(context, ref, widget.docId);
+    if (from == null || !context.mounted) return;
+    setState(() => _currentPage = from);
+    await context.push(
+      '${AppRoutes.fieldDetection.replaceAll(':docId', '${widget.docId}')}'
+      '?from=$from',
     );
   }
 
