@@ -597,11 +597,11 @@ void main() {
     final plainForm = File(p.join(tmp.path, 'plain_form.pdf'))
       ..writeAsBytesSync(await formPdf.save());
     formPdf.dispose();
-    final locked = await container
+    final lockedPdf = await container
         .read(pdfPasswordServiceProvider)
         .protect(plainForm.path, 'secret12');
     final inbox = Directory(p.join(tmp.path, 'locked_inbox'))..createSync();
-    final lockedCopy = File(locked).copySync(p.join(inbox.path, 'lease.pdf'));
+    final lockedCopy = File(lockedPdf).copySync(p.join(inbox.path, 'lease.pdf'));
     router.go(AppRoutes.library);
     await _waitFor(tester, find.byType(LibraryScreen));
     router.push(
