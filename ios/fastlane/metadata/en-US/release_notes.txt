@@ -1,5 +1,5 @@
-New: PreFill. Save your details once in My Details, then fill the matching fields on a form with one tap. Saved only on this device.
-Save a scan as a plain PDF straight after scanning — no fields needed.
-Tap a field in “Review & Finish” to go back and fill it.
-Fields stay in place while you fill; move or resize them in “Edit Fields”.
-Settings switches now update straight away.
+New in 1.3: documents sort themselves into categories on your phone, and search finds the words on every page.
+Scans and photos are named from their title.
+Photos you import or open are straightened to the page edges.
+Skip fields to save and share a scan as a finished PDF straight away.
+Open photos from Files or the share sheet.

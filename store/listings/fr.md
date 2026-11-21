@@ -21,7 +21,7 @@ Scannez n'importe quel document avec l'appareil photo ou importez un PDF, laisse
 
 SCANNER
 • Des scans nets avec détection automatique des bords, plusieurs pages à la fois
-• Importez vos PDF et photos existants
+• Importez vos PDF et photos — les photos sont redressées selon les bords de la page
 • Réorganisez, faites pivoter et nettoyez les pages avant de signer
 
 REMPLIR ET SIGNER
@@ -38,6 +38,11 @@ ENVOYER
 • Partagez par e-mail, messagerie ou toute autre app
 • Enregistrez un formulaire comme modèle pour le réutiliser
 
+RANGER
+• Vos documents se classent seuls par catégorie — factures, impôts, santé, travail et plus — sur votre téléphone. Changez-en une d'un geste, ou créez les vôtres.
+• La recherche trouve un document par son nom ou par les mots de ses pages.
+• Les scans et photos prennent le nom de leur titre.
+
 CONFIDENTIEL PAR CONCEPTION
 • Rien n'est envoyé en ligne — tout le traitement se fait sur votre appareil
 • Déverrouillage par empreinte ou visage (facultatif), reverrouillé dès que vous quittez l'app
@@ -52,11 +57,11 @@ Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. Illimité est un ac
 Conçu par ADAK Ventures.
 
 ## whats_new
-Nouveau : PreFill. Enregistrez vos informations une fois dans Mes informations, puis remplissez d’un geste les champs correspondants. Enregistrées uniquement sur cet appareil.
-Enregistrez un scan en PDF simple juste après la numérisation, sans champs.
-Touchez un champ dans « Vérifier et terminer » pour revenir le remplir.
-Les champs restent en place pendant le remplissage ; déplacez-les dans « Modifier les champs ».
-Les interrupteurs des Réglages se mettent à jour immédiatement.
+Nouveau dans la 1.3 : vos documents se classent seuls par catégorie sur votre téléphone, et la recherche trouve les mots de chaque page.
+Les scans et photos prennent le nom de leur titre.
+Les photos importées ou ouvertes sont redressées selon les bords de la page.
+Ignorez les champs pour enregistrer et partager un scan comme PDF terminé.
+Ouvrez des photos depuis Fichiers ou le menu de partage.
 
 ## iap_display_name
 Illimité

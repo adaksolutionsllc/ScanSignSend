@@ -21,7 +21,7 @@ Scan any document with your camera or import a PDF, let the app find the blanks,
 
 SCAN
 • Clear scans with automatic edge detection, several pages at a time
-• Import existing PDFs and photos
+• Import PDFs and photos — photos are straightened to the page edges
 • Reorder, rotate and clean up pages before you sign
 
 FILL & SIGN
@@ -38,6 +38,11 @@ SEND
 • Share by email, messaging or any app
 • Save any form as a template to reuse it
 
+ORGANISE
+• Documents sort themselves into categories — bills, tax, medical, work and more — on your phone. Change any with one tap, or make your own.
+• Search finds documents by name or by the words on their pages.
+• Scans and photos are named from their title.
+
 PRIVATE BY DESIGN
 • Nothing is uploaded — all processing happens on your device
 • Optional fingerprint / face unlock that re-locks when you leave the app
@@ -52,11 +57,11 @@ Finish 2 documents (up to 2 pages each) free. Unlimited is a one-time purchase f
 Built by ADAK Ventures.
 
 ## whats_new
-New: PreFill. Save your details once in My Details, then fill the matching fields on a form with one tap. Saved only on this device.
-Save a scan as a plain PDF straight after scanning — no fields needed.
-Tap a field in “Review & Finish” to go back and fill it.
-Fields stay in place while you fill; move or resize them in “Edit Fields”.
-Settings switches now update straight away.
+New in 1.3: documents sort themselves into categories on your phone, and search finds the words on every page.
+Scans and photos are named from their title.
+Photos you import or open are straightened to the page edges.
+Skip fields to save and share a scan as a finished PDF straight away.
+Open photos from Files or the share sheet.
 
 ## iap_display_name
 Unlimited

@@ -1,5 +1,5 @@
-Novidade: PreFill. Salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes de um formulário. Ficam salvos só neste aparelho.
-Salve uma digitalização como PDF simples logo após digitalizar, sem campos.
-Toque em um campo em “Rever e concluir” para voltar e preenchê-lo.
-Os campos não se movem enquanto você preenche; mova ou redimensione em “Editar campos”.
-As chaves das Definições agora se atualizam na hora.
+Novo na 1.3: seus documentos se organizam sozinhos em categorias no seu celular, e a busca encontra as palavras de cada página.
+Digitalizações e fotos recebem o nome do título.
+Fotos importadas ou abertas são endireitadas pelas bordas da página.
+Pule os campos para salvar e compartilhar uma digitalização como PDF concluído.
+Abra fotos pelo app Arquivos ou pelo menu de compartilhar.

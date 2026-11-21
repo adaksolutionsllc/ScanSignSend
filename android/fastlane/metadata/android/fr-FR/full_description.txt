@@ -4,7 +4,7 @@ Scannez n'importe quel document avec l'appareil photo ou importez un PDF, laisse
 
 SCANNER
 • Des scans nets avec détection automatique des bords, plusieurs pages à la fois
-• Importez vos PDF et photos existants
+• Importez vos PDF et photos — les photos sont redressées selon les bords de la page
 • Réorganisez, faites pivoter et nettoyez les pages avant de signer
 
 REMPLIR ET SIGNER
@@ -20,6 +20,11 @@ ENVOYER
 • Ou un PDF remplissable que d'autres peuvent compléter dans n'importe quel lecteur PDF
 • Partagez par e-mail, messagerie ou toute autre app
 • Enregistrez un formulaire comme modèle pour le réutiliser
+
+RANGER
+• Vos documents se classent seuls par catégorie — factures, impôts, santé, travail et plus — sur votre téléphone. Changez-en une d'un geste, ou créez les vôtres.
+• La recherche trouve un document par son nom ou par les mots de ses pages.
+• Les scans et photos prennent le nom de leur titre.
 
 CONFIDENTIEL PAR CONCEPTION
 • Rien n'est envoyé en ligne — tout le traitement se fait sur votre appareil

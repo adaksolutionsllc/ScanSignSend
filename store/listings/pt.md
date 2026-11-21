@@ -21,7 +21,7 @@ Digitalize qualquer documento com a câmera ou importe um PDF, deixe o app encon
 
 DIGITALIZAR
 • Digitalizações nítidas com detecção automática de bordas, várias páginas de uma vez
-• Importe PDFs e fotos que você já tem
+• Importe PDFs e fotos — as fotos são endireitadas pelas bordas da página
 • Reordene, gire e limpe as páginas antes de assinar
 
 PREENCHER E ASSINAR
@@ -38,6 +38,11 @@ ENVIAR
 • Compartilhe por e-mail, mensagem ou qualquer app
 • Salve qualquer formulário como modelo para reutilizar
 
+ORGANIZAR
+• Seus documentos se organizam sozinhos em categorias — contas, impostos, saúde, trabalho e mais — no seu celular. Mude qualquer uma com um toque ou crie as suas.
+• A busca encontra documentos pelo nome ou pelas palavras das páginas.
+• Digitalizações e fotos recebem o nome do título.
+
 PRIVADO POR PRINCÍPIO
 • Nada é enviado — todo o processamento acontece no seu aparelho
 • Desbloqueio opcional por digital ou rosto, que bloqueia de novo ao sair do app
@@ -52,11 +57,11 @@ Conclua 2 documentos (de até 2 páginas cada) de graça. O Ilimitado é uma com
 Feito pela ADAK Ventures.
 
 ## whats_new
-Novidade: PreFill. Salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes de um formulário. Ficam salvos só neste aparelho.
-Salve uma digitalização como PDF simples logo após digitalizar, sem campos.
-Toque em um campo em “Rever e concluir” para voltar e preenchê-lo.
-Os campos não se movem enquanto você preenche; mova ou redimensione em “Editar campos”.
-As chaves das Definições agora se atualizam na hora.
+Novo na 1.3: seus documentos se organizam sozinhos em categorias no seu celular, e a busca encontra as palavras de cada página.
+Digitalizações e fotos recebem o nome do título.
+Fotos importadas ou abertas são endireitadas pelas bordas da página.
+Pule os campos para salvar e compartilhar uma digitalização como PDF concluído.
+Abra fotos pelo app Arquivos ou pelo menu de compartilhar.
 
 ## iap_display_name
 Ilimitado

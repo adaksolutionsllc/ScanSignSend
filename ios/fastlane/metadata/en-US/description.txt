@@ -4,7 +4,7 @@ Scan any document with your camera or import a PDF, let the app find the blanks,
 
 SCAN
 • Clear scans with automatic edge detection, several pages at a time
-• Import existing PDFs and photos
+• Import PDFs and photos — photos are straightened to the page edges
 • Reorder, rotate and clean up pages before you sign
 
 FILL & SIGN
@@ -20,6 +20,11 @@ SEND
 • Or a fillable PDF others can complete in any PDF reader
 • Share by email, messaging or any app
 • Save any form as a template to reuse it
+
+ORGANISE
+• Documents sort themselves into categories — bills, tax, medical, work and more — on your phone. Change any with one tap, or make your own.
+• Search finds documents by name or by the words on their pages.
+• Scans and photos are named from their title.
 
 PRIVATE BY DESIGN
 • Nothing is uploaded — all processing happens on your device

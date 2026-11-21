@@ -21,7 +21,7 @@ Escanea cualquier documento con la cámara o importa un PDF, deja que la app enc
 
 ESCANEAR
 • Escaneos nítidos con detección automática de bordes, varias páginas a la vez
-• Importa PDF y fotos que ya tengas
+• Importa PDF y fotos; las fotos se enderezan según los bordes de la página
 • Reordena, gira y limpia las páginas antes de firmar
 
 RELLENAR Y FIRMAR
@@ -38,6 +38,11 @@ ENVIAR
 • Comparte por correo, mensajería o cualquier app
 • Guarda cualquier formulario como plantilla para reutilizarlo
 
+ORGANIZAR
+• Tus documentos se ordenan solos por categorías (facturas, impuestos, salud, trabajo y más) en tu teléfono. Cambia cualquiera con un toque o crea las tuyas.
+• La búsqueda encuentra documentos por su nombre o por las palabras de sus páginas.
+• Los escaneos y las fotos toman el nombre de su título.
+
 PRIVADO POR DISEÑO
 • Nada se sube: todo el procesamiento ocurre en tu dispositivo
 • Desbloqueo opcional con huella o rostro, que se vuelve a bloquear al salir de la app
@@ -52,11 +57,11 @@ Completa 2 documentos (de hasta 2 páginas cada uno) gratis. Ilimitado es una co
 Creado por ADAK Ventures.
 
 ## whats_new
-Novedad: PreFill. Guarda tus datos una vez en Mis datos y rellena con un toque los campos que coinciden en un formulario. Se guardan solo en este dispositivo.
-Guarda un escaneo como PDF simple justo después de escanear, sin campos.
-Toca un campo en «Revisar y finalizar» para volver y rellenarlo.
-Los campos no se mueven mientras rellenas; muévelos o cambia su tamaño en «Editar campos».
-Los interruptores de Ajustes ahora se actualizan al momento.
+Novedades de la 1.3: tus documentos se ordenan solos por categorías en tu teléfono y la búsqueda encuentra las palabras de cada página.
+Los escaneos y las fotos toman el nombre de su título.
+Las fotos que importas o abres se enderezan según los bordes de la página.
+Omite los campos para guardar y compartir un escaneo como PDF terminado.
+Abre fotos desde Archivos o el menú de compartir.
 
 ## iap_display_name
 Ilimitado

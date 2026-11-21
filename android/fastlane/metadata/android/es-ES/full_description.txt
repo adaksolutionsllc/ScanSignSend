@@ -4,7 +4,7 @@ Escanea cualquier documento con la cámara o importa un PDF, deja que la app enc
 
 ESCANEAR
 • Escaneos nítidos con detección automática de bordes, varias páginas a la vez
-• Importa PDF y fotos que ya tengas
+• Importa PDF y fotos; las fotos se enderezan según los bordes de la página
 • Reordena, gira y limpia las páginas antes de firmar
 
 RELLENAR Y FIRMAR
@@ -20,6 +20,11 @@ ENVIAR
 • O un PDF rellenable que otros pueden completar en cualquier lector de PDF
 • Comparte por correo, mensajería o cualquier app
 • Guarda cualquier formulario como plantilla para reutilizarlo
+
+ORGANIZAR
+• Tus documentos se ordenan solos por categorías (facturas, impuestos, salud, trabajo y más) en tu teléfono. Cambia cualquiera con un toque o crea las tuyas.
+• La búsqueda encuentra documentos por su nombre o por las palabras de sus páginas.
+• Los escaneos y las fotos toman el nombre de su título.
 
 PRIVADO POR DISEÑO
 • Nada se sube: todo el procesamiento ocurre en tu dispositivo
