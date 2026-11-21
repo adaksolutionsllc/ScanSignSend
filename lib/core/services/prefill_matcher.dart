@@ -605,6 +605,18 @@ class PrefillMatcher {
     ),
   ];
 
+  /// The key PreFill learns [label] under: its words without item numbers.
+  /// Null when there's nothing to learn — a blank label, one about someone
+  /// else (never filled with the user's details, whatever they pick), or a
+  /// whole sentence, which won't come back word for word.
+  static String? learnKey(String label) {
+    final words = _words(label);
+    if (words.isEmpty || words.length > 8 || _any(words, _someoneElse)) {
+      return null;
+    }
+    return words.join(' ');
+  }
+
   /// The slot a single [label] asks for, ignoring the rest of the form.
   static PrefillSlot? matchLabel(String label) {
     final words = _words(label);
@@ -640,10 +652,24 @@ class PrefillMatcher {
   ///
   /// Only text fields are matched, plus date fields asking for the date of
   /// birth. Signatures, checkboxes and the like never are.
-  static Map<int, PrefillSlot> matchForm(List<PrefillField> fields) {
+  ///
+  /// What the user has taught PreFill ([learned]) comes first: a slot they
+  /// keep picking for a label wins over the rules, and a rule they keep
+  /// undoing is dropped. Labels about someone else stay unmatched.
+  static Map<int, PrefillSlot> matchForm(
+    List<PrefillField> fields, {
+    LearnedPrefill learned = LearnedPrefill.none,
+  }) {
     final slots = <int, PrefillSlot>{};
+    final taught = <int>{};
     for (final f in fields) {
-      final slot = matchLabel(f.label);
+      var slot = learned.slotFor(f.label);
+      if (slot != null) {
+        taught.add(f.id);
+      } else {
+        slot = matchLabel(f.label);
+        if (slot != null && learned.suppressed(f.label, slot)) slot = null;
+      }
       if (slot == null) continue;
       final ok = switch (f.type) {
         FieldType.text => true,
@@ -655,6 +681,7 @@ class PrefillMatcher {
     if (slots.values.contains(PrefillSlot.lastName)) {
       for (final f in fields) {
         if (slots[f.id] == PrefillSlot.fullName &&
+            !taught.contains(f.id) &&
             !_isExplicitFullName(f.label)) {
           slots[f.id] = PrefillSlot.firstName;
         }
@@ -695,5 +722,49 @@ class PrefillMatcher {
       }
     }
     return details.valueFor(slot, dateFormat: dateFormat, today: today);
+  }
+}
+
+/// What the user's picks have taught PreFill, as evidence per (label phrase,
+/// My Details slot), loaded by `PrefillHintRepository`. Like the
+/// field-detection hints: one odd pick never changes behaviour; a pattern
+/// seen twice does. Holds slot names only, never the user's values.
+class LearnedPrefill {
+  const LearnedPrefill(this._evidence);
+
+  /// phrase → slot name → (accepted, rejected)
+  final Map<String, Map<String, (int, int)>> _evidence;
+
+  static const none = LearnedPrefill({});
+
+  static const _minEvidence = 2;
+
+  bool get isEmpty => _evidence.isEmpty;
+
+  /// The slot the user has settled on for fields labelled [label]: the most
+  /// accepted slot with at least two acceptances and more acceptances than
+  /// rejections.
+  PrefillSlot? slotFor(String label) {
+    final key = PrefillMatcher.learnKey(label);
+    final bySlot = key == null ? null : _evidence[key];
+    if (bySlot == null) return null;
+    MapEntry<String, (int, int)>? best;
+    for (final e in bySlot.entries) {
+      final (acc, rej) = e.value;
+      if (acc < _minEvidence || acc <= rej) continue;
+      if (best == null || acc > best.value.$1) best = e;
+    }
+    return best == null ? null : PrefillSlot.values.asNameMap()[best.key];
+  }
+
+  /// True when the user keeps replacing or clearing [slot] in fields
+  /// labelled [label]: at least two rejections and twice as many rejections
+  /// as acceptances.
+  bool suppressed(String label, PrefillSlot slot) {
+    final key = PrefillMatcher.learnKey(label);
+    final e = key == null ? null : _evidence[key]?[slot.name];
+    if (e == null) return false;
+    final (acc, rej) = e;
+    return rej >= _minEvidence && rej >= acc * 2;
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/db/app_database.dart';
+import '../../../core/services/prefill_hints.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/text_edit_dialog.dart';
@@ -233,7 +234,11 @@ class _MyDetailsScreenState extends ConsumerState<MyDetailsScreen> {
         ],
       ),
     );
-    if (ok == true) await _repo.clearDetails();
+    if (ok != true) return;
+    // What PreFill learned goes too: it holds labels and detail names, not
+    // values, but "delete" should leave nothing of My Details behind.
+    await ref.read(prefillHintRepositoryProvider).clear();
+    await _repo.clearDetails();
   }
 }
 

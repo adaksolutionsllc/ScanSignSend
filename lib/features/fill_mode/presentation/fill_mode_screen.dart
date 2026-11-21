@@ -12,6 +12,7 @@ import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/field_order.dart';
 import '../../../core/models/my_details_ext.dart';
+import '../../../core/services/prefill_hints.dart';
 import '../../../core/services/prefill_matcher.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/utils/path_resolver.dart';
@@ -59,6 +60,9 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
   /// The latest PreFill state, for a field opened from Review & Finish.
   _Prefill? _lastPrefill;
 
+  /// What the user's earlier picks have taught PreFill.
+  LearnedPrefill _learned = LearnedPrefill.none;
+
   /// The same, for the bottom bar, which is built outside the streams that
   /// compute it. Set after each frame so the bar never lags behind.
   final _prefillNote = ValueNotifier<_Prefill?>(null);
@@ -77,6 +81,9 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
   @override
   void initState() {
     super.initState();
+    ref.read(prefillHintRepositoryProvider).load().then((learned) {
+      if (mounted) setState(() => _learned = learned);
+    });
     SharedPreferences.getInstance().then((prefs) {
       final shown = prefs.getStringList(_setupShownKey) ?? const [];
       if (!mounted) return;
@@ -320,7 +327,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
       for (final f in fields)
         PrefillField(id: f.id, label: f.label, type: f.type.toFieldType()),
     ];
-    final slots = PrefillMatcher.matchForm(forms);
+    final slots = PrefillMatcher.matchForm(forms, learned: _learned);
     final details = profile?.myDetails ?? const MyDetails();
     final dateFormat = DateFormat(
       context.l10n.dateFormatInput,
@@ -345,6 +352,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
       loaded: profile != null,
       details: details,
       dateFormat: dateFormat,
+      slots: slots,
       values: values,
       toFill: [
         for (final f in fields)
@@ -631,12 +639,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         if (chained) {
           final fields = await _fieldsNow();
           if (!context.mounted) return;
-          await _goNext(
-            context,
-            fields,
-            afterId: field.id,
-            prefill: prefill,
-          );
+          await _goNext(context, fields, afterId: field.id, prefill: prefill);
         }
         return;
 
@@ -649,6 +652,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
           context,
           field,
           _suggestionsFor(field, prefill),
+          matched: prefill?.values[field.id] != null,
           hasNext: hasNext,
         );
         if (result == null) return;
@@ -663,15 +667,11 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                 isFilled: Value(value.isNotEmpty),
               ),
             );
+        await _learnFrom(field, value, prefill);
         if (next) {
           final fields = await _fieldsNow();
           if (!context.mounted) return;
-          await _goNext(
-            context,
-            fields,
-            afterId: field.id,
-            prefill: prefill,
-          );
+          await _goNext(context, fields, afterId: field.id, prefill: prefill);
         }
     }
   }
@@ -681,6 +681,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     BuildContext context,
     db.Field field,
     List<String> suggestions, {
+    bool matched = false,
     bool hasNext = false,
   }) {
     return showModalBottomSheet<(String, bool)>(
@@ -689,9 +690,73 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
       builder: (ctx) => _TextInputSheet(
         field: field,
         suggestions: suggestions,
+        matched: matched,
         hasNext: hasNext,
       ),
     );
+  }
+
+  /// The details a text field's sheet offers, after the one matching its
+  /// label.
+  static const _offeredSlots = [
+    PrefillSlot.fullName,
+    PrefillSlot.firstName,
+    PrefillSlot.lastName,
+    PrefillSlot.email,
+    PrefillSlot.phone,
+    PrefillSlot.address,
+    PrefillSlot.city,
+    PrefillSlot.state,
+    PrefillSlot.zip,
+    PrefillSlot.cityStateZip,
+    PrefillSlot.country,
+    PrefillSlot.company,
+    PrefillSlot.jobTitle,
+    PrefillSlot.dateOfBirth,
+  ];
+
+  /// Teaches PreFill from what the user saved in [field]. Saving one of
+  /// their details accepts that detail for the field's label. Saving a
+  /// different detail than the one PreFill matched, or clearing the matched
+  /// one, rejects the match. Other typed text teaches nothing: it may be
+  /// someone else's details. Only the label and the detail's name are kept.
+  Future<void> _learnFrom(
+    db.Field field,
+    String value,
+    _Prefill? prefill,
+  ) async {
+    if (prefill == null || PrefillMatcher.learnKey(field.label) == null) {
+      return;
+    }
+    final v = value.trim();
+    final matched = prefill.slots[field.id];
+    final matchedValue = prefill.values[field.id];
+    final picked = v.isEmpty
+        ? const <PrefillSlot>[]
+        : [
+            for (final s in _offeredSlots)
+              if (prefill.details.valueFor(s, dateFormat: prefill.dateFormat) ==
+                  v)
+                s,
+          ];
+    final repo = ref.read(prefillHintRepositoryProvider);
+    final accept = picked.contains(matched)
+        ? matched
+        : picked.length == 1
+        ? picked.single
+        : null;
+    final cleared =
+        v.isEmpty && matchedValue != null && field.value == matchedValue;
+    final replaced = picked.isNotEmpty && accept != matched;
+    if (accept != null) {
+      await repo.record(field.label, accept, accepted: true);
+    }
+    if (matched != null && (cleared || replaced)) {
+      await repo.record(field.label, matched, accepted: false);
+    }
+    if (accept == null && !cleared && !replaced) return;
+    final learned = await repo.load();
+    if (mounted) setState(() => _learned = learned);
   }
 
   /// Saved details to offer in a text field's sheet: the one matching its
@@ -701,22 +766,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     final d = prefill.details;
     final all = [
       prefill.values[field.id],
-      for (final slot in const [
-        PrefillSlot.fullName,
-        PrefillSlot.firstName,
-        PrefillSlot.lastName,
-        PrefillSlot.email,
-        PrefillSlot.phone,
-        PrefillSlot.address,
-        PrefillSlot.city,
-        PrefillSlot.state,
-        PrefillSlot.zip,
-        PrefillSlot.cityStateZip,
-        PrefillSlot.country,
-        PrefillSlot.company,
-        PrefillSlot.jobTitle,
-        PrefillSlot.dateOfBirth,
-      ])
+      for (final slot in _offeredSlots)
         d.valueFor(slot, dateFormat: prefill.dateFormat),
     ];
     final seen = <String>{};
@@ -735,9 +785,14 @@ class _TextInputSheet extends StatefulWidget {
   const _TextInputSheet({
     required this.field,
     this.suggestions = const [],
+    this.matched = false,
     this.hasNext = false,
   });
   final db.Field field;
+
+  /// The first suggestion is the detail matching this field's label (shown
+  /// with a sparkle); otherwise they're just the user's details in order.
+  final bool matched;
 
   /// Another empty field follows: offer Next (and the keyboard's next key).
   final bool hasNext;
@@ -816,7 +871,7 @@ class _TextInputSheetState extends State<_TextInputSheet> {
                 itemBuilder: (context, i) {
                   final v = widget.suggestions[i];
                   return ActionChip(
-                    avatar: i == 0
+                    avatar: i == 0 && widget.matched
                         ? const Icon(Icons.auto_awesome, size: 14)
                         : null,
                     label: Text(v, overflow: TextOverflow.ellipsis),
@@ -873,6 +928,7 @@ class _Prefill {
     required this.loaded,
     required this.details,
     required this.dateFormat,
+    required this.slots,
     required this.values,
     required this.toFill,
     required this.anyMatch,
@@ -882,6 +938,9 @@ class _Prefill {
   final bool loaded;
   final MyDetails details;
   final DateFormat dateFormat;
+
+  /// Field id → the detail its label asks for.
+  final Map<int, PrefillSlot> slots;
 
   /// Field id → the saved detail for it.
   final Map<int, String> values;

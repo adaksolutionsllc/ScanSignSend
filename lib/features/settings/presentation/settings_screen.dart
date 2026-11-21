@@ -13,6 +13,7 @@ import '../../../core/services/document_sorter.dart';
 import '../../../core/services/field_hints.dart';
 import '../../../core/services/iap_service.dart';
 import '../../../core/services/on_device_ai_service.dart';
+import '../../../core/services/prefill_hints.dart';
 import '../../../core/services/profile_repository.dart';
 import '../../../core/services/review_prompt_service.dart';
 import '../../../core/utils/router.dart';
@@ -138,6 +139,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   final done = context.l10n.settingsForgetLearnedDone;
                   await ref.read(fieldHintRepositoryProvider).clear();
                   await ref.read(categoryHintRepositoryProvider).clear();
+                  await ref.read(prefillHintRepositoryProvider).clear();
                   messenger.showSnackBar(SnackBar(content: Text(done)));
                 },
               ),
