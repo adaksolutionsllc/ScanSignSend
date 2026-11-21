@@ -13,6 +13,7 @@ import 'package:scan_sign_send/core/services/on_device_ai_service.dart';
 import 'package:scan_sign_send/core/services/page_layout_service.dart';
 import 'package:scan_sign_send/core/services/page_raster_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 const _channel = MethodChannel('com.scansignsend/on_device_ai');
 
@@ -204,6 +205,33 @@ void main() {
         expect(after.ocrText, contains('RENTAL'));
       },
     );
+
+    test('words on every page are searchable, not just page 1', () async {
+      model.status = 'unsupported';
+      final pdf = PdfDocument();
+      final font = PdfStandardFont(PdfFontFamily.helvetica, 18);
+      for (final words in ['Invoice number 7', 'Zebracorn delivery terms']) {
+        pdf.pages.add().graphics.drawString(
+          words,
+          font,
+          bounds: const Rect.fromLTWH(40, 40, 400, 40),
+        );
+      }
+      final file = File('${tmp.path}/two_pages.pdf')
+        ..writeAsBytesSync(await pdf.save());
+      pdf.dispose();
+      final d = await doc('Two pages');
+      for (var i = 0; i < 2; i++) {
+        await pages.addPage(
+          documentId: d.id,
+          pageIndex: i,
+          imagePath: '${file.path}#page=$i',
+        );
+      }
+      await sorter.sortNew(d.id, nameFor: (t) => t);
+      final found = await docs.watchByQuery('Zebracorn').first;
+      expect(found.map((x) => x.id), [d.id]);
+    });
 
     test('a document the user already sorted is left alone', () async {
       final d = await importedPdf('W-4', 'test/fixtures/irs_fw4_2026.pdf');

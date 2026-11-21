@@ -116,10 +116,39 @@ class DocumentSorter {
 
       doc = await docRepo.getById(docId);
       if (doc == null) return null;
-      return _sort(doc, found ?? doc.title, text);
+      final by = await _sort(doc, found ?? doc.title, text);
+      await _storeAllPagesText(docId, pages, text);
+      return by;
     } catch (_) {
       return null;
     }
+  }
+
+  /// Makes every page searchable, not just page 1: reads the other pages'
+  /// text after sorting, so the user never waits for it. Only replaces the
+  /// page-1 text stored above — never text detection stored meanwhile, nor
+  /// the imported-form marker.
+  Future<void> _storeAllPagesText(
+    int docId,
+    List<Page> pages,
+    String firstText,
+  ) async {
+    if (pages.length < 2) return;
+    final texts = [firstText];
+    for (final page in pages.skip(1)) {
+      try {
+        texts.add((await layouts.textOnly(page.imagePath)).$2);
+      } catch (_) {
+        // One unreadable page doesn't stop the rest being searchable.
+      }
+    }
+    final all = texts.where((t) => t.trim().isNotEmpty).join('\n');
+    final doc = await docRepo.getById(docId);
+    if (doc == null || all.isEmpty) return;
+    if (doc.ocrText.isNotEmpty && doc.ocrText != firstText) return;
+    await docRepo.updateDocument(
+      DocumentsCompanion(id: Value(docId), ocrText: Value(all)),
+    );
   }
 
   /// Field detection has read every page. A document still Uncategorised gets
