@@ -32,7 +32,7 @@ what changes, in what order, and what still needs a decision.
 | C3 | Smaller files | 1 d | Restored below (§3). 200 dpi default + "Smaller file" switch on Send. |
 | C4 | Password-protected PDF | 1.5 d + 0.5 d spike | Restored below (§3). PDFKit on iOS; dropped if the spike fails. |
 
-### D. Voice (≈ 6 d)
+### D. Voice (≈ 6 d) — ON HOLD (Arun, 2026-11-21: needs clarity on how it helps users)
 | # | Item | Size | Notes |
 |---|---|---|---|
 | D1 | Siri / Assistant shortcuts | 2 d | §3.15a. Shares `shortcuts.xml` with C2. |
@@ -42,11 +42,11 @@ what changes, in what order, and what still needs a decision.
 | # | Item | Size | Notes |
 |---|---|---|---|
 | E1 | Accessibility pass | 2 d | §3.5. Goes last so it covers every new screen. Declare only what passes a device run. |
-| E2 | Android emulator working again | 0.5 d | New. emulator-5554 has no package service and /data is 92% full; it holds another app's data, so ask before wiping. Without it, no Android device check runs. |
+| E2 | ✅ Android emulator working again (wiped 2026-11-21; 1.3.0 device check green) | done | New. emulator-5554 has no package service and /data is 92% full; it holds another app's data, so ask before wiping. Without it, no Android device check runs. |
 | E3 | Store screenshots + preview video | 1 d | New. Show categories, the edge check and the 1.4.0 features. The 1.2.0 preview file was lost to `flutter clean`: keep a copy outside `build/`. |
 | E4 | 1.3.0 review leftover | 0.25 d | New. Backfill re-reads category hints and the sort setting per document; load them once. |
 
-**Total ≈ 25 working days** if everything stays in one release.
+**Total ≈ 19 working days** without voice (≈ 25 with it).
 
 ## 2. Order
 
@@ -59,7 +59,7 @@ device check, screenshots).
 3. A1 → A2 → A3.
 4. B1 → B2 → B3.
 5. C2 → C3 → C4 spike → C4 → C1.
-6. D1 → D2.
+6. D1 → D2, only if voice comes off hold.
 7. E4, then E1 across all screens.
 8. E3, What's New ×7, review notes, privacy line for voice, encryption
    questionnaire (only if C4 ships).
@@ -124,7 +124,6 @@ device check, screenshots).
 **Decided (Arun, 2026-11-21):** one release — everything above ships as 1.4.0.
 
 **Still open:**
-2. **Voice still wanted?** It is the biggest item (6 d) and works in only
-   4 of the 7 languages on iOS. Recommendation: keep it, in the second release.
-3. **Android emulator:** may I wipe emulator-5554 (it holds
-   com.adak.market_edge data), or should I create a new AVD?
+2. **Voice:** on hold until its value to users is clear.
+
+**Decided:** emulator-5554 wiped (Arun, 2026-11-21).
