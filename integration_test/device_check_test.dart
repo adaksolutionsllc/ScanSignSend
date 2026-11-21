@@ -299,6 +299,8 @@ void main() {
           .replaceAll(':fieldId', '0'),
     );
     await _waitFor(tester, find.text(l10n.signModeType));
+    // Wait for the route transition: tapping mid-slide misses.
+    await _pause(tester, 1000);
     await tester.tap(find.text(l10n.signModeType));
     await _waitFor(
       tester,
