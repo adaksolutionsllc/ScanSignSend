@@ -115,6 +115,16 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
           appBar: AppBar(
             title: Text(doc?.title ?? context.l10n.fillFallbackTitle),
             actions: [
+              if (doc != null && canSplitPages(doc))
+                IconButton(
+                  key: const ValueKey('pages'),
+                  icon: const Icon(Icons.auto_stories_outlined),
+                  tooltip: context.l10n.reviewTitle,
+                  onPressed: () => context.push(
+                    '${AppRoutes.review.replaceAll(':docId', '${widget.docId}')}'
+                    '?organise=1',
+                  ),
+                ),
               if (doc != null && canAddPages(doc))
                 IconButton(
                   key: const ValueKey('add-pages'),

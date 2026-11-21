@@ -1357,4 +1357,62 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get addPagesFailed => 'పేజీలను జోడించలేకపోయాం. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get libraryMerge => 'కలుపు';
+
+  @override
+  String mergeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count పత్రాలను కలపాలా?',
+      one: '1 పత్రాన్ని కలపాలా?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mergeBody =>
+      'మీరు ఎంచుకున్న క్రమంలో వాటి పేజీలు ఒక కొత్త పత్రంలోకి వస్తాయి. అసలు పత్రాలు అలాగే ఉంటాయి.';
+
+  @override
+  String mergedName(String title, int count) {
+    return '$title + మరో $count';
+  }
+
+  @override
+  String get newDocumentFailed =>
+      'కొత్త పత్రాన్ని చేయలేకపోయాం. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get reviewSelectPages => 'పేజీలను ఎంచుకోండి';
+
+  @override
+  String reviewSelectedPages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count పేజీలు ఎంచుకోబడ్డాయి',
+      one: '1 పేజీ ఎంచుకోబడింది',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewCopyToNew => 'కొత్త పత్రంలోకి కాపీ చేయండి';
+
+  @override
+  String get reviewMoveToNew => 'కొత్త పత్రంలోకి తరలించండి';
+
+  @override
+  String extractedName(String title, String pages) {
+    return '$title · పేజీలు $pages';
+  }
+
+  @override
+  String get newDocumentMade => 'కొత్త పత్రం తయారైంది';
+
+  @override
+  String get actionDone => 'పూర్తయింది';
 }

@@ -1359,4 +1359,62 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get addPagesFailed =>
       'பக்கங்களைச் சேர்க்க முடியவில்லை. மீண்டும் முயலவும்.';
+
+  @override
+  String get libraryMerge => 'இணை';
+
+  @override
+  String mergeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ஆவணங்களை இணைக்கவா?',
+      one: '1 ஆவணத்தை இணைக்கவா?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mergeBody =>
+      'நீங்கள் தேர்ந்தெடுத்த வரிசையில் அவற்றின் பக்கங்கள் ஒரு புதிய ஆவணத்தில் சேரும். மூல ஆவணங்கள் அப்படியே இருக்கும்.';
+
+  @override
+  String mergedName(String title, int count) {
+    return '$title + இன்னும் $count';
+  }
+
+  @override
+  String get newDocumentFailed =>
+      'புதிய ஆவணத்தை உருவாக்க முடியவில்லை. மீண்டும் முயலவும்.';
+
+  @override
+  String get reviewSelectPages => 'பக்கங்களைத் தேர்ந்தெடு';
+
+  @override
+  String reviewSelectedPages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count பக்கங்கள் தேர்ந்தெடுக்கப்பட்டன',
+      one: '1 பக்கம் தேர்ந்தெடுக்கப்பட்டது',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewCopyToNew => 'புதிய ஆவணத்துக்கு நகலெடு';
+
+  @override
+  String get reviewMoveToNew => 'புதிய ஆவணத்துக்கு நகர்த்து';
+
+  @override
+  String extractedName(String title, String pages) {
+    return '$title · பக்கங்கள் $pages';
+  }
+
+  @override
+  String get newDocumentMade => 'புதிய ஆவணம் உருவானது';
+
+  @override
+  String get actionDone => 'முடிந்தது';
 }

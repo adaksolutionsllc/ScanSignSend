@@ -371,5 +371,17 @@
   "addPages": "பக்கங்களைச் சேர்",
   "addPagesPhotos": "புகைப்படங்களைத் தேர்ந்தெடு",
   "addPagesAdded": "{count, plural, =1{1 பக்கம் சேர்க்கப்பட்டது} other{{count} பக்கங்கள் சேர்க்கப்பட்டன}}",
-  "addPagesFailed": "பக்கங்களைச் சேர்க்க முடியவில்லை. மீண்டும் முயலவும்."
+  "addPagesFailed": "பக்கங்களைச் சேர்க்க முடியவில்லை. மீண்டும் முயலவும்.",
+  "libraryMerge": "இணை",
+  "mergeTitle": "{count, plural, =1{1 ஆவணத்தை இணைக்கவா?} other{{count} ஆவணங்களை இணைக்கவா?}}",
+  "mergeBody": "நீங்கள் தேர்ந்தெடுத்த வரிசையில் அவற்றின் பக்கங்கள் ஒரு புதிய ஆவணத்தில் சேரும். மூல ஆவணங்கள் அப்படியே இருக்கும்.",
+  "mergedName": "{title} + இன்னும் {count}",
+  "newDocumentFailed": "புதிய ஆவணத்தை உருவாக்க முடியவில்லை. மீண்டும் முயலவும்.",
+  "reviewSelectPages": "பக்கங்களைத் தேர்ந்தெடு",
+  "reviewSelectedPages": "{count, plural, =1{1 பக்கம் தேர்ந்தெடுக்கப்பட்டது} other{{count} பக்கங்கள் தேர்ந்தெடுக்கப்பட்டன}}",
+  "reviewCopyToNew": "புதிய ஆவணத்துக்கு நகலெடு",
+  "reviewMoveToNew": "புதிய ஆவணத்துக்கு நகர்த்து",
+  "extractedName": "{title} · பக்கங்கள் {pages}",
+  "newDocumentMade": "புதிய ஆவணம் உருவானது",
+  "actionDone": "முடிந்தது"
 }

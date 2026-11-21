@@ -117,6 +117,7 @@ void main() {
         'fieldTypeRadioShort',
         'settingsSectionSignatures',
         'searchPageCount',
+        'extractedName',
       },
       'es': {'filterOriginal', 'statusEditable', 'myDetailsGroupPersonal'},
       'pt': {'filterOriginal'},

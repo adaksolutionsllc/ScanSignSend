@@ -371,5 +371,17 @@
   "addPages": "पेज जोड़ें",
   "addPagesPhotos": "फ़ोटो चुनें",
   "addPagesAdded": "{count, plural, =1{1 पेज जोड़ा गया} other{{count} पेज जोड़े गए}}",
-  "addPagesFailed": "पेज नहीं जुड़ सके। फिर से कोशिश करें।"
+  "addPagesFailed": "पेज नहीं जुड़ सके। फिर से कोशिश करें।",
+  "libraryMerge": "मिलाएँ",
+  "mergeTitle": "{count, plural, =1{1 दस्तावेज़ मिलाएँ?} other{{count} दस्तावेज़ मिलाएँ?}}",
+  "mergeBody": "एक नए दस्तावेज़ में उनके पेज आएँगे, उसी क्रम में जिसमें आपने उन्हें चुना। मूल दस्तावेज़ जैसे हैं वैसे ही रहेंगे।",
+  "mergedName": "{title} + {count} और",
+  "newDocumentFailed": "नया दस्तावेज़ नहीं बन सका। फिर से कोशिश करें।",
+  "reviewSelectPages": "पेज चुनें",
+  "reviewSelectedPages": "{count, plural, =1{1 पेज चुना गया} other{{count} पेज चुने गए}}",
+  "reviewCopyToNew": "नए दस्तावेज़ में कॉपी करें",
+  "reviewMoveToNew": "नए दस्तावेज़ में ले जाएँ",
+  "extractedName": "{title} · पेज {pages}",
+  "newDocumentMade": "नया दस्तावेज़ बन गया",
+  "actionDone": "हो गया"
 }

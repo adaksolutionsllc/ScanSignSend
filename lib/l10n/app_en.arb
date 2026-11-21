@@ -731,5 +731,51 @@
         "type": "int"
       }
     }
-  }
+  },
+  "libraryMerge": "Merge",
+  "mergeTitle": "{count, plural, =1{Merge 1 document?} other{Merge {count} documents?}}",
+  "@mergeTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mergeBody": "A new document gets their pages, in the order you selected them. The originals stay as they are.",
+  "mergedName": "{title} + {count} more",
+  "@mergedName": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newDocumentFailed": "Couldn't make the new document. Try again.",
+  "reviewSelectPages": "Select pages",
+  "reviewSelectedPages": "{count, plural, =1{1 page selected} other{{count} pages selected}}",
+  "@reviewSelectedPages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewCopyToNew": "Copy to new document",
+  "reviewMoveToNew": "Move to new document",
+  "extractedName": "{title} · pages {pages}",
+  "@extractedName": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "String"
+      }
+    }
+  },
+  "newDocumentMade": "New document made",
+  "actionDone": "Done"
 }

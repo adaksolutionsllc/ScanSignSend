@@ -15,6 +15,7 @@ import '../../../core/services/import_service.dart';
 import '../../../core/services/scan_service.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/utils/router.dart';
+import '../../../shared/widgets/progress_dialog.dart';
 import '../../capture/presentation/page_limit_prompt.dart';
 
 /// Whether [doc] can take more pages: drafts and fillable documents. A
@@ -25,6 +26,13 @@ bool canAddPages(Document doc) =>
     !doc.hasFormFields &&
     (doc.statusEnum == DocumentStatus.draft ||
         doc.statusEnum == DocumentStatus.fillable);
+
+/// Whether pages of [doc] can be copied or moved to a new document: the
+/// same documents as [canAddPages], plus PDFs with their own form (the
+/// copy's pages become images and the form's fields the app's own).
+bool canSplitPages(Document doc) =>
+    doc.statusEnum == DocumentStatus.draft ||
+    doc.statusEnum == DocumentStatus.fillable;
 
 enum _Source { scan, photos }
 
@@ -70,35 +78,10 @@ Future<int?> addPages(BuildContext context, WidgetRef ref, int docId) async {
   final savingText = l10n.captureSavingPages;
   final before = (await pageRepo.pagesOf(docId)).length;
 
-  /// Copying photos, and turning an imported PDF's pages into images, take
-  /// a few seconds: show that something is happening.
-  Future<List<int>> saving(Future<List<int>> Function() work) async {
-    if (!context.mounted) return work();
-    final nav = Navigator.of(context, rootNavigator: true);
-    unawaited(
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => PopScope(
-          canPop: false,
-          child: AlertDialog(
-            content: Row(
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(width: 20),
-                Expanded(child: Text(savingText)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    try {
-      return await work();
-    } finally {
-      nav.pop();
-    }
-  }
+  // Copying photos, and turning an imported PDF's pages into images, take
+  // a few seconds: show that something is happening.
+  Future<List<int>> saving(Future<List<int>> Function() work) =>
+      withProgress(context, savingText, work);
 
   List<int> added;
   try {

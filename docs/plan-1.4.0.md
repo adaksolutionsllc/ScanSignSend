@@ -21,7 +21,7 @@ what changes, in what order, and what still needs a decision.
 | # | Item | Size | Notes |
 |---|---|---|---|
 | B1 | ✅ Add pages to a document | 1.5 d | §3.8. Scanner or photo import, appended. Photos go through the 1.3.0 edge check. Drafts and fillable only. |
-| B2 | Merge and split | 2 d | Restored below (§3). Uses 1.3.0 multi-select. |
+| B2 | ✅ Merge and split | 2 d | Restored below (§3). Uses 1.3.0 multi-select. |
 | B3 | Search inside forms with their own fields | 1 d | New. Form PDFs are found only by name today, because `ocrText` holds the form marker. Move the marker to its own column (schema v10, with A3) and store the text. |
 
 ### C. Getting files in and out (≈ 6 d)
@@ -98,6 +98,10 @@ device check, screenshots).
     `_isFolderStillReferenced` / unreferenced-file checks in
     `DocumentRepository` must cover the shared files. That needs a test that
     deletes an original and then opens the merge.
+  - **Built (2026-11-21):** page files are *copied*, not shared (the edge
+    crop deletes a page's old file without checking other documents), and PDF
+    pages are rendered to images, so the exports see one kind of page. A
+    form's own fields become app fields. Radio groups get a per-document tag.
   - New since 1.3.0: a merge must not mix image pages and `#page=` pages of
     different PDFs in a way the exports can't handle (they assume one source
     PDF). Either convert PDF pages to images on merge (as the edge check

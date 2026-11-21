@@ -1351,4 +1351,62 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get addPagesFailed => 'पेज नहीं जुड़ सके। फिर से कोशिश करें।';
+
+  @override
+  String get libraryMerge => 'मिलाएँ';
+
+  @override
+  String mergeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count दस्तावेज़ मिलाएँ?',
+      one: '1 दस्तावेज़ मिलाएँ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mergeBody =>
+      'एक नए दस्तावेज़ में उनके पेज आएँगे, उसी क्रम में जिसमें आपने उन्हें चुना। मूल दस्तावेज़ जैसे हैं वैसे ही रहेंगे।';
+
+  @override
+  String mergedName(String title, int count) {
+    return '$title + $count और';
+  }
+
+  @override
+  String get newDocumentFailed =>
+      'नया दस्तावेज़ नहीं बन सका। फिर से कोशिश करें।';
+
+  @override
+  String get reviewSelectPages => 'पेज चुनें';
+
+  @override
+  String reviewSelectedPages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count पेज चुने गए',
+      one: '1 पेज चुना गया',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewCopyToNew => 'नए दस्तावेज़ में कॉपी करें';
+
+  @override
+  String get reviewMoveToNew => 'नए दस्तावेज़ में ले जाएँ';
+
+  @override
+  String extractedName(String title, String pages) {
+    return '$title · पेज $pages';
+  }
+
+  @override
+  String get newDocumentMade => 'नया दस्तावेज़ बन गया';
+
+  @override
+  String get actionDone => 'हो गया';
 }

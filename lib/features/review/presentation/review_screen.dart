@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
@@ -13,13 +14,21 @@ import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/category_ui.dart';
 import '../../press/presentation/finish_flow.dart';
+import '../../../core/services/document_sorter.dart';
+import '../../../core/services/merge_service.dart';
+import '../../../shared/widgets/progress_dialog.dart';
+import '../../library/presentation/merge_flow.dart';
 import 'add_pages.dart';
 
 enum PageFilter { original, enhanced, bw }
 
 class ReviewScreen extends ConsumerStatefulWidget {
-  const ReviewScreen({super.key, required this.docId});
+  const ReviewScreen({super.key, required this.docId, this.organise = false});
   final int docId;
+
+  /// Opened from Fill mode to manage pages: the bottom bar is just Done
+  /// (back to filling), not the after-scan choices.
+  final bool organise;
 
   @override
   ConsumerState<ReviewScreen> createState() => _ReviewScreenState();
@@ -29,6 +38,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   final Map<int, PageFilter> _filters = {};
   List<db.Page> _pages = [];
   bool _dirty = false;
+
+  /// Pages picked to copy or move to a new document; null when not picking.
+  Set<int>? _picked;
 
   // Created once — a fresh drift stream per build() re-subscribes each frame.
   late final Stream<List<db.Page>> _pagesStream = ref
@@ -42,138 +54,274 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   Widget build(BuildContext context) {
     final pagesStream = _pagesStream;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.reviewTitle),
-        actions: [
-          if (_dirty)
-            TextButton(
-              onPressed: _saveOrder,
-              child: Text(context.l10n.reviewSaveOrder),
-            )
-          else
-            // Hidden while a new order is unsaved: added pages would land
-            // outside it.
-            StreamBuilder<db.Document?>(
-              stream: _docStream,
-              builder: (context, snap) {
-                final doc = snap.data;
-                if (doc == null || !canAddPages(doc)) {
-                  return const SizedBox.shrink();
-                }
-                return IconButton(
-                  key: const ValueKey('add-pages'),
-                  icon: const Icon(Icons.note_add_outlined),
-                  tooltip: context.l10n.addPages,
-                  onPressed: _saving
-                      ? null
-                      : () => addPages(context, ref, widget.docId),
+    final picked = _picked;
+    return PopScope(
+      canPop: picked == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _picked = null);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: picked == null
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  onPressed: () => setState(() => _picked = null),
+                ),
+          title: Text(
+            picked == null
+                ? context.l10n.reviewTitle
+                : context.l10n.reviewSelectedPages(picked.length),
+          ),
+          actions: [
+            if (picked != null)
+              const SizedBox.shrink()
+            else if (_dirty)
+              TextButton(
+                onPressed: _saveOrder,
+                child: Text(context.l10n.reviewSaveOrder),
+              )
+            else
+              // Hidden while a new order is unsaved: added pages would land
+              // outside it.
+              StreamBuilder<db.Document?>(
+                stream: _docStream,
+                builder: (context, snap) {
+                  final doc = snap.data;
+                  if (doc == null || !canSplitPages(doc)) {
+                    return const SizedBox.shrink();
+                  }
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        key: const ValueKey('select-pages'),
+                        icon: const Icon(Icons.checklist),
+                        tooltip: context.l10n.reviewSelectPages,
+                        onPressed: _saving
+                            ? null
+                            : () => setState(() => _picked = {}),
+                      ),
+                      if (canAddPages(doc))
+                        IconButton(
+                          key: const ValueKey('add-pages'),
+                          icon: const Icon(Icons.note_add_outlined),
+                          tooltip: context.l10n.addPages,
+                          onPressed: _saving
+                              ? null
+                              : () => addPages(context, ref, widget.docId),
+                        ),
+                    ],
+                  );
+                },
+              ),
+          ],
+        ),
+        body: StreamBuilder<List<db.Page>>(
+          stream: pagesStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final pages = snapshot.data ?? [];
+            if (_pages.isEmpty || !_dirty) {
+              _pages = List.from(pages);
+            } else {
+              // Keep the unsaved order, but pick up row changes (a rotate writes
+              // a new imagePath) and drop pages deleted meanwhile.
+              final byId = {for (final pg in pages) pg.id: pg};
+              _pages = [
+                for (final pg in _pages)
+                  if (byId[pg.id] != null) byId[pg.id]!,
+              ];
+            }
+
+            if (pages.isEmpty) {
+              return Center(child: Text(context.l10n.reviewNoPagesFound));
+            }
+
+            final list = ReorderableListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+              buildDefaultDragHandles: picked == null,
+              itemCount: _pages.length,
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) newIndex--;
+                  final page = _pages.removeAt(oldIndex);
+                  _pages.insert(newIndex, page);
+                  _dirty = true;
+                });
+              },
+              itemBuilder: (context, index) {
+                final page = _pages[index];
+                // Seed from the persisted per-page filter so the choice survives
+                // reopening and flows into the pressed PDF.
+                final filter =
+                    _filters[page.id] ?? _filterFromString(page.activeFilter);
+                return _PageCard(
+                  key: ValueKey(page.id),
+                  page: page,
+                  filter: filter,
+                  pageNumber: index + 1,
+                  totalPages: _pages.length,
+                  onFilterChanged: (f) => _setFilter(page, f),
+                  onRotate: () => _rotatePage(page),
+                  onDelete: () => _deletePage(page),
+                  picked: picked?.contains(page.id),
+                  onTogglePick: () => setState(() {
+                    if (!picked!.remove(page.id)) picked.add(page.id);
+                  }),
                 );
               },
-            ),
-        ],
-      ),
-      body: StreamBuilder<List<db.Page>>(
-        stream: pagesStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final pages = snapshot.data ?? [];
-          if (_pages.isEmpty || !_dirty) {
-            _pages = List.from(pages);
-          } else {
-            // Keep the unsaved order, but pick up row changes (a rotate writes
-            // a new imagePath) and drop pages deleted meanwhile.
-            final byId = {for (final pg in pages) pg.id: pg};
-            _pages = [
-              for (final pg in _pages)
-                if (byId[pg.id] != null) byId[pg.id]!,
-            ];
-          }
-
-          if (pages.isEmpty) {
-            return Center(child: Text(context.l10n.reviewNoPagesFound));
-          }
-
-          final list = ReorderableListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-            itemCount: _pages.length,
-            onReorder: (oldIndex, newIndex) {
-              setState(() {
-                if (newIndex > oldIndex) newIndex--;
-                final page = _pages.removeAt(oldIndex);
-                _pages.insert(newIndex, page);
-                _dirty = true;
-              });
-            },
-            itemBuilder: (context, index) {
-              final page = _pages[index];
-              // Seed from the persisted per-page filter so the choice survives
-              // reopening and flows into the pressed PDF.
-              final filter =
-                  _filters[page.id] ?? _filterFromString(page.activeFilter);
-              return _PageCard(
-                key: ValueKey(page.id),
-                page: page,
-                filter: filter,
-                pageNumber: index + 1,
-                totalPages: _pages.length,
-                onFilterChanged: (f) => _setFilter(page, f),
-                onRotate: () => _rotatePage(page),
-                onDelete: () => _deletePage(page),
-              );
-            },
-          );
-          // The category sorting chose lands a moment after the scan; show it
-          // here so a wrong one is corrected straight away.
-          return Column(
-            children: [
-              SortedIntoBar(docId: widget.docId),
-              Expanded(child: list),
-            ],
-          );
-        },
-      ),
-      // Detect Fields is the main path; skipping fields saves the scan as a
-      // finished PDF (the organiser use) and goes to Send.
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: _saving
-              ? const SizedBox(
-                  height: 100,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(0, 52),
+            );
+            // The category sorting chose lands a moment after the scan; show it
+            // here so a wrong one is corrected straight away.
+            return Column(
+              children: [
+                SortedIntoBar(docId: widget.docId),
+                Expanded(child: list),
+              ],
+            );
+          },
+        ),
+        // Detect Fields is the main path; skipping fields saves the scan as a
+        // finished PDF (the organiser use) and goes to Send.
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: _saving
+                ? const SizedBox(
+                    height: 100,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : picked != null
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FilledButton.icon(
+                        key: const ValueKey('copy-pages'),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 52),
+                        ),
+                        onPressed: picked.isEmpty
+                            ? null
+                            : () => _toNewDocument(move: false),
+                        icon: const Icon(Icons.file_copy_outlined),
+                        label: Text(context.l10n.reviewCopyToNew),
                       ),
-                      onPressed: _proceed,
-                      icon: const Icon(Icons.auto_awesome),
-                      label: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(context.l10n.reviewDetectFields),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        key: const ValueKey('move-pages'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 48),
+                        ),
+                        // A document keeps at least one page.
+                        onPressed:
+                            picked.isEmpty || picked.length >= _pages.length
+                            ? null
+                            : () => _toNewDocument(move: true),
+                        icon: const Icon(Icons.drive_file_move_outline),
+                        label: Text(context.l10n.reviewMoveToNew),
                       ),
+                    ],
+                  )
+                : widget.organise
+                ? FilledButton(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 52),
                     ),
-                    const SizedBox(height: 8),
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 48),
+                    onPressed: () async {
+                      if (_dirty) await _saveOrder();
+                      if (context.mounted) context.pop();
+                    },
+                    child: Text(context.l10n.actionDone),
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 52),
+                        ),
+                        onPressed: _proceed,
+                        icon: const Icon(Icons.auto_awesome),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(context.l10n.reviewDetectFields),
+                        ),
                       ),
-                      onPressed: _savePdf,
-                      icon: const Icon(Icons.ios_share),
-                      label: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(context.l10n.reviewSkipFieldsSave),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 48),
+                        ),
+                        onPressed: _savePdf,
+                        icon: const Icon(Icons.ios_share),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(context.l10n.reviewSkipFieldsSave),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Copies (or moves) the picked pages, with their fields, to a new
+  /// document named after this one and the pages taken.
+  Future<void> _toNewDocument({required bool move}) async {
+    final picked = _picked;
+    if (picked == null || picked.isEmpty) return;
+    if (_dirty) await _saveOrder();
+    if (!mounted) return;
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final doc = await ref
+        .read(documentRepositoryProvider)
+        .getById(widget.docId);
+    final numbers = [
+      for (final (i, pg) in _pages.indexed)
+        if (picked.contains(pg.id)) i + 1,
+    ];
+    if (doc == null || !mounted) return;
+    final merger = ref.read(mergeServiceProvider);
+    final sorter = ref.read(documentSorterProvider);
+    final int id;
+    try {
+      id = await withProgress(
+        context,
+        l10n.captureSavingPages,
+        () => merger.extract(
+          widget.docId,
+          picked.toList(),
+          title: l10n.extractedName(doc.title, numbers.join(', ')),
+          move: move,
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.newDocumentFailed)));
+      return;
+    }
+    unawaited(sorter.storeAddedPagesText(id, fromPage: 0));
+    if (!mounted) return;
+    setState(() => _picked = null);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.newDocumentMade),
+        // With an action a snackbar stays until dismissed, following the
+        // user to other screens; this one is a passing note.
+        persist: false,
+        action: SnackBarAction(
+          label: l10n.actionOpen,
+          onPressed: () {
+            if (mounted) openNewDocument(context, ref, id);
+          },
         ),
       ),
     );
@@ -303,6 +451,8 @@ class _PageCard extends StatelessWidget {
     required this.onFilterChanged,
     required this.onRotate,
     required this.onDelete,
+    this.picked,
+    this.onTogglePick,
   });
 
   final db.Page page;
@@ -313,6 +463,10 @@ class _PageCard extends StatelessWidget {
   final VoidCallback onRotate;
   final VoidCallback onDelete;
 
+  /// Whether the page is picked, while picking pages; null otherwise.
+  final bool? picked;
+  final VoidCallback? onTogglePick;
+
   /// A page of an imported PDF: its content is vector, drawn as-is into the
   /// output, so rotation and the image filters don't apply and aren't shown
   /// (they used to be offered and silently do nothing).
@@ -320,8 +474,18 @@ class _PageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final picked = this.picked;
+    final card = Card(
       margin: const EdgeInsets.only(bottom: 16),
+      shape: picked == true
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 3,
+              ),
+            )
+          : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -334,19 +498,26 @@ class _PageCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const Spacer(),
-                if (!_isPdfPage)
+                if (picked != null)
+                  Checkbox(
+                    value: picked,
+                    onChanged: (_) => onTogglePick?.call(),
+                  )
+                else ...[
+                  if (!_isPdfPage)
+                    IconButton(
+                      icon: const Icon(Icons.rotate_right),
+                      tooltip: context.l10n.reviewRotateTooltip,
+                      onPressed: onRotate,
+                    ),
                   IconButton(
-                    icon: const Icon(Icons.rotate_right),
-                    tooltip: context.l10n.reviewRotateTooltip,
-                    onPressed: onRotate,
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: context.l10n.reviewDeletePageTooltip,
+                    color: Theme.of(context).colorScheme.error,
+                    onPressed: onDelete,
                   ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: context.l10n.reviewDeletePageTooltip,
-                  color: Theme.of(context).colorScheme.error,
-                  onPressed: onDelete,
-                ),
-                const Icon(Icons.drag_handle, color: Colors.grey),
+                  const Icon(Icons.drag_handle, color: Colors.grey),
+                ],
               ],
             ),
           ),
@@ -354,7 +525,7 @@ class _PageCard extends StatelessWidget {
             aspectRatio: 0.707,
             child: _FilteredImage(path: page.imagePath, filter: filter),
           ),
-          if (_isPdfPage)
+          if (_isPdfPage || picked != null)
             const SizedBox(height: 12)
           else
             Padding(
@@ -373,6 +544,12 @@ class _PageCard extends StatelessWidget {
             ),
         ],
       ),
+    );
+    if (picked == null) return card;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTogglePick,
+      child: card,
     );
   }
 

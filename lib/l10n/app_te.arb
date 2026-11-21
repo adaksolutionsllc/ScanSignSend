@@ -371,5 +371,17 @@
   "addPages": "పేజీలను జోడించు",
   "addPagesPhotos": "ఫోటోలను ఎంచుకోండి",
   "addPagesAdded": "{count, plural, =1{1 పేజీ జోడించబడింది} other{{count} పేజీలు జోడించబడ్డాయి}}",
-  "addPagesFailed": "పేజీలను జోడించలేకపోయాం. మళ్లీ ప్రయత్నించండి."
+  "addPagesFailed": "పేజీలను జోడించలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
+  "libraryMerge": "కలుపు",
+  "mergeTitle": "{count, plural, =1{1 పత్రాన్ని కలపాలా?} other{{count} పత్రాలను కలపాలా?}}",
+  "mergeBody": "మీరు ఎంచుకున్న క్రమంలో వాటి పేజీలు ఒక కొత్త పత్రంలోకి వస్తాయి. అసలు పత్రాలు అలాగే ఉంటాయి.",
+  "mergedName": "{title} + మరో {count}",
+  "newDocumentFailed": "కొత్త పత్రాన్ని చేయలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
+  "reviewSelectPages": "పేజీలను ఎంచుకోండి",
+  "reviewSelectedPages": "{count, plural, =1{1 పేజీ ఎంచుకోబడింది} other{{count} పేజీలు ఎంచుకోబడ్డాయి}}",
+  "reviewCopyToNew": "కొత్త పత్రంలోకి కాపీ చేయండి",
+  "reviewMoveToNew": "కొత్త పత్రంలోకి తరలించండి",
+  "extractedName": "{title} · పేజీలు {pages}",
+  "newDocumentMade": "కొత్త పత్రం తయారైంది",
+  "actionDone": "పూర్తయింది"
 }

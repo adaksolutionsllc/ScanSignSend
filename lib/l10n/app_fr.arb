@@ -371,5 +371,17 @@
   "addPages": "Ajouter des pages",
   "addPagesPhotos": "Choisir des photos",
   "addPagesAdded": "{count, plural, =1{1 page ajoutée} other{{count} pages ajoutées}}",
-  "addPagesFailed": "Impossible d'ajouter les pages. Réessayez."
+  "addPagesFailed": "Impossible d'ajouter les pages. Réessayez.",
+  "libraryMerge": "Fusionner",
+  "mergeTitle": "{count, plural, =1{Fusionner 1 document ?} other{Fusionner {count} documents ?}}",
+  "mergeBody": "Un nouveau document reçoit leurs pages, dans l'ordre où vous les avez sélectionnés. Les originaux restent tels quels.",
+  "mergedName": "{title} + {count} autres",
+  "newDocumentFailed": "Impossible de créer le nouveau document. Réessayez.",
+  "reviewSelectPages": "Sélectionner des pages",
+  "reviewSelectedPages": "{count, plural, =1{1 page sélectionnée} other{{count} pages sélectionnées}}",
+  "reviewCopyToNew": "Copier dans un nouveau document",
+  "reviewMoveToNew": "Déplacer vers un nouveau document",
+  "extractedName": "{title} · pages {pages}",
+  "newDocumentMade": "Nouveau document créé",
+  "actionDone": "Terminé"
 }

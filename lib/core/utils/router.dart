@@ -57,8 +57,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.review,
-        builder: (context, state) =>
-            ReviewScreen(docId: int.parse(state.pathParameters['docId']!)),
+        builder: (context, state) => ReviewScreen(
+          docId: int.parse(state.pathParameters['docId']!),
+          organise: state.uri.queryParameters['organise'] == '1',
+        ),
       ),
       GoRoute(
         path: AppRoutes.crop,

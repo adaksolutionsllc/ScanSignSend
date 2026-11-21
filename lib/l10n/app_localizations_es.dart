@@ -1353,4 +1353,62 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get addPagesFailed =>
       'No se pudieron añadir las páginas. Inténtalo de nuevo.';
+
+  @override
+  String get libraryMerge => 'Combinar';
+
+  @override
+  String mergeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Combinar $count documentos?',
+      one: '¿Combinar 1 documento?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mergeBody =>
+      'Un documento nuevo recibe sus páginas, en el orden en que los seleccionaste. Los originales se quedan como están.';
+
+  @override
+  String mergedName(String title, int count) {
+    return '$title + $count más';
+  }
+
+  @override
+  String get newDocumentFailed =>
+      'No se pudo crear el documento nuevo. Inténtalo de nuevo.';
+
+  @override
+  String get reviewSelectPages => 'Seleccionar páginas';
+
+  @override
+  String reviewSelectedPages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count páginas seleccionadas',
+      one: '1 página seleccionada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewCopyToNew => 'Copiar a un documento nuevo';
+
+  @override
+  String get reviewMoveToNew => 'Mover a un documento nuevo';
+
+  @override
+  String extractedName(String title, String pages) {
+    return '$title · páginas $pages';
+  }
+
+  @override
+  String get newDocumentMade => 'Documento nuevo creado';
+
+  @override
+  String get actionDone => 'Listo';
 }

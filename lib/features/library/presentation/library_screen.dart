@@ -17,6 +17,7 @@ import '../../../shared/widgets/category_ui.dart';
 import '../../../shared/widgets/text_edit_dialog.dart';
 import '../../../core/utils/l10n_ext.dart';
 import 'keyword_sorting_tip.dart';
+import 'merge_flow.dart';
 import 'unlimited_banner.dart';
 
 enum _LibraryTab { all, draft, pressed, template }
@@ -122,6 +123,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         ),
         actions: selecting
             ? [
+                if (_selected.length >= 2)
+                  IconButton(
+                    key: const ValueKey('merge'),
+                    icon: const Icon(Icons.call_merge),
+                    tooltip: context.l10n.libraryMerge,
+                    onPressed: _mergeSelected,
+                  ),
                 IconButton(
                   icon: const Icon(Icons.label_outline),
                   tooltip: context.l10n.categoryChange,
@@ -203,6 +211,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   Future<void> _changeSelectedCategory() async {
     await showCategorySheet(context, ref, _selectedDocs);
     if (mounted) setState(_selected.clear);
+  }
+
+  /// Merges in the order the documents were selected, not the grid order:
+  /// tapping them one by one is how the user says which pages come first.
+  Future<void> _mergeSelected() async {
+    final byId = {for (final d in _visible) d.id: d};
+    final docs = [
+      for (final id in _selected)
+        if (byId[id] != null) byId[id]!,
+    ];
+    if (await mergeDocuments(context, ref, docs) && mounted) {
+      setState(_selected.clear);
+    }
   }
 
   Future<void> _deleteSelected() async {

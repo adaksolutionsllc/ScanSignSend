@@ -482,13 +482,57 @@ void main() {
     await tester.longPress(find.byType(Card).first);
     await _waitFor(tester, find.text(l10n.librarySelectedCount(1)));
     await _capture(tester, 'library_selecting');
-    await tester.tap(
-      find.byTooltip(
-        MaterialLocalizations.of(
-          tester.element(find.byType(LibraryScreen)),
-        ).closeButtonTooltip,
-      ),
+
+    // Merge: a second document joins the selection; Merge makes a new one
+    // with both documents' pages and opens it.
+    final before = (await docs.watchAll().first).length;
+    await tester.tap(find.byType(Card).at(1));
+    await _waitFor(tester, find.byKey(const ValueKey('merge')));
+    await tester.tap(find.byKey(const ValueKey('merge')));
+    await _waitFor(tester, find.byKey(const ValueKey('merge-confirm')));
+    await _capture(tester, 'merge_confirm');
+    await tester.tap(find.byKey(const ValueKey('merge-confirm')));
+    await _waitFor(
+      tester,
+      find.byWidgetPredicate((w) => w is ReviewScreen || w is FillModeScreen),
+      seconds: 60,
     );
+    final afterMerge = await docs.watchAll().first;
+    expect(afterMerge, hasLength(before + 1));
+    final merged = afterMerge.reduce((a, b) => a.id > b.id ? a : b);
+    expect(merged.title, contains(l10n.mergedName('', 1).trim()));
+    final mergedPages = await container
+        .read(pageRepositoryProvider)
+        .pagesOf(merged.id);
+    expect(mergedPages.length, greaterThanOrEqualTo(2));
+    await _pause(tester, 1500);
+    await _capture(tester, 'merged');
+    _mark('INFO:merged into "${merged.title}" (${mergedPages.length} pages)');
+
+    // Split: Pages → Select pages → copy page 1 to a new document.
+    router.push(
+      '${AppRoutes.review.replaceAll(':docId', '${merged.id}')}?organise=1',
+    );
+    await _waitFor(tester, find.byKey(const ValueKey('select-pages')));
+    await _pause(tester, 800);
+    await tester.tap(find.byKey(const ValueKey('select-pages')));
+    await _waitFor(tester, find.byType(Checkbox));
+    await tester.tap(find.byType(Checkbox).first);
+    await _pause(tester, 600);
+    await _capture(tester, 'pages_picked');
+    await tester.tap(find.byKey(const ValueKey('copy-pages')));
+    await _waitFor(tester, find.text(l10n.newDocumentMade), seconds: 60);
+    await _capture(tester, 'pages_copied');
+    final split = (await docs.watchAll().first).reduce(
+      (a, b) => a.id > b.id ? a : b,
+    );
+    expect(
+      await container.read(pageRepositoryProvider).pagesOf(split.id),
+      hasLength(1),
+    );
+    _mark('INFO:copied page 1 into "${split.title}"');
+    router.go(AppRoutes.library);
+    await _waitFor(tester, find.byType(LibraryScreen));
     await _pause(tester, 400);
 
     router.go(AppRoutes.settings);

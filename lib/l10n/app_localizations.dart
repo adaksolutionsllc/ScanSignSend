@@ -2339,6 +2339,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t add the pages. Try again.'**
   String get addPagesFailed;
+
+  /// No description provided for @libraryMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get libraryMerge;
+
+  /// No description provided for @mergeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Merge 1 document?} other{Merge {count} documents?}}'**
+  String mergeTitle(int count);
+
+  /// No description provided for @mergeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A new document gets their pages, in the order you selected them. The originals stay as they are.'**
+  String get mergeBody;
+
+  /// No description provided for @mergedName.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} + {count} more'**
+  String mergedName(String title, int count);
+
+  /// No description provided for @newDocumentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t make the new document. Try again.'**
+  String get newDocumentFailed;
+
+  /// No description provided for @reviewSelectPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Select pages'**
+  String get reviewSelectPages;
+
+  /// No description provided for @reviewSelectedPages.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 page selected} other{{count} pages selected}}'**
+  String reviewSelectedPages(int count);
+
+  /// No description provided for @reviewCopyToNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to new document'**
+  String get reviewCopyToNew;
+
+  /// No description provided for @reviewMoveToNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to new document'**
+  String get reviewMoveToNew;
+
+  /// No description provided for @extractedName.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} · pages {pages}'**
+  String extractedName(String title, String pages);
+
+  /// No description provided for @newDocumentMade.
+  ///
+  /// In en, this message translates to:
+  /// **'New document made'**
+  String get newDocumentMade;
+
+  /// No description provided for @actionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get actionDone;
 }
 
 class _AppLocalizationsDelegate
