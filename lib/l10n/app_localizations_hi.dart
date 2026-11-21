@@ -1319,4 +1319,16 @@ class AppLocalizationsHi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get signModeDraw => 'बनाएँ';
+
+  @override
+  String get signModeType => 'टाइप करें';
+
+  @override
+  String get signTypeHint => 'अपना नाम टाइप करें';
+
+  @override
+  String get signTypeInitialsHint => 'अपने आद्याक्षर टाइप करें';
 }

@@ -1325,4 +1325,17 @@ class AppLocalizationsTa extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get signModeDraw => 'வரை';
+
+  @override
+  String get signModeType => 'தட்டச்சு';
+
+  @override
+  String get signTypeHint => 'உங்கள் பெயரைத் தட்டச்சு செய்யுங்கள்';
+
+  @override
+  String get signTypeInitialsHint =>
+      'உங்கள் முதலெழுத்துகளைத் தட்டச்சு செய்யுங்கள்';
 }

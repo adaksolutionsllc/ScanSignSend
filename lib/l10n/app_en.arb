@@ -716,5 +716,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "signModeDraw": "Draw",
+  "signModeType": "Type",
+  "signTypeHint": "Type your name",
+  "signTypeInitialsHint": "Type your initials"
 }

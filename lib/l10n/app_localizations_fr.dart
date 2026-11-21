@@ -1322,4 +1322,16 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get signModeDraw => 'Dessiner';
+
+  @override
+  String get signModeType => 'Saisir';
+
+  @override
+  String get signTypeHint => 'Saisissez votre nom';
+
+  @override
+  String get signTypeInitialsHint => 'Saisissez vos initiales';
 }

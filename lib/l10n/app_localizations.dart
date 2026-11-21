@@ -2291,6 +2291,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Next field · 1 left} other{Next field · {count} left}}'**
   String fillNextField(int count);
+
+  /// No description provided for @signModeDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get signModeDraw;
+
+  /// No description provided for @signModeType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get signModeType;
+
+  /// No description provided for @signTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your name'**
+  String get signTypeHint;
+
+  /// No description provided for @signTypeInitialsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your initials'**
+  String get signTypeInitialsHint;
 }
 
 class _AppLocalizationsDelegate

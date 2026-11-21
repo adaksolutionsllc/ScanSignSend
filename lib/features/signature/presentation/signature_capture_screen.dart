@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +16,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/profile_repository.dart';
 import '../../../core/services/signature_repository.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/l10n_ext.dart';
@@ -46,6 +48,37 @@ class _SignatureCaptureScreenState
   bool _saving = false;
   Color _inkColor = Colors.black;
 
+  /// Type instead of draw: the name is set in a handwriting font and saved
+  /// as the same transparent PNG a drawing makes. It's also the way to sign
+  /// with a screen reader or switch control, where drawing isn't possible.
+  bool _typing = false;
+  final _typed = TextEditingController();
+  final _typedKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Start from the name in My Details (or its initials).
+    ref.read(profileRepositoryProvider).getOrCreate().then((p) {
+      final words = [p.firstName, p.middleName, p.lastName]
+          .expand((w) => w.trim().split(RegExp(r'\s+')))
+          .where((w) => w.isNotEmpty)
+          .toList();
+      if (!mounted || words.isEmpty || _typed.text.isNotEmpty) return;
+      setState(() {
+        _typed.text = widget.initials
+            ? words.map((w) => w.characters.first.toUpperCase()).join()
+            : words.join(' ');
+      });
+    }, onError: (_) {});
+  }
+
+  @override
+  void dispose() {
+    _typed.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +105,9 @@ class _SignatureCaptureScreenState
             }),
           ),
           TextButton(
-            onPressed: () => _padKey.currentState?.clear(),
+            onPressed: () => _typing
+                ? setState(_typed.clear)
+                : _padKey.currentState?.clear(),
             child: Text(context.l10n.actionClear),
           ),
         ],
@@ -82,27 +117,29 @@ class _SignatureCaptureScreenState
         top: false,
         child: Column(
           children: [
-            // Draw canvas
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: SegmentedButton<bool>(
+                segments: [
+                  ButtonSegment(
+                    value: false,
+                    icon: const Icon(Icons.gesture),
+                    label: Text(context.l10n.signModeDraw),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    icon: const Icon(Icons.keyboard_outlined),
+                    label: Text(context.l10n.signModeType),
+                  ),
+                ],
+                selected: {_typing},
+                onSelectionChanged: (v) => setState(() => _typing = v.first),
+              ),
+            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: RepaintBoundary(
-                  key: _repaintKey,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: SfSignaturePad(
-                      key: _padKey,
-                      backgroundColor: Colors.white,
-                      strokeColor: _inkColor,
-                      minimumStrokeWidth: 3.0,
-                      maximumStrokeWidth: 7.0,
-                    ),
-                  ),
-                ),
+                child: _typing ? _typeArea(context) : _drawArea(),
               ),
             ),
             // Save-as-default toggle
@@ -119,7 +156,9 @@ class _SignatureCaptureScreenState
                 width: double.infinity,
                 height: 52,
                 child: FilledButton.icon(
-                  onPressed: _saving ? null : _onSave,
+                  onPressed: _saving || (_typing && _typed.text.trim().isEmpty)
+                      ? null
+                      : _onSave,
                   icon: _saving
                       ? const SizedBox(
                           width: 18,
@@ -144,6 +183,92 @@ class _SignatureCaptureScreenState
     );
   }
 
+  Widget _drawArea() => RepaintBoundary(
+    key: _repaintKey,
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: SfSignaturePad(
+        key: _padKey,
+        backgroundColor: Colors.white,
+        strokeColor: _inkColor,
+        minimumStrokeWidth: 3.0,
+        maximumStrokeWidth: 7.0,
+      ),
+    ),
+  );
+
+  Widget _typeArea(BuildContext context) => Column(
+    children: [
+      TextField(
+        key: const ValueKey('typed-signature'),
+        controller: _typed,
+        textCapitalization: TextCapitalization.words,
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          labelText: widget.initials
+              ? context.l10n.signTypeInitialsHint
+              : context.l10n.signTypeHint,
+        ),
+        onChanged: (_) => setState(() {}),
+      ),
+      const SizedBox(height: 16),
+      // What gets saved: the name in the handwriting font, on white (the
+      // white is made transparent on save, as for a drawing). Names in
+      // Devanagari, Tamil or Telugu fall back to the system font for that
+      // script — not cursive, but correct.
+      Expanded(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(16),
+          child: RepaintBoundary(
+            key: _typedKey,
+            child: ColoredBox(
+              color: Colors.white,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _typed.text.trim(),
+                  style: TextStyle(
+                    fontFamily: 'DancingScript',
+                    fontSize: 72,
+                    color: _inkColor,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+
+  /// A PNG of what's on screen: the drawing, or the typed name.
+  Future<Uint8List?> _capture() async {
+    final ui.Image rendered;
+    if (_typing) {
+      final boundary =
+          _typedKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundary == null) return null;
+      rendered = await boundary.toImage(pixelRatio: 3.0);
+    } else {
+      final padState = _padKey.currentState;
+      if (padState == null) return null;
+      rendered = await padState.toImage(pixelRatio: 3.0);
+    }
+    final byteData = await rendered.toByteData(format: ui.ImageByteFormat.png);
+    return byteData?.buffer.asUint8List();
+  }
+
   Future<void> _onSave() async {
     setState(() => _saving = true);
     // Resolve before any await — `context` is unsafe past an async gap.
@@ -155,23 +280,14 @@ class _SignatureCaptureScreenState
       Localizations.localeOf(context).toString(),
     ).format(DateTime.now());
     try {
-      // Capture the pad directly (high-res), then crop to the ink's bounding box
-      // and knock out the white background so the signature fills its field on
+      // Capture at high resolution, then crop to the ink's bounding box and
+      // knock out the white background so the signature fills its field on
       // the document instead of being a tiny mark on a big white canvas.
-      final padState = _padKey.currentState;
-      if (padState == null) {
+      final rawPng = await _capture();
+      if (rawPng == null) {
         setState(() => _saving = false);
         return;
       }
-      final ui.Image rendered = await padState.toImage(pixelRatio: 3.0);
-      final byteData = await rendered.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      if (byteData == null) {
-        setState(() => _saving = false);
-        return;
-      }
-      final rawPng = byteData.buffer.asUint8List();
       final pngBytes = await compute(_cropAndMakeTransparent, rawPng) ?? rawPng;
       if (pngBytes.isEmpty) {
         // Empty pad — nothing drawn.

@@ -1313,4 +1313,16 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get signModeDraw => 'Draw';
+
+  @override
+  String get signModeType => 'Type';
+
+  @override
+  String get signTypeHint => 'Type your name';
+
+  @override
+  String get signTypeInitialsHint => 'Type your initials';
 }

@@ -1325,4 +1325,16 @@ class AppLocalizationsTe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get signModeDraw => 'గీయండి';
+
+  @override
+  String get signModeType => 'టైప్ చేయండి';
+
+  @override
+  String get signTypeHint => 'మీ పేరును టైప్ చేయండి';
+
+  @override
+  String get signTypeInitialsHint => 'మీ ఇనీషియల్స్ టైప్ చేయండి';
 }

@@ -363,5 +363,9 @@
   "importErrorMixed": "एक PDF चुनें, या एक या अधिक फ़ोटो।",
   "sendHome": "होम",
   "searchPageCount": "{count, plural, =1{1 पेज} other{{count} पेज}}",
-  "fillNextField": "{count, plural, =1{अगला फ़ील्ड · 1 बाकी} other{अगला फ़ील्ड · {count} बाकी}}"
+  "fillNextField": "{count, plural, =1{अगला फ़ील्ड · 1 बाकी} other{अगला फ़ील्ड · {count} बाकी}}",
+  "signModeDraw": "बनाएँ",
+  "signModeType": "टाइप करें",
+  "signTypeHint": "अपना नाम टाइप करें",
+  "signTypeInitialsHint": "अपने आद्याक्षर टाइप करें"
 }

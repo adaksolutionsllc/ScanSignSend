@@ -363,5 +363,9 @@
   "importErrorMixed": "ఒక PDFని, లేదా ఒకటి లేదా అంతకంటే ఎక్కువ ఫోటోలను ఎంచుకోండి.",
   "sendHome": "హోమ్",
   "searchPageCount": "{count, plural, =1{1 పేజీ} other{{count} పేజీలు}}",
-  "fillNextField": "{count, plural, =1{తదుపరి ఫీల్డ్ · 1 మిగిలింది} other{తదుపరి ఫీల్డ్ · {count} మిగిలాయి}}"
+  "fillNextField": "{count, plural, =1{తదుపరి ఫీల్డ్ · 1 మిగిలింది} other{తదుపరి ఫీల్డ్ · {count} మిగిలాయి}}",
+  "signModeDraw": "గీయండి",
+  "signModeType": "టైప్ చేయండి",
+  "signTypeHint": "మీ పేరును టైప్ చేయండి",
+  "signTypeInitialsHint": "మీ ఇనీషియల్స్ టైప్ చేయండి"
 }

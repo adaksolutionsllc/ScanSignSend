@@ -363,5 +363,9 @@
   "importErrorMixed": "ஒரு PDF அல்லது ஒன்று அல்லது அதற்கு மேற்பட்ட படங்களைத் தேர்ந்தெடுங்கள்.",
   "sendHome": "முகப்பு",
   "searchPageCount": "{count, plural, =1{1 பக்கம்} other{{count} பக்கங்கள்}}",
-  "fillNextField": "{count, plural, =1{அடுத்த புலம் · 1 மீதம்} other{அடுத்த புலம் · {count} மீதம்}}"
+  "fillNextField": "{count, plural, =1{அடுத்த புலம் · 1 மீதம்} other{அடுத்த புலம் · {count} மீதம்}}",
+  "signModeDraw": "வரை",
+  "signModeType": "தட்டச்சு",
+  "signTypeHint": "உங்கள் பெயரைத் தட்டச்சு செய்யுங்கள்",
+  "signTypeInitialsHint": "உங்கள் முதலெழுத்துகளைத் தட்டச்சு செய்யுங்கள்"
 }

@@ -363,5 +363,9 @@
   "importErrorMixed": "Elige un solo PDF, o una o varias fotos.",
   "sendHome": "Inicio",
   "searchPageCount": "{count, plural, =1{1 página} other{{count} páginas}}",
-  "fillNextField": "{count, plural, =1{Siguiente campo · queda 1} other{Siguiente campo · quedan {count}}}"
+  "fillNextField": "{count, plural, =1{Siguiente campo · queda 1} other{Siguiente campo · quedan {count}}}",
+  "signModeDraw": "Dibujar",
+  "signModeType": "Escribir",
+  "signTypeHint": "Escribe tu nombre",
+  "signTypeInitialsHint": "Escribe tus iniciales"
 }
