@@ -144,12 +144,14 @@ device check, screenshots).
 ## 5. Decisions
 
 **Decided (Arun, 2026-11-21):** one release — everything above ships as 1.4.0.
+**Decided (Arun, 2026-11-21, after the competitor review):**
+- F3 receipts ships in this release.
+- Screenshot 8 says "Pay once. Keep it." in both stores.
+- All of A–G ships in one release. If it turns out big, the version may become 2.0 instead of 1.4.0. Decide that at release time.
 
 **Still open:**
 2. **Voice filling (D2):** on hold; shortcuts (D1) are in. Started building on `release/1.4.0` 2026-11-21.
-3. **F3 receipts:** in 1.4.0 as a test, or later?
-4. **Screenshot 8 headline:** "Pay once. Keep it." in both stores, or the safer "No subscription. No account." on Play?
-5. **Release size:** with F and G, 1.4.0 is ≈ 27 days. Keep one release, or move F3 + C1 to 1.5?
+
 
 **Decided:** emulator-5554 wiped (Arun, 2026-11-21).
 
