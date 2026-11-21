@@ -160,6 +160,9 @@ flutter build appbundle --release
 Add to the review-notes field:
 > This app is fully offline. To test: tap New Scan (or Import), fill a field, add a signature, then Press & Send. Unlimited is a one-time non-consumable unlock ($9.99). Without it, 2 documents (up to 2 pages each) can be finished for free; scanning, importing and filling are always free. The paywall appears when finishing a third document or a document longer than 2 pages.
 
+Added for 1.3.0:
+> New in 1.3.0, all on the device: (1) Documents are named from their first-page title and sorted into a category. On iPhones with Apple Intelligence the sorting asks Apple's on-device Foundation Models; otherwise keyword rules are used. Settings → "Sort documents automatically" switches it off. No document text leaves the device. (2) Import (Library → Import) accepts several photos at once; a tilted photo of a page shows "Check the edges" with draggable corners (Apple Vision, on device). Photos can also be opened from Files with "Open in Scan Sign Send". (3) After scanning, "Skip fields · Save & Share" on the Review screen saves the scan as a finished PDF and opens Send; it counts as one free document. (4) Search finds documents by the words on their pages.
+
 ---
 
 ## Known non-blocking follow-ups (optional polish)

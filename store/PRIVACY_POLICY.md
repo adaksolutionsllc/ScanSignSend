@@ -1,6 +1,6 @@
 # Privacy Policy — Scan Sign Send
 
-Effective: 13 October 2026
+Effective: 21 November 2026
 
 Publisher: ADAK Ventures LLC
 
@@ -25,6 +25,11 @@ Your documents, signatures, and profile details are stored in a private database
 
 ### My Details (for PreFill)
 If you choose to, you can save your own details in Settings → My Details: name, email, phone, address, country, company, job title and date of birth. All of them are optional, and the app works fully without them. They are saved only in the app's database on this device, and are used only to fill matching fields on forms you open — nothing is filled until you tap **Fill**. They go into a PDF only when you fill a field with them. The app never asks for or stores ID numbers (such as a social security, Aadhaar, PAN or passport number) or bank details. To remove them, use **Delete my details** in Settings → My Details, or delete the app.
+
+### Naming, sorting and search
+New documents are named from the title on their first page and sorted into a category (such as Bills or Tax). Their text is kept so search can find words on any page. All of this happens on your device. Where the phone has its own built-in language model (Apple Intelligence on iPhone, Gemini Nano on Android), the app asks that model, which runs on the phone. Otherwise it uses keyword rules inside the app. The app never sends document text anywhere. You can switch sorting off in Settings → Sort documents automatically.
+
+Edge detection for photos you import (finding the page's corners) also runs on your device.
 
 ### Device backup (off unless you turn it on)
 By default, the app keeps your documents out of your phone's backup:
