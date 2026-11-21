@@ -2285,6 +2285,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 page} other{{count} pages}}'**
   String searchPageCount(int count);
+
+  /// No description provided for @fillNextField.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Next field · 1 left} other{Next field · {count} left}}'**
+  String fillNextField(int count);
 }
 
 class _AppLocalizationsDelegate

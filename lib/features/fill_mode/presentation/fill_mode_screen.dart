@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/field_order.dart';
 import '../../../core/models/my_details_ext.dart';
 import '../../../core/services/prefill_matcher.dart';
 import '../../../core/services/profile_repository.dart';
@@ -30,6 +31,10 @@ class FillModeScreen extends ConsumerStatefulWidget {
 
 class _FillModeScreenState extends ConsumerState<FillModeScreen> {
   int _currentPage = 0;
+
+  /// The field "Next field" stopped at but didn't open (a signature): it is
+  /// highlighted until the user taps it or moves on.
+  int? _highlightId;
 
   // Streams are created ONCE here — not in build(). Rebuilding a StreamBuilder
   // with a freshly-allocated stream on every build re-subscribes each frame and
@@ -262,6 +267,29 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                             ],
                           ),
                         ),
+                        // ── Next field: walk the empty fields in order ────────
+                        if (FieldOrder.emptyCount(allFields) > 0)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: FilledButton.tonalIcon(
+                                key: const ValueKey('next-field'),
+                                onPressed: () => _goNext(
+                                  context,
+                                  allFields,
+                                  afterId: null,
+                                  prefill: prefill,
+                                ),
+                                icon: const Icon(Icons.arrow_forward),
+                                label: Text(
+                                  context.l10n.fillNextField(
+                                    FieldOrder.emptyCount(allFields),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         // ── Page picker ───────────────────────────────────────
                         if (pages.length > 1)
                           _PagePicker(
@@ -482,6 +510,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
       movable: false,
       resizable: false,
       showHandles: false,
+      highlighted: field.id == _highlightId,
       onTap: () => _openFieldInput(context, field, prefill: prefill),
       onChanged: (bbox) => ref
           .read(fieldRepositoryProvider)
@@ -507,11 +536,40 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
     unicode: true,
   );
 
+  /// Shows the next empty field after [afterId] in reading order (from the
+  /// top when null): switches to its page and opens it. A signature is only
+  /// highlighted — signing is never started for the user.
+  Future<void> _goNext(
+    BuildContext context,
+    List<db.Field> fields, {
+    required int? afterId,
+    _Prefill? prefill,
+  }) async {
+    final next = FieldOrder.nextEmpty(fields, currentId: afterId);
+    setState(() {
+      _highlightId = next?.id;
+      if (next != null) _currentPage = next.pageIndex;
+    });
+    if (next == null || !context.mounted) return;
+    final type = next.type.toFieldType();
+    if (type == FieldType.text || type == FieldType.date) {
+      await _openFieldInput(context, next, prefill: prefill, chained: true);
+    }
+  }
+
+  Future<List<db.Field>> _fieldsNow() =>
+      ref.read(fieldRepositoryProvider).watchFields(widget.docId).first;
+
+  /// Opens [field]'s input. [chained]: reached through "Next field", so a
+  /// date continues to the next field once picked (a text field offers its
+  /// own Next button either way).
   Future<void> _openFieldInput(
     BuildContext context,
     db.Field field, {
     _Prefill? prefill,
+    bool chained = false,
   }) async {
+    if (_highlightId != null) setState(() => _highlightId = null);
     final type = field.type.toFieldType();
     switch (type) {
       case FieldType.signature:
@@ -570,37 +628,69 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                 isFilled: const Value(true),
               ),
             );
+        if (chained) {
+          final fields = await _fieldsNow();
+          if (!context.mounted) return;
+          await _goNext(
+            context,
+            fields,
+            afterId: field.id,
+            prefill: prefill,
+          );
+        }
         return;
 
       case FieldType.text:
+        final hasNext =
+            FieldOrder.nextEmpty(await _fieldsNow(), currentId: field.id) !=
+            null;
+        if (!context.mounted) return;
         final result = await _showTextInput(
           context,
           field,
           _suggestionsFor(field, prefill),
+          hasNext: hasNext,
         );
         if (result == null) return;
+        final (value, next) = result;
         _prefilled.remove(field.id);
         await ref
             .read(fieldRepositoryProvider)
             .updateField(
               db.FieldsCompanion(
                 id: Value(field.id),
-                value: Value(result),
-                isFilled: Value(result.isNotEmpty),
+                value: Value(value),
+                isFilled: Value(value.isNotEmpty),
               ),
             );
+        if (next) {
+          final fields = await _fieldsNow();
+          if (!context.mounted) return;
+          await _goNext(
+            context,
+            fields,
+            afterId: field.id,
+            prefill: prefill,
+          );
+        }
     }
   }
 
-  Future<String?> _showTextInput(
+  /// The typed value, and whether the user asked for the next field.
+  Future<(String, bool)?> _showTextInput(
     BuildContext context,
     db.Field field,
-    List<String> suggestions,
-  ) {
-    return showModalBottomSheet<String>(
+    List<String> suggestions, {
+    bool hasNext = false,
+  }) {
+    return showModalBottomSheet<(String, bool)>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => _TextInputSheet(field: field, suggestions: suggestions),
+      builder: (ctx) => _TextInputSheet(
+        field: field,
+        suggestions: suggestions,
+        hasNext: hasNext,
+      ),
     );
   }
 
@@ -642,8 +732,15 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
 // tree — disposing manually right after the pop future resolves races the
 // still-animating TextField and corrupts the widget tree.
 class _TextInputSheet extends StatefulWidget {
-  const _TextInputSheet({required this.field, this.suggestions = const []});
+  const _TextInputSheet({
+    required this.field,
+    this.suggestions = const [],
+    this.hasNext = false,
+  });
   final db.Field field;
+
+  /// Another empty field follows: offer Next (and the keyboard's next key).
+  final bool hasNext;
 
   /// Saved My Details values, best match first; tapping one fills the box.
   final List<String> suggestions;
@@ -694,6 +791,10 @@ class _TextInputSheetState extends State<_TextInputSheet> {
           TextField(
             controller: _ctrl,
             autofocus: true,
+            textInputAction: widget.hasNext
+                ? TextInputAction.next
+                : TextInputAction.done,
+            onSubmitted: (v) => Navigator.pop(context, (v, widget.hasNext)),
             decoration: InputDecoration(
               border: OutlineInputBorder(),
               hintText: context.l10n.fillEnterValueHint,
@@ -739,10 +840,23 @@ class _TextInputSheetState extends State<_TextInputSheet> {
                 child: Text(context.l10n.actionCancel),
               ),
               const Spacer(),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, _ctrl.text),
-                child: Text(context.l10n.actionSave),
-              ),
+              if (widget.hasNext) ...[
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context, (_ctrl.text, false)),
+                  child: Text(context.l10n.actionSave),
+                ),
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  key: const ValueKey('sheet-next'),
+                  onPressed: () => Navigator.pop(context, (_ctrl.text, true)),
+                  icon: const Icon(Icons.arrow_forward),
+                  label: Text(context.l10n.actionNext),
+                ),
+              ] else
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, (_ctrl.text, false)),
+                  child: Text(context.l10n.actionSave),
+                ),
             ],
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/db/app_database.dart';
 import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/field_order.dart';
 import '../../../core/services/fillable_form_export_service.dart';
 import '../../../core/services/press_service.dart';
 import '../../../core/utils/router.dart';
@@ -89,10 +90,13 @@ class _PressScreenState extends ConsumerState<PressScreen> {
         ),
         const SizedBox(height: 8),
 
-        // Field list
-        // Tapping a field goes back to fill mode, on that field's
+        // Field list, in reading order with the form's required fields
+        // first. Tapping a field goes back to fill mode, on that field's
         // page, with its input open (see FillModeScreen._openReview).
-        ...fields.map(
+        ...[
+          ...FieldOrder.of(fields).where((f) => f.isRequired),
+          ...FieldOrder.of(fields).where((f) => !f.isRequired),
+        ].map(
           (f) => _FieldTile(
             field: f,
             onTap: _busy ? null : () => context.pop(f.id),

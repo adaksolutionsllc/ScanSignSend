@@ -362,5 +362,6 @@
   "cropFailed": "இந்தப் பக்கத்தைச் செதுக்க முடியவில்லை. முழுப் படம் வைக்கப்பட்டது.",
   "importErrorMixed": "ஒரு PDF அல்லது ஒன்று அல்லது அதற்கு மேற்பட்ட படங்களைத் தேர்ந்தெடுங்கள்.",
   "sendHome": "முகப்பு",
-  "searchPageCount": "{count, plural, =1{1 பக்கம்} other{{count} பக்கங்கள்}}"
+  "searchPageCount": "{count, plural, =1{1 பக்கம்} other{{count} பக்கங்கள்}}",
+  "fillNextField": "{count, plural, =1{அடுத்த புலம் · 1 மீதம்} other{அடுத்த புலம் · {count} மீதம்}}"
 }

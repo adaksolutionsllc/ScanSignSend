@@ -362,5 +362,6 @@
   "cropFailed": "Impossible de recadrer cette page. L’image entière a été conservée.",
   "importErrorMixed": "Choisissez un seul PDF, ou une ou plusieurs photos.",
   "sendHome": "Accueil",
-  "searchPageCount": "{count, plural, =1{1 page} other{{count} pages}}"
+  "searchPageCount": "{count, plural, =1{1 page} other{{count} pages}}",
+  "fillNextField": "{count, plural, =1{Champ suivant · 1 restant} other{Champ suivant · {count} restants}}"
 }

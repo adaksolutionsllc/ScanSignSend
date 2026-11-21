@@ -1310,4 +1310,15 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String fillNextField(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Próximo campo · faltam $count',
+      one: 'Próximo campo · falta 1',
+    );
+    return '$_temp0';
+  }
 }

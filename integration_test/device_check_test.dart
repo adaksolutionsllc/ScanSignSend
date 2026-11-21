@@ -281,6 +281,16 @@ void main() {
       tester.element(find.byType(FillModeScreen)),
     ).hideCurrentSnackBar();
     await _pause(tester, 600);
+    // Next field: the bar opens the first empty field after PreFill, and
+    // the sheet offers Next to the one after.
+    await _waitFor(tester, find.byKey(const ValueKey('next-field')));
+    await _capture(tester, 'w4_next_field_bar');
+    await tester.tap(find.byKey(const ValueKey('next-field')));
+    await _waitFor(tester, find.byKey(const ValueKey('sheet-next')));
+    await _capture(tester, 'w4_next_field_sheet');
+    await tester.tap(find.text(l10n.actionCancel));
+    await _pause(tester, 600);
+    _mark('INFO:next field opens the first empty field');
     // Review & Finish from fill mode; tapping a field there comes back to
     // fill mode with that field's input open.
     await tester.tap(find.text(l10n.fillReviewAndFinish));

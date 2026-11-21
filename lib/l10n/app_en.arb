@@ -708,5 +708,13 @@
         "type": "int"
       }
     }
+  },
+  "fillNextField": "{count, plural, =1{Next field · 1 left} other{Next field · {count} left}}",
+  "@fillNextField": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

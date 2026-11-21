@@ -1314,4 +1314,15 @@ class AppLocalizationsTa extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String fillNextField(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'அடுத்த புலம் · $count மீதம்',
+      one: 'அடுத்த புலம் · 1 மீதம்',
+    );
+    return '$_temp0';
+  }
 }
