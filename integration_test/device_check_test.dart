@@ -291,6 +291,24 @@ void main() {
     await tester.tap(find.text(l10n.actionCancel));
     await _pause(tester, 600);
     _mark('INFO:next field opens the first empty field');
+    // Sign → Type: the name from My Details in the handwriting font. Opened
+    // from the signatures manager (field 0), so nothing is filled.
+    router.push(
+      AppRoutes.signatureCapture
+          .replaceAll(':docId', '${w4Doc.id}')
+          .replaceAll(':fieldId', '0'),
+    );
+    await _waitFor(tester, find.text(l10n.signModeType));
+    await tester.tap(find.text(l10n.signModeType));
+    await _waitFor(
+      tester,
+      find.widgetWithText(TextField, 'Priya Kumari Raman'),
+    );
+    await _capture(tester, 'sign_typed');
+    router.pop();
+    await _waitFor(tester, find.byType(FillModeScreen));
+    await _pause(tester, 600);
+    _mark('INFO:typed signature shows the My Details name');
     // Review & Finish from fill mode; tapping a field there comes back to
     // fill mode with that field's input open.
     await tester.tap(find.text(l10n.fillReviewAndFinish));
