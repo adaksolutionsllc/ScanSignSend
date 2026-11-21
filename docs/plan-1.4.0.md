@@ -119,10 +119,11 @@ device check, screenshots).
 - Accessibility: declare only what passes a device run; VoiceOver only after
   a full scan → fill → sign → send run.
 
-## 5. Decisions needed
-1. **One release or two?** ≈ 25 days in one 1.4.0, or 1.4.0 (A + B + C2/C3 +
-   E, ≈ 12 d) then 1.5.0 (C1, C4, D, ≈ 13 d). Recommendation: two — 1.3.0
-   showed that a shorter release ships sooner and gets tested better.
+## 5. Decisions
+
+**Decided (Arun, 2026-11-21):** one release — everything above ships as 1.4.0.
+
+**Still open:**
 2. **Voice still wanted?** It is the biggest item (6 d) and works in only
    4 of the 7 languages on iOS. Recommendation: keep it, in the second release.
 3. **Android emulator:** may I wipe emulator-5554 (it holds
