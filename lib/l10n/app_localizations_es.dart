@@ -1411,4 +1411,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get actionDone => 'Listo';
+
+  @override
+  String get quickScan => 'Escanear';
+
+  @override
+  String get quickOpenPdf => 'Abrir un PDF';
+
+  @override
+  String get quickLastDraft => 'Rellenar el último borrador';
 }

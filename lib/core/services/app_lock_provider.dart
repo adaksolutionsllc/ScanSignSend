@@ -41,12 +41,26 @@ class AppLockNotifier extends StateNotifier<bool> {
   bool _lockEnabled = false;
   StreamSubscription<dynamic>? _profileSub;
 
+  /// Completes once the lock setting has been read. Until then, "unlocked"
+  /// only means "not known yet".
+  final _settled = Completer<void>();
+
+  /// Resolves when the app is unlocked, for actions that start from outside
+  /// the app (a home-screen quick action) and would otherwise open the
+  /// camera or a file picker over the lock screen.
+  Future<void> whenUnlocked() async {
+    await _settled.future;
+    if (!state) return;
+    await stream.firstWhere((locked) => !locked);
+  }
+
   Future<void> _init() async {
     try {
       final profile = await _profile.getOrCreate();
       _applyLockEnabled(profile.biometricLockEnabled);
       if (_lockEnabled) {
         state = true;
+        if (!_settled.isCompleted) _settled.complete();
         await unlock();
       }
     } catch (_) {
@@ -54,6 +68,7 @@ class AppLockNotifier extends StateNotifier<bool> {
       // failure — default to unlocked rather than bricking the app.
       state = false;
     }
+    if (!_settled.isCompleted) _settled.complete();
     _profileSub = _profile.watch().listen(
       (p) => _applyLockEnabled(p.biometricLockEnabled),
       onError: (_) {},

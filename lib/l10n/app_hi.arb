@@ -383,5 +383,8 @@
   "reviewMoveToNew": "नए दस्तावेज़ में ले जाएँ",
   "extractedName": "{title} · पेज {pages}",
   "newDocumentMade": "नया दस्तावेज़ बन गया",
-  "actionDone": "हो गया"
+  "actionDone": "हो गया",
+  "quickScan": "स्कैन करें",
+  "quickOpenPdf": "PDF खोलें",
+  "quickLastDraft": "पिछला ड्राफ़्ट भरें"
 }

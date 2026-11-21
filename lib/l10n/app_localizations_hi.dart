@@ -1409,4 +1409,13 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get actionDone => 'हो गया';
+
+  @override
+  String get quickScan => 'स्कैन करें';
+
+  @override
+  String get quickOpenPdf => 'PDF खोलें';
+
+  @override
+  String get quickLastDraft => 'पिछला ड्राफ़्ट भरें';
 }

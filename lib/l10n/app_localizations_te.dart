@@ -1415,4 +1415,13 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get actionDone => 'పూర్తయింది';
+
+  @override
+  String get quickScan => 'స్కాన్ చేయండి';
+
+  @override
+  String get quickOpenPdf => 'PDF తెరవండి';
+
+  @override
+  String get quickLastDraft => 'చివరి డ్రాఫ్ట్ నింపండి';
 }

@@ -15,6 +15,7 @@ import 'core/utils/path_resolver.dart';
 import 'core/utils/router.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'shared/theme/app_theme.dart';
+import 'shared/widgets/quick_actions_setup.dart';
 
 void main() {
   // Replace the default red error screen with a calm, branded fallback so a
@@ -215,7 +216,8 @@ class _MainAppState extends ConsumerState<_MainApp> {
       // AppLockGate reads context.l10n and needs a Localizations/Directionality
       // ancestor, which only MaterialApp.router itself provides — so it must sit
       // inside this builder, not wrap the MaterialApp from outside.
-      builder: (context, child) => AppLockGate(child: child!),
+      builder: (context, child) =>
+          AppLockGate(child: QuickActionsSetup(child: child!)),
     );
   }
 }

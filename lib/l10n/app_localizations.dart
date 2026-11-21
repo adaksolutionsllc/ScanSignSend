@@ -2411,6 +2411,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get actionDone;
+
+  /// No description provided for @quickScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get quickScan;
+
+  /// No description provided for @quickOpenPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a PDF'**
+  String get quickOpenPdf;
+
+  /// No description provided for @quickLastDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill last draft'**
+  String get quickLastDraft;
 }
 
 class _AppLocalizationsDelegate

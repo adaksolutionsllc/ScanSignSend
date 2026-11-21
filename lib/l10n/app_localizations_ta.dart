@@ -1417,4 +1417,13 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get actionDone => 'முடிந்தது';
+
+  @override
+  String get quickScan => 'ஸ்கேன் செய்';
+
+  @override
+  String get quickOpenPdf => 'PDF-ஐத் திற';
+
+  @override
+  String get quickLastDraft => 'கடைசி வரைவை நிரப்பு';
 }

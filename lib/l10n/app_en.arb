@@ -777,5 +777,8 @@
     }
   },
   "newDocumentMade": "New document made",
-  "actionDone": "Done"
+  "actionDone": "Done",
+  "quickScan": "Scan",
+  "quickOpenPdf": "Open a PDF",
+  "quickLastDraft": "Fill last draft"
 }

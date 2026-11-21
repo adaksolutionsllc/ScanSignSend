@@ -383,5 +383,8 @@
   "reviewMoveToNew": "కొత్త పత్రంలోకి తరలించండి",
   "extractedName": "{title} · పేజీలు {pages}",
   "newDocumentMade": "కొత్త పత్రం తయారైంది",
-  "actionDone": "పూర్తయింది"
+  "actionDone": "పూర్తయింది",
+  "quickScan": "స్కాన్ చేయండి",
+  "quickOpenPdf": "PDF తెరవండి",
+  "quickLastDraft": "చివరి డ్రాఫ్ట్ నింపండి"
 }

@@ -383,5 +383,8 @@
   "reviewMoveToNew": "புதிய ஆவணத்துக்கு நகர்த்து",
   "extractedName": "{title} · பக்கங்கள் {pages}",
   "newDocumentMade": "புதிய ஆவணம் உருவானது",
-  "actionDone": "முடிந்தது"
+  "actionDone": "முடிந்தது",
+  "quickScan": "ஸ்கேன் செய்",
+  "quickOpenPdf": "PDF-ஐத் திற",
+  "quickLastDraft": "கடைசி வரைவை நிரப்பு"
 }

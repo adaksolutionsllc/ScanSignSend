@@ -1412,4 +1412,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get actionDone => 'Terminé';
+
+  @override
+  String get quickScan => 'Numériser';
+
+  @override
+  String get quickOpenPdf => 'Ouvrir un PDF';
+
+  @override
+  String get quickLastDraft => 'Remplir le dernier brouillon';
 }

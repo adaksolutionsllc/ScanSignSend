@@ -1412,4 +1412,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get actionDone => 'Concluído';
+
+  @override
+  String get quickScan => 'Digitalizar';
+
+  @override
+  String get quickOpenPdf => 'Abrir um PDF';
+
+  @override
+  String get quickLastDraft => 'Preencher o último rascunho';
 }

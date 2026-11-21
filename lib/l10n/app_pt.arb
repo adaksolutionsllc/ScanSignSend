@@ -383,5 +383,8 @@
   "reviewMoveToNew": "Mover para um novo documento",
   "extractedName": "{title} · páginas {pages}",
   "newDocumentMade": "Novo documento criado",
-  "actionDone": "Concluído"
+  "actionDone": "Concluído",
+  "quickScan": "Digitalizar",
+  "quickOpenPdf": "Abrir um PDF",
+  "quickLastDraft": "Preencher o último rascunho"
 }
