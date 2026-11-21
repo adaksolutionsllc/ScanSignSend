@@ -6,15 +6,12 @@ import 'package:go_router/go_router.dart';
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/models/field_model.dart';
 import '../../../core/services/document_repository.dart';
-import '../../../core/services/import_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/field_box.dart';
 import '../../../shared/widgets/field_type_labels.dart';
 import '../../../shared/widgets/page_canvas.dart';
 import 'field_detection_notifier.dart';
-
-const _kHasFormFields = ImportService.formFieldsSentinel;
 
 class FieldDetectionScreen extends ConsumerStatefulWidget {
   const FieldDetectionScreen({super.key, required this.docId});
@@ -45,7 +42,7 @@ class _FieldDetectionScreenState extends ConsumerState<FieldDetectionScreen> {
       //    user can add more around them), or
       //  - the user has been here before (e.g. "Edit fields" from Fill
       //    mode) — re-detecting would discard their positions and edits.
-      if ((doc != null && doc.ocrText == _kHasFormFields) ||
+      if ((doc?.hasFormFields ?? false) ||
           existingFields.any((f) => f.sourceKind == 'app')) {
         await notifier.loadExisting();
         return;

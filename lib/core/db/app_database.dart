@@ -50,6 +50,11 @@ class Documents extends Table {
   // changes it again.
   BoolColumn get categoryManual =>
       boolean().withDefault(const Constant(false))();
+  // Schema v10. An imported PDF that carries its own AcroForm fields (they
+  // were imported as rows, so field detection is skipped). Until v10 this
+  // was a marker string in [ocrText], which kept such forms out of search.
+  BoolColumn get hasFormFields =>
+      boolean().withDefault(const Constant(false))();
 }
 
 class Pages extends Table {
@@ -230,7 +235,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -302,6 +307,16 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(categoryHints);
         await m.createTable(prefillHints);
         await customStatement('UPDATE documents SET title_edited = 1');
+      }
+      // v9 → v10: the "has its own form" marker leaves ocr_text for its own
+      // column, so the form's words can be stored and searched. The text is
+      // read again once at launch (DocumentSorter.backfillFormTextOnce).
+      if (from < 10) {
+        await m.addColumn(documents, documents.hasFormFields);
+        await customStatement(
+          "UPDATE documents SET has_form_fields = 1, ocr_text = '' "
+          "WHERE ocr_text = '__has_form_fields__'",
+        );
       }
     },
   );

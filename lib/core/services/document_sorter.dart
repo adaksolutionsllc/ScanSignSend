@@ -8,7 +8,6 @@ import '../models/document_category.dart';
 import 'category_hints.dart';
 import 'document_repository.dart';
 import 'document_titler.dart';
-import 'import_service.dart';
 import 'keyword_categoriser.dart';
 import 'on_device_ai_service.dart';
 import 'page_layout_service.dart';
@@ -171,6 +170,36 @@ class DocumentSorter {
     }
   }
 
+  /// SharedPreferences: forms imported before schema v10 had their text read.
+  static const formTextBackfilledKey = 'form_text_backfilled_v10';
+
+  /// Once, after upgrading to schema v10: forms with their own fields used
+  /// to store a marker instead of their words, so search couldn't find them.
+  /// Reads their pages' text now (a PDF text layer — quick, no OCR).
+  Future<void> backfillFormTextOnce() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(formTextBackfilledKey) ?? false) return;
+      for (final doc in await docRepo.watchAll().first) {
+        if (!doc.hasFormFields || doc.ocrText.isNotEmpty) continue;
+        final texts = <String>[];
+        for (final page in await pageRepo.pagesOf(doc.id)) {
+          try {
+            texts.add((await layouts.textOnly(page.imagePath)).$2);
+          } catch (_) {}
+        }
+        final all = texts.where((t) => t.trim().isNotEmpty).join('\n');
+        if (all.isEmpty) continue;
+        await docRepo.updateDocument(
+          DocumentsCompanion(id: Value(doc.id), ocrText: Value(all)),
+        );
+      }
+      await prefs.setBool(formTextBackfilledKey, true);
+    } catch (_) {
+      // Tried again on the next launch.
+    }
+  }
+
   /// Once, after upgrading to a build with categories: sorts the documents
   /// that existed before, from the text already stored for them.
   Future<void> backfillOnce() async {
@@ -203,7 +232,6 @@ class DocumentSorter {
   }) async {
     if (doc.categoryManual || doc.category != null) return null;
     if (!await isEnabled()) return null;
-    if (text == ImportService.formFieldsSentinel) text = '';
 
     final (key, by) = await categorise(title, text, useModel: useModel);
     if (key == null) return null;

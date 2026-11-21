@@ -11,7 +11,6 @@ import '../db/app_database.dart';
 import '../db/database_provider.dart';
 import '../models/field_model.dart';
 import '../utils/path_resolver.dart';
-import 'import_service.dart';
 import 'page_raster_service.dart';
 
 final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
@@ -35,16 +34,7 @@ class DocumentRepository {
 
   Stream<List<Document>> watchByQuery(String query) =>
       (_db.select(_db.documents)
-            // ocrText can hold the "has its own form" marker rather than page
-            // text; it must not make every form PDF match a search.
-            ..where(
-              (t) =>
-                  (t.ocrText.contains(query) &
-                      t.ocrText
-                          .equals(ImportService.formFieldsSentinel)
-                          .not()) |
-                  t.title.contains(query),
-            )
+            ..where((t) => t.ocrText.contains(query) | t.title.contains(query))
             ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]))
           .watch();
 

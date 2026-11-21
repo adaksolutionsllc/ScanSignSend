@@ -74,11 +74,6 @@ final importServiceProvider = Provider<ImportService>((ref) {
 
 class ImportService {
   ImportService(this._docRepo, this._pageRepo, this._fieldRepo);
-
-  /// Stored in `Documents.ocrText` when an imported PDF has its own AcroForm
-  /// fields: they were imported as rows, so detection is skipped.
-  static const formFieldsSentinel = '__has_form_fields__';
-
   final DocumentRepository _docRepo;
   final PageRepository _pageRepo;
   final FieldRepository _fieldRepo;
@@ -287,11 +282,9 @@ class ImportService {
           id: Value(doc.id),
           pageCount: Value(pageCount),
           updatedAt: Value(DateTime.now()),
-          // Sentinel: skip the OCR auto-scan when the PDF already carries real form
+          // Skip the OCR auto-scan when the PDF already carries real form
           // fields — we imported those as rows above.
-          ocrText: parsedFields.isNotEmpty
-              ? const Value(formFieldsSentinel)
-              : const Value(''),
+          hasFormFields: Value(parsedFields.isNotEmpty),
         ),
       );
       return doc.id;

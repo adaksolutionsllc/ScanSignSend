@@ -19,17 +19,15 @@ void main() {
     expect(AppDatabase.splitFullName(''), ('', ''));
   });
 
-  test(
-    'v2 → v9 migration preserves data and adds every later column and table',
-    () async {
-      final dbFile = File(
-        '${Directory.systemTemp.path}/sss_migration_v3_${DateTime.now().microsecondsSinceEpoch}.db',
-      );
-      if (dbFile.existsSync()) dbFile.deleteSync();
+  test('v2 → v10 migration preserves data and adds every later column and table', () async {
+    final dbFile = File(
+      '${Directory.systemTemp.path}/sss_migration_v3_${DateTime.now().microsecondsSinceEpoch}.db',
+    );
+    if (dbFile.existsSync()) dbFile.deleteSync();
 
-      // ── Phase 1: fake the v2 schema + seed a row, then close fully ────────────
-      final v2 = _RawDb(NativeDatabase(dbFile));
-      await v2.customStatement('''
+    // ── Phase 1: fake the v2 schema + seed a row, then close fully ────────────
+    final v2 = _RawDb(NativeDatabase(dbFile));
+    await v2.customStatement('''
       CREATE TABLE documents (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         uuid TEXT NOT NULL, title TEXT NOT NULL,
@@ -40,7 +38,7 @@ void main() {
         pressed_pdf_path TEXT, is_template INTEGER NOT NULL DEFAULT 0
       )
     ''');
-      await v2.customStatement('''
+    await v2.customStatement('''
       CREATE TABLE fields (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         document_id INTEGER NOT NULL,
@@ -58,8 +56,8 @@ void main() {
         options_json TEXT
       )
     ''');
-      // user_profile as every pre-v4 build created it (no backup column).
-      await v2.customStatement('''
+    // user_profile as every pre-v4 build created it (no backup column).
+    await v2.customStatement('''
       CREATE TABLE user_profile (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         full_name TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '',
@@ -72,90 +70,99 @@ void main() {
         is_purchased INTEGER NOT NULL DEFAULT 0
       )
     ''');
-      await v2.customStatement(
-        "INSERT INTO user_profile (id, full_name, scan_count, is_purchased) "
-        "VALUES (1, 'Pat Q Morgan', 2, 1)",
-      );
-      // A pre-fix "fillable" export: status/pressedPdfPath set the old way.
-      await v2.customStatement(
-        "INSERT INTO documents (id, uuid, title, status, pressed_pdf_path, created_at, updated_at) "
-        "VALUES (1, 'u1', 'Old Fillable Doc', 'fillable', '/old/export.pdf', 0, 0)",
-      );
-      await v2.customStatement('PRAGMA user_version = 2');
-      await v2.close();
+    await v2.customStatement(
+      "INSERT INTO user_profile (id, full_name, scan_count, is_purchased) "
+      "VALUES (1, 'Pat Q Morgan', 2, 1)",
+    );
+    // A pre-fix "fillable" export: status/pressedPdfPath set the old way.
+    await v2.customStatement(
+      "INSERT INTO documents (id, uuid, title, status, pressed_pdf_path, created_at, updated_at) "
+      "VALUES (1, 'u1', 'Old Fillable Doc', 'fillable', '/old/export.pdf', 0, 0)",
+    );
+    // An imported form with its own fields, marked the pre-v10 way.
+    await v2.customStatement(
+      "INSERT INTO documents (id, uuid, title, ocr_text, created_at, updated_at) "
+      "VALUES (2, 'u3', 'W-4', '__has_form_fields__', 0, 0)",
+    );
+    await v2.customStatement('PRAGMA user_version = 2');
+    await v2.close();
 
-      // ── Phase 2: open real AppDatabase on the same file → onUpgrade(2 → 3) ────
-      final db = AppDatabase.forTesting(NativeDatabase(dbFile));
-      final rows = await db.select(db.documents).get();
+    // ── Phase 2: open real AppDatabase on the same file → onUpgrade(2 → 3) ────
+    final db = AppDatabase.forTesting(NativeDatabase(dbFile));
+    final rows = await db.select(db.documents).get();
 
-      expect(
-        rows,
-        hasLength(1),
-        reason: 'legacy row must survive the migration',
-      );
-      final row = rows.single;
-      expect(row.status, 'fillable');
-      expect(
-        row.pressedPdfPath,
-        '/old/export.pdf',
-        reason: 'pre-fix export path must stay put for the viewer fallback',
-      );
-      expect(
-        row.fillablePdfPath,
-        isNull,
-        reason: 'new column must be nullable and default to null',
-      );
+    expect(
+      rows,
+      hasLength(2),
+      reason: 'legacy rows must survive the migration',
+    );
+    final row = rows.firstWhere((r) => r.id == 1);
+    // v9 → v10: the form marker moves to its own column, freeing ocr_text.
+    final form = rows.firstWhere((r) => r.id == 2);
+    expect(form.hasFormFields, isTrue);
+    expect(form.ocrText, '');
+    expect(row.hasFormFields, isFalse);
+    expect(row.status, 'fillable');
+    expect(
+      row.pressedPdfPath,
+      '/old/export.pdf',
+      reason: 'pre-fix export path must stay put for the viewer fallback',
+    );
+    expect(
+      row.fillablePdfPath,
+      isNull,
+      reason: 'new column must be nullable and default to null',
+    );
 
-      // v3 → v4: the backup opt-in is added switched off, and the existing
-      // profile (including the purchase) is untouched.
-      final profile = (await db.select(db.userProfile).get()).single;
-      expect(profile.fullName, 'Pat Q Morgan');
-      expect(profile.scanCount, 2);
-      expect(profile.isPurchased, isTrue);
-      expect(
-        profile.includeInDeviceBackup,
-        isFalse,
-        reason: 'backup must stay opt-in for users upgrading from v3',
-      );
+    // v3 → v4: the backup opt-in is added switched off, and the existing
+    // profile (including the purchase) is untouched.
+    final profile = (await db.select(db.userProfile).get()).single;
+    expect(profile.fullName, 'Pat Q Morgan');
+    expect(profile.scanCount, 2);
+    expect(profile.isPurchased, isTrue);
+    expect(
+      profile.includeInDeviceBackup,
+      isFalse,
+      reason: 'backup must stay opt-in for users upgrading from v3',
+    );
 
-      // v4 → v5: text size is unknown until the document is re-detected.
-      expect(row.textSize, isNull);
-      // v5 → v6: the learning table exists and starts empty.
-      expect(await db.select(db.fieldHints).get(), isEmpty);
-      // v6 → v7: existing documents haven't used a free-allowance slot.
-      expect(row.countedFree, isFalse);
-      // v7 → v8: the saved name is split for My Details; new details empty.
-      expect(profile.firstName, 'Pat Q');
-      expect(profile.lastName, 'Morgan');
-      expect(profile.middleName, '');
-      expect(profile.country, '');
-      expect(profile.dateOfBirth, isNull);
-      // v8 → v9: existing documents are Uncategorised, chosen by nobody, and
-      // their titles count as the user's own (never renamed from content).
-      expect(row.category, isNull);
-      expect(row.categoryManual, isFalse);
-      expect(row.titleEdited, isTrue);
-      expect(row.title, 'Old Fillable Doc');
-      expect(await db.select(db.userCategories).get(), isEmpty);
-      expect(await db.select(db.categoryHints).get(), isEmpty);
-      expect(await db.select(db.prefillHints).get(), isEmpty);
-      // A document created after the upgrade starts with a default title.
-      final fresh = await db
-          .into(db.documents)
-          .insertReturning(
-            DocumentsCompanion.insert(
-              uuid: 'u2',
-              title: 'New',
-              createdAt: DateTime(2026),
-              updatedAt: DateTime(2026),
-            ),
-          );
-      expect(fresh.titleEdited, isFalse);
+    // v4 → v5: text size is unknown until the document is re-detected.
+    expect(row.textSize, isNull);
+    // v5 → v6: the learning table exists and starts empty.
+    expect(await db.select(db.fieldHints).get(), isEmpty);
+    // v6 → v7: existing documents haven't used a free-allowance slot.
+    expect(row.countedFree, isFalse);
+    // v7 → v8: the saved name is split for My Details; new details empty.
+    expect(profile.firstName, 'Pat Q');
+    expect(profile.lastName, 'Morgan');
+    expect(profile.middleName, '');
+    expect(profile.country, '');
+    expect(profile.dateOfBirth, isNull);
+    // v8 → v9: existing documents are Uncategorised, chosen by nobody, and
+    // their titles count as the user's own (never renamed from content).
+    expect(row.category, isNull);
+    expect(row.categoryManual, isFalse);
+    expect(row.titleEdited, isTrue);
+    expect(row.title, 'Old Fillable Doc');
+    expect(await db.select(db.userCategories).get(), isEmpty);
+    expect(await db.select(db.categoryHints).get(), isEmpty);
+    expect(await db.select(db.prefillHints).get(), isEmpty);
+    // A document created after the upgrade starts with a default title.
+    final fresh = await db
+        .into(db.documents)
+        .insertReturning(
+          DocumentsCompanion.insert(
+            uuid: 'u2',
+            title: 'New',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        );
+    expect(fresh.titleEdited, isFalse);
 
-      await db.close();
-      if (dbFile.existsSync()) dbFile.deleteSync();
-    },
-  );
+    await db.close();
+    if (dbFile.existsSync()) dbFile.deleteSync();
+  });
 }
 
 /// Drift instance over a shared executor with no declared tables — used only to

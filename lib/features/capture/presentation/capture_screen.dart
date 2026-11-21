@@ -177,7 +177,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         // A PDF that already carries a fillable form goes straight to Fill
         // mode — its fields are ready to use. "Edit fields" there still lets
         // the user adjust or add to them.
-        final route = doc.ocrText == ImportService.formFieldsSentinel
+        final route = doc.hasFormFields
             ? AppRoutes.fillMode
             : AppRoutes.review;
         context.pushReplacement(route.replaceAll(':docId', '${doc.id}'));

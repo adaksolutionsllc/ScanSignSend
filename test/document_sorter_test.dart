@@ -239,6 +239,22 @@ void main() {
       expect(found.map((x) => x.id), [d.id]);
     });
 
+    test(
+      'a form with its own fields is searchable after the v10 backfill',
+      () async {
+        final d = await importedPdf('W-4', 'test/fixtures/irs_fw4_2026.pdf');
+        await docs.updateDocument(
+          DocumentsCompanion(id: Value(d.id), hasFormFields: const Value(true)),
+        );
+        expect(await docs.watchByQuery('Withholding').first, isEmpty);
+        await sorter.backfillFormTextOnce();
+        final found = await docs.watchByQuery('Withholding').first;
+        expect(found.map((x) => x.id), [d.id]);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool(DocumentSorter.formTextBackfilledKey), isTrue);
+      },
+    );
+
     test('a document the user already sorted is left alone', () async {
       final d = await importedPdf('W-4', 'test/fixtures/irs_fw4_2026.pdf');
       await sorter.setByUser(d, 'work');

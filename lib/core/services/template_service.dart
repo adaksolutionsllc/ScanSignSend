@@ -38,6 +38,7 @@ class TemplateService {
           isTemplate: const Value(true),
           pageCount: Value(pages.length),
           ocrText: Value(src.ocrText),
+          hasFormFields: Value(src.hasFormFields),
           textSize: Value(src.textSize),
           updatedAt: Value(DateTime.now()),
         ),
@@ -63,8 +64,9 @@ class TemplateService {
         DocumentsCompanion(
           id: Value(draft.id),
           pageCount: Value(pages.length),
-          // A clone of an AcroForm template must keep skipping OCR detection.
           ocrText: Value(tmpl.ocrText),
+          // A clone of an AcroForm template must keep skipping OCR detection.
+          hasFormFields: Value(tmpl.hasFormFields),
           textSize: Value(tmpl.textSize),
           updatedAt: Value(DateTime.now()),
         ),

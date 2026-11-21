@@ -14,7 +14,6 @@ import '../db/app_database.dart';
 import '../utils/path_resolver.dart';
 import 'document_edges.dart';
 import 'document_repository.dart';
-import 'import_service.dart';
 import 'page_layout_service.dart';
 import 'page_raster_service.dart';
 
@@ -81,7 +80,7 @@ class EdgeCheckService {
 
       final pdf = _sourcePdf(pages);
       if (pdf != null) {
-        if (doc.ocrText == ImportService.formFieldsSentinel) return const [];
+        if (doc.hasFormFields) return const [];
         if (!await compute(isImageOnlyPdf, pdf)) return const [];
       }
 

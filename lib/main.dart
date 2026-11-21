@@ -190,6 +190,8 @@ class _MainAppState extends ConsumerState<_MainApp> {
     unawaited(ref.read(importServiceProvider).relabelLegacyAcroforms());
     // Documents from before categories existed are sorted once.
     unawaited(ref.read(documentSorterProvider).backfillOnce());
+    // Forms imported before 1.4.0 become searchable by their words.
+    unawaited(ref.read(documentSorterProvider).backfillFormTextOnce());
   }
 
   @override

@@ -200,6 +200,21 @@ class $DocumentsTable extends Documents
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _hasFormFieldsMeta = const VerificationMeta(
+    'hasFormFields',
+  );
+  @override
+  late final GeneratedColumn<bool> hasFormFields = GeneratedColumn<bool>(
+    'has_form_fields',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("has_form_fields" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -218,6 +233,7 @@ class $DocumentsTable extends Documents
     titleEdited,
     category,
     categoryManual,
+    hasFormFields,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -347,6 +363,15 @@ class $DocumentsTable extends Documents
         ),
       );
     }
+    if (data.containsKey('has_form_fields')) {
+      context.handle(
+        _hasFormFieldsMeta,
+        hasFormFields.isAcceptableOrUnknown(
+          data['has_form_fields']!,
+          _hasFormFieldsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -420,6 +445,10 @@ class $DocumentsTable extends Documents
         DriftSqlType.bool,
         data['${effectivePrefix}category_manual'],
       )!,
+      hasFormFields: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}has_form_fields'],
+      )!,
     );
   }
 
@@ -446,6 +475,7 @@ class Document extends DataClass implements Insertable<Document> {
   final bool titleEdited;
   final String? category;
   final bool categoryManual;
+  final bool hasFormFields;
   const Document({
     required this.id,
     required this.uuid,
@@ -463,6 +493,7 @@ class Document extends DataClass implements Insertable<Document> {
     required this.titleEdited,
     this.category,
     required this.categoryManual,
+    required this.hasFormFields,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -491,6 +522,7 @@ class Document extends DataClass implements Insertable<Document> {
       map['category'] = Variable<String>(category);
     }
     map['category_manual'] = Variable<bool>(categoryManual);
+    map['has_form_fields'] = Variable<bool>(hasFormFields);
     return map;
   }
 
@@ -520,6 +552,7 @@ class Document extends DataClass implements Insertable<Document> {
           ? const Value.absent()
           : Value(category),
       categoryManual: Value(categoryManual),
+      hasFormFields: Value(hasFormFields),
     );
   }
 
@@ -545,6 +578,7 @@ class Document extends DataClass implements Insertable<Document> {
       titleEdited: serializer.fromJson<bool>(json['titleEdited']),
       category: serializer.fromJson<String?>(json['category']),
       categoryManual: serializer.fromJson<bool>(json['categoryManual']),
+      hasFormFields: serializer.fromJson<bool>(json['hasFormFields']),
     );
   }
   @override
@@ -567,6 +601,7 @@ class Document extends DataClass implements Insertable<Document> {
       'titleEdited': serializer.toJson<bool>(titleEdited),
       'category': serializer.toJson<String?>(category),
       'categoryManual': serializer.toJson<bool>(categoryManual),
+      'hasFormFields': serializer.toJson<bool>(hasFormFields),
     };
   }
 
@@ -587,6 +622,7 @@ class Document extends DataClass implements Insertable<Document> {
     bool? titleEdited,
     Value<String?> category = const Value.absent(),
     bool? categoryManual,
+    bool? hasFormFields,
   }) => Document(
     id: id ?? this.id,
     uuid: uuid ?? this.uuid,
@@ -608,6 +644,7 @@ class Document extends DataClass implements Insertable<Document> {
     titleEdited: titleEdited ?? this.titleEdited,
     category: category.present ? category.value : this.category,
     categoryManual: categoryManual ?? this.categoryManual,
+    hasFormFields: hasFormFields ?? this.hasFormFields,
   );
   Document copyWithCompanion(DocumentsCompanion data) {
     return Document(
@@ -639,6 +676,9 @@ class Document extends DataClass implements Insertable<Document> {
       categoryManual: data.categoryManual.present
           ? data.categoryManual.value
           : this.categoryManual,
+      hasFormFields: data.hasFormFields.present
+          ? data.hasFormFields.value
+          : this.hasFormFields,
     );
   }
 
@@ -660,7 +700,8 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('countedFree: $countedFree, ')
           ..write('titleEdited: $titleEdited, ')
           ..write('category: $category, ')
-          ..write('categoryManual: $categoryManual')
+          ..write('categoryManual: $categoryManual, ')
+          ..write('hasFormFields: $hasFormFields')
           ..write(')'))
         .toString();
   }
@@ -683,6 +724,7 @@ class Document extends DataClass implements Insertable<Document> {
     titleEdited,
     category,
     categoryManual,
+    hasFormFields,
   );
   @override
   bool operator ==(Object other) =>
@@ -703,7 +745,8 @@ class Document extends DataClass implements Insertable<Document> {
           other.countedFree == this.countedFree &&
           other.titleEdited == this.titleEdited &&
           other.category == this.category &&
-          other.categoryManual == this.categoryManual);
+          other.categoryManual == this.categoryManual &&
+          other.hasFormFields == this.hasFormFields);
 }
 
 class DocumentsCompanion extends UpdateCompanion<Document> {
@@ -723,6 +766,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<bool> titleEdited;
   final Value<String?> category;
   final Value<bool> categoryManual;
+  final Value<bool> hasFormFields;
   const DocumentsCompanion({
     this.id = const Value.absent(),
     this.uuid = const Value.absent(),
@@ -740,6 +784,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.titleEdited = const Value.absent(),
     this.category = const Value.absent(),
     this.categoryManual = const Value.absent(),
+    this.hasFormFields = const Value.absent(),
   });
   DocumentsCompanion.insert({
     this.id = const Value.absent(),
@@ -758,6 +803,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.titleEdited = const Value.absent(),
     this.category = const Value.absent(),
     this.categoryManual = const Value.absent(),
+    this.hasFormFields = const Value.absent(),
   }) : uuid = Value(uuid),
        title = Value(title),
        createdAt = Value(createdAt),
@@ -779,6 +825,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Expression<bool>? titleEdited,
     Expression<String>? category,
     Expression<bool>? categoryManual,
+    Expression<bool>? hasFormFields,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -797,6 +844,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       if (titleEdited != null) 'title_edited': titleEdited,
       if (category != null) 'category': category,
       if (categoryManual != null) 'category_manual': categoryManual,
+      if (hasFormFields != null) 'has_form_fields': hasFormFields,
     });
   }
 
@@ -817,6 +865,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Value<bool>? titleEdited,
     Value<String?>? category,
     Value<bool>? categoryManual,
+    Value<bool>? hasFormFields,
   }) {
     return DocumentsCompanion(
       id: id ?? this.id,
@@ -835,6 +884,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       titleEdited: titleEdited ?? this.titleEdited,
       category: category ?? this.category,
       categoryManual: categoryManual ?? this.categoryManual,
+      hasFormFields: hasFormFields ?? this.hasFormFields,
     );
   }
 
@@ -889,6 +939,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (categoryManual.present) {
       map['category_manual'] = Variable<bool>(categoryManual.value);
     }
+    if (hasFormFields.present) {
+      map['has_form_fields'] = Variable<bool>(hasFormFields.value);
+    }
     return map;
   }
 
@@ -910,7 +963,8 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('countedFree: $countedFree, ')
           ..write('titleEdited: $titleEdited, ')
           ..write('category: $category, ')
-          ..write('categoryManual: $categoryManual')
+          ..write('categoryManual: $categoryManual, ')
+          ..write('hasFormFields: $hasFormFields')
           ..write(')'))
         .toString();
   }
@@ -5150,6 +5204,7 @@ typedef $$DocumentsTableCreateCompanionBuilder =
       Value<bool> titleEdited,
       Value<String?> category,
       Value<bool> categoryManual,
+      Value<bool> hasFormFields,
     });
 typedef $$DocumentsTableUpdateCompanionBuilder =
     DocumentsCompanion Function({
@@ -5169,6 +5224,7 @@ typedef $$DocumentsTableUpdateCompanionBuilder =
       Value<bool> titleEdited,
       Value<String?> category,
       Value<bool> categoryManual,
+      Value<bool> hasFormFields,
     });
 
 final class $$DocumentsTableReferences
@@ -5300,6 +5356,11 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<bool> get categoryManual => $composableBuilder(
     column: $table.categoryManual,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get hasFormFields => $composableBuilder(
+    column: $table.hasFormFields,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5442,6 +5503,11 @@ class $$DocumentsTableOrderingComposer
     column: $table.categoryManual,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get hasFormFields => $composableBuilder(
+    column: $table.hasFormFields,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -5510,6 +5576,11 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<bool> get categoryManual => $composableBuilder(
     column: $table.categoryManual,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get hasFormFields => $composableBuilder(
+    column: $table.hasFormFields,
     builder: (column) => column,
   );
 
@@ -5608,6 +5679,7 @@ class $$DocumentsTableTableManager
                 Value<bool> titleEdited = const Value.absent(),
                 Value<String?> category = const Value.absent(),
                 Value<bool> categoryManual = const Value.absent(),
+                Value<bool> hasFormFields = const Value.absent(),
               }) => DocumentsCompanion(
                 id: id,
                 uuid: uuid,
@@ -5625,6 +5697,7 @@ class $$DocumentsTableTableManager
                 titleEdited: titleEdited,
                 category: category,
                 categoryManual: categoryManual,
+                hasFormFields: hasFormFields,
               ),
           createCompanionCallback:
               ({
@@ -5644,6 +5717,7 @@ class $$DocumentsTableTableManager
                 Value<bool> titleEdited = const Value.absent(),
                 Value<String?> category = const Value.absent(),
                 Value<bool> categoryManual = const Value.absent(),
+                Value<bool> hasFormFields = const Value.absent(),
               }) => DocumentsCompanion.insert(
                 id: id,
                 uuid: uuid,
@@ -5661,6 +5735,7 @@ class $$DocumentsTableTableManager
                 titleEdited: titleEdited,
                 category: category,
                 categoryManual: categoryManual,
+                hasFormFields: hasFormFields,
               ),
           withReferenceMapper: (p0) => p0
               .map(
