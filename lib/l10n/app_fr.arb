@@ -386,5 +386,10 @@
   "actionDone": "Terminé",
   "quickScan": "Numériser",
   "quickOpenPdf": "Ouvrir un PDF",
-  "quickLastDraft": "Remplir le dernier brouillon"
+  "quickLastDraft": "Remplir le dernier brouillon",
+  "sendSmallerFile": "Fichier plus léger",
+  "sendSmallerFileHint": "Photos en résolution réduite, pour les limites des e-mails et des envois",
+  "sendMakingSmaller": "Création d'une copie plus légère…",
+  "sendSizeChange": "{from} → {to}",
+  "sendAlreadySmall": "Ce fichier est déjà léger."
 }

@@ -386,5 +386,10 @@
   "actionDone": "Concluído",
   "quickScan": "Digitalizar",
   "quickOpenPdf": "Abrir um PDF",
-  "quickLastDraft": "Preencher o último rascunho"
+  "quickLastDraft": "Preencher o último rascunho",
+  "sendSmallerFile": "Arquivo menor",
+  "sendSmallerFileHint": "Fotos em resolução menor, para limites de e-mail e envio",
+  "sendMakingSmaller": "Criando uma cópia menor…",
+  "sendSizeChange": "{from} → {to}",
+  "sendAlreadySmall": "Este arquivo já é pequeno."
 }

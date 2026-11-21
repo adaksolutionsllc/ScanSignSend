@@ -1424,4 +1424,22 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get quickLastDraft => 'చివరి డ్రాఫ్ట్ నింపండి';
+
+  @override
+  String get sendSmallerFile => 'చిన్న ఫైల్';
+
+  @override
+  String get sendSmallerFileHint =>
+      'తక్కువ రిజల్యూషన్ ఫోటోలు, ఈమెయిల్ మరియు అప్‌లోడ్ పరిమితుల కోసం';
+
+  @override
+  String get sendMakingSmaller => 'చిన్న కాపీ తయారవుతోంది…';
+
+  @override
+  String sendSizeChange(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get sendAlreadySmall => 'ఈ ఫైల్ ఇప్పటికే చిన్నది.';
 }

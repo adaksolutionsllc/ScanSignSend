@@ -21,6 +21,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/edge_check_service.dart';
+import 'package:scan_sign_send/core/services/fillable_form_export_service.dart';
 import 'package:scan_sign_send/core/services/import_service.dart';
 import 'package:scan_sign_send/core/services/opened_file_service.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
@@ -544,6 +545,31 @@ void main() {
     );
     await _pause(tester, 600);
     await _capture(tester, 'settings_sorting');
+
+    // Send → Smaller file: a completed photo document gets a lighter copy,
+    // with both sizes shown.
+    final smallPhoto = await _tiltedPhoto(tmp, 'small', 'receipt_small.jpg');
+    final smallDoc = await container
+        .read(documentRepositoryProvider)
+        .createDocument('Receipt photo');
+    await container
+        .read(pageRepositoryProvider)
+        .addPage(documentId: smallDoc.id, pageIndex: 0, imagePath: smallPhoto);
+    final smallPdf = await container
+        .read(fillableFormExportServiceProvider)
+        .export(smallDoc.id);
+    await container
+        .read(documentRepositoryProvider)
+        .markCompleted(smallDoc.id, smallPdf);
+    router.go(AppRoutes.send.replaceAll(':docId', '${smallDoc.id}'));
+    await _waitFor(tester, find.byKey(const ValueKey('smaller-file')));
+    await tester.tap(find.byKey(const ValueKey('smaller-file')));
+    await _waitFor(tester, find.textContaining(' → '), seconds: 60);
+    await _pause(tester, 500);
+    await _capture(tester, 'send_smaller');
+    _mark(
+      'INFO:smaller file ${tester.widgetList<Text>(find.textContaining(' → ')).first.data}',
+    );
 
     // A finished document on the Send screen.
     final docId = await _pressedDocument(container);

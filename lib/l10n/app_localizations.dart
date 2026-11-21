@@ -2429,6 +2429,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fill last draft'**
   String get quickLastDraft;
+
+  /// No description provided for @sendSmallerFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller file'**
+  String get sendSmallerFile;
+
+  /// No description provided for @sendSmallerFileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower-resolution photos, for email and upload limits'**
+  String get sendSmallerFileHint;
+
+  /// No description provided for @sendMakingSmaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Making a smaller copy…'**
+  String get sendMakingSmaller;
+
+  /// No description provided for @sendSizeChange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} → {to}'**
+  String sendSizeChange(String from, String to);
+
+  /// No description provided for @sendAlreadySmall.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is already small.'**
+  String get sendAlreadySmall;
 }
 
 class _AppLocalizationsDelegate

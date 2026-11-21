@@ -1426,4 +1426,22 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get quickLastDraft => 'கடைசி வரைவை நிரப்பு';
+
+  @override
+  String get sendSmallerFile => 'சிறிய கோப்பு';
+
+  @override
+  String get sendSmallerFileHint =>
+      'குறைந்த தெளிவுத்திறன் கொண்ட புகைப்படங்கள், மின்னஞ்சல் மற்றும் பதிவேற்ற வரம்புகளுக்கு';
+
+  @override
+  String get sendMakingSmaller => 'சிறிய நகல் உருவாகிறது…';
+
+  @override
+  String sendSizeChange(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get sendAlreadySmall => 'இந்தக் கோப்பு ஏற்கனவே சிறியது.';
 }

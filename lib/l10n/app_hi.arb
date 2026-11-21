@@ -386,5 +386,10 @@
   "actionDone": "हो गया",
   "quickScan": "स्कैन करें",
   "quickOpenPdf": "PDF खोलें",
-  "quickLastDraft": "पिछला ड्राफ़्ट भरें"
+  "quickLastDraft": "पिछला ड्राफ़्ट भरें",
+  "sendSmallerFile": "छोटी फ़ाइल",
+  "sendSmallerFileHint": "कम रिज़ॉल्यूशन वाली फ़ोटो, ईमेल और अपलोड सीमाओं के लिए",
+  "sendMakingSmaller": "छोटी कॉपी बन रही है…",
+  "sendSizeChange": "{from} → {to}",
+  "sendAlreadySmall": "यह फ़ाइल पहले से छोटी है।"
 }

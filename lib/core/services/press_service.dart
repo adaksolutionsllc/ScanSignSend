@@ -1,12 +1,10 @@
 import 'dart:math' as math;
 import 'dart:io';
-import 'dart:typed_data' show Uint8List;
 import 'dart:ui' show Rect, Offset;
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +14,7 @@ import 'package:uuid/uuid.dart';
 import '../db/app_database.dart';
 import '../models/field_model.dart';
 import '../utils/path_resolver.dart';
+import 'page_image.dart';
 import 'pdf_geometry.dart';
 import 'shaped_text.dart';
 import 'document_repository.dart';
@@ -82,6 +81,9 @@ class _PressJob {
   /// Pre-rendered images of every string the PDF font can't shape (Hindi,
   /// Tamil, Telugu…), keyed by the string. See shaped_text.dart.
   final Map<String, ShapedText> shaped;
+
+  /// How page photos are scaled and compressed.
+  final PageImageQuality imageQuality;
   const _PressJob(
     this.pages,
     this.docTitle,
@@ -90,6 +92,7 @@ class _PressJob {
     this.cert,
     this.textSize,
     this.shaped,
+    this.imageQuality,
   );
 }
 
@@ -136,7 +139,21 @@ class PressService {
   ///
   /// The PDF assembly (image decode, page import, save) is CPU-heavy, so it
   /// runs in a background isolate via [compute] to keep the UI responsive.
-  Future<String> press(int docId, PressCertificateStrings cert) async {
+  Future<String> press(int docId, PressCertificateStrings cert) =>
+      _press(docId, cert, PageImageQuality.standard, copy: false);
+
+  /// A copy of a completed document's PDF with smaller page photos, for
+  /// sharing (Send → "Smaller file"). Written to the OS cache; the document
+  /// keeps its PDF. The certificate keeps the time it was completed.
+  Future<String> smallerCopy(int docId, PressCertificateStrings cert) =>
+      _press(docId, cert, PageImageQuality.smaller, copy: true);
+
+  Future<String> _press(
+    int docId,
+    PressCertificateStrings cert,
+    PageImageQuality quality, {
+    required bool copy,
+  }) async {
     final doc = await _docRepo.getById(docId);
     if (doc == null) throw StateError('Document $docId not found');
 
@@ -176,15 +193,19 @@ class PressService {
       );
     }
 
-    final dir = await getApplicationDocumentsDirectory();
-    final pressDir = Directory(p.join(dir.path, 'pressed'));
+    final dir = copy
+        ? await getApplicationCacheDirectory()
+        : await getApplicationDocumentsDirectory();
+    final pressDir = Directory(p.join(dir.path, copy ? 'smaller' : 'pressed'));
     await pressDir.create(recursive: true);
     final outPath = p.join(pressDir.path, '${const Uuid().v4()}.pdf');
 
+    // A copy keeps the original's time: completing sets updatedAt, and a
+    // completed document doesn't change after.
     final signedAt = DateFormat(
       cert.dateFormat,
       cert.localeName,
-    ).format(DateTime.now());
+    ).format(copy ? doc.updatedAt : DateTime.now());
     // Shape non-Latin text on this (UI) isolate — the PDF isolate can't.
     final shaped = <String, ShapedText>{};
     Future<void> shape(String text, {bool bold = false}) async {
@@ -227,11 +248,13 @@ class PressService {
       cert,
       doc.textSize,
       shaped,
+      quality,
     );
 
     // Run the flatten in a background isolate. compute() re-throws any error
     // on the caller side, so failures surface to the UI as normal.
     await compute(_buildPressedPdf, job);
+    if (copy) return outPath;
 
     // Mark document as pressed
     await _docRepo.updateDocument(
@@ -279,7 +302,14 @@ Future<void> _buildPressedPdf(_PressJob job) async {
       // the content landed in (the whole page for an imported page, the
       // letterboxed image for a scan).
       final content =
-          await _drawBackground(gfx, plan, pw, ph, sourceCache) ??
+          await _drawBackground(
+            gfx,
+            plan,
+            pw,
+            ph,
+            sourceCache,
+            job.imageQuality,
+          ) ??
           Rect.fromLTWH(0, 0, pw, ph);
       _drawFields(gfx, plan.fields, content, job.textSize, job.shaped);
     }
@@ -322,6 +352,7 @@ Future<Rect?> _drawBackground(
   double pw,
   double ph,
   Map<String, PdfDocument?> sourceCache,
+  PageImageQuality quality,
 ) async {
   final path = plan.imagePath;
 
@@ -353,11 +384,17 @@ Future<Rect?> _drawBackground(
     }
   }
 
-  // Scanned image page: apply the user's chosen filter, then draw.
+  // Scanned image page: the user's chosen filter, at the page's resolution.
   final imgFile = File(path);
   if (!imgFile.existsSync()) return null;
   final rawBytes = await imgFile.readAsBytes();
-  final processed = _applyFilter(rawBytes, plan.activeFilter);
+  final processed = pageImageForPdf(
+    rawBytes,
+    filter: plan.activeFilter,
+    pageW: pw,
+    pageH: ph,
+    quality: quality,
+  );
   final bgImage = PdfBitmap(processed);
   final iw = bgImage.width.toDouble();
   final ih = bgImage.height.toDouble();
@@ -368,30 +405,6 @@ Future<Rect?> _drawBackground(
   final dest = Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh);
   gfx.drawImage(bgImage, dest);
   return dest;
-}
-
-/// Applies the Review-screen filter to the raw image bytes so the pressed PDF
-/// matches what the user previewed. Returns JPEG bytes. On any decode failure
-/// it returns the original bytes unchanged.
-Uint8List _applyFilter(Uint8List rawBytes, String filter) {
-  if (filter == 'original') return rawBytes;
-  try {
-    final decoded = img.decodeImage(rawBytes);
-    if (decoded == null) return rawBytes;
-    final img.Image out;
-    switch (filter) {
-      case 'bw':
-        out = img.grayscale(decoded);
-      case 'enhanced':
-        // Mild contrast/brightness lift — mirrors the on-screen ColorFilter.
-        out = img.adjustColor(decoded, contrast: 1.2, brightness: 1.02);
-      default:
-        return rawBytes;
-    }
-    return img.encodeJpg(out, quality: 90);
-  } catch (_) {
-    return rawBytes;
-  }
 }
 
 void _drawFields(

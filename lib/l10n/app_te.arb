@@ -386,5 +386,10 @@
   "actionDone": "పూర్తయింది",
   "quickScan": "స్కాన్ చేయండి",
   "quickOpenPdf": "PDF తెరవండి",
-  "quickLastDraft": "చివరి డ్రాఫ్ట్ నింపండి"
+  "quickLastDraft": "చివరి డ్రాఫ్ట్ నింపండి",
+  "sendSmallerFile": "చిన్న ఫైల్",
+  "sendSmallerFileHint": "తక్కువ రిజల్యూషన్ ఫోటోలు, ఈమెయిల్ మరియు అప్‌లోడ్ పరిమితుల కోసం",
+  "sendMakingSmaller": "చిన్న కాపీ తయారవుతోంది…",
+  "sendSizeChange": "{from} → {to}",
+  "sendAlreadySmall": "ఈ ఫైల్ ఇప్పటికే చిన్నది."
 }

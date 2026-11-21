@@ -780,5 +780,20 @@
   "actionDone": "Done",
   "quickScan": "Scan",
   "quickOpenPdf": "Open a PDF",
-  "quickLastDraft": "Fill last draft"
+  "quickLastDraft": "Fill last draft",
+  "sendSmallerFile": "Smaller file",
+  "sendSmallerFileHint": "Lower-resolution photos, for email and upload limits",
+  "sendMakingSmaller": "Making a smaller copy…",
+  "sendSizeChange": "{from} → {to}",
+  "sendAlreadySmall": "This file is already small.",
+  "@sendSizeChange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  }
 }

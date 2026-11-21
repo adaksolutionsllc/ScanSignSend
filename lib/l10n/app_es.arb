@@ -386,5 +386,10 @@
   "actionDone": "Listo",
   "quickScan": "Escanear",
   "quickOpenPdf": "Abrir un PDF",
-  "quickLastDraft": "Rellenar el último borrador"
+  "quickLastDraft": "Rellenar el último borrador",
+  "sendSmallerFile": "Archivo más pequeño",
+  "sendSmallerFileHint": "Fotos con menos resolución, para límites de correo y subida",
+  "sendMakingSmaller": "Creando una copia más pequeña…",
+  "sendSizeChange": "{from} → {to}",
+  "sendAlreadySmall": "Este archivo ya es pequeño."
 }

@@ -29,7 +29,7 @@ what changes, in what order, and what still needs a decision.
 |---|---|---|---|
 | C1 | iOS Share Extension | 3–4 d | §3.7. Photos → Share → Scan Sign Send. Reuses the 1.3.0 batch import and edge check. Second App ID, App Group, profile. |
 | C2 | ✅ Home-screen quick actions | 0.5 d | §3.6. Scan, Open PDF, Fill my last draft. |
-| C3 | Smaller files | 1 d | Restored below (§3). 200 dpi default + "Smaller file" switch on Send. |
+| C3 | ✅ Smaller files | 1 d | Restored below (§3). 200 dpi default + "Smaller file" switch on Send. |
 | C4 | Password-protected PDF | 1.5 d + 0.5 d spike | Restored below (§3). PDFKit on iOS; dropped if the spike fails. |
 
 ### D. Voice — D1 IN, D2 ON HOLD (Arun, 2026-11-21)
@@ -114,6 +114,9 @@ device check, screenshots).
   on export so the live form doesn't link them.
 
 ### 3.11 Smaller files (1 d)
+- **Measured 2026-11-21** (10 synthetic camera-size pages, noisy): camera
+  28.6 MB → standard 3.9 MB → smaller 1.3 MB. JPEG 4:2:0; B&W stays three
+  equal channels (this encoder's one-channel JPEG decodes red).
 - **Always:** the press and fillable exports downscale scanned pages to 200
   dpi at the page size (an A4 page is ≈ 1654×2339 px) and re-encode at JPEG
   q85. Measure with the 10-page Phase 1 batch before settling the numbers.

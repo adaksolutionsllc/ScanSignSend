@@ -1421,4 +1421,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get quickLastDraft => 'Remplir le dernier brouillon';
+
+  @override
+  String get sendSmallerFile => 'Fichier plus léger';
+
+  @override
+  String get sendSmallerFileHint =>
+      'Photos en résolution réduite, pour les limites des e-mails et des envois';
+
+  @override
+  String get sendMakingSmaller => 'Création d\'une copie plus légère…';
+
+  @override
+  String sendSizeChange(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get sendAlreadySmall => 'Ce fichier est déjà léger.';
 }

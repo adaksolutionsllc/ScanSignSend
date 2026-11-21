@@ -386,5 +386,10 @@
   "actionDone": "முடிந்தது",
   "quickScan": "ஸ்கேன் செய்",
   "quickOpenPdf": "PDF-ஐத் திற",
-  "quickLastDraft": "கடைசி வரைவை நிரப்பு"
+  "quickLastDraft": "கடைசி வரைவை நிரப்பு",
+  "sendSmallerFile": "சிறிய கோப்பு",
+  "sendSmallerFileHint": "குறைந்த தெளிவுத்திறன் கொண்ட புகைப்படங்கள், மின்னஞ்சல் மற்றும் பதிவேற்ற வரம்புகளுக்கு",
+  "sendMakingSmaller": "சிறிய நகல் உருவாகிறது…",
+  "sendSizeChange": "{from} → {to}",
+  "sendAlreadySmall": "இந்தக் கோப்பு ஏற்கனவே சிறியது."
 }

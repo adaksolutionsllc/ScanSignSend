@@ -1411,4 +1411,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quickLastDraft => 'Fill last draft';
+
+  @override
+  String get sendSmallerFile => 'Smaller file';
+
+  @override
+  String get sendSmallerFileHint =>
+      'Lower-resolution photos, for email and upload limits';
+
+  @override
+  String get sendMakingSmaller => 'Making a smaller copy…';
+
+  @override
+  String sendSizeChange(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get sendAlreadySmall => 'This file is already small.';
 }

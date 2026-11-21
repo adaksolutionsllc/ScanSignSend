@@ -12,6 +12,9 @@ import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/services/app_lock_provider.dart';
 import '../../../core/services/review_prompt_service.dart';
+import '../../../core/services/fillable_form_export_service.dart';
+import '../../../core/services/press_service.dart';
+import '../../../shared/utils/file_size.dart';
 import '../../../shared/utils/share_pdf.dart';
 import '../../../core/services/template_service.dart';
 
@@ -55,6 +58,107 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       .watchFields(widget.docId)
       .first
       .then((f) => f.isNotEmpty);
+
+  // Only photos shrink: a document of imported PDF pages has nothing to gain.
+  late final Future<bool> _canShrink = ref
+      .read(pageRepositoryProvider)
+      .pagesOf(widget.docId)
+      .then((pages) => pages.any((pg) => !pg.imagePath.contains('#page=')));
+
+  /// Send → "Smaller file": on, and the copy once it's made.
+  bool _smaller = false;
+  bool _makingSmaller = false;
+  String? _smallerPath;
+
+  /// (original, smaller) sizes in bytes, once the copy is made.
+  (int, int)? _sizes;
+
+  /// A smaller copy that saved too little to be worth sending instead.
+  bool _alreadySmall = false;
+
+  /// Makes the smaller copy the first time the switch is turned on. A
+  /// completed document is re-pressed (same certificate date); a fillable
+  /// one, or one saved without fields, is exported again.
+  Future<void> _toggleSmaller(bool on, Document doc, String pdfPath) async {
+    setState(() => _smaller = on);
+    if (!on || _smallerPath != null || _makingSmaller) return;
+    final l10n = context.l10n;
+    final cert = PressCertificateStrings(
+      title: l10n.certTitle,
+      documentLabel: l10n.certDocument,
+      signedOnLabel: l10n.certSignedOn,
+      methodLabel: l10n.certMethod,
+      methodValue: l10n.certMethodValue,
+      noteLabel: l10n.certNote,
+      noteValue: l10n.certNoteValue,
+      dateFormat: l10n.certDateFormat,
+      localeName: Localizations.localeOf(context).toString(),
+    );
+    final pressed = doc.pressedPdfPath;
+    final viaPress = pressed != null && pressed != doc.fillablePdfPath;
+    final press = ref.read(pressServiceProvider);
+    final fillable = ref.read(fillableFormExportServiceProvider);
+    setState(() => _makingSmaller = true);
+    try {
+      final copy = viaPress
+          ? await press.smallerCopy(widget.docId, cert)
+          : await fillable.smallerCopy(widget.docId);
+      final before = File(pdfPath).lengthSync();
+      final after = File(copy).lengthSync();
+      if (!mounted) return;
+      setState(() {
+        _sizes = (before, after);
+        // Under a tenth smaller isn't worth a blurrier file.
+        _alreadySmall = after > before * 0.9;
+        if (_alreadySmall) {
+          _smaller = false;
+        } else {
+          _smallerPath = copy;
+        }
+      });
+    } catch (_) {
+      if (mounted) setState(() => _smaller = false);
+    } finally {
+      if (mounted) setState(() => _makingSmaller = false);
+    }
+  }
+
+  /// The file Share sends: the smaller copy when chosen and ready.
+  String _toShare(String pdfPath) =>
+      _smaller && _smallerPath != null ? _smallerPath! : pdfPath;
+
+  Widget _smallerSwitch(BuildContext context, Document doc, String pdfPath) {
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
+    final sizes = _sizes;
+    final subtitle = _makingSmaller
+        ? l10n.sendMakingSmaller
+        : _alreadySmall
+        ? l10n.sendAlreadySmall
+        : sizes != null
+        ? l10n.sendSizeChange(
+            formatFileSize(sizes.$1, locale),
+            formatFileSize(sizes.$2, locale),
+          )
+        : l10n.sendSmallerFileHint;
+    return SwitchListTile(
+      key: const ValueKey('smaller-file'),
+      contentPadding: EdgeInsets.zero,
+      secondary: _makingSmaller
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.compress),
+      title: Text(l10n.sendSmallerFile),
+      subtitle: Text(subtitle),
+      value: _smaller,
+      onChanged: _makingSmaller || _alreadySmall || _sharing
+          ? null
+          : (on) => _toggleSmaller(on, doc, pdfPath),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +231,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                               ? null
                               : () => _share(
                                   context,
-                                  pdfPath,
+                                  _toShare(pdfPath),
                                   doc?.title ??
                                       context.l10n.documentFallbackTitle,
                                 ),
@@ -147,6 +251,17 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                 : context.l10n.sendSharePressed,
                           ),
                         ),
+                      ),
+
+                    if (!_shared && pdfPath != null && doc != null)
+                      FutureBuilder<bool>(
+                        future: _canShrink,
+                        builder: (context, can) => can.data == true
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: _smallerSwitch(context, doc, pdfPath),
+                              )
+                            : const SizedBox.shrink(),
                       ),
 
                     if (!_shared && pdfPath != null) ...[
@@ -229,7 +344,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                         onPressed: pdfPath != null
                             ? () => _share(
                                 context,
-                                pdfPath,
+                                _toShare(pdfPath),
                                 doc?.title ??
                                     context.l10n.documentFallbackTitle,
                               )

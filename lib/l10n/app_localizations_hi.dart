@@ -1418,4 +1418,22 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get quickLastDraft => 'पिछला ड्राफ़्ट भरें';
+
+  @override
+  String get sendSmallerFile => 'छोटी फ़ाइल';
+
+  @override
+  String get sendSmallerFileHint =>
+      'कम रिज़ॉल्यूशन वाली फ़ोटो, ईमेल और अपलोड सीमाओं के लिए';
+
+  @override
+  String get sendMakingSmaller => 'छोटी कॉपी बन रही है…';
+
+  @override
+  String sendSizeChange(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get sendAlreadySmall => 'यह फ़ाइल पहले से छोटी है।';
 }

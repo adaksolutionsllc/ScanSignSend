@@ -15,6 +15,7 @@ import 'package:uuid/uuid.dart';
 import '../db/app_database.dart';
 import '../models/field_model.dart';
 import '../utils/path_resolver.dart';
+import 'page_image.dart';
 import 'document_repository.dart';
 import 'pdf_geometry.dart';
 
@@ -53,7 +54,19 @@ class FillableFormExportService {
   final FieldRepository _fieldRepo;
 
   /// Builds the fillable PDF and returns its path.
-  Future<String> export(int docId) async {
+  Future<String> export(int docId) =>
+      _export(docId, PageImageQuality.standard, copy: false);
+
+  /// A copy of the fillable PDF with smaller page photos, for sharing (Send
+  /// → "Smaller file"). Written to the OS cache; the document keeps its PDF.
+  Future<String> smallerCopy(int docId) =>
+      _export(docId, PageImageQuality.smaller, copy: true);
+
+  Future<String> _export(
+    int docId,
+    PageImageQuality quality, {
+    required bool copy,
+  }) async {
     final doc = await _docRepo.getById(docId);
     if (doc == null) throw StateError('Document $docId not found');
 
@@ -77,8 +90,10 @@ class FillableFormExportService {
       }
     }
 
-    final dir = await getApplicationDocumentsDirectory();
-    final outDir = Directory(p.join(dir.path, 'fillable'));
+    final dir = copy
+        ? await getApplicationCacheDirectory()
+        : await getApplicationDocumentsDirectory();
+    final outDir = Directory(p.join(dir.path, copy ? 'smaller' : 'fillable'));
     await outDir.create(recursive: true);
     final outPath = p.join(outDir.path, '${const Uuid().v4()}.pdf');
 
@@ -97,9 +112,13 @@ class FillableFormExportService {
       fonts: fonts,
       outPath: outPath,
       sourcePdfPath: sourcePdfPath,
+      imageQuality: quality,
       pages: [
         for (final pg in pages)
-          _PagePlan(imagePath: PathResolver.resolve(pg.imagePath)),
+          _PagePlan(
+            imagePath: PathResolver.resolve(pg.imagePath),
+            filter: pg.activeFilter,
+          ),
       ],
       fields: [
         for (final f in fields)
@@ -122,6 +141,7 @@ class FillableFormExportService {
     );
 
     await compute(_buildFillablePdf, job);
+    if (copy) return outPath;
 
     // This is a shareable snapshot, not a lock: `status`/`pressedPdfPath` are
     // deliberately untouched so the document stays reachable through fill/
@@ -151,6 +171,9 @@ class _ExportJob {
   final String? sourcePdfPath;
   final List<_PagePlan> pages;
   final List<_FieldPlan> fields;
+
+  /// How page photos are scaled and compressed.
+  final PageImageQuality imageQuality;
   const _ExportJob({
     this.textSize,
     this.fonts = const {},
@@ -158,12 +181,17 @@ class _ExportJob {
     required this.sourcePdfPath,
     required this.pages,
     required this.fields,
+    this.imageQuality = PageImageQuality.standard,
   });
 }
 
 class _PagePlan {
   final String imagePath;
-  const _PagePlan({required this.imagePath});
+
+  /// The Review filter ('original' | 'enhanced' | 'bw'), as the flattened
+  /// export applies it.
+  final String filter;
+  const _PagePlan({required this.imagePath, this.filter = 'original'});
 }
 
 class _FieldPlan {
@@ -369,7 +397,14 @@ void _buildPages(
     final pw = size.width, ph = size.height;
     final page = addEdgeToEdgePage(pdfDoc, size);
     final content =
-        _drawPageContent(page.graphics, plan.imagePath, pw, ph, sources) ??
+        _drawPageContent(
+          page.graphics,
+          plan,
+          pw,
+          ph,
+          sources,
+          job.imageQuality,
+        ) ??
         Rect.fromLTWH(0, 0, pw, ph);
     final onPage = job.fields.where((f) => f.pageIndex == i).toList();
     for (final f in onPage) {
@@ -381,14 +416,17 @@ void _buildPages(
   }
 }
 
-/// Draws [path] fitted (contain, centred) and returns the rect it occupies.
+/// Draws [plan]'s page fitted (contain, centred) and returns the rect it
+/// occupies. A photo gets its Review filter and is sized for the page.
 Rect? _drawPageContent(
   PdfGraphics gfx,
-  String path,
+  _PagePlan plan,
   double pw,
   double ph,
   Map<String, PdfDocument?> sources,
+  PageImageQuality quality,
 ) {
+  final path = plan.imagePath;
   Rect fit(double w, double h) {
     final scale = (w / pw > h / ph) ? pw / w : ph / h;
     return Rect.fromLTWH(
@@ -419,7 +457,15 @@ Rect? _drawPageContent(
     }
     final file = File(path);
     if (!file.existsSync()) return null;
-    final bmp = PdfBitmap(file.readAsBytesSync());
+    final bmp = PdfBitmap(
+      pageImageForPdf(
+        file.readAsBytesSync(),
+        filter: plan.filter,
+        pageW: pw,
+        pageH: ph,
+        quality: quality,
+      ),
+    );
     if (bmp.width <= 0 || bmp.height <= 0) return null;
     final dest = fit(bmp.width.toDouble(), bmp.height.toDouble());
     gfx.drawImage(bmp, dest);
