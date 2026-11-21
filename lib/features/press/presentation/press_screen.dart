@@ -104,7 +104,7 @@ class _PressScreenState extends ConsumerState<PressScreen> {
     );
   }
 
-  /// No fields: one way out, Save PDF. Flatten & Sign isn't offered — its
+  /// No fields: one way out, Save & Share. Flatten & Sign isn't offered — its
   /// certificate page records a signing, and there's nothing signed.
   Widget _saveWithoutFieldsBar(BuildContext context) {
     return SafeArea(
@@ -128,8 +128,8 @@ class _PressScreenState extends ConsumerState<PressScreen> {
                           if (mounted) setState(() => _busy = b);
                         },
                       ),
-                      icon: const Icon(Icons.picture_as_pdf_outlined),
-                      label: Text(context.l10n.pressSavePdf),
+                      icon: const Icon(Icons.ios_share),
+                      label: Text(context.l10n.saveAndShare),
                     ),
                   ),
                 ],

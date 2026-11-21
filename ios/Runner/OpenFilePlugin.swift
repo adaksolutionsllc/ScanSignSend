@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 /// Platform channel: "com.scansignsend/open_file"
 ///
-/// Receives PDFs the user opens with Scan Sign Send from Files, Mail, Safari
+/// Receives PDFs and photos the user opens with Scan Sign Send from Files, Mail, Safari
 /// or a share sheet ("Open in…"), declared by CFBundleDocumentTypes in
 /// Info.plist. Each one is copied into the app's temp folder and queued until
 /// Dart collects it, because a cold launch delivers the file before the
@@ -62,7 +62,7 @@ class OpenFilePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDelegate {
         var handled = false
         for context in contexts {
             let url = context.url
-            guard url.isFileURL, Self.isPdf(url),
+            guard url.isFileURL, Self.isSupported(url),
                   let copy = Self.copyToTemp(url) else { continue }
             pending.append(["path": copy.path, "name": url.lastPathComponent])
             handled = true
@@ -71,11 +71,13 @@ class OpenFilePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDelegate {
         return handled
     }
 
-    private static func isPdf(_ url: URL) -> Bool {
+    /// PDFs and the photo types the importer reads (CFBundleDocumentTypes).
+    private static func isSupported(_ url: URL) -> Bool {
         if let type = try? url.resourceValues(forKeys: [.contentTypeKey]).contentType {
-            return type.conforms(to: .pdf)
+            return [.pdf, .jpeg, .png, .heic, .heif].contains { type.conforms(to: $0) }
         }
-        return url.pathExtension.lowercased() == "pdf"
+        return ["pdf", "jpg", "jpeg", "png", "heic", "heif"]
+            .contains(url.pathExtension.lowercased())
     }
 
     /// Copies the opened file somewhere the app owns. iOS hands over either a

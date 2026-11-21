@@ -16,9 +16,11 @@ import java.util.concurrent.Executors
 /**
  * Platform channel: "com.scansignsend/open_file"
  *
- * Receives PDFs the user opens with Scan Sign Send from Files, Gmail, Drive, a
- * browser download or a share sheet (the VIEW / SEND intent filters in
- * AndroidManifest.xml). Each one is copied into the app's cache and queued
+ * Receives PDFs and photos the user opens with Scan Sign Send from Files,
+ * Gmail, Drive, a browser download or a share sheet (the VIEW / SEND /
+ * SEND_MULTIPLE intent filters in AndroidManifest.xml). Files that arrive in
+ * one intent are queued together, so Dart can make several photos one
+ * document. Each one is copied into the app's cache and queued
  * until Dart collects it, because a cold launch delivers the file before the
  * Flutter UI is listening.
  *
@@ -32,6 +34,15 @@ class OpenFileHandler(private val context: Context, messenger: BinaryMessenger) 
     private companion object {
         const val CHANNEL = "com.scansignsend/open_file"
         const val TAG = "OpenFileHandler"
+
+        /** Supported MIME types → the extension the importer recognises. */
+        val EXTENSIONS = mapOf(
+            "application/pdf" to "pdf",
+            "image/jpeg" to "jpg",
+            "image/png" to "png",
+            "image/heic" to "heic",
+            "image/heif" to "heif",
+        )
     }
 
     private val channel = MethodChannel(messenger, CHANNEL)
@@ -52,41 +63,51 @@ class OpenFileHandler(private val context: Context, messenger: BinaryMessenger) 
     }
 
     fun receive(intent: Intent?) {
-        val uri = pdfUri(intent) ?: return
+        val uris = supportedUris(intent)
+        if (uris.isEmpty()) return
         // The read grant from the sender lasts as long as this activity, but
         // the copy can take a moment for a large or cloud-backed file, so it
         // runs off the UI thread.
         io.execute {
-            val copy = copyToCache(uri) ?: return@execute
+            val copies = uris.mapNotNull { (uri, type) -> copyToCache(uri, type) }
+            if (copies.isEmpty()) return@execute
             main.post {
-                pending.add(mapOf("path" to copy.path, "name" to copy.name))
+                for (copy in copies) {
+                    pending.add(mapOf("path" to copy.path, "name" to copy.name))
+                }
                 channel.invokeMethod("pending", null)
             }
         }
     }
 
-    private fun pdfUri(intent: Intent?): Uri? {
-        intent ?: return null
-        val uri: Uri? = when (intent.action) {
-            Intent.ACTION_VIEW -> intent.data
+    /** The opened files the importer reads, each with its MIME type. */
+    private fun supportedUris(intent: Intent?): List<Pair<Uri, String>> {
+        intent ?: return emptyList()
+        @Suppress("DEPRECATION")
+        val uris: List<Uri> = when (intent.action) {
+            Intent.ACTION_VIEW -> listOfNotNull(intent.data)
             Intent.ACTION_SEND ->
-                @Suppress("DEPRECATION")
-                intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
-            else -> null
+                listOfNotNull(intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri)
+            Intent.ACTION_SEND_MULTIPLE ->
+                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM).orEmpty()
+            else -> emptyList()
         }
-        // content:// only: a file:// path would need storage permission,
-        // which this app deliberately doesn't hold.
-        if (uri?.scheme != "content") return null
-        val type = intent.type ?: context.contentResolver.getType(uri)
-        if (type != null && type != "application/pdf") return null
-        return uri
+        return uris.mapNotNull { uri ->
+            // content:// only: a file:// path would need storage permission,
+            // which this app deliberately doesn't hold.
+            if (uri.scheme != "content") return@mapNotNull null
+            // The resolver knows each file's own type; the intent's may be a
+            // wildcard such as image/* for several photos.
+            val type = context.contentResolver.getType(uri) ?: intent.type
+            if (type in EXTENSIONS) uri to type!! else null
+        }
     }
 
-    private fun copyToCache(uri: Uri): File? {
+    private fun copyToCache(uri: Uri, type: String): File? {
         return try {
             val dir = File(context.cacheDir, "opened/${UUID.randomUUID()}")
             dir.mkdirs()
-            val dest = File(dir, displayName(uri))
+            val dest = File(dir, displayName(uri, EXTENSIONS.getValue(type)))
             context.contentResolver.openInputStream(uri)?.use { input ->
                 dest.outputStream().use { input.copyTo(it) }
             } ?: return null
@@ -98,7 +119,7 @@ class OpenFileHandler(private val context: Context, messenger: BinaryMessenger) 
     }
 
     /** The file's own name (for the document title), made safe as a path. */
-    private fun displayName(uri: Uri): String {
+    private fun displayName(uri: Uri, extension: String): String {
         var name: String? = null
         try {
             context.contentResolver.query(
@@ -112,7 +133,10 @@ class OpenFileHandler(private val context: Context, messenger: BinaryMessenger) 
             .substringAfterLast('/')
             .replace(Regex("[\\\\:*?\"<>|\\x00-\\x1f]"), "_")
             .trim()
-            .ifEmpty { "Document.pdf" }
-        return if (safe.lowercase().endsWith(".pdf")) safe else "$safe.pdf"
+            .ifEmpty { "Document.$extension" }
+        val lower = safe.lowercase()
+        val known = EXTENSIONS.values.any { lower.endsWith(".$it") } ||
+            lower.endsWith(".jpeg")
+        return if (known) safe else "$safe.$extension"
     }
 }

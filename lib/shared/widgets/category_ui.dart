@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/db/app_database.dart';
 import '../../core/models/document_category.dart';
 import '../../core/services/category_repository.dart';
+import '../../core/services/document_repository.dart';
 import '../../core/services/document_sorter.dart';
 import '../../core/utils/l10n_ext.dart';
 import 'text_edit_dialog.dart';
@@ -222,3 +223,65 @@ final userCategoryNamesProvider = Provider<Map<int, String>>((ref) {
   final list = ref.watch(_userCategoriesProvider).valueOrNull ?? const [];
   return {for (final c in list) c.id: c.name};
 });
+
+/// "Sorted into Bills & receipts · Change", shown once a new document has
+/// been sorted, so the user sees the choice at once and can correct it.
+/// Nothing while the document has no category.
+class SortedIntoBar extends ConsumerStatefulWidget {
+  const SortedIntoBar({super.key, required this.docId});
+  final int docId;
+
+  @override
+  ConsumerState<SortedIntoBar> createState() => _SortedIntoBarState();
+}
+
+class _SortedIntoBarState extends ConsumerState<SortedIntoBar> {
+  // Created once — a fresh drift stream per build() re-subscribes each frame.
+  late final Stream<Document?> _doc = ref
+      .read(documentRepositoryProvider)
+      .watchById(widget.docId);
+
+  @override
+  Widget build(BuildContext context) {
+    final names = ref.watch(userCategoryNamesProvider);
+    return StreamBuilder<Document?>(
+      stream: _doc,
+      builder: (context, snap) {
+        final doc = snap.data;
+        final key = doc?.category;
+        if (doc == null || key == null) return const SizedBox.shrink();
+        final l10n = context.l10n;
+        final scheme = Theme.of(context).colorScheme;
+        return Material(
+          color: scheme.secondaryContainer,
+          child: InkWell(
+            onTap: () => showCategorySheet(context, ref, [doc]),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+              child: Row(
+                children: [
+                  Icon(
+                    categoryIcon(key),
+                    size: 20,
+                    color: scheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.reviewSortedInto(categoryLabel(l10n, key, names)),
+                      style: TextStyle(color: scheme.onSecondaryContainer),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => showCategorySheet(context, ref, [doc]),
+                    child: Text(l10n.actionChange),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

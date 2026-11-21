@@ -138,7 +138,7 @@
   "pressAddFields": "Ajouter des champs",
   "pressSavePdf": "Enregistrer en PDF",
   "saveNoFieldsTitle": "Enregistrer sans champs ?",
-  "saveNoFieldsBody": "Ce document n’a aucun champ à remplir ou à signer. Il sera enregistré en PDF, que vous pourrez conserver et partager.",
+  "saveNoFieldsBody": "Ce document n’a aucun champ à remplir ou à signer. Il sera enregistré comme PDF terminé, que vous pourrez conserver et partager.",
   "pressFailed": "Impossible de terminer le document : {error}",
   "pressWorking": "Traitement…",
   "pressNotFilled": "Non rempli",
@@ -349,5 +349,16 @@
   "aiSortLanguage": "Classés par mots-clés. Le classement par l'IA de l'appareil n'est pas encore disponible dans la langue de votre téléphone.",
   "aiSortUnsupported": "Classés par mots-clés. Ce téléphone ne prend pas en charge le classement par l'IA de l'appareil.",
   "aiSortOff": "Les documents ne sont pas classés. Choisissez vous-même la catégorie de chacun.",
-  "actionGotIt": "Compris"
+  "actionGotIt": "Compris",
+  "reviewSkipFieldsSave": "Ignorer les champs · Enregistrer et partager",
+  "saveAndShare": "Enregistrer et partager",
+  "reviewSortedInto": "Classé dans {category}",
+  "actionChange": "Modifier",
+  "cropTitle": "Vérifier les bords",
+  "cropHint": "Faites glisser les coins jusqu’aux bords du document.",
+  "cropUseWhole": "Garder l’image entière",
+  "cropApply": "Recadrer",
+  "cropChecking": "Vérification des bords…",
+  "cropFailed": "Impossible de recadrer cette page. L’image entière a été conservée.",
+  "importErrorMixed": "Choisissez un seul PDF, ou une ou plusieurs photos."
 }

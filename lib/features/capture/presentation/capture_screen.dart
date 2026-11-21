@@ -12,6 +12,7 @@ import 'dart:io';
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/document_sorter.dart';
+import '../../../core/services/edge_check_service.dart';
 import '../../../core/services/import_service.dart';
 import '../../../core/services/opened_file_service.dart';
 import '../../../core/services/free_usage_service.dart';
@@ -28,13 +29,13 @@ import '../../../core/services/app_lock_provider.dart';
 enum CaptureAction { scan, import }
 
 class CaptureScreen extends ConsumerStatefulWidget {
-  const CaptureScreen({super.key, this.action, this.openedFile});
+  const CaptureScreen({super.key, this.action, this.openedFiles});
 
   /// Started on open; cancelling it returns to where the user came from.
   final CaptureAction? action;
 
   /// A PDF opened with the app from Files, Mail, etc.; imported on open.
-  final OpenedFile? openedFile;
+  final List<OpenedFile>? openedFiles;
 
   @override
   ConsumerState<CaptureScreen> createState() => _CaptureScreenState();
@@ -47,14 +48,12 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   @override
   void initState() {
     super.initState();
-    final opened = widget.openedFile;
-    if (opened != null) {
+    final opened = widget.openedFiles;
+    if (opened != null && opened.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _importFile(
-            () => ref
-                .read(importServiceProvider)
-                .importOpenedPdf(opened.path, opened.name),
+            () => ref.read(importServiceProvider).importOpened(opened),
           );
         }
       });
@@ -77,7 +76,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   /// A cancelled scan/import that was started for the user (from a library
   /// button) leaves this screen too, instead of stranding them on it.
   void _leaveIfAutoStarted() {
-    final autoStarted = widget.action != null || widget.openedFile != null;
+    final autoStarted = widget.action != null || widget.openedFiles != null;
     if (autoStarted && mounted && context.canPop()) context.pop();
   }
 
@@ -148,6 +147,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     // finished (FreeUsageService).
     _nameFor = _namer(context);
     _sorter = ref.read(documentSorterProvider);
+    final edges = ref.read(edgeCheckServiceProvider);
     setState(() {
       _loading = true;
       _loadingMessageKey = 'importing';
@@ -161,8 +161,19 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       }
       await _enforcePageLimit(doc.id);
       _sortInBackground(doc.id);
+      // Photos (and photo-only PDFs) get their edges checked. Pages that
+      // need no fix are skipped, so most imports go straight on.
+      if (mounted) setState(() => _loadingMessageKey = 'edges');
+      final candidates = await edges.candidatesFor(doc.id);
       if (mounted) {
         setState(() => _loading = false);
+        if (candidates.isNotEmpty) {
+          context.pushReplacement(
+            AppRoutes.crop.replaceAll(':docId', '${doc.id}'),
+            extra: candidates,
+          );
+          return;
+        }
         // A PDF that already carries a fillable form goes straight to Fill
         // mode — its fields are ready to use. "Edit fields" there still lets
         // the user adjust or add to them.
@@ -184,6 +195,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             l10n.importErrorNoPages,
           ImportException(failure: ImportFailure.unreadableImage) =>
             l10n.importErrorUnreadableImage,
+          ImportException(failure: ImportFailure.mixedSelection) =>
+            l10n.importErrorMixed,
           _ => l10n.captureImportFailed('$e'),
         };
         ScaffoldMessenger.of(
@@ -341,6 +354,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   Text(switch (_loadingMessageKey) {
                     'saving' => context.l10n.captureSavingPages,
                     'importing' => context.l10n.captureImporting,
+                    'edges' => context.l10n.cropChecking,
                     _ => context.l10n.captureLaunching,
                   }, style: const TextStyle(color: Colors.white70)),
                 ],

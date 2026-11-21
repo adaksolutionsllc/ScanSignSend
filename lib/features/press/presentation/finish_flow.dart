@@ -38,8 +38,10 @@ Future<bool> mayFinishDocument(
 }
 
 /// Saves a document that has no fields as a plain PDF — the scanner /
-/// organiser use — after the user confirms, then opens Send. Counts as a
-/// finished document on the free tier, like any other.
+/// organiser use — after the user confirms, then opens Send. With nothing to
+/// fill, the PDF is already final, so the document is marked Completed
+/// (locked) like a flattened one. Counts as a finished document on the free
+/// tier, like any other.
 ///
 /// [onBusy] is told when the export starts and, on failure, ends (on success
 /// the route is replaced).
@@ -73,7 +75,7 @@ Future<void> saveWithoutFields(
         ),
         FilledButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: Text(l10n.pressSavePdf),
+          child: Text(l10n.saveAndShare),
         ),
       ],
     ),
@@ -83,7 +85,10 @@ Future<void> saveWithoutFields(
 
   onBusy?.call(true);
   try {
-    await ref.read(fillableFormExportServiceProvider).export(docId);
+    final path = await ref
+        .read(fillableFormExportServiceProvider)
+        .export(docId);
+    await ref.read(documentRepositoryProvider).markCompleted(docId, path);
     await ref.read(freeUsageServiceProvider).recordFinish(docId);
     router.pushReplacement(AppRoutes.send.replaceAll(':docId', '$docId'));
   } catch (e) {

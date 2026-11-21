@@ -478,7 +478,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveNoFieldsBody =>
-      'This document has no fields to fill or sign. It will be saved as a PDF that you can keep and share.';
+      'This document has no fields to fill or sign. It will be saved as a completed PDF that you can keep and share.';
 
   @override
   String pressFailed(String error) {
@@ -1252,4 +1252,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionGotIt => 'Got it';
+
+  @override
+  String get reviewSkipFieldsSave => 'Skip fields · Save & Share';
+
+  @override
+  String get saveAndShare => 'Save & Share';
+
+  @override
+  String reviewSortedInto(String category) {
+    return 'Sorted into $category';
+  }
+
+  @override
+  String get actionChange => 'Change';
+
+  @override
+  String get cropTitle => 'Check the edges';
+
+  @override
+  String get cropHint => 'Drag the corners to the edges of the document.';
+
+  @override
+  String get cropUseWhole => 'Use whole image';
+
+  @override
+  String get cropApply => 'Crop';
+
+  @override
+  String get cropChecking => 'Checking the edges…';
+
+  @override
+  String get cropFailed =>
+      'Could not crop this page. The whole image was kept.';
+
+  @override
+  String get importErrorMixed => 'Choose one PDF, or one or more photos.';
 }

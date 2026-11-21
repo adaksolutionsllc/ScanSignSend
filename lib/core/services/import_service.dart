@@ -19,13 +19,21 @@ import '../models/field_model.dart';
 import '../utils/path_resolver.dart';
 import 'acroform_labels.dart';
 import 'document_repository.dart';
+import 'opened_file_service.dart';
 import 'page_layout.dart';
 import 'page_layout_service.dart';
 import 'pdf_geometry.dart';
 
 /// Why an import failed. The service has no BuildContext, so it reports a
 /// cause and the calling screen renders the localized message.
-enum ImportFailure { unreadablePdf, emptyPdf, unreadableImage }
+enum ImportFailure {
+  unreadablePdf,
+  emptyPdf,
+  unreadableImage,
+
+  /// A PDF chosen together with other files: one PDF, or photos only.
+  mixedSelection,
+}
 
 class ImportException implements Exception {
   ImportException(this.failure);
@@ -76,25 +84,28 @@ class ImportService {
   final FieldRepository _fieldRepo;
   final _uuid = const Uuid();
 
-  /// Opens the system file picker and imports the selected file.
-  /// Returns the created Document, or null if the user cancelled.
+  static const _imageExtensions = {'.jpg', '.jpeg', '.png', '.heic', '.heif'};
+
+  static bool isImageFile(String path) =>
+      _imageExtensions.contains(p.extension(path).toLowerCase());
+
+  /// Opens the system file picker and imports the selection: one PDF, or one
+  /// or more photos (which become the pages of one document, in the order
+  /// picked). Returns the created Document, or null if the user cancelled.
   Future<Document?> pickAndImport() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'heic', 'heif'],
+      allowMultiple: true,
     );
     if (result == null || result.files.isEmpty) return null;
-    final file = result.files.single;
-    final path = file.path;
-    if (path == null) return null;
-
-    final ext = p.extension(path).toLowerCase();
+    final files = [
+      for (final f in result.files)
+        if (f.path != null) OpenedFile(path: f.path!, name: f.name),
+    ];
+    if (files.isEmpty) return null;
     try {
-      if (ext == '.pdf') {
-        return await _importPdf(path, file.name);
-      } else {
-        return await _importImage(path, file.name);
-      }
+      return await _importSelection(files);
     } finally {
       // The picker hands us a private copy in the app's temp folder; ours is
       // now under Documents, so don't leave a second copy of the user's
@@ -105,26 +116,43 @@ class ImportService {
     }
   }
 
-  /// Imports a PDF opened with the app from another app (see
-  /// OpenedFileService), then deletes the temporary copy it arrived as.
-  Future<Document> importOpenedPdf(String path, String name) async {
+  /// Imports files opened with the app from another app (see
+  /// OpenedFileService) — one PDF, or a group of photos as one document —
+  /// then deletes the temporary copies they arrived as.
+  Future<Document> importOpened(List<OpenedFile> files) async {
     try {
-      return await _importPdf(path, name);
+      return await _importSelection(files);
     } finally {
-      try {
-        await Directory(p.dirname(path)).delete(recursive: true);
-      } catch (_) {}
+      for (final f in files) {
+        try {
+          await Directory(p.dirname(f.path)).delete(recursive: true);
+        } catch (_) {}
+      }
     }
   }
 
-  Future<Document> _importImage(String imagePath, String name) async {
+  Future<Document> _importSelection(List<OpenedFile> files) async {
+    if (files.length == 1 && !isImageFile(files.single.path)) {
+      return _importPdf(files.single.path, files.single.name);
+    }
+    if (!files.every((f) => isImageFile(f.path))) {
+      throw ImportException(ImportFailure.mixedSelection);
+    }
+    return _importImages(files);
+  }
+
+  Future<Document> _importImages(List<OpenedFile> files) async {
     final id = _uuid.v4();
     final appDir = await getApplicationDocumentsDirectory();
     final dir = Directory(p.join(appDir.path, 'pages', id));
     await dir.create(recursive: true);
-    final dest = p.join(dir.path, 'page_0.jpg');
+    final dests = <String>[];
     try {
-      await _writeUprightJpeg(imagePath, dest);
+      for (var i = 0; i < files.length; i++) {
+        final dest = p.join(dir.path, 'page_$i.jpg');
+        await _writeUprightJpeg(files[i].path, dest);
+        dests.add(dest);
+      }
     } catch (_) {
       try {
         await dir.delete(recursive: true);
@@ -132,18 +160,20 @@ class ImportService {
       throw ImportException(ImportFailure.unreadableImage);
     }
 
-    final title = p.basenameWithoutExtension(name);
+    final title = p.basenameWithoutExtension(files.first.name);
     final docId = await _docRepo.transaction(() async {
       final doc = await _docRepo.createDocument(title);
-      await _pageRepo.addPage(
-        documentId: doc.id,
-        pageIndex: 0,
-        imagePath: dest,
-      );
+      for (var i = 0; i < dests.length; i++) {
+        await _pageRepo.addPage(
+          documentId: doc.id,
+          pageIndex: i,
+          imagePath: dests[i],
+        );
+      }
       await _docRepo.updateDocument(
         DocumentsCompanion(
           id: Value(doc.id),
-          pageCount: const Value(1),
+          pageCount: Value(dests.length),
           updatedAt: Value(DateTime.now()),
         ),
       );

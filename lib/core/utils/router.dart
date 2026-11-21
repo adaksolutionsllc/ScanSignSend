@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/library/presentation/library_screen.dart';
 import '../../features/capture/presentation/capture_screen.dart';
+import '../../features/review/presentation/crop_screen.dart';
 import '../../features/review/presentation/review_screen.dart';
 import '../../features/field_detection/presentation/field_detection_screen.dart';
 import '../../features/fill_mode/presentation/fill_mode_screen.dart';
@@ -12,6 +13,7 @@ import '../../features/send/presentation/send_screen.dart';
 import '../../features/library/presentation/search_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/viewer/presentation/document_viewer_screen.dart';
+import '../services/edge_check_service.dart';
 import '../services/opened_file_service.dart';
 import '../../features/settings/presentation/signatures_manager_screen.dart';
 import '../../features/settings/presentation/my_details_screen.dart';
@@ -21,6 +23,7 @@ class AppRoutes {
   static const library = '/';
   static const capture = '/capture';
   static const review = '/review/:docId';
+  static const crop = '/crop/:docId';
   static const fieldDetection = '/field-detection/:docId';
   static const fillMode = '/fill/:docId';
   static const signatureCapture = '/signature/:docId/:fieldId';
@@ -44,7 +47,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.capture,
         builder: (context, state) => CaptureScreen(
-          openedFile: state.extra as OpenedFile?,
+          openedFiles: state.extra as List<OpenedFile>?,
           action: switch (state.uri.queryParameters['action']) {
             'scan' => CaptureAction.scan,
             'import' => CaptureAction.import,
@@ -56,6 +59,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.review,
         builder: (context, state) =>
             ReviewScreen(docId: int.parse(state.pathParameters['docId']!)),
+      ),
+      GoRoute(
+        path: AppRoutes.crop,
+        builder: (context, state) {
+          final docId = int.parse(state.pathParameters['docId']!);
+          final candidates = state.extra as List<EdgeCandidate>?;
+          // The pages to check only travel in memory; without them (a
+          // restored route) there is nothing to ask, so show Review.
+          return candidates == null || candidates.isEmpty
+              ? ReviewScreen(docId: docId)
+              : CropScreen(docId: docId, candidates: candidates);
+        },
       ),
       GoRoute(
         path: AppRoutes.fieldDetection,

@@ -481,7 +481,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get saveNoFieldsBody =>
-      'Este documento não tem campos para preencher ou assinar. Será guardado como PDF, que pode manter e partilhar.';
+      'Este documento não tem campos para preencher ou assinar. Será guardado como PDF concluído, que pode manter e partilhar.';
 
   @override
   String pressFailed(String error) {
@@ -1260,4 +1260,40 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get actionGotIt => 'Entendi';
+
+  @override
+  String get reviewSkipFieldsSave => 'Ignorar campos · Guardar e partilhar';
+
+  @override
+  String get saveAndShare => 'Guardar e partilhar';
+
+  @override
+  String reviewSortedInto(String category) {
+    return 'Arquivado em $category';
+  }
+
+  @override
+  String get actionChange => 'Alterar';
+
+  @override
+  String get cropTitle => 'Verificar os contornos';
+
+  @override
+  String get cropHint => 'Arraste os cantos até aos limites do documento.';
+
+  @override
+  String get cropUseWhole => 'Usar a imagem inteira';
+
+  @override
+  String get cropApply => 'Recortar';
+
+  @override
+  String get cropChecking => 'A verificar os contornos…';
+
+  @override
+  String get cropFailed =>
+      'Não foi possível recortar esta página. A imagem inteira foi mantida.';
+
+  @override
+  String get importErrorMixed => 'Escolha um só PDF, ou uma ou mais fotos.';
 }

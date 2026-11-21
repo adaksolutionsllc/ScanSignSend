@@ -14,8 +14,9 @@
 	     avoids the export-compliance question on every TestFlight/App Store upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<!-- Lists the app under "Open in…" / the share sheet for PDFs from Files,
-	     Mail, Safari, etc. Alternate rank: we open PDFs, we don't own the type.
+	<!-- Lists the app under "Open in…" / the share sheet for PDFs and photos
+	     from Files, Mail, Safari, etc. Alternate rank: we open these types, we
+	     don't own them.
 	     Not in place: iOS hands over a copy, which OpenFilePlugin imports. -->
 	<key>CFBundleDocumentTypes</key>
 	<array>
@@ -29,6 +30,21 @@
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>com.adobe.pdf</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Image</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.jpeg</string>
+				<string>public.png</string>
+				<string>public.heic</string>
+				<string>public.heif</string>
 			</array>
 		</dict>
 	</array>

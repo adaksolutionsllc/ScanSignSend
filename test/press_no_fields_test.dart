@@ -58,7 +58,10 @@ void main() {
           supportedLocales: kSupportedLocales,
           routerConfig: GoRouter(
             routes: [
-              GoRoute(path: '/', builder: (_, _) => PressScreen(docId: docId)),
+              GoRoute(
+                path: '/',
+                builder: (_, _) => PressScreen(docId: docId),
+              ),
               GoRoute(
                 path: AppRoutes.send,
                 builder: (_, s) => Text('send ${s.pathParameters['docId']}'),
@@ -91,7 +94,7 @@ void main() {
         ),
       );
 
-  testWidgets('no fields: Save PDF asks first, and Cancel keeps the doc', (
+  testWidgets('no fields: Save & Share asks first, and Cancel keeps the doc', (
     tester,
   ) async {
     final docId = await newDoc(tester, withField: false);
@@ -100,9 +103,9 @@ void main() {
     expect(find.text(l10n.pressAddFields), findsOneWidget);
     expect(find.text(l10n.pressFlattenAndSign), findsNothing);
     expect(find.text(l10n.pressSaveDraft), findsNothing);
-    expect(button(tester, l10n.pressSavePdf).onPressed, isNotNull);
+    expect(button(tester, l10n.saveAndShare).onPressed, isNotNull);
 
-    await tester.tap(find.text(l10n.pressSavePdf));
+    await tester.tap(find.text(l10n.saveAndShare));
     await tester.pumpAndSettle();
     expect(find.text(l10n.saveNoFieldsTitle), findsOneWidget);
     expect(find.text(l10n.saveNoFieldsBody), findsOneWidget);
@@ -151,7 +154,7 @@ void main() {
     }
     expect(button(tester, l10n.pressSaveDraft).onPressed, isNotNull);
     expect(button(tester, l10n.pressFlattenAndSign).onPressed, isNotNull);
-    expect(find.text(l10n.pressSavePdf), findsNothing);
+    expect(find.text(l10n.saveAndShare), findsNothing);
     await close(tester);
   });
 }

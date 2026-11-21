@@ -138,7 +138,7 @@
   "pressAddFields": "Añadir campos",
   "pressSavePdf": "Guardar PDF",
   "saveNoFieldsTitle": "¿Guardar sin campos?",
-  "saveNoFieldsBody": "Este documento no tiene campos para rellenar ni firmar. Se guardará como un PDF que puedes conservar y compartir.",
+  "saveNoFieldsBody": "Este documento no tiene campos para rellenar ni firmar. Se guardará como un PDF completado que puedes conservar y compartir.",
   "pressFailed": "No se pudo completar el documento: {error}",
   "pressWorking": "Procesando…",
   "pressNotFilled": "Sin rellenar",
@@ -349,5 +349,16 @@
   "aiSortLanguage": "Ordenados por palabras clave. La ordenación con IA del dispositivo aún no está disponible en el idioma de tu teléfono.",
   "aiSortUnsupported": "Ordenados por palabras clave. Este teléfono no admite la ordenación con IA del dispositivo.",
   "aiSortOff": "Los documentos no se ordenan. Elige tú la categoría de cada uno.",
-  "actionGotIt": "Entendido"
+  "actionGotIt": "Entendido",
+  "reviewSkipFieldsSave": "Omitir campos · Guardar y compartir",
+  "saveAndShare": "Guardar y compartir",
+  "reviewSortedInto": "Clasificado en {category}",
+  "actionChange": "Cambiar",
+  "cropTitle": "Revisa los bordes",
+  "cropHint": "Arrastra las esquinas hasta los bordes del documento.",
+  "cropUseWhole": "Usar la imagen completa",
+  "cropApply": "Recortar",
+  "cropChecking": "Revisando los bordes…",
+  "cropFailed": "No se pudo recortar esta página. Se conservó la imagen completa.",
+  "importErrorMixed": "Elige un solo PDF, o una o varias fotos."
 }

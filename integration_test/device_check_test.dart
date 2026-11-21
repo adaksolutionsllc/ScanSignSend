@@ -22,7 +22,12 @@ import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/opened_file_service.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
+import 'package:scan_sign_send/core/utils/path_resolver.dart';
+import 'package:image/image.dart' as img;
+import 'package:scan_sign_send/core/models/document_model.dart';
 import 'package:scan_sign_send/features/fill_mode/presentation/fill_mode_screen.dart';
+import 'package:scan_sign_send/features/review/presentation/crop_screen.dart';
+import 'package:scan_sign_send/features/review/presentation/review_screen.dart';
 import 'package:scan_sign_send/shared/widgets/field_box.dart';
 import 'package:scan_sign_send/core/utils/router.dart';
 import 'package:scan_sign_send/features/library/presentation/library_screen.dart';
@@ -156,7 +161,7 @@ void main() {
     await _pause(tester, 500); // let the copy finish
     router.push(
       AppRoutes.capture,
-      extra: OpenedFile(path: w4.path, name: 'fw4.pdf'),
+      extra: [OpenedFile(path: w4.path, name: 'fw4.pdf')],
     );
     await _waitFor(tester, find.byType(FillModeScreen), seconds: 60);
     await _waitFor(tester, find.byType(FieldBox));
@@ -289,20 +294,73 @@ void main() {
     await tester.tap(find.text(l10n.actionCancel));
     await _pause(tester, 600);
 
-    // Straight after scanning: Save PDF on the Review screen keeps the scan as
-    // a plain PDF, after a confirmation, and opens Send.
+    // A tilted photo of a page, opened from Files: its edges are found and
+    // offered for confirmation; Crop straightens it before Review.
+    final photoPath = await _tiltedPhoto(tmp, 'photo', 'receipt_photo.jpg');
+    router.push(
+      AppRoutes.capture,
+      extra: [OpenedFile(path: photoPath, name: 'receipt_photo.jpg')],
+    );
+    await _waitFor(
+      tester,
+      find.byWidgetPredicate((w) => w is CropScreen || w is ReviewScreen),
+      seconds: 60,
+    );
+    expect(
+      find.byType(CropScreen),
+      findsOneWidget,
+      reason: 'no corner check for a tilted photo',
+    );
+    await _pause(tester, 1200);
+    await _capture(tester, 'photo_crop');
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    // The newest document (sorting may already have renamed it).
+    final photoDoc =
+        (await container.read(documentRepositoryProvider).watchAll().first)
+            .reduce((a, b) => a.id > b.id ? a : b);
+    final photoPage =
+        (await container.read(pageRepositoryProvider).pagesOf(photoDoc.id))
+            .single;
+    final cropped = img.decodeJpg(
+      await File(PathResolver.resolve(photoPage.imagePath)).readAsBytes(),
+    )!;
+    _mark('INFO:photo cropped to ${cropped.width}x${cropped.height}');
+    expect(cropped.width, lessThan(1200), reason: 'photo was not cropped');
+    await _pause(tester, 1500);
+    await _capture(tester, 'photo_cropped_review');
+
+    // A PDF that is only a photo of paper gets the same check; "Use whole
+    // image" keeps it as it was.
+    final photoPdf = await _photoOnlyPdf(tmp);
+    router.go(AppRoutes.library);
+    await _waitFor(tester, find.byType(LibraryScreen));
+    router.push(
+      AppRoutes.capture,
+      extra: [OpenedFile(path: photoPdf, name: 'photo_scan.pdf')],
+    );
+    await _waitFor(tester, find.byType(CropScreen), seconds: 60);
+    await _pause(tester, 1200);
+    await _capture(tester, 'photo_pdf_crop');
+    await tester.tap(find.text(l10n.cropUseWhole));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    _mark('INFO:photo-only pdf offered the corner check');
+
+    // Straight after scanning: "Skip fields · Save & Share" on the Review
+    // screen saves the scan as a finished (Completed) PDF, after a
+    // confirmation, and opens Send.
     final scanId = await _scannedDocument(container);
     router.go(AppRoutes.review.replaceAll(':docId', '$scanId'));
-    await _waitFor(tester, find.text(l10n.pressSavePdf));
+    await _waitFor(tester, find.text(l10n.reviewSkipFieldsSave));
     await _pause(tester, 1500);
     await _capture(tester, 'scan_review_save_pdf');
-    await tester.tap(find.text(l10n.pressSavePdf));
+    await tester.tap(find.text(l10n.reviewSkipFieldsSave));
     await _waitFor(tester, find.text(l10n.saveNoFieldsTitle));
     await _capture(tester, 'scan_save_confirm');
     await tester.tap(
       find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.text(l10n.pressSavePdf),
+        matching: find.text(l10n.saveAndShare),
       ),
     );
     await _waitFor(tester, find.byType(SendScreen), seconds: 60);
@@ -310,8 +368,9 @@ void main() {
     final scan = await container
         .read(documentRepositoryProvider)
         .getById(scanId);
-    expect(scan?.fillablePdfPath, isNotNull, reason: 'no PDF saved');
-    _mark('INFO:scan saved without fields');
+    expect(scan?.pressedPdfPath, isNotNull, reason: 'no PDF saved');
+    expect(scan?.statusEnum, DocumentStatus.pressed, reason: 'not Completed');
+    _mark('INFO:scan saved without fields as Completed');
 
     // Categories: the imported W-4 was sorted on its own (keywords on the
     // simulator, the phone's model where it has one). The Library shows the
@@ -424,6 +483,60 @@ void main() {
 }
 
 bool _leftApp = false;
+
+/// A photo of a white page lying tilted on a dark table, saved as a JPEG in
+/// its own folder under [tmp] (opened files are deleted with their folder).
+Future<String> _tiltedPhoto(Directory tmp, String folder, String name) async {
+  final image = img.Image(width: 1200, height: 1600);
+  img.fill(image, color: img.ColorRgb8(70, 58, 50));
+  img.fillPolygon(
+    image,
+    vertices: [
+      img.Point(220, 180),
+      img.Point(1010, 120),
+      img.Point(1060, 1420),
+      img.Point(160, 1460),
+    ],
+    color: img.ColorRgb8(246, 244, 238),
+  );
+  for (var i = 0; i < 12; i++) {
+    img.fillRect(
+      image,
+      x1: 330,
+      y1: 330 + i * 80,
+      x2: 900 - (i % 3) * 120,
+      y2: 344 + i * 80,
+      color: img.ColorRgb8(35, 35, 40),
+    );
+  }
+  final dir = Directory(p.join(tmp.path, 'opened_check', folder));
+  await dir.create(recursive: true);
+  final file = File(p.join(dir.path, name));
+  await file.writeAsBytes(img.encodeJpg(image, quality: 90));
+  return file.path;
+}
+
+/// A one-page PDF holding only that photo: no text layer, no fields.
+Future<String> _photoOnlyPdf(Directory tmp) async {
+  final jpg = await File(
+    await _tiltedPhoto(tmp, 'pdfsrc', 'page.jpg'),
+  ).readAsBytes();
+  final pdf = PdfDocument();
+  pdf.pageSettings.margins.all = 0;
+  final page = pdf.pages.add();
+  final size = page.getClientSize();
+  page.graphics.drawImage(
+    PdfBitmap(jpg),
+    Rect.fromLTWH(0, 0, size.width, size.height),
+  );
+  final bytes = await pdf.save();
+  pdf.dispose();
+  final dir = Directory(p.join(tmp.path, 'opened_check', 'pdf'));
+  await dir.create(recursive: true);
+  final file = File(p.join(dir.path, 'photo_scan.pdf'));
+  await file.writeAsBytes(bytes);
+  return file.path;
+}
 
 /// A freshly scanned one-page document: pages, no fields.
 Future<int> _scannedDocument(ProviderContainer container) async {

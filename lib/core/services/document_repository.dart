@@ -69,6 +69,18 @@ class DocumentRepository {
     _db.documents,
   )..where((t) => t.id.equals(companion.id.value))).write(companion);
 
+  /// Locks a document whose final PDF is [pdfPath], as PressService does
+  /// after flattening. Used for a scan saved without fields: with nothing to
+  /// fill, its plain PDF is already the finished one.
+  Future<void> markCompleted(int id, String pdfPath) => updateDocument(
+    DocumentsCompanion(
+      id: Value(id),
+      status: const Value('pressed'),
+      pressedPdfPath: Value(PathResolver.toStorable(pdfPath)),
+      updatedAt: Value(DateTime.now()),
+    ),
+  );
+
   /// Deletes the document, its rows, **and its files on disk**.
   ///
   /// Deleting only the rows used to leave every scanned page, the imported PDF
@@ -164,6 +176,10 @@ class DocumentRepository {
   Future<Document?> getById(int id) => (_db.select(
     _db.documents,
   )..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Stream<Document?> watchById(int id) => (_db.select(
+    _db.documents,
+  )..where((t) => t.id.equals(id))).watchSingleOrNull();
 }
 
 // ─── Pages ────────────────────────────────────────────────────────────────────

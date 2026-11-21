@@ -482,7 +482,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get saveNoFieldsBody =>
-      'இந்த ஆவணத்தில் நிரப்பவோ கையொப்பமிடவோ புலங்கள் இல்லை. இது PDF ஆகச் சேமிக்கப்படும்; அதை வைத்துக்கொண்டு பகிரலாம்.';
+      'இந்த ஆவணத்தில் நிரப்பவோ கையொப்பமிடவோ புலங்கள் இல்லை. இது முடிந்த PDF ஆகச் சேமிக்கப்படும்; அதை வைத்துக்கொண்டு பகிரலாம்.';
 
   @override
   String pressFailed(String error) {
@@ -1263,4 +1263,41 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get actionGotIt => 'சரி';
+
+  @override
+  String get reviewSkipFieldsSave => 'புலங்களைத் தவிர் · சேமித்துப் பகிர்';
+
+  @override
+  String get saveAndShare => 'சேமித்துப் பகிர்';
+
+  @override
+  String reviewSortedInto(String category) {
+    return '$category இல் வைக்கப்பட்டது';
+  }
+
+  @override
+  String get actionChange => 'மாற்று';
+
+  @override
+  String get cropTitle => 'ஓரங்களைச் சரிபார்';
+
+  @override
+  String get cropHint => 'மூலைகளை இழுத்து ஆவணத்தின் ஓரங்களில் வையுங்கள்.';
+
+  @override
+  String get cropUseWhole => 'முழுப் படத்தையும் வை';
+
+  @override
+  String get cropApply => 'செதுக்கு';
+
+  @override
+  String get cropChecking => 'ஓரங்கள் சரிபார்க்கப்படுகின்றன…';
+
+  @override
+  String get cropFailed =>
+      'இந்தப் பக்கத்தைச் செதுக்க முடியவில்லை. முழுப் படம் வைக்கப்பட்டது.';
+
+  @override
+  String get importErrorMixed =>
+      'ஒரு PDF அல்லது ஒன்று அல்லது அதற்கு மேற்பட்ட படங்களைத் தேர்ந்தெடுங்கள்.';
 }

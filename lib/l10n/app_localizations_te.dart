@@ -484,7 +484,7 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get saveNoFieldsBody =>
-      'ఈ పత్రంలో నింపడానికి లేదా సంతకం చేయడానికి ఫీల్డ్‌లు లేవు. ఇది PDFగా సేవ్ అవుతుంది; దాన్ని ఉంచుకుని షేర్ చేయవచ్చు.';
+      'ఈ పత్రంలో నింపడానికి లేదా సంతకం చేయడానికి ఫీల్డ్‌లు లేవు. ఇది పూర్తయిన PDFగా సేవ్ అవుతుంది; దాన్ని ఉంచుకుని షేర్ చేయవచ్చు.';
 
   @override
   String pressFailed(String error) {
@@ -1263,4 +1263,41 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get actionGotIt => 'సరే';
+
+  @override
+  String get reviewSkipFieldsSave => 'ఫీల్డ్‌లు దాటవేయి · సేవ్ చేసి షేర్ చేయి';
+
+  @override
+  String get saveAndShare => 'సేవ్ చేసి షేర్ చేయి';
+
+  @override
+  String reviewSortedInto(String category) {
+    return '$categoryలో ఉంచబడింది';
+  }
+
+  @override
+  String get actionChange => 'మార్చు';
+
+  @override
+  String get cropTitle => 'అంచులను తనిఖీ చేయండి';
+
+  @override
+  String get cropHint => 'మూలలను లాగి పత్రం అంచుల వద్ద ఉంచండి.';
+
+  @override
+  String get cropUseWhole => 'మొత్తం చిత్రాన్ని ఉంచు';
+
+  @override
+  String get cropApply => 'కత్తిరించు';
+
+  @override
+  String get cropChecking => 'అంచులు తనిఖీ చేస్తోంది…';
+
+  @override
+  String get cropFailed =>
+      'ఈ పేజీని కత్తిరించలేకపోయాం. మొత్తం చిత్రం ఉంచబడింది.';
+
+  @override
+  String get importErrorMixed =>
+      'ఒక PDFని, లేదా ఒకటి లేదా అంతకంటే ఎక్కువ ఫోటోలను ఎంచుకోండి.';
 }

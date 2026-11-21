@@ -138,7 +138,7 @@
   "pressAddFields": "Adicionar campos",
   "pressSavePdf": "Guardar PDF",
   "saveNoFieldsTitle": "Guardar sem campos?",
-  "saveNoFieldsBody": "Este documento não tem campos para preencher ou assinar. Será guardado como PDF, que pode manter e partilhar.",
+  "saveNoFieldsBody": "Este documento não tem campos para preencher ou assinar. Será guardado como PDF concluído, que pode manter e partilhar.",
   "pressFailed": "Não foi possível concluir o documento: {error}",
   "pressWorking": "A processar…",
   "pressNotFilled": "Por preencher",
@@ -349,5 +349,16 @@
   "aiSortLanguage": "Organizados por palavras-chave. A organização com a IA do dispositivo ainda não está disponível no idioma do seu telemóvel.",
   "aiSortUnsupported": "Organizados por palavras-chave. Este telemóvel não suporta a organização com a IA do dispositivo.",
   "aiSortOff": "Os documentos não são organizados. Escolha a categoria de cada um.",
-  "actionGotIt": "Entendi"
+  "actionGotIt": "Entendi",
+  "reviewSkipFieldsSave": "Ignorar campos · Guardar e partilhar",
+  "saveAndShare": "Guardar e partilhar",
+  "reviewSortedInto": "Arquivado em {category}",
+  "actionChange": "Alterar",
+  "cropTitle": "Verificar os contornos",
+  "cropHint": "Arraste os cantos até aos limites do documento.",
+  "cropUseWhole": "Usar a imagem inteira",
+  "cropApply": "Recortar",
+  "cropChecking": "A verificar os contornos…",
+  "cropFailed": "Não foi possível recortar esta página. A imagem inteira foi mantida.",
+  "importErrorMixed": "Escolha um só PDF, ou uma ou mais fotos."
 }

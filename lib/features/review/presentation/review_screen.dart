@@ -11,6 +11,7 @@ import '../../../core/services/page_raster_service.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../../shared/widgets/category_ui.dart';
 import '../../press/presentation/finish_flow.dart';
 
 enum PageFilter { original, enhanced, bw }
@@ -71,7 +72,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             return Center(child: Text(context.l10n.reviewNoPagesFound));
           }
 
-          return ReorderableListView.builder(
+          final list = ReorderableListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
             itemCount: _pages.length,
             onReorder: (oldIndex, newIndex) {
@@ -100,47 +101,54 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               );
             },
           );
+          // The category sorting chose lands a moment after the scan; show it
+          // here so a wrong one is corrected straight away.
+          return Column(
+            children: [
+              SortedIntoBar(docId: widget.docId),
+              Expanded(child: list),
+            ],
+          );
         },
       ),
-      // Detect Fields is the main path; Save PDF keeps a plain scan (the
-      // organiser use) without adding any fields.
+      // Detect Fields is the main path; skipping fields saves the scan as a
+      // finished PDF (the organiser use) and goes to Send.
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: _saving
               ? const SizedBox(
-                  height: 52,
+                  height: 100,
                   child: Center(child: CircularProgressIndicator()),
                 )
-              : SizedBox(
-                  height: 52,
-                  child: Row(
-                    children: [
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 52),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                        ),
-                        onPressed: _savePdf,
-                        icon: const Icon(Icons.picture_as_pdf_outlined),
-                        label: Text(context.l10n.pressSavePdf),
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 52),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 52),
-                          ),
-                          onPressed: _proceed,
-                          icon: const Icon(Icons.auto_awesome),
-                          label: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(context.l10n.reviewDetectFields),
-                          ),
-                        ),
+                      onPressed: _proceed,
+                      icon: const Icon(Icons.auto_awesome),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(context.l10n.reviewDetectFields),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                      ),
+                      onPressed: _savePdf,
+                      icon: const Icon(Icons.ios_share),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(context.l10n.reviewSkipFieldsSave),
+                      ),
+                    ),
+                  ],
                 ),
         ),
       ),

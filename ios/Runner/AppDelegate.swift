@@ -20,5 +20,6 @@ import UIKit
     BackupPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "BackupPlugin")!)
     EntitlementPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "EntitlementPlugin")!)
     OpenFilePlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "OpenFilePlugin")!)
+    EdgeDetectionPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "EdgeDetectionPlugin")!)
   }
 }

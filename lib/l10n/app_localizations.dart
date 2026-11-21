@@ -939,7 +939,7 @@ abstract class AppLocalizations {
   /// No description provided for @saveNoFieldsBody.
   ///
   /// In en, this message translates to:
-  /// **'This document has no fields to fill or sign. It will be saved as a PDF that you can keep and share.'**
+  /// **'This document has no fields to fill or sign. It will be saved as a completed PDF that you can keep and share.'**
   String get saveNoFieldsBody;
 
   /// No description provided for @pressFailed.
@@ -2207,6 +2207,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get actionGotIt;
+
+  /// No description provided for @reviewSkipFieldsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip fields · Save & Share'**
+  String get reviewSkipFieldsSave;
+
+  /// No description provided for @saveAndShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Share'**
+  String get saveAndShare;
+
+  /// No description provided for @reviewSortedInto.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted into {category}'**
+  String reviewSortedInto(String category);
+
+  /// No description provided for @actionChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get actionChange;
+
+  /// No description provided for @cropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the edges'**
+  String get cropTitle;
+
+  /// No description provided for @cropHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the corners to the edges of the document.'**
+  String get cropHint;
+
+  /// No description provided for @cropUseWhole.
+  ///
+  /// In en, this message translates to:
+  /// **'Use whole image'**
+  String get cropUseWhole;
+
+  /// No description provided for @cropApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop'**
+  String get cropApply;
+
+  /// No description provided for @cropChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the edges…'**
+  String get cropChecking;
+
+  /// No description provided for @cropFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not crop this page. The whole image was kept.'**
+  String get cropFailed;
+
+  /// No description provided for @importErrorMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one PDF, or one or more photos.'**
+  String get importErrorMixed;
 }
 
 class _AppLocalizationsDelegate

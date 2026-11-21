@@ -482,7 +482,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get saveNoFieldsBody =>
-      'Ce document n’a aucun champ à remplir ou à signer. Il sera enregistré en PDF, que vous pourrez conserver et partager.';
+      'Ce document n’a aucun champ à remplir ou à signer. Il sera enregistré comme PDF terminé, que vous pourrez conserver et partager.';
 
   @override
   String pressFailed(String error) {
@@ -1258,4 +1258,43 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get actionGotIt => 'Compris';
+
+  @override
+  String get reviewSkipFieldsSave =>
+      'Ignorer les champs · Enregistrer et partager';
+
+  @override
+  String get saveAndShare => 'Enregistrer et partager';
+
+  @override
+  String reviewSortedInto(String category) {
+    return 'Classé dans $category';
+  }
+
+  @override
+  String get actionChange => 'Modifier';
+
+  @override
+  String get cropTitle => 'Vérifier les bords';
+
+  @override
+  String get cropHint =>
+      'Faites glisser les coins jusqu’aux bords du document.';
+
+  @override
+  String get cropUseWhole => 'Garder l’image entière';
+
+  @override
+  String get cropApply => 'Recadrer';
+
+  @override
+  String get cropChecking => 'Vérification des bords…';
+
+  @override
+  String get cropFailed =>
+      'Impossible de recadrer cette page. L’image entière a été conservée.';
+
+  @override
+  String get importErrorMixed =>
+      'Choisissez un seul PDF, ou une ou plusieurs photos.';
 }

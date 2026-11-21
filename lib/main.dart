@@ -173,17 +173,17 @@ class _MainApp extends ConsumerStatefulWidget {
 }
 
 class _MainAppState extends ConsumerState<_MainApp> {
-  StreamSubscription<OpenedFile>? _openedSub;
+  StreamSubscription<List<OpenedFile>>? _openedSub;
 
   @override
   void initState() {
     super.initState();
-    // PDFs opened with the app from Files, Mail, etc. Collected here rather
+    // Files opened with the app from Files, Mail, etc. Collected here rather
     // than at launch so one that arrives during onboarding waits (natively)
     // until the library exists, then goes through the normal import flow.
     final service = ref.read(openedFileServiceProvider);
     _openedSub = service.files.listen(
-      (file) => ref.read(routerProvider).push(AppRoutes.capture, extra: file),
+      (files) => ref.read(routerProvider).push(AppRoutes.capture, extra: files),
     );
     service.start();
     // Forms imported before 1.1.0 show internal field names; relabel them.

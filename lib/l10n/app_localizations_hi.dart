@@ -480,7 +480,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get saveNoFieldsBody =>
-      'इस दस्तावेज़ में भरने या साइन करने के लिए कोई फ़ील्ड नहीं है। इसे PDF के रूप में सहेजा जाएगा, जिसे आप रख और शेयर कर सकते हैं।';
+      'इस दस्तावेज़ में भरने या साइन करने के लिए कोई फ़ील्ड नहीं है। इसे पूर्ण PDF के रूप में सहेजा जाएगा, जिसे आप रख और शेयर कर सकते हैं।';
 
   @override
   String pressFailed(String error) {
@@ -1259,4 +1259,39 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get actionGotIt => 'ठीक है';
+
+  @override
+  String get reviewSkipFieldsSave => 'फ़ील्ड छोड़ें · सहेजें और शेयर करें';
+
+  @override
+  String get saveAndShare => 'सहेजें और शेयर करें';
+
+  @override
+  String reviewSortedInto(String category) {
+    return '$category में रखा गया';
+  }
+
+  @override
+  String get actionChange => 'बदलें';
+
+  @override
+  String get cropTitle => 'किनारे जाँचें';
+
+  @override
+  String get cropHint => 'कोनों को खींचकर दस्तावेज़ के किनारों पर रखें।';
+
+  @override
+  String get cropUseWhole => 'पूरी छवि रखें';
+
+  @override
+  String get cropApply => 'क्रॉप करें';
+
+  @override
+  String get cropChecking => 'किनारे जाँचे जा रहे हैं…';
+
+  @override
+  String get cropFailed => 'यह पेज क्रॉप नहीं हो सका। पूरी छवि रखी गई।';
+
+  @override
+  String get importErrorMixed => 'एक PDF चुनें, या एक या अधिक फ़ोटो।';
 }

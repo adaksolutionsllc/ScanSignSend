@@ -57,9 +57,9 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Offers the app for PDFs opened from Files, Gmail, Drive, a
-                 browser download, etc., so the user can pick it (or set it as
-                 the default) for PDFs. SEND adds it to the share sheet. The
+            <!-- Offers the app for PDFs and photos opened from Files, Gmail,
+                 Drive, a browser download, etc., so the user can pick it (or
+                 set it as the default) for them. SEND adds it to the share sheet. The
                  sender grants read access to that one URI; no storage
                  permission is involved. Handled by OpenFileHandler. -->
             <intent-filter>
@@ -67,11 +67,25 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:scheme="content"/>
                 <data android:mimeType="application/pdf"/>
+                <data android:mimeType="image/jpeg"/>
+                <data android:mimeType="image/png"/>
+                <data android:mimeType="image/heic"/>
+                <data android:mimeType="image/heif"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="application/pdf"/>
+                <data android:mimeType="image/jpeg"/>
+                <data android:mimeType="image/png"/>
+                <data android:mimeType="image/heic"/>
+                <data android:mimeType="image/heif"/>
+            </intent-filter>
+            <!-- Several photos shared at once become one document. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
             </intent-filter>
         </activity>
         <meta-data

@@ -272,7 +272,7 @@
   "pressAddFields": "Add Fields",
   "pressSavePdf": "Save PDF",
   "saveNoFieldsTitle": "Save without fields?",
-  "saveNoFieldsBody": "This document has no fields to fill or sign. It will be saved as a PDF that you can keep and share.",
+  "saveNoFieldsBody": "This document has no fields to fill or sign. It will be saved as a completed PDF that you can keep and share.",
   "pressFailed": "Couldn't finish the document: {error}",
   "@pressFailed": {
     "placeholders": {
@@ -681,5 +681,23 @@
   "aiSortLanguage": "Sorted by keywords. On-device AI sorting isn't available in your phone's language yet.",
   "aiSortUnsupported": "Sorted by keywords. This phone doesn't support on-device AI sorting.",
   "aiSortOff": "Documents aren't sorted. Choose a category for each one yourself.",
-  "actionGotIt": "Got it"
+  "actionGotIt": "Got it",
+  "reviewSkipFieldsSave": "Skip fields · Save & Share",
+  "saveAndShare": "Save & Share",
+  "reviewSortedInto": "Sorted into {category}",
+  "@reviewSortedInto": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "actionChange": "Change",
+  "cropTitle": "Check the edges",
+  "cropHint": "Drag the corners to the edges of the document.",
+  "cropUseWhole": "Use whole image",
+  "cropApply": "Crop",
+  "cropChecking": "Checking the edges…",
+  "cropFailed": "Could not crop this page. The whole image was kept.",
+  "importErrorMixed": "Choose one PDF, or one or more photos."
 }
