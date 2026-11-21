@@ -9,6 +9,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
@@ -548,7 +549,7 @@ void main() {
 
     // Send → Smaller file: a completed photo document gets a lighter copy,
     // with both sizes shown.
-    final smallPhoto = await _tiltedPhoto(tmp, 'small', 'receipt_small.jpg');
+    final smallPhoto = await _cameraPhoto(tmp);
     final smallDoc = await container
         .read(documentRepositoryProvider)
         .createDocument('Receipt photo');
@@ -631,6 +632,34 @@ void main() {
 }
 
 bool _leftApp = false;
+
+/// A camera-sized photo of a printed page: paper texture, slight shading
+/// and lines of text, so it compresses like a real one.
+Future<String> _cameraPhoto(Directory tmp) async {
+  final r = Random(5);
+  final image = img.Image(width: 2016, height: 2688);
+  for (var y = 0; y < image.height; y++) {
+    final shade = 236 - (y * 20 ~/ image.height);
+    for (var x = 0; x < image.width; x++) {
+      final n = shade + r.nextInt(12) - 6;
+      image.setPixelRgb(x, y, n, n, n - 5);
+    }
+  }
+  for (var line = 0; line < 30; line++) {
+    img.fillRect(
+      image,
+      x1: 180,
+      y1: 220 + line * 75,
+      x2: 180 + 600 + r.nextInt(1100),
+      y2: 238 + line * 75,
+      color: img.ColorRgb8(40, 40, 46),
+    );
+  }
+  final dir = Directory(p.join(tmp.path, 'camera'))..createSync();
+  final file = File(p.join(dir.path, 'page.jpg'));
+  await file.writeAsBytes(img.encodeJpg(image, quality: 92));
+  return file.path;
+}
 
 /// A photo of a white page lying tilted on a dark table, saved as a JPEG in
 /// its own folder under [tmp] (opened files are deleted with their folder).
