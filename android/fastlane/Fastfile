@@ -38,9 +38,11 @@ platform :android do
     build = File.read("../../pubspec.yaml")[/^version:\s*[\d.]+\+(\d+)/, 1]
     upload_to_play_store(
       package_name: "com.adakventures.scansignsend",
-      # supply attaches listing uploads to a release; the live one.
+      # supply attaches listing uploads to a release; the live one. Before a
+      # new build reaches production, name the live code with
+      # PLAY_LISTING_VERSION_CODE (see google_play_track_version_codes).
       track: "production",
-      version_code: build.to_i,
+      version_code: (ENV["PLAY_LISTING_VERSION_CODE"] || build).to_i,
       json_key: ENV["GOOGLE_PLAY_JSON_KEY"],
       metadata_path: "./fastlane/metadata/android",
       skip_upload_aab: true,
