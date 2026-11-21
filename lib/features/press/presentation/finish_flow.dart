@@ -88,8 +88,10 @@ Future<void> saveWithoutFields(
     final path = await ref
         .read(fillableFormExportServiceProvider)
         .export(docId);
-    await ref.read(documentRepositoryProvider).markCompleted(docId, path);
+    // Counted before it's locked: a finished PDF must never escape the
+    // free-tier count because the count failed.
     await ref.read(freeUsageServiceProvider).recordFinish(docId);
+    await ref.read(documentRepositoryProvider).markCompleted(docId, path);
     router.pushReplacement(AppRoutes.send.replaceAll(':docId', '$docId'));
   } catch (e) {
     onBusy?.call(false);

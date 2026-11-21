@@ -2279,6 +2279,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Home'**
   String get sendHome;
+
+  /// No description provided for @searchPageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 page} other{{count} pages}}'**
+  String searchPageCount(int count);
 }
 
 class _AppLocalizationsDelegate

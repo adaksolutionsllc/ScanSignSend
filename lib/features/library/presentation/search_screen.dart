@@ -80,9 +80,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   },
                 ),
                 title: Text(doc.title),
-                subtitle: Text(
-                  '${doc.pageCount} page${doc.pageCount == 1 ? '' : 's'}',
-                ),
+                subtitle: Text(context.l10n.searchPageCount(doc.pageCount)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(
                   status == DocumentStatus.pressed

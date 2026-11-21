@@ -53,20 +53,34 @@ class OnDeviceAiService {
 
   OnDeviceAiStatus? _status;
 
+  /// Answers that can change while the app runs: the model may finish
+  /// downloading, or the user may switch Apple Intelligence on. They are
+  /// asked again each time rather than kept.
+  static const _passing = {
+    OnDeviceAiStatus.notReady,
+    OnDeviceAiStatus.notEnabled,
+  };
+
   Future<OnDeviceAiStatus> status({bool refresh = false}) async {
     if (!refresh && _status != null) return _status!;
     try {
       final raw = await _channel
           .invokeMethod<String>('status')
           .timeout(const Duration(seconds: 3));
-      _status = OnDeviceAiStatus.values.firstWhere(
+      final answer = OnDeviceAiStatus.values.firstWhere(
         (s) => s.name == raw,
         orElse: () => OnDeviceAiStatus.unsupported,
       );
+      _status = _passing.contains(answer) ? null : answer;
+      return answer;
+    } on MissingPluginException {
+      // No handler on this platform (or in tests): that never changes.
+      return _status = OnDeviceAiStatus.unsupported;
     } catch (_) {
-      _status = OnDeviceAiStatus.unsupported;
+      // A timeout or a busy channel (say, at launch) isn't an answer: use
+      // keywords this time and ask again next time.
+      return OnDeviceAiStatus.unsupported;
     }
-    return _status!;
   }
 
   /// The built-in category the model picks for the document, or null when

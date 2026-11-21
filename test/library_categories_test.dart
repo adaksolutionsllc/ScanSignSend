@@ -121,6 +121,27 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('a filter whose last document leaves is cleared', (tester) async {
+    final id = await addDoc(tester, 'W-4', 'tax');
+    await addDoc(tester, 'Notes', null);
+    await open(tester);
+    await tester.tap(find.widgetWithText(ChoiceChip, l10n.categoryTax));
+    await settle(tester);
+    expect(find.text('Notes'), findsNothing);
+
+    // The W-4 leaves Tax: no chips are left, and the filter must go too.
+    await tester.runAsync(
+      () => DocumentRepository(db).updateDocument(
+        DocumentsCompanion(id: Value(id), category: const Value(null)),
+      ),
+    );
+    await settle(tester);
+    expect(find.byType(ChoiceChip), findsNothing);
+    expect(find.text('Notes'), findsOneWidget);
+    expect(find.text('W-4'), findsOneWidget);
+    await close(tester);
+  });
+
   testWidgets('changing a category from the card sticks as the user’s choice', (
     tester,
   ) async {

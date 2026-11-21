@@ -11,7 +11,8 @@ import UniformTypeIdentifiers
 /// Flutter UI is listening.
 ///
 /// Methods:
-///   Dart → native  "takePending" → [{path: String, name: String}]
+///   Dart → native  "takePending" → [{path: String, name: String, batch: String}]
+///                  (files opened together share a batch)
 ///   native → Dart  "pending"     — a file was queued; call takePending
 /// See OpenedFileService (Dart).
 class OpenFilePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDelegate {
@@ -60,11 +61,12 @@ class OpenFilePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDelegate {
 
     private func receive(_ contexts: Set<UIOpenURLContext>) -> Bool {
         var handled = false
+        let batch = UUID().uuidString
         for context in contexts {
             let url = context.url
             guard url.isFileURL, Self.isSupported(url),
                   let copy = Self.copyToTemp(url) else { continue }
-            pending.append(["path": copy.path, "name": url.lastPathComponent])
+            pending.append(["path": copy.path, "name": url.lastPathComponent, "batch": batch])
             handled = true
         }
         if handled { channel?.invokeMethod("pending", arguments: nil) }

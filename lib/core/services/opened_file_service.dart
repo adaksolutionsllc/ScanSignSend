@@ -6,13 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// A PDF or photo the user opened with this app from somewhere else.
 class OpenedFile {
-  const OpenedFile({required this.path, required this.name});
+  const OpenedFile({required this.path, required this.name, this.batch});
 
   /// The app's own temporary copy; deleted once imported.
   final String path;
 
   /// The original file name, used for the document title.
   final String name;
+
+  /// Files opened in one go (one share, one "Open in…") share a batch.
+  final String? batch;
 }
 
 final openedFileServiceProvider = Provider<OpenedFileService>((ref) {
@@ -57,6 +60,7 @@ class OpenedFileService {
             OpenedFile(
               path: m['path'] as String,
               name: (m['name'] as String?) ?? 'Document',
+              batch: m['batch'] as String?,
             ),
       ];
       for (final group in groupOpened(files)) {
@@ -69,15 +73,20 @@ class OpenedFileService {
     }
   }
 
-  /// Each PDF alone; every photo together, in arrival order.
+  /// Each PDF alone; the photos of one batch together, in arrival order.
+  /// Photos opened separately (say, two shares while the app was starting)
+  /// stay separate documents.
   @visibleForTesting
   static List<List<OpenedFile>> groupOpened(List<OpenedFile> files) {
     bool isImage(OpenedFile f) => _imageExtension.hasMatch(f.name);
-    final photos = files.where(isImage).toList();
+    final photos = <String?, List<OpenedFile>>{};
+    for (final f in files.where(isImage)) {
+      (photos[f.batch] ??= []).add(f);
+    }
     return [
       for (final f in files)
         if (!isImage(f)) [f],
-      if (photos.isNotEmpty) photos,
+      ...photos.values,
     ];
   }
 

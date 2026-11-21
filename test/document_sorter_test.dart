@@ -76,6 +76,7 @@ void main() {
     for (final t in [
       'Document 2026-10-23',
       'Documento 2026-10-23',
+      'ஆவணம் 2026-10-23',
       'IMG_2041',
       'PXL_20261023_101200',
       'WhatsApp Image 2026-10-23 at 10.12.01',
@@ -84,7 +85,12 @@ void main() {
     ]) {
       expect(DocumentSorter.looksGenerated(t), isTrue, reason: t);
     }
-    for (final t in ['Lease', 'Rental application', 'Imagine form']) {
+    for (final t in [
+      'Lease',
+      'Rental application',
+      'Imagine form',
+      'Lease 2026-10-23',
+    ]) {
       expect(DocumentSorter.looksGenerated(t), isFalse, reason: t);
     }
   });
@@ -238,6 +244,31 @@ void main() {
       await sorter.setByUser(d, 'work');
       await sorter.sortNew(d.id, nameFor: (t) => t);
       expect(await categoryOf(d.id), 'work');
+    });
+
+    test('backfill asks the model at most the limit, sure or not', () async {
+      model.answer = null; // "not sure" every time
+      for (var i = 0; i < DocumentSorter.backfillModelLimit + 10; i++) {
+        final d = await doc('Old $i');
+        await docs.updateDocument(
+          DocumentsCompanion(
+            id: Value(d.id),
+            ocrText: const Value('Some words on a page.'),
+          ),
+        );
+      }
+      await sorter.backfillOnce();
+      expect(model.classifyCalls, DocumentSorter.backfillModelLimit);
+    });
+
+    test('a passing model status is asked again, not kept', () async {
+      final ai = OnDeviceAiService();
+      model.status = 'notReady';
+      expect(await ai.status(), OnDeviceAiStatus.notReady);
+      model.status = 'available';
+      expect(await ai.status(), OnDeviceAiStatus.available);
+      model.status = 'notReady';
+      expect(await ai.status(), OnDeviceAiStatus.available, reason: 'kept');
     });
 
     test('backfill sorts old documents once from their stored text', () async {

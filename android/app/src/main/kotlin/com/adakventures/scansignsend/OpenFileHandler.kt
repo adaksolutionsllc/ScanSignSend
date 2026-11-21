@@ -25,7 +25,8 @@ import java.util.concurrent.Executors
  * Flutter UI is listening.
  *
  * Methods:
- *   Dart → native  "takePending" → [{path: String, name: String}]
+ *   Dart → native  "takePending" → [{path: String, name: String, batch: String}]
+ *                  (files from one intent share a batch)
  *   native → Dart  "pending"     — a file was queued; call takePending
  * See OpenedFileService (Dart).
  */
@@ -71,9 +72,10 @@ class OpenFileHandler(private val context: Context, messenger: BinaryMessenger) 
         io.execute {
             val copies = uris.mapNotNull { (uri, type) -> copyToCache(uri, type) }
             if (copies.isEmpty()) return@execute
+            val batch = UUID.randomUUID().toString()
             main.post {
                 for (copy in copies) {
-                    pending.add(mapOf("path" to copy.path, "name" to copy.name))
+                    pending.add(mapOf("path" to copy.path, "name" to copy.name, "batch" to batch))
                 }
                 channel.invokeMethod("pending", null)
             }

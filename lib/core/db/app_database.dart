@@ -22,7 +22,9 @@ class Documents extends Table {
   // Path to the pressed/flattened PDF; null until pressed. Setting this is
   // what locks the document (status becomes 'pressed') — it must never be
   // reused for the fillable export below, or exporting a shareable copy would
-  // also (wrongly) freeze the live document out of further editing.
+  // also (wrongly) freeze the live document out of further editing. The one
+  // deliberate exception: a document with no fields saved as it is
+  // (DocumentRepository.markCompleted) is final, so its export locks it.
   TextColumn get pressedPdfPath => text().nullable()();
   // Path to the last "Save as Fillable" AcroForm export (schema v3). Purely a
   // shareable snapshot — writing this does NOT change `status` or lock the

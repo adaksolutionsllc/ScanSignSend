@@ -915,6 +915,14 @@ class _CategoryFilterBar extends ConsumerWidget {
     final names = ref.watch(userCategoryNamesProvider);
     final used = <String>{for (final d in docs) ?d.category};
     final hasNone = docs.any((d) => d.category == null);
+    // The chosen category lost its last document (moved, or the category
+    // deleted): drop the filter, or the Library stays empty with no chip
+    // left to clear it.
+    final gone = selected == noCategory ? !hasNone : !used.contains(selected);
+    final loaded = ref.watch(_allDocumentsProvider).hasValue;
+    if (selected != null && loaded && gone) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => onSelected(null));
+    }
     if (used.isEmpty) return const SizedBox.shrink();
 
     final l10n = context.l10n;

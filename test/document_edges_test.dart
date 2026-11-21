@@ -171,6 +171,22 @@ void main() {
       ['b.JPG', 'c.heic'],
     ]);
     expect(OpenedFileService.groupOpened(const []), isEmpty);
+
+    // Photos from two separate opens stay two documents.
+    const p1 = OpenedFile(path: '/t/5/p.jpg', name: 'p.jpg', batch: 'x');
+    const p2 = OpenedFile(path: '/t/6/q.jpg', name: 'q.jpg', batch: 'x');
+    const p3 = OpenedFile(path: '/t/7/r.png', name: 'r.png', batch: 'y');
+    expect(
+      OpenedFileService.groupOpened([
+        p1,
+        p3,
+        p2,
+      ]).map((g) => g.map((f) => f.name).toList()).toList(),
+      [
+        ['p.jpg', 'q.jpg'],
+        ['r.png'],
+      ],
+    );
   });
 
   test('markCompleted locks the document with its PDF', () async {

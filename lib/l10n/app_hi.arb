@@ -361,5 +361,6 @@
   "cropChecking": "किनारे जाँचे जा रहे हैं…",
   "cropFailed": "यह पेज क्रॉप नहीं हो सका। पूरी छवि रखी गई।",
   "importErrorMixed": "एक PDF चुनें, या एक या अधिक फ़ोटो।",
-  "sendHome": "होम"
+  "sendHome": "होम",
+  "searchPageCount": "{count, plural, =1{1 पेज} other{{count} पेज}}"
 }

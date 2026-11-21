@@ -1303,4 +1303,15 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get sendHome => 'హోమ్';
+
+  @override
+  String searchPageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count పేజీలు',
+      one: '1 పేజీ',
+    );
+    return '$_temp0';
+  }
 }

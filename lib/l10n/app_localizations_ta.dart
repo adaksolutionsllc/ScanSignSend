@@ -1303,4 +1303,15 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get sendHome => 'முகப்பு';
+
+  @override
+  String searchPageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count பக்கங்கள்',
+      one: '1 பக்கம்',
+    );
+    return '$_temp0';
+  }
 }

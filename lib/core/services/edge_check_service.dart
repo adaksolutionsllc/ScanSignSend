@@ -22,6 +22,7 @@ final edgeCheckServiceProvider = Provider<EdgeCheckService>(
   (ref) => EdgeCheckService(
     ref.watch(documentRepositoryProvider),
     ref.watch(pageRepositoryProvider),
+    ref.watch(pageRasterServiceProvider),
   ),
 );
 
@@ -55,10 +56,14 @@ class EdgeCandidate {
 /// (`com.scansignsend/edges`, EdgeDetectionPlugin.swift) and from
 /// [detectDocumentEdges] everywhere else, or when Vision fails.
 class EdgeCheckService {
-  EdgeCheckService(this._docRepo, this._pageRepo);
+  EdgeCheckService(this._docRepo, this._pageRepo, this._raster);
 
   final DocumentRepository _docRepo;
   final PageRepository _pageRepo;
+
+  /// The app's one renderer: sorting renders the same new page at the same
+  /// moment, and only a shared instance renders it once.
+  final PageRasterService _raster;
 
   static const _channel = MethodChannel('com.scansignsend/edges');
 
@@ -80,10 +85,9 @@ class EdgeCheckService {
         if (!await compute(isImageOnlyPdf, pdf)) return const [];
       }
 
-      final raster = PageRasterService();
       final out = <EdgeCandidate>[];
       for (final page in pages) {
-        final image = await raster.imageFor(page.imagePath);
+        final image = await _raster.imageFor(page.imagePath);
         final quad = await detect(image);
         if (quad != null && quad.worthCropping) {
           out.add(EdgeCandidate(pageId: page.id, imagePath: image, quad: quad));
@@ -198,7 +202,7 @@ class EdgeCheckService {
         );
       }
     });
-    await PageRasterService().evict(PathResolver.toStorable(pdfPath));
+    await _raster.evict(PathResolver.toStorable(pdfPath));
     await _deleteQuietly(pdfPath);
   }
 

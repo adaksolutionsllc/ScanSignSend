@@ -361,5 +361,6 @@
   "cropChecking": "అంచులు తనిఖీ చేస్తోంది…",
   "cropFailed": "ఈ పేజీని కత్తిరించలేకపోయాం. మొత్తం చిత్రం ఉంచబడింది.",
   "importErrorMixed": "ఒక PDFని, లేదా ఒకటి లేదా అంతకంటే ఎక్కువ ఫోటోలను ఎంచుకోండి.",
-  "sendHome": "హోమ్"
+  "sendHome": "హోమ్",
+  "searchPageCount": "{count, plural, =1{1 పేజీ} other{{count} పేజీలు}}"
 }

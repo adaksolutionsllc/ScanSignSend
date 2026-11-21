@@ -139,7 +139,15 @@ class DocumentSorter {
       try {
         texts.add((await layouts.textOnly(page.imagePath)).$2);
       } catch (_) {
-        // One unreadable page doesn't stop the rest being searchable.
+        // The edge check may have replaced this page's file meanwhile (a
+        // crop, or a photo-only PDF turned into images): read it again from
+        // where the page is now. One unreadable page doesn't stop the rest.
+        try {
+          final now = (await pageRepo.pagesOf(
+            docId,
+          )).firstWhere((p) => p.id == page.id);
+          texts.add((await layouts.textOnly(now.imagePath)).$2);
+        } catch (_) {}
       }
     }
     final all = texts.where((t) => t.trim().isNotEmpty).join('\n');
@@ -174,8 +182,12 @@ class DocumentSorter {
       for (final doc in docs) {
         if (doc.category != null || doc.categoryManual) continue;
         final useModel = modelUses < backfillModelLimit;
+        final asksModel =
+            useModel && await ai.status() == OnDeviceAiStatus.available;
         final by = await _sort(doc, doc.title, doc.ocrText, useModel: useModel);
-        if (by == SortedBy.model) modelUses++;
+        // Every question counts toward the limit, not just the ones the
+        // model was sure about: "not sure" uses the quota too.
+        if (asksModel && by != SortedBy.learned) modelUses++;
       }
       await prefs.setBool(backfilledKey, true);
     } catch (_) {
@@ -260,11 +272,17 @@ class DocumentSorter {
 
   /// True for names nobody chose: the scan default ("Document 2026-10-23")
   /// and camera or messaging file names ("IMG_2041", "PXL_20261023_1012",
-  /// "WhatsApp Image 2026-10-23 at 10.12"). A photo named "Lease" keeps it.
+  /// "WhatsApp Image 2026-10-23 at 10.12"). A photo named "Lease" — or
+  /// "Lease 2026-10-23" — keeps it.
   static bool looksGenerated(String title) {
     final t = title.trim().toLowerCase();
     if (t.isEmpty) return true;
-    if (RegExp(r'\d{4}-\d{2}-\d{2}').hasMatch(t)) return true;
+    // The scan default, captureDefaultDocumentName, in each language.
+    if (RegExp(
+      r'^(document|documento|दस्तावेज़|ஆவணம்|పత్రం) \d{4}-\d{2}-\d{2}$',
+    ).hasMatch(t)) {
+      return true;
+    }
     if (RegExp(r'^[\d\s_\-.]+$').hasMatch(t)) return true;
     return RegExp(
       r'^(img|pxl|dsc|dscn|dcim|photo|image|scan|screenshot|whatsapp image|signal)[\s_\-]?\d',
