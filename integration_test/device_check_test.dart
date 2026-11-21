@@ -564,6 +564,8 @@ void main() {
         .markCompleted(smallDoc.id, smallPdf);
     router.go(AppRoutes.send.replaceAll(':docId', '${smallDoc.id}'));
     await _waitFor(tester, find.byKey(const ValueKey('smaller-file')));
+    // Wait for the route transition: tapping mid-slide misses.
+    await _pause(tester, 1000);
     await tester.tap(find.byKey(const ValueKey('smaller-file')));
     await _waitFor(tester, find.textContaining(' → '), seconds: 60);
     await _pause(tester, 500);
