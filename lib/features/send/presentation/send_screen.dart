@@ -48,6 +48,14 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       .read(documentRepositoryProvider)
       .getById(widget.docId);
 
+  // A template is a form to fill again; a document without fields (a scan
+  // saved as it is) has nothing to reuse, so it isn't offered.
+  late final Future<bool> _hasFields = ref
+      .read(fieldRepositoryProvider)
+      .watchFields(widget.docId)
+      .first
+      .then((f) => f.isNotEmpty);
+
   @override
   Widget build(BuildContext context) {
     // The document is already pressed and saved before we reach this screen,
@@ -160,23 +168,48 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                     ],
 
                     // Reuse this form next time: same pages and fields, empty.
-                    if (pdfPath != null) ...[
+                    if (pdfPath != null)
+                      FutureBuilder<bool>(
+                        future: _hasFields,
+                        builder: (context, fields) {
+                          if (fields.data != true) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: TextButton.icon(
+                                onPressed: _templateSaved
+                                    ? null
+                                    : _saveTemplate,
+                                icon: Icon(
+                                  _templateSaved
+                                      ? Icons.check
+                                      : Icons.layers_outlined,
+                                ),
+                                label: Text(
+                                  _templateSaved
+                                      ? context.l10n.sendTemplateSavedShort
+                                      : context.l10n.sendSaveAsTemplate,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                    // Done here without sharing: straight to the Library.
+                    if (!_shared) ...[
                       const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
                         height: 48,
                         child: TextButton.icon(
-                          onPressed: _templateSaved ? null : _saveTemplate,
-                          icon: Icon(
-                            _templateSaved
-                                ? Icons.check
-                                : Icons.layers_outlined,
-                          ),
-                          label: Text(
-                            _templateSaved
-                                ? context.l10n.sendTemplateSavedShort
-                                : context.l10n.sendSaveAsTemplate,
-                          ),
+                          onPressed: () => context.go(AppRoutes.library),
+                          icon: const Icon(Icons.home_outlined),
+                          label: Text(context.l10n.sendHome),
                         ),
                       ),
                     ],

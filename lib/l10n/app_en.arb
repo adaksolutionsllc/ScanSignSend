@@ -699,5 +699,6 @@
   "cropApply": "Crop",
   "cropChecking": "Checking the edges…",
   "cropFailed": "Could not crop this page. The whole image was kept.",
-  "importErrorMixed": "Choose one PDF, or one or more photos."
+  "importErrorMixed": "Choose one PDF, or one or more photos.",
+  "sendHome": "Home"
 }

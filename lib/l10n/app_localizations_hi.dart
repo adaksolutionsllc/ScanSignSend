@@ -1294,4 +1294,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get importErrorMixed => 'एक PDF चुनें, या एक या अधिक फ़ोटो।';
+
+  @override
+  String get sendHome => 'होम';
 }

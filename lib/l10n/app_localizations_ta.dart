@@ -1300,4 +1300,7 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get importErrorMixed =>
       'ஒரு PDF அல்லது ஒன்று அல்லது அதற்கு மேற்பட்ட படங்களைத் தேர்ந்தெடுங்கள்.';
+
+  @override
+  String get sendHome => 'முகப்பு';
 }

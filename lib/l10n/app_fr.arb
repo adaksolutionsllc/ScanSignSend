@@ -360,5 +360,6 @@
   "cropApply": "Recadrer",
   "cropChecking": "Vérification des bords…",
   "cropFailed": "Impossible de recadrer cette page. L’image entière a été conservée.",
-  "importErrorMixed": "Choisissez un seul PDF, ou une ou plusieurs photos."
+  "importErrorMixed": "Choisissez un seul PDF, ou une ou plusieurs photos.",
+  "sendHome": "Accueil"
 }

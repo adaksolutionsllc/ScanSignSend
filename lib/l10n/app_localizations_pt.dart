@@ -1296,4 +1296,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get importErrorMixed => 'Escolha um só PDF, ou uma ou mais fotos.';
+
+  @override
+  String get sendHome => 'Início';
 }

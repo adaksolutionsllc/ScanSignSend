@@ -360,5 +360,6 @@
   "cropApply": "क्रॉप करें",
   "cropChecking": "किनारे जाँचे जा रहे हैं…",
   "cropFailed": "यह पेज क्रॉप नहीं हो सका। पूरी छवि रखी गई।",
-  "importErrorMixed": "एक PDF चुनें, या एक या अधिक फ़ोटो।"
+  "importErrorMixed": "एक PDF चुनें, या एक या अधिक फ़ोटो।",
+  "sendHome": "होम"
 }

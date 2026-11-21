@@ -360,5 +360,6 @@
   "cropApply": "Recortar",
   "cropChecking": "A verificar os contornos…",
   "cropFailed": "Não foi possível recortar esta página. A imagem inteira foi mantida.",
-  "importErrorMixed": "Escolha um só PDF, ou uma ou mais fotos."
+  "importErrorMixed": "Escolha um só PDF, ou uma ou mais fotos.",
+  "sendHome": "Início"
 }

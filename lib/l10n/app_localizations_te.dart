@@ -1300,4 +1300,7 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get importErrorMixed =>
       'ఒక PDFని, లేదా ఒకటి లేదా అంతకంటే ఎక్కువ ఫోటోలను ఎంచుకోండి.';
+
+  @override
+  String get sendHome => 'హోమ్';
 }

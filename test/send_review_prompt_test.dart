@@ -61,6 +61,7 @@ void main() {
   Future<ProviderContainer> open(
     WidgetTester tester, {
     int sendsBefore = 0,
+    bool withField = false,
   }) async {
     SharedPreferences.setMockInitialValues({'review_send_count': sendsBefore});
     final docId = (await tester.runAsync(() async {
@@ -70,6 +71,16 @@ void main() {
       await docs.updateDocument(
         DocumentsCompanion(id: Value(doc.id), pressedPdfPath: Value(pdf.path)),
       );
+      if (withField) {
+        await FieldRepository(db).addField(
+          FieldsCompanion.insert(
+            documentId: doc.id,
+            pageIndex: 0,
+            type: 'text',
+            boundingBoxJson: '{"x":0.1,"y":0.1,"w":0.3,"h":0.05}',
+          ),
+        );
+      }
       return doc.id;
     }))!;
     final container = ProviderContainer(
@@ -182,6 +193,19 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text(l10n.sendDocumentSent), findsOneWidget);
     expect(find.text(l10n.sendBackToLibrary), findsWidgets);
+  });
+
+  testWidgets('no fields: no template offer; Home is there before sharing', (
+    tester,
+  ) async {
+    await open(tester);
+    expect(find.text(l10n.sendSaveAsTemplate), findsNothing);
+    expect(find.text(l10n.sendHome), findsOneWidget);
+  });
+
+  testWidgets('a form with fields can be saved as a template', (tester) async {
+    await open(tester, withField: true);
+    expect(find.text(l10n.sendSaveAsTemplate), findsOneWidget);
   });
 }
 

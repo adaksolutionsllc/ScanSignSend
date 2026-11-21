@@ -2273,6 +2273,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose one PDF, or one or more photos.'**
   String get importErrorMixed;
+
+  /// No description provided for @sendHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get sendHome;
 }
 
 class _AppLocalizationsDelegate
