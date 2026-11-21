@@ -47,7 +47,27 @@ D1 shortcuts are needed. D2 voice filling waits for a final answer; the phones' 
 | E3 | Store screenshots + preview video | 1 d | New. Show categories, the edge check and the 1.4.0 features. The 1.2.0 preview file was lost to `flutter clean`: keep a copy outside `build/`. |
 | E4 | 1.3.0 review leftover | 0.25 d | New. Backfill re-reads category hints and the sort setting per document; load them once. |
 
-**Total ≈ 19 working days** without voice (≈ 25 with it).
+### F. Scanner tools from the competitor review (≈ 7 d) — added 2026-11-21, see §6
+| # | Item | Size | Notes |
+|---|---|---|---|
+| F1 | Copy text | 1 d | Page text is already stored (`Pages.ocrText`). A "Text" sheet on each page: selectable text, Copy all, Share as .txt. Latin script only (ML Kit runs `TextRecognitionScript.latin`). For Hindi, Tamil and Telugu pages, show a note, not an empty sheet. |
+| F2 | Share as images, text or Word | 1.5 d | The Send screen gets a "Format" choice: PDF (default), Images (one JPG per page), Text (.txt), Word (.docx, text only, one heading per page). The .docx is built in Dart (it is a zip of XML), with no new package. |
+| F3 | Receipt details + CSV | 3 d | For documents in Receipts: date, merchant, total, tax and currency, read on the device from the page text. The user can correct them. Select receipts, then "Export to spreadsheet" writes a .csv that Excel, Sheets and Numbers open. Schema v11: a `ReceiptDetails` table. Amount formats in all 7 locales (₹, "1.234,56"). Goes last in F, so it can move to 1.5 if the release runs long. |
+| F4 | Better page filters | 1.5 d | The current Enhanced is a contrast lift. Add **Clean**: it removes shadows and whitens the paper (divide by the blurred background). Also add **Apply to all pages**. Spatial filters can't be a `ColorFilter`, so the preview and every export use one processed image. Bug found: the fillable export ignores the filter today. Only the pressed PDF applies it. |
+| F5 | Crop any page in Review | 0.5 d | Reuses the 1.3.0 `CropScreen` from a Crop button next to Rotate. |
+
+Considered and left out:
+- **Watermark:** declined 2026-10-10 (memory `no-watermark`).
+- **Add Text:** already exists. Any text field placed in the field editor does this job.
+- **Adjust sliders:** F4's presets cover the need.
+- **Curvature correction:** neither VisionKit nor the ML Kit scanner flattens curved book pages. A dewarp model is research work, not a release item.
+- **Convert to Excel:** general table recognition is not reliable enough to claim. Only receipts (F3) produce a spreadsheet.
+- **Edit the text inside a scan:** not possible without retyping the page. Copy text (F1) and Word export (F2) cover the real need.
+
+### G. New store screenshots (replaces E3, ≈ 2 d)
+See §7.
+
+**Total ≈ 27 working days** without voice (≈ 33 with it). Before F and G it was ≈ 19.
 
 ## 2. Order
 
@@ -61,9 +81,10 @@ device check, screenshots).
 4. B1 → B2 → B3.
 5. C2 → C3 → C4 spike → C4 → C1.
 6. D1 (shortcuts). D2 only if it comes off hold.
-7. E4, then E1 across all screens.
-8. E3, What's New ×7, review notes, privacy line for voice, encryption
-   questionnaire (only if C4 ships).
+7. F5 → F4 → F1 → F2 → F3. F3 is last so it can move to 1.5 if needed.
+8. E4, then E1 across all screens, the F screens included.
+9. G screenshots and video, What's New ×7, review notes, privacy line for
+   receipt details, and the encryption questionnaire (only if C4 ships).
 
 ## 3. Restored detail (lost from ease-of-use-plan.md in 42b60f8)
 
@@ -126,5 +147,89 @@ device check, screenshots).
 
 **Still open:**
 2. **Voice filling (D2):** on hold; shortcuts (D1) are in. Started building on `release/1.4.0` 2026-11-21.
+3. **F3 receipts:** in 1.4.0 as a test, or later?
+4. **Screenshot 8 headline:** "Pay once. Keep it." in both stores, or the safer "No subscription. No account." on Play?
+5. **Release size:** with F and G, 1.4.0 is ≈ 27 days. Keep one release, or move F3 + C1 to 1.5?
 
 **Decided:** emulator-5554 wiped (Arun, 2026-11-21).
+
+## 6. Competitor review (2026-11-21)
+
+Arun shared five App Store screenshots from a scanner app: Recognize Text,
+Report Expenses, Save as PDF or IMG, Convert to PDF/Word/JPG, and Extract and
+Edit Text.
+
+**Opinion:** that app is a general scanner with a subscription. We sell fill and
+sign, offline, paid once. Copy the tools that make a scan more useful. Do not
+copy the "convert anything" promise, because it can't be delivered well.
+- **F1, F2 and F4** are cheap. They reuse what we already store, and they
+  close the gaps a buyer sees when comparing apps.
+- **F3** is the biggest item, and it is the only one that moves us toward
+  expense apps. It suits the receipts the 1.3.0 categories already collect,
+  but it has no demand signal yet. Ship it as a small test: five fields and a
+  CSV. No mileage tracking, no reports, no totals across months.
+
+**What we can claim:**
+- **Copy text:** we can claim it for English and other Latin-script text. We
+  can't claim it for Hindi, Tamil or Telugu.
+- **Word export:** "Text exported to Word". The layout is not kept. Never say
+  "convert to Word".
+- **Receipt details:** "read on your device; check before you export". They
+  are suggestions. We never claim they are accurate or ready for tax use.
+
+| Never say | Say instead |
+|---|---|
+| Convert to Word / Excel | Share text as Word · Export receipts to a spreadsheet |
+| Edit text in your scans | Copy text from your scans |
+| Accurate / automatic expense reports | Receipt details read on your device. Check and export. |
+| Tax-ready, accountant-approved | (nothing) |
+| Any competitor's name, in metadata or screenshots | (nothing) |
+
+Translations must not strengthen these claims (for example, fr "convertir"
+for Word export).
+
+**Privacy:** receipt details are new data that stays on the device. Add a line
+to `store/PRIVACY_POLICY.md`. The App Privacy and Data safety answers do not
+change, because nothing leaves the device.
+
+## 7. New store screenshots (G)
+
+**Goal:** catchy, one feature per screen, with a big two-line headline over a
+real app screen, like the competitor's set. Use our colours. Show the pay-once
+model without breaking the price rules.
+
+**Store rules (fetched live 2026-11-21):**
+- Apple 2.3.7: screenshots "should not include prices, terms, or descriptions
+  that are not specific to the metadata type".
+- Apple 2.3.14: creative assets should not include "specific or discounted
+  pricing information".
+- Google Play Metadata policy, a violation example: "Images or text that
+  indicate price and promotional information". It is mandatory for the title
+  and icon.
+- Google Play preview assets, for screenshots: no price or promotional info,
+  no call to action, and taglines on at most 20% of the image.
+
+**So:**
+- No price, no "$", and no "Free", "Lifetime", "Sale" or "Best" in any image.
+- The pay-once message goes in the **last** screenshot. It shows the real
+  Unlimited screen, which already says "one-time purchase" as part of the app.
+  Its headline is about ownership, not price: **"Pay once. Keep it."** On Play,
+  the fallback is **"No subscription. No account."** (both kinds of
+  promotional text are "Highly recommended" there, not mandatory).
+- The title, subtitle and description already say "no subscription" and
+  "own it forever", which is allowed in text. Keep the word "lifetime" out:
+  it promises something about the future we can't control.
+
+**Proposed set (8, the same order in both stores):**
+1. **Scan. Fill. Sign.** The library with categories, plus a finished form.
+2. **Finds the blanks for you.** Field detection on a real form.
+3. **Fill it in seconds.** Next field, with My Details suggestions.
+4. **Sign by hand or by typing.** The Type tab (A2).
+5. **Clean, shadow-free scans.** Before and after with the Clean filter (F4).
+6. **Copy the text. Share as Word.** The Text sheet (F1/F2).
+7. **Everything stays on your phone.** Search through page text, with a no-cloud badge.
+8. **Pay once. Keep it.** The Unlimited screen.
+
+Captions are written for all 7 locales and checked for length in
+`tool/store_capture/creative.py`. A new preview video follows the same order.
+Keep a copy outside `build/`.
