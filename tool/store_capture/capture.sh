@@ -51,6 +51,11 @@ flutter pub get >/dev/null
 # simulator for this run. The trap restores the project file.
 sed -i '' 's/SUPPORTED_PLATFORMS = iphoneos;/SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";/' \
   ios/Runner.xcodeproj/project.pbxproj
+# Simulator builds are arm64 only: Xcode 27's lipo takes one arch per
+# -verify_arch, and Flutter 3.41 passes "arm64 x86_64" (fixed in 3.50).
+sed -i '' 's|INFOPLIST_FILE = Runner/Info.plist;|INFOPLIST_FILE = Runner/Info.plist;\
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "i386 x86_64";|' \
+  ios/Runner.xcodeproj/project.pbxproj
 # Re-run CocoaPods now, so Flutter sees a Pods project without ML Kit when it
 # decides whether to exclude arm64 from simulator builds.
 (cd ios && pod install >/dev/null)
