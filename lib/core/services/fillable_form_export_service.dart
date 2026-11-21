@@ -238,9 +238,6 @@ Future<void> _buildFillablePdf(_ExportJob job) async {
   final pdfDoc = keepOriginal ? source : PdfDocument();
   final sources = <String, PdfDocument?>{};
   try {
-    // Stamp appearance streams for field values so filled text/checkboxes are
-    // visible in viewers that don't honour NeedAppearances (Preview, Chrome).
-    pdfDoc.form.setDefaultAppearance(true);
     final names = _UniqueNames();
 
     if (keepOriginal) {
@@ -600,6 +597,7 @@ T _borderless<T extends PdfField>(T field) {
   if (field is PdfTextBoxField) {
     field
       ..borderWidth = 0
+      ..borderColor = PdfColor.empty
       ..backColor = PdfColor.empty;
   } else if (field is PdfSignatureField) {
     field

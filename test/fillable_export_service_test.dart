@@ -15,6 +15,11 @@ import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/fillable_form_export_service.dart';
 import 'package:scan_sign_send/core/utils/path_resolver.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+// ignore_for_file: implementation_imports
+import 'package:syncfusion_flutter_pdf/src/pdf/implementation/forms/pdf_field.dart';
+import 'package:syncfusion_flutter_pdf/src/pdf/implementation/io/pdf_cross_table.dart';
+import 'package:syncfusion_flutter_pdf/src/pdf/implementation/primitives/pdf_array.dart';
+import 'package:syncfusion_flutter_pdf/src/pdf/implementation/primitives/pdf_dictionary.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -115,6 +120,16 @@ void main() {
       expect(tb.text, value, reason: 'still a live, filled field');
       expect(tb.borderWidth, 0, reason: 'no border box around $name');
     }
+    // Acrobat draws a field's value only from its appearance stream (it
+    // showed the fields blank until tapped), so every filled text field
+    // needs one.
+    for (final name in ['residing at', 'born on', 'place']) {
+      expect(
+        _hasAppearance(byName[name]!),
+        isTrue,
+        reason: '$name has an appearance stream',
+      );
+    }
     final tamil = byName['place'] as PdfTextBoxField;
     expect(tamil.text, 'மதுரை', reason: 'Tamil value kept exactly');
     expect(tamil.borderWidth, 0);
@@ -126,4 +141,16 @@ void main() {
     );
     pdf.dispose();
   });
+}
+
+/// Whether the field, or each of its widgets, has an appearance stream.
+bool _hasAppearance(PdfField field) {
+  final dict = PdfFieldHelper.getHelper(field).dictionary!;
+  final kids = PdfCrossTable.dereference(dict['Kids']);
+  if (kids is! PdfArray) return dict.containsKey('AP');
+  for (var i = 0; i < kids.count; i++) {
+    final kid = PdfCrossTable.dereference(kids[i]);
+    if (kid is! PdfDictionary || !kid.containsKey('AP')) return false;
+  }
+  return kids.count > 0;
 }
