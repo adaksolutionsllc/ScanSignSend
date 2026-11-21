@@ -1442,4 +1442,52 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get sendAlreadySmall => 'ఈ ఫైల్ ఇప్పటికే చిన్నది.';
+
+  @override
+  String get sendPasswordProtect => 'పాస్‌వర్డ్ పెట్టండి';
+
+  @override
+  String get sendPasswordOffHint => 'PDF తెరవడానికి పాస్‌వర్డ్ అడగండి';
+
+  @override
+  String get sendPasswordOnHint => 'ఈ PDF తెరిచే ఎవరికైనా పాస్‌వర్డ్ కావాలి';
+
+  @override
+  String get sendPasswordFailed =>
+      'పాస్‌వర్డ్ పెట్టలేకపోయాం. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get passwordDialogTitle => 'పాస్‌వర్డ్ ఎంచుకోండి';
+
+  @override
+  String get passwordField => 'పాస్‌వర్డ్';
+
+  @override
+  String get passwordConfirm => 'మళ్లీ నమోదు చేయండి';
+
+  @override
+  String passwordTooShort(int count) {
+    return 'కనీసం $count అక్షరాలు వాడండి';
+  }
+
+  @override
+  String get passwordMismatch => 'పాస్‌వర్డ్‌లు సరిపోలడం లేదు';
+
+  @override
+  String get passwordNoRecovery =>
+      'జాగ్రత్తగా ఉంచుకోండి: దాన్ని తిరిగి పొందలేరు. గ్రహీతకు విడిగా పంపండి, అదే సందేశంలో కాదు.';
+
+  @override
+  String get passwordSet => 'పెట్టండి';
+
+  @override
+  String get importPasswordTitle => 'ఈ PDFకి పాస్‌వర్డ్ ఉంది';
+
+  @override
+  String get importPasswordBody =>
+      'దీన్ని తెరవడానికి దాని పాస్‌వర్డ్ నమోదు చేయండి. యాప్ దాని కాపీని పాస్‌వర్డ్ లేకుండా ఈ పరికరంలో ఉంచుతుంది.';
+
+  @override
+  String get importPasswordWrong =>
+      'ఆ పాస్‌వర్డ్ పని చేయలేదు. మళ్లీ ప్రయత్నించండి.';
 }

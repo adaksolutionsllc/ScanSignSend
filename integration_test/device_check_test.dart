@@ -25,6 +25,7 @@ import 'package:scan_sign_send/core/services/edge_check_service.dart';
 import 'package:scan_sign_send/core/services/fillable_form_export_service.dart';
 import 'package:scan_sign_send/core/services/import_service.dart';
 import 'package:scan_sign_send/core/services/opened_file_service.dart';
+import 'package:scan_sign_send/core/services/pdf_password_service.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
 import 'package:scan_sign_send/core/utils/path_resolver.dart';
 import 'package:image/image.dart' as img;
@@ -572,6 +573,72 @@ void main() {
     await _capture(tester, 'send_smaller');
     _mark(
       'INFO:smaller file ${tester.widgetList<Text>(find.textContaining(' → ')).first.data}',
+    );
+
+    // Password: on the Send screen it's asked twice; a PDF protected on this
+    // device (PDFKit on iOS, AES-256 on Android) opens in the app after its
+    // password (a wrong one is asked again), with its form ready to fill.
+    await tester.tap(find.byKey(const ValueKey('password-protect')));
+    await _waitFor(tester, find.byKey(const ValueKey('password-1')));
+    await _pause(tester, 500);
+    await _capture(tester, 'send_password');
+    await tester.tap(find.text(l10n.actionCancel));
+    await _pause(tester, 500);
+    final formPdf = PdfDocument();
+    final formPage = formPdf.pages.add();
+    formPdf.form.fields.add(
+      PdfTextBoxField(
+        formPage,
+        'tenant',
+        const Rect.fromLTWH(60, 80, 220, 22),
+        text: 'Priya Raman',
+      ),
+    );
+    final plainForm = File(p.join(tmp.path, 'plain_form.pdf'))
+      ..writeAsBytesSync(await formPdf.save());
+    formPdf.dispose();
+    final locked = await container
+        .read(pdfPasswordServiceProvider)
+        .protect(plainForm.path, 'secret12');
+    final inbox = Directory(p.join(tmp.path, 'locked_inbox'))..createSync();
+    final lockedCopy = File(locked).copySync(p.join(inbox.path, 'lease.pdf'));
+    router.go(AppRoutes.library);
+    await _waitFor(tester, find.byType(LibraryScreen));
+    router.push(
+      AppRoutes.capture,
+      extra: [OpenedFile(path: lockedCopy.path, name: 'Lease.pdf')],
+    );
+    await _waitFor(
+      tester,
+      find.byKey(const ValueKey('import-password')),
+      seconds: 60,
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('import-password')),
+      'nope',
+    );
+    await tester.tap(find.byKey(const ValueKey('import-password-open')));
+    await _waitFor(tester, find.text(l10n.importPasswordWrong), seconds: 30);
+    await _pause(tester, 400);
+    await _capture(tester, 'open_password_retry');
+    await tester.enterText(
+      find.byKey(const ValueKey('import-password')),
+      'secret12',
+    );
+    await tester.tap(find.byKey(const ValueKey('import-password-open')));
+    await _waitFor(tester, find.byType(FillModeScreen), seconds: 60);
+    await _pause(tester, 1500);
+    await _capture(tester, 'open_password_form');
+    final lease =
+        (await container.read(documentRepositoryProvider).watchAll().first)
+            .reduce((a, b) => a.id > b.id ? a : b);
+    final leaseFields = await container
+        .read(fieldRepositoryProvider)
+        .watchFields(lease.id)
+        .first;
+    expect(leaseFields.map((f) => f.value), contains('Priya Raman'));
+    _mark(
+      'INFO:protected PDF opened with its form (${leaseFields.length} field)',
     );
 
     // A finished document on the Send screen.

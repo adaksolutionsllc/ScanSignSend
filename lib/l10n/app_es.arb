@@ -391,5 +391,19 @@
   "sendSmallerFileHint": "Fotos con menos resolución, para límites de correo y subida",
   "sendMakingSmaller": "Creando una copia más pequeña…",
   "sendSizeChange": "{from} → {to}",
-  "sendAlreadySmall": "Este archivo ya es pequeño."
+  "sendAlreadySmall": "Este archivo ya es pequeño.",
+  "sendPasswordProtect": "Proteger con contraseña",
+  "sendPasswordOffHint": "Pedir una contraseña para abrir el PDF",
+  "sendPasswordOnHint": "Quien abra este PDF necesitará la contraseña",
+  "sendPasswordFailed": "No se pudo añadir la contraseña. Inténtalo de nuevo.",
+  "passwordDialogTitle": "Elegir una contraseña",
+  "passwordField": "Contraseña",
+  "passwordConfirm": "Escríbela de nuevo",
+  "passwordTooShort": "Usa al menos {count} caracteres",
+  "passwordMismatch": "Las contraseñas no coinciden",
+  "passwordNoRecovery": "Guárdala bien: no se puede recuperar. Envíasela al destinatario por separado, no en el mismo mensaje.",
+  "passwordSet": "Aceptar",
+  "importPasswordTitle": "Este PDF tiene contraseña",
+  "importPasswordBody": "Escribe su contraseña para abrirlo. La app guarda su copia sin la contraseña, en este dispositivo.",
+  "importPasswordWrong": "Esa contraseña no funcionó. Inténtalo de nuevo."
 }

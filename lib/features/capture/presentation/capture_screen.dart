@@ -19,6 +19,7 @@ import '../../../core/services/free_usage_service.dart';
 import '../../../core/services/scan_service.dart';
 import '../../../core/utils/router.dart';
 import 'page_limit_prompt.dart';
+import 'pdf_password_prompt.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/services/app_lock_provider.dart';
@@ -53,7 +54,9 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _importFile(
-            () => ref.read(importServiceProvider).importOpened(opened),
+            () => ref
+                .read(importServiceProvider)
+                .importOpened(opened, askPassword: _askPassword),
           );
         }
       });
@@ -138,7 +141,22 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   Future<Document?> _pickAndImport() => ref
       .read(appLockProvider.notifier)
-      .whileExternal(ref.read(importServiceProvider).pickAndImport);
+      .whileExternal(
+        () => ref
+            .read(importServiceProvider)
+            .pickAndImport(askPassword: _askPassword),
+      );
+
+  /// A password-protected PDF: ask for its password ([retry] after a wrong
+  /// one). Null when the user cancels.
+  Future<String?> _askPassword({required bool retry}) async {
+    if (!mounted) return null;
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PdfPasswordPrompt(retry: retry),
+    );
+  }
 
   /// Runs [import] (the file picker, or a PDF opened from another app) and
   /// continues to Review / Fill with the new document.
@@ -195,6 +213,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             l10n.importErrorUnreadableImage,
           ImportException(failure: ImportFailure.mixedSelection) =>
             l10n.importErrorMixed,
+          ImportException(failure: ImportFailure.passwordProtected) =>
+            l10n.importErrorUnreadable,
           _ => l10n.captureImportFailed('$e'),
         };
         ScaffoldMessenger.of(

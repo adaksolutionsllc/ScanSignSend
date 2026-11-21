@@ -795,5 +795,26 @@
         "type": "String"
       }
     }
-  }
+  },
+  "sendPasswordProtect": "Password-protect",
+  "sendPasswordOffHint": "Ask for a password to open the PDF",
+  "sendPasswordOnHint": "Anyone opening this PDF needs the password",
+  "sendPasswordFailed": "Couldn't add the password. Try again.",
+  "passwordDialogTitle": "Set a password",
+  "passwordField": "Password",
+  "passwordConfirm": "Enter it again",
+  "passwordTooShort": "Use at least {count} characters",
+  "passwordMismatch": "The passwords don't match",
+  "passwordNoRecovery": "Keep it safe: it can't be recovered. Send it to the recipient separately, not in the same message.",
+  "passwordSet": "Set",
+  "@passwordTooShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importPasswordTitle": "This PDF has a password",
+  "importPasswordBody": "Enter its password to open it. The app keeps its copy without the password, on this device.",
+  "importPasswordWrong": "That password didn't work. Try again."
 }

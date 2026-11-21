@@ -23,6 +23,7 @@ import 'opened_file_service.dart';
 import 'page_layout.dart';
 import 'page_layout_service.dart';
 import 'pdf_geometry.dart';
+import 'pdf_widget_pages.dart';
 
 /// Why an import failed. The service has no BuildContext, so it reports a
 /// cause and the calling screen renders the localized message.
@@ -33,7 +34,14 @@ enum ImportFailure {
 
   /// A PDF chosen together with other files: one PDF, or photos only.
   mixedSelection,
+
+  /// A password-protected PDF, and no way to ask for its password.
+  passwordProtected,
 }
+
+/// Asks the user for a PDF's password; [retry] is true after a wrong one.
+/// Returns null when they cancel.
+typedef PasswordPrompt = Future<String?> Function({required bool retry});
 
 class ImportException implements Exception {
   ImportException(this.failure);
@@ -87,7 +95,9 @@ class ImportService {
   /// Opens the system file picker and imports the selection: one PDF, or one
   /// or more photos (which become the pages of one document, in the order
   /// picked). Returns the created Document, or null if the user cancelled.
-  Future<Document?> pickAndImport() async {
+  ///
+  /// A password-protected PDF asks for its password through [askPassword].
+  Future<Document?> pickAndImport({PasswordPrompt? askPassword}) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'heic', 'heif'],
@@ -100,7 +110,7 @@ class ImportService {
     ];
     if (files.isEmpty) return null;
     try {
-      return await _importSelection(files);
+      return await _importSelection(files, askPassword);
     } finally {
       // The picker hands us a private copy in the app's temp folder; ours is
       // now under Documents, so don't leave a second copy of the user's
@@ -114,9 +124,12 @@ class ImportService {
   /// Imports files opened with the app from another app (see
   /// OpenedFileService) — one PDF, or a group of photos as one document —
   /// then deletes the temporary copies they arrived as.
-  Future<Document> importOpened(List<OpenedFile> files) async {
+  Future<Document?> importOpened(
+    List<OpenedFile> files, {
+    PasswordPrompt? askPassword,
+  }) async {
     try {
-      return await _importSelection(files);
+      return await _importSelection(files, askPassword);
     } finally {
       for (final f in files) {
         try {
@@ -126,9 +139,13 @@ class ImportService {
     }
   }
 
-  Future<Document> _importSelection(List<OpenedFile> files) async {
+  /// Null when the user cancelled a password prompt.
+  Future<Document?> _importSelection(
+    List<OpenedFile> files,
+    PasswordPrompt? askPassword,
+  ) async {
     if (files.length == 1 && !isImageFile(files.single.path)) {
-      return _importPdf(files.single.path, files.single.name);
+      return _importPdf(files.single.path, files.single.name, askPassword);
     }
     if (!files.every((f) => isImageFile(f.path))) {
       throw ImportException(ImportFailure.mixedSelection);
@@ -312,10 +329,45 @@ class ImportService {
   /// Imports a PDF by copying it to app storage. Each page gets a DB row
   /// whose imagePath points to the PDF with a `#page=N` fragment so the
   /// viewer knows which page to display (0-indexed).
-  Future<Document> _importPdf(String pdfPath, String name) async {
+  Future<Document?> _importPdf(
+    String pdfPath,
+    String name, [
+    PasswordPrompt? askPassword,
+  ]) async {
     final id = _uuid.v4();
     final dest = await _copyToAppDir(pdfPath, id);
     final title = p.basenameWithoutExtension(name);
+
+    Future<void> discard() async {
+      try {
+        await Directory(p.dirname(dest)).delete(recursive: true);
+      } catch (_) {}
+    }
+
+    // A password-protected PDF: the app keeps a copy without the password
+    // (the app's own storage, behind the app lock when that's on), so pages
+    // draw and the form can be filled like any other. The password itself
+    // is never stored.
+    if (await compute(_isEncrypted, dest)) {
+      var retry = false;
+      while (true) {
+        // A file with only an owner password opens without one.
+        final password = retry || !await compute(_decrypt, (dest, ''))
+            ? await askPassword?.call(retry: retry)
+            : '';
+        if (password == null) {
+          await discard();
+          if (askPassword == null) {
+            throw ImportException(ImportFailure.passwordProtected);
+          }
+          return null;
+        }
+        if (password.isEmpty || await compute(_decrypt, (dest, password))) {
+          break;
+        }
+        retry = true;
+      }
+    }
 
     int pageCount;
     // Parsed AcroForm widgets, if any, captured while the doc is open.
@@ -395,15 +447,23 @@ class ImportService {
     final text = <int, List<LayoutLine>>{};
     List<LayoutLine> textOf(int page) =>
         text[page] ??= pdfTextLayoutOf(pdfDoc, page)?.$1 ?? const [];
+    // Read only when some field doesn't name its page (PDFKit-written forms).
+    Map<String, int>? orphanPages;
     for (var i = 0; i < form.fields.count; i++) {
       final field = form.fields[i];
-      final page = field.page;
-      if (page == null) continue;
+      var page = field.page;
+      var bounds = field.bounds;
+      if (page == null) {
+        final at = (orphanPages ??= widgetPagesByName(pdfDoc))[field.name];
+        if (at == null) continue;
+        page = pdfDoc.pages[at];
+        bounds = pageBoundsOfOrphan(bounds, page.size.height);
+      }
       final pageIndex = pdfDoc.pages.indexOf(page);
       if (pageIndex < 0) continue;
       final pw = page.size.width;
       final ph = page.size.height;
-      final bbox = PdfGeometry.pdfToNorm(field.bounds, pw, ph);
+      final bbox = PdfGeometry.pdfToNorm(bounds, pw, ph);
 
       FieldType type;
       var value = '';
@@ -564,6 +624,47 @@ Map<int, String> _relabel(
     };
   } finally {
     pdfDoc.dispose();
+  }
+}
+
+/// compute() entry: whether the PDF at [path] is encrypted: its trailer
+/// (or cross-reference stream) names an /Encrypt dictionary. A false match
+/// only costs a re-save without a password.
+bool _isEncrypted(String path) {
+  final bytes = File(path).readAsBytesSync();
+  const key = [0x2F, 0x45, 0x6E, 0x63, 0x72, 0x79, 0x70, 0x74]; // "/Encrypt"
+  outer:
+  for (var i = 0; i + key.length <= bytes.length; i++) {
+    for (var j = 0; j < key.length; j++) {
+      if (bytes[i + j] != key[j]) continue outer;
+    }
+    return true;
+  }
+  return false;
+}
+
+/// compute() entry: opens the PDF at [args.$1] with password [args.$2] and,
+/// if that works, saves it in place without encryption. False for a wrong
+/// password.
+Future<bool> _decrypt((String, String) args) async {
+  final (path, password) = args;
+  final PdfDocument doc;
+  try {
+    doc = PdfDocument(
+      inputBytes: File(path).readAsBytesSync(),
+      password: password,
+    );
+  } catch (_) {
+    return false;
+  }
+  try {
+    doc.security
+      ..userPassword = ''
+      ..ownerPassword = '';
+    File(path).writeAsBytesSync(await doc.save(), flush: true);
+    return true;
+  } finally {
+    doc.dispose();
   }
 }
 

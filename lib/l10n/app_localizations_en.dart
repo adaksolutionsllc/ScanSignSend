@@ -1429,4 +1429,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendAlreadySmall => 'This file is already small.';
+
+  @override
+  String get sendPasswordProtect => 'Password-protect';
+
+  @override
+  String get sendPasswordOffHint => 'Ask for a password to open the PDF';
+
+  @override
+  String get sendPasswordOnHint => 'Anyone opening this PDF needs the password';
+
+  @override
+  String get sendPasswordFailed => 'Couldn\'t add the password. Try again.';
+
+  @override
+  String get passwordDialogTitle => 'Set a password';
+
+  @override
+  String get passwordField => 'Password';
+
+  @override
+  String get passwordConfirm => 'Enter it again';
+
+  @override
+  String passwordTooShort(int count) {
+    return 'Use at least $count characters';
+  }
+
+  @override
+  String get passwordMismatch => 'The passwords don\'t match';
+
+  @override
+  String get passwordNoRecovery =>
+      'Keep it safe: it can\'t be recovered. Send it to the recipient separately, not in the same message.';
+
+  @override
+  String get passwordSet => 'Set';
+
+  @override
+  String get importPasswordTitle => 'This PDF has a password';
+
+  @override
+  String get importPasswordBody =>
+      'Enter its password to open it. The app keeps its copy without the password, on this device.';
+
+  @override
+  String get importPasswordWrong => 'That password didn\'t work. Try again.';
 }

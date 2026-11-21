@@ -391,5 +391,19 @@
   "sendSmallerFileHint": "कम रिज़ॉल्यूशन वाली फ़ोटो, ईमेल और अपलोड सीमाओं के लिए",
   "sendMakingSmaller": "छोटी कॉपी बन रही है…",
   "sendSizeChange": "{from} → {to}",
-  "sendAlreadySmall": "यह फ़ाइल पहले से छोटी है।"
+  "sendAlreadySmall": "यह फ़ाइल पहले से छोटी है।",
+  "sendPasswordProtect": "पासवर्ड लगाएँ",
+  "sendPasswordOffHint": "PDF खोलने के लिए पासवर्ड माँगें",
+  "sendPasswordOnHint": "इस PDF को खोलने वाले हर व्यक्ति को पासवर्ड चाहिए होगा",
+  "sendPasswordFailed": "पासवर्ड नहीं लग सका। फिर से कोशिश करें।",
+  "passwordDialogTitle": "पासवर्ड चुनें",
+  "passwordField": "पासवर्ड",
+  "passwordConfirm": "फिर से लिखें",
+  "passwordTooShort": "कम से कम {count} अक्षर इस्तेमाल करें",
+  "passwordMismatch": "दोनों पासवर्ड मेल नहीं खाते",
+  "passwordNoRecovery": "इसे संभालकर रखें: यह वापस नहीं मिल सकता। इसे प्राप्तकर्ता को अलग से भेजें, उसी संदेश में नहीं।",
+  "passwordSet": "लगाएँ",
+  "importPasswordTitle": "इस PDF पर पासवर्ड है",
+  "importPasswordBody": "इसे खोलने के लिए इसका पासवर्ड लिखें। ऐप इसकी कॉपी बिना पासवर्ड के, इसी डिवाइस पर रखता है।",
+  "importPasswordWrong": "यह पासवर्ड काम नहीं आया। फिर से कोशिश करें।"
 }

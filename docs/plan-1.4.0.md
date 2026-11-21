@@ -30,7 +30,7 @@ what changes, in what order, and what still needs a decision.
 | C1 | iOS Share Extension | 3–4 d | §3.7. Photos → Share → Scan Sign Send. Reuses the 1.3.0 batch import and edge check. Second App ID, App Group, profile. |
 | C2 | ✅ Home-screen quick actions | 0.5 d | §3.6. Scan, Open PDF, Fill my last draft. |
 | C3 | ✅ Smaller files | 1 d | Restored below (§3). 200 dpi default + "Smaller file" switch on Send. |
-| C4 | Password-protected PDF | 1.5 d + 0.5 d spike | Restored below (§3). PDFKit on iOS; dropped if the spike fails. |
+| C4 | ✅ Password-protected PDF (protect on Send + open protected PDFs) | 1.5 d + 0.5 d spike | Restored below (§3). PDFKit on iOS; dropped if the spike fails. |
 
 ### D. Voice — D1 IN, D2 ON HOLD (Arun, 2026-11-21)
 D1 shortcuts are needed. D2 voice filling waits for a final answer; the phones' own Voice Control / Voice Access and keyboard dictation already cover much of it once E1 labels every control.
@@ -150,6 +150,23 @@ device check, screenshots).
   | Radio buttons | **broken**: PDFKit moves the radio flag from the field to its buttons and sets the value to an empty name; PDFium then draws squares and the group doesn't work | intact |
   PDFKit reads radios correctly; it's only what it *writes*. Every iOS
   password-protected fillable PDF would go through that write.
+- **Decided (Arun, 2026-11-21):** iOS uses PDFKit (the OS's encryption)
+  for completed PDFs and fillable forms without radio buttons; it isn't
+  offered for a fillable form with radio buttons on iOS. Android uses
+  Syncfusion AES-256 R6 for everything.
+- **Added (Arun, 2026-11-21): opening protected PDFs.** Import asks for the
+  password (again after a wrong one), keeps the app's copy without it, and
+  the form comes in ready to fill. Both directions verified: PDFKit opens the
+  Android file; the app opens the iPhone file (fixture
+  `test/fixtures/pdfkit_protected_form.pdf`).
+- **Found:** any form PDFKit writes (Preview, iOS Files, our iOS protection)
+  has no /P on its widgets and the annotation list is indirect; Syncfusion
+  then gives fields no page and the import dropped them all. Fixed with
+  `widgetPagesByName` (pdf_widget_pages.dart, Syncfusion internals, pinned
+  28.2.x).
+- **Release docs to do:** privacy policy line (password never stored; an
+  opened protected PDF is kept without its password on the device), and
+  App Store Connect's encryption questions for 1.4.0.
 - Export compliance: not verified. Apple's pages didn't load when checked
   (2026-11-21). Confirm in App Store Connect's encryption questions before
   choosing a bundled-library path on iOS.

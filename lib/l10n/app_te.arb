@@ -391,5 +391,19 @@
   "sendSmallerFileHint": "తక్కువ రిజల్యూషన్ ఫోటోలు, ఈమెయిల్ మరియు అప్‌లోడ్ పరిమితుల కోసం",
   "sendMakingSmaller": "చిన్న కాపీ తయారవుతోంది…",
   "sendSizeChange": "{from} → {to}",
-  "sendAlreadySmall": "ఈ ఫైల్ ఇప్పటికే చిన్నది."
+  "sendAlreadySmall": "ఈ ఫైల్ ఇప్పటికే చిన్నది.",
+  "sendPasswordProtect": "పాస్‌వర్డ్ పెట్టండి",
+  "sendPasswordOffHint": "PDF తెరవడానికి పాస్‌వర్డ్ అడగండి",
+  "sendPasswordOnHint": "ఈ PDF తెరిచే ఎవరికైనా పాస్‌వర్డ్ కావాలి",
+  "sendPasswordFailed": "పాస్‌వర్డ్ పెట్టలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
+  "passwordDialogTitle": "పాస్‌వర్డ్ ఎంచుకోండి",
+  "passwordField": "పాస్‌వర్డ్",
+  "passwordConfirm": "మళ్లీ నమోదు చేయండి",
+  "passwordTooShort": "కనీసం {count} అక్షరాలు వాడండి",
+  "passwordMismatch": "పాస్‌వర్డ్‌లు సరిపోలడం లేదు",
+  "passwordNoRecovery": "జాగ్రత్తగా ఉంచుకోండి: దాన్ని తిరిగి పొందలేరు. గ్రహీతకు విడిగా పంపండి, అదే సందేశంలో కాదు.",
+  "passwordSet": "పెట్టండి",
+  "importPasswordTitle": "ఈ PDFకి పాస్‌వర్డ్ ఉంది",
+  "importPasswordBody": "దీన్ని తెరవడానికి దాని పాస్‌వర్డ్ నమోదు చేయండి. యాప్ దాని కాపీని పాస్‌వర్డ్ లేకుండా ఈ పరికరంలో ఉంచుతుంది.",
+  "importPasswordWrong": "ఆ పాస్‌వర్డ్ పని చేయలేదు. మళ్లీ ప్రయత్నించండి."
 }

@@ -1444,4 +1444,53 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get sendAlreadySmall => 'இந்தக் கோப்பு ஏற்கனவே சிறியது.';
+
+  @override
+  String get sendPasswordProtect => 'கடவுச்சொல் இடு';
+
+  @override
+  String get sendPasswordOffHint => 'PDF-ஐத் திறக்கக் கடவுச்சொல் கேள்';
+
+  @override
+  String get sendPasswordOnHint =>
+      'இந்த PDF-ஐத் திறப்பவர்களுக்குக் கடவுச்சொல் தேவை';
+
+  @override
+  String get sendPasswordFailed =>
+      'கடவுச்சொல்லைச் சேர்க்க முடியவில்லை. மீண்டும் முயலவும்.';
+
+  @override
+  String get passwordDialogTitle => 'கடவுச்சொல்லை அமை';
+
+  @override
+  String get passwordField => 'கடவுச்சொல்';
+
+  @override
+  String get passwordConfirm => 'மீண்டும் உள்ளிடவும்';
+
+  @override
+  String passwordTooShort(int count) {
+    return 'குறைந்தது $count எழுத்துகளைப் பயன்படுத்தவும்';
+  }
+
+  @override
+  String get passwordMismatch => 'கடவுச்சொற்கள் பொருந்தவில்லை';
+
+  @override
+  String get passwordNoRecovery =>
+      'பத்திரமாக வைத்திருங்கள்: அதை மீட்க முடியாது. பெறுநருக்குத் தனியாக அனுப்புங்கள், அதே செய்தியில் அல்ல.';
+
+  @override
+  String get passwordSet => 'அமை';
+
+  @override
+  String get importPasswordTitle => 'இந்த PDF-க்குக் கடவுச்சொல் உள்ளது';
+
+  @override
+  String get importPasswordBody =>
+      'இதைத் திறக்க அதன் கடவுச்சொல்லை உள்ளிடவும். ஆப் அதன் நகலைக் கடவுச்சொல் இல்லாமல் இந்தச் சாதனத்தில் வைத்திருக்கும்.';
+
+  @override
+  String get importPasswordWrong =>
+      'அந்தக் கடவுச்சொல் வேலை செய்யவில்லை. மீண்டும் முயலவும்.';
 }

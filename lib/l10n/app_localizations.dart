@@ -2459,6 +2459,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This file is already small.'**
   String get sendAlreadySmall;
+
+  /// No description provided for @sendPasswordProtect.
+  ///
+  /// In en, this message translates to:
+  /// **'Password-protect'**
+  String get sendPasswordProtect;
+
+  /// No description provided for @sendPasswordOffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for a password to open the PDF'**
+  String get sendPasswordOffHint;
+
+  /// No description provided for @sendPasswordOnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone opening this PDF needs the password'**
+  String get sendPasswordOnHint;
+
+  /// No description provided for @sendPasswordFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the password. Try again.'**
+  String get sendPasswordFailed;
+
+  /// No description provided for @passwordDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a password'**
+  String get passwordDialogTitle;
+
+  /// No description provided for @passwordField.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get passwordField;
+
+  /// No description provided for @passwordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter it again'**
+  String get passwordConfirm;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least {count} characters'**
+  String passwordTooShort(int count);
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The passwords don\'t match'**
+  String get passwordMismatch;
+
+  /// No description provided for @passwordNoRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it safe: it can\'t be recovered. Send it to the recipient separately, not in the same message.'**
+  String get passwordNoRecovery;
+
+  /// No description provided for @passwordSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get passwordSet;
+
+  /// No description provided for @importPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This PDF has a password'**
+  String get importPasswordTitle;
+
+  /// No description provided for @importPasswordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter its password to open it. The app keeps its copy without the password, on this device.'**
+  String get importPasswordBody;
+
+  /// No description provided for @importPasswordWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That password didn\'t work. Try again.'**
+  String get importPasswordWrong;
 }
 
 class _AppLocalizationsDelegate

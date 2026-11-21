@@ -1439,4 +1439,54 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sendAlreadySmall => 'Ce fichier est déjà léger.';
+
+  @override
+  String get sendPasswordProtect => 'Protéger par mot de passe';
+
+  @override
+  String get sendPasswordOffHint =>
+      'Demander un mot de passe pour ouvrir le PDF';
+
+  @override
+  String get sendPasswordOnHint =>
+      'Toute personne qui ouvre ce PDF a besoin du mot de passe';
+
+  @override
+  String get sendPasswordFailed =>
+      'Impossible d\'ajouter le mot de passe. Réessayez.';
+
+  @override
+  String get passwordDialogTitle => 'Choisir un mot de passe';
+
+  @override
+  String get passwordField => 'Mot de passe';
+
+  @override
+  String get passwordConfirm => 'Saisissez-le à nouveau';
+
+  @override
+  String passwordTooShort(int count) {
+    return 'Utilisez au moins $count caractères';
+  }
+
+  @override
+  String get passwordMismatch => 'Les mots de passe ne correspondent pas';
+
+  @override
+  String get passwordNoRecovery =>
+      'Conservez-le bien : il ne peut pas être récupéré. Envoyez-le au destinataire séparément, pas dans le même message.';
+
+  @override
+  String get passwordSet => 'Valider';
+
+  @override
+  String get importPasswordTitle => 'Ce PDF a un mot de passe';
+
+  @override
+  String get importPasswordBody =>
+      'Saisissez son mot de passe pour l\'ouvrir. L\'app garde sa copie sans le mot de passe, sur cet appareil.';
+
+  @override
+  String get importPasswordWrong =>
+      'Ce mot de passe ne fonctionne pas. Réessayez.';
 }

@@ -1436,4 +1436,52 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get sendAlreadySmall => 'यह फ़ाइल पहले से छोटी है।';
+
+  @override
+  String get sendPasswordProtect => 'पासवर्ड लगाएँ';
+
+  @override
+  String get sendPasswordOffHint => 'PDF खोलने के लिए पासवर्ड माँगें';
+
+  @override
+  String get sendPasswordOnHint =>
+      'इस PDF को खोलने वाले हर व्यक्ति को पासवर्ड चाहिए होगा';
+
+  @override
+  String get sendPasswordFailed => 'पासवर्ड नहीं लग सका। फिर से कोशिश करें।';
+
+  @override
+  String get passwordDialogTitle => 'पासवर्ड चुनें';
+
+  @override
+  String get passwordField => 'पासवर्ड';
+
+  @override
+  String get passwordConfirm => 'फिर से लिखें';
+
+  @override
+  String passwordTooShort(int count) {
+    return 'कम से कम $count अक्षर इस्तेमाल करें';
+  }
+
+  @override
+  String get passwordMismatch => 'दोनों पासवर्ड मेल नहीं खाते';
+
+  @override
+  String get passwordNoRecovery =>
+      'इसे संभालकर रखें: यह वापस नहीं मिल सकता। इसे प्राप्तकर्ता को अलग से भेजें, उसी संदेश में नहीं।';
+
+  @override
+  String get passwordSet => 'लगाएँ';
+
+  @override
+  String get importPasswordTitle => 'इस PDF पर पासवर्ड है';
+
+  @override
+  String get importPasswordBody =>
+      'इसे खोलने के लिए इसका पासवर्ड लिखें। ऐप इसकी कॉपी बिना पासवर्ड के, इसी डिवाइस पर रखता है।';
+
+  @override
+  String get importPasswordWrong =>
+      'यह पासवर्ड काम नहीं आया। फिर से कोशिश करें।';
 }

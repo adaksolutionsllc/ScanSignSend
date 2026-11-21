@@ -1439,4 +1439,52 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sendAlreadySmall => 'Este arquivo já é pequeno.';
+
+  @override
+  String get sendPasswordProtect => 'Proteger com senha';
+
+  @override
+  String get sendPasswordOffHint => 'Pedir uma senha para abrir o PDF';
+
+  @override
+  String get sendPasswordOnHint => 'Quem abrir este PDF vai precisar da senha';
+
+  @override
+  String get sendPasswordFailed =>
+      'Não foi possível adicionar a senha. Tente novamente.';
+
+  @override
+  String get passwordDialogTitle => 'Definir uma senha';
+
+  @override
+  String get passwordField => 'Senha';
+
+  @override
+  String get passwordConfirm => 'Digite novamente';
+
+  @override
+  String passwordTooShort(int count) {
+    return 'Use pelo menos $count caracteres';
+  }
+
+  @override
+  String get passwordMismatch => 'As senhas não coincidem';
+
+  @override
+  String get passwordNoRecovery =>
+      'Guarde-a bem: ela não pode ser recuperada. Envie-a ao destinatário separadamente, não na mesma mensagem.';
+
+  @override
+  String get passwordSet => 'Definir';
+
+  @override
+  String get importPasswordTitle => 'Este PDF tem senha';
+
+  @override
+  String get importPasswordBody =>
+      'Digite a senha para abri-lo. O app guarda a cópia dele sem a senha, neste dispositivo.';
+
+  @override
+  String get importPasswordWrong =>
+      'Essa senha não funcionou. Tente novamente.';
 }

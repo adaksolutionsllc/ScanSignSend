@@ -13,6 +13,7 @@ import '../../../core/utils/l10n_ext.dart';
 import '../../../core/services/app_lock_provider.dart';
 import '../../../core/services/review_prompt_service.dart';
 import '../../../core/services/fillable_form_export_service.dart';
+import '../../../core/services/pdf_password_service.dart';
 import '../../../core/services/press_service.dart';
 import '../../../shared/utils/file_size.dart';
 import '../../../shared/utils/share_pdf.dart';
@@ -123,6 +124,55 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     }
   }
 
+  /// Send → "Password-protect": the password, kept in memory only while
+  /// this screen is open; null when off.
+  String? _password;
+
+  /// Whether this document's PDF can be password-protected here (on iOS,
+  /// not a fillable form with radio buttons; see PdfPasswordService).
+  Future<bool>? _canProtect;
+  Future<bool> _canProtectFor(Document doc) => _canProtect ??= ref
+      .read(fieldRepositoryProvider)
+      .watchFields(widget.docId)
+      .first
+      .then((fields) {
+        final pressed = doc.pressedPdfPath;
+        final flattened = pressed != null && pressed != doc.fillablePdfPath;
+        return ref
+            .read(pdfPasswordServiceProvider)
+            .canProtect(
+              fillable: !flattened,
+              hasRadios: fields.any((f) => f.type == 'radio'),
+            );
+      });
+
+  Future<void> _togglePassword(bool on) async {
+    if (!on) {
+      setState(() => _password = null);
+      return;
+    }
+    final password = await showDialog<String>(
+      context: context,
+      builder: (_) => const _PasswordDialog(),
+    );
+    if (password != null && mounted) setState(() => _password = password);
+  }
+
+  Widget _passwordSwitch(BuildContext context) {
+    final l10n = context.l10n;
+    return SwitchListTile(
+      key: const ValueKey('password-protect'),
+      contentPadding: EdgeInsets.zero,
+      secondary: Icon(_password == null ? Icons.lock_open : Icons.lock),
+      title: Text(l10n.sendPasswordProtect),
+      subtitle: Text(
+        _password == null ? l10n.sendPasswordOffHint : l10n.sendPasswordOnHint,
+      ),
+      value: _password != null,
+      onChanged: _sharing ? null : _togglePassword,
+    );
+  }
+
   /// The file Share sends: the smaller copy when chosen and ready.
   String _toShare(String pdfPath) =>
       _smaller && _smallerPath != null ? _smallerPath! : pdfPath;
@@ -190,8 +240,10 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                 ? null
                 : PathResolver.resolve(storedPdf);
 
+            // Scrolls when the options don't fit (a small phone, large
+            // text); centred when they do.
             return Center(
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -261,6 +313,14 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                 padding: const EdgeInsets.only(top: 8),
                                 child: _smallerSwitch(context, doc, pdfPath),
                               )
+                            : const SizedBox.shrink(),
+                      ),
+
+                    if (!_shared && pdfPath != null && doc != null)
+                      FutureBuilder<bool>(
+                        future: _canProtectFor(doc),
+                        builder: (context, can) => can.data == true
+                            ? _passwordSwitch(context)
                             : const SizedBox.shrink(),
                       ),
 
@@ -393,14 +453,32 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     final l10n = context.l10n;
     // Read before the await too: `ref` is unusable once the screen is gone.
     final reviews = ref.read(reviewPromptServiceProvider);
+    final lock = ref.read(appLockProvider.notifier);
     final box = context.findRenderObject() as RenderBox?;
     final origin = (box != null && box.hasSize)
         ? box.localToGlobal(Offset.zero) & box.size
         : null;
+    // The password-protected copy is made at share time, from the chosen
+    // file (the smaller copy, when that's on).
+    var toSend = pdfPath;
+    final password = _password;
+    if (password != null) {
+      try {
+        toSend = await ref
+            .read(pdfPasswordServiceProvider)
+            .protect(pdfPath, password);
+      } catch (_) {
+        if (mounted) setState(() => _sharing = false);
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.sendPasswordFailed)),
+        );
+        return;
+      }
+    }
     try {
       final sent = await shareDocumentPdf(
-        lock: ref.read(appLockProvider.notifier),
-        pdfPath: pdfPath,
+        lock: lock,
+        pdfPath: toSend,
         title: title,
         message: l10n.sendShareMessage,
         origin: origin,
@@ -436,5 +514,94 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     }
     if (!(ModalRoute.of(context)?.isCurrent ?? false)) return;
     await reviews.requestReview();
+  }
+}
+
+/// Asks for the password twice, with the rules and the warning that it
+/// can't be recovered. Pops with the password, or null when cancelled.
+class _PasswordDialog extends StatefulWidget {
+  const _PasswordDialog();
+
+  @override
+  State<_PasswordDialog> createState() => _PasswordDialogState();
+}
+
+class _PasswordDialogState extends State<_PasswordDialog> {
+  final _first = TextEditingController();
+  final _second = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _first.dispose();
+    _second.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final l10n = context.l10n;
+    final a = _first.text, b = _second.text;
+    setState(() {
+      _error = a.length < PdfPasswordService.minLength
+          ? l10n.passwordTooShort(PdfPasswordService.minLength)
+          : a != b
+          ? l10n.passwordMismatch
+          : null;
+    });
+    if (_error == null) Navigator.pop(context, a);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.passwordDialogTitle),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              key: const ValueKey('password-1'),
+              controller: _first,
+              obscureText: true,
+              autofocus: true,
+              autocorrect: false,
+              enableSuggestions: false,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(labelText: l10n.passwordField),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              key: const ValueKey('password-2'),
+              controller: _second,
+              obscureText: true,
+              autocorrect: false,
+              enableSuggestions: false,
+              onSubmitted: (_) => _submit(),
+              decoration: InputDecoration(
+                labelText: l10n.passwordConfirm,
+                errorText: _error,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.passwordNoRecovery,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.actionCancel),
+        ),
+        FilledButton(
+          key: const ValueKey('password-set'),
+          onPressed: _submit,
+          child: Text(l10n.passwordSet),
+        ),
+      ],
+    );
   }
 }
