@@ -138,6 +138,21 @@ device check, screenshots).
 - **Spike first (0.5 d, gates the item):** a *fillable* export encrypted by
   PDFKit must still open and fill in Acrobat, Preview and Chrome. If it
   fails, password protection applies only to completed PDFs on iOS.
+- **Spike result (2026-11-21).** A real fillable export (text, date,
+  checkbox, radio pair, signature) was encrypted both ways, then opened,
+  filled and saved in PDFium 159 (Chrome's engine) and PDFKit (Preview, iOS
+  Files). Acrobat isn't on this Mac: still to check by hand.
+  | | PDFKit (iOS path) | Syncfusion (Android path) |
+  |---|---|---|
+  | Strength | AES-128 (V4 R4) | AES-256 (V5 R6, `aesx256BitRevision6`) |
+  | Wrong password refused / right one opens | yes / yes | yes / yes |
+  | Values kept; type into a field and save, password kept (PDFium, PDFKit) | yes | yes |
+  | Radio buttons | **broken**: PDFKit moves the radio flag from the field to its buttons and sets the value to an empty name; PDFium then draws squares and the group doesn't work | intact |
+  PDFKit reads radios correctly; it's only what it *writes*. Every iOS
+  password-protected fillable PDF would go through that write.
+- Export compliance: not verified. Apple's pages didn't load when checked
+  (2026-11-21). Confirm in App Store Connect's encryption questions before
+  choosing a bundled-library path on iOS.
 - Wording: "Password-protect" / "Anyone opening this PDF needs the password".
   Never "secure", "military grade" or "unbreakable".
 
