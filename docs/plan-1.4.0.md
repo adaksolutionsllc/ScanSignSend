@@ -32,7 +32,8 @@ what changes, in what order, and what still needs a decision.
 | C3 | Smaller files | 1 d | Restored below (§3). 200 dpi default + "Smaller file" switch on Send. |
 | C4 | Password-protected PDF | 1.5 d + 0.5 d spike | Restored below (§3). PDFKit on iOS; dropped if the spike fails. |
 
-### D. Voice (≈ 6 d) — ON HOLD (Arun, 2026-11-21: needs clarity on how it helps users)
+### D. Voice — D1 IN, D2 ON HOLD (Arun, 2026-11-21)
+D1 shortcuts are needed. D2 voice filling waits for a final answer; the phones' own Voice Control / Voice Access and keyboard dictation already cover much of it once E1 labels every control.
 | # | Item | Size | Notes |
 |---|---|---|---|
 | D1 | Siri / Assistant shortcuts | 2 d | §3.15a. Shares `shortcuts.xml` with C2. |
@@ -59,7 +60,7 @@ device check, screenshots).
 3. A1 → A2 → A3.
 4. B1 → B2 → B3.
 5. C2 → C3 → C4 spike → C4 → C1.
-6. D1 → D2, only if voice comes off hold.
+6. D1 (shortcuts). D2 only if it comes off hold.
 7. E4, then E1 across all screens.
 8. E3, What's New ×7, review notes, privacy line for voice, encryption
    questionnaire (only if C4 ships).
@@ -124,6 +125,6 @@ device check, screenshots).
 **Decided (Arun, 2026-11-21):** one release — everything above ships as 1.4.0.
 
 **Still open:**
-2. **Voice:** on hold until its value to users is clear.
+2. **Voice filling (D2):** on hold; shortcuts (D1) are in. Started building on `release/1.4.0` 2026-11-21.
 
 **Decided:** emulator-5554 wiped (Arun, 2026-11-21).
