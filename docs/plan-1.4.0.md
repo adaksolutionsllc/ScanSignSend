@@ -28,7 +28,7 @@ what changes, in what order, and what still needs a decision.
 | # | Item | Size | Notes |
 |---|---|---|---|
 | C1 | iOS Share Extension | 3–4 d | §3.7. Photos → Share → Scan Sign Send. Reuses the 1.3.0 batch import and edge check. Second App ID, App Group, profile. |
-| C2 | Home-screen quick actions | 0.5 d | §3.6. Scan, Open PDF, Fill my last draft. |
+| C2 | ✅ Home-screen quick actions | 0.5 d | §3.6. Scan, Open PDF, Fill my last draft. |
 | C3 | Smaller files | 1 d | Restored below (§3). 200 dpi default + "Smaller file" switch on Send. |
 | C4 | Password-protected PDF | 1.5 d + 0.5 d spike | Restored below (§3). PDFKit on iOS; dropped if the spike fails. |
 
