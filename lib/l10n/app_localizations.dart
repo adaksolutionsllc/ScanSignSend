@@ -2268,6 +2268,96 @@ abstract class AppLocalizations {
   /// **'Could not crop this page. The whole image was kept.'**
   String get cropFailed;
 
+  /// No description provided for @straightenAskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Straighten the pages?'**
+  String get straightenAskTitle;
+
+  /// No description provided for @straightenAskBodyMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{The app finds the edges of each page so you can crop them. For these {count} pages this takes about 1 minute.} other{The app finds the edges of each page so you can crop them. For these {count} pages this takes about {minutes} minutes.}}'**
+  String straightenAskBodyMinutes(int count, int minutes);
+
+  /// No description provided for @straightenAskBodyQuick.
+  ///
+  /// In en, this message translates to:
+  /// **'The app finds the edges of each page so you can crop them. For these {count} pages this takes less than a minute.'**
+  String straightenAskBodyQuick(int count);
+
+  /// No description provided for @progressMinutesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{About 1 minute left} other{About {minutes} minutes left}}'**
+  String progressMinutesLeft(int minutes);
+
+  /// No description provided for @progressUnderMinuteLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than a minute left'**
+  String get progressUnderMinuteLeft;
+
+  /// No description provided for @progressQuip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Squaring up the corners…'**
+  String get progressQuip1;
+
+  /// No description provided for @progressQuip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoothing the edges…'**
+  String get progressQuip2;
+
+  /// No description provided for @progressQuip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Lining up the margins…'**
+  String get progressQuip3;
+
+  /// No description provided for @progressQuip4.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidying the pages…'**
+  String get progressQuip4;
+
+  /// No description provided for @progressQuip5.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring twice, cropping once…'**
+  String get progressQuip5;
+
+  /// No description provided for @progressQuip6.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudging pixels into place…'**
+  String get progressQuip6;
+
+  /// No description provided for @straightenGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Straighten'**
+  String get straightenGo;
+
+  /// No description provided for @cropCheckingPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking page {current} of {total}…'**
+  String cropCheckingPage(int current, int total);
+
+  /// No description provided for @cropStraighteningPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Straightening page {current} of {total}…'**
+  String cropStraighteningPage(int current, int total);
+
+  /// No description provided for @cropUseWholeRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Use whole image for the rest'**
+  String get cropUseWholeRest;
+
   /// No description provided for @importErrorMixed.
   ///
   /// In en, this message translates to:

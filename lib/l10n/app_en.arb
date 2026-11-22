@@ -699,6 +699,65 @@
   "cropApply": "Crop",
   "cropChecking": "Checking the edges…",
   "cropFailed": "Could not crop this page. The whole image was kept.",
+  "straightenAskTitle": "Straighten the pages?",
+  "straightenAskBodyMinutes": "{minutes, plural, =1{The app finds the edges of each page so you can crop them. For these {count} pages this takes about 1 minute.} other{The app finds the edges of each page so you can crop them. For these {count} pages this takes about {minutes} minutes.}}",
+  "@straightenAskBodyMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "straightenAskBodyQuick": "The app finds the edges of each page so you can crop them. For these {count} pages this takes less than a minute.",
+  "@straightenAskBodyQuick": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "progressMinutesLeft": "{minutes, plural, =1{About 1 minute left} other{About {minutes} minutes left}}",
+  "@progressMinutesLeft": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "progressUnderMinuteLeft": "Less than a minute left",
+  "progressQuip1": "Squaring up the corners…",
+  "progressQuip2": "Smoothing the edges…",
+  "progressQuip3": "Lining up the margins…",
+  "progressQuip4": "Tidying the pages…",
+  "progressQuip5": "Measuring twice, cropping once…",
+  "progressQuip6": "Nudging pixels into place…",
+  "straightenGo": "Straighten",
+  "cropCheckingPage": "Checking page {current} of {total}…",
+  "@cropCheckingPage": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "cropStraighteningPage": "Straightening page {current} of {total}…",
+  "@cropStraighteningPage": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "cropUseWholeRest": "Use whole image for the rest",
   "importErrorMixed": "Choose one PDF, or one or more photos.",
   "sendHome": "Home",
   "searchPageCount": "{count, plural, =1{1 page} other{{count} pages}}",

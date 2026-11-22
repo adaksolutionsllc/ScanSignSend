@@ -1295,6 +1295,75 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de recadrer cette page. L’image entière a été conservée.';
 
   @override
+  String get straightenAskTitle => 'Redresser les pages ?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'L’app trouve les bords de chaque page pour que vous puissiez les recadrer. Pour ces $count pages, cela prend environ $minutes minutes.',
+      one:
+          'L’app trouve les bords de chaque page pour que vous puissiez les recadrer. Pour ces $count pages, cela prend environ 1 minute.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'L’app trouve les bords de chaque page pour que vous puissiez les recadrer. Pour ces $count pages, cela prend moins d’une minute.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Environ $minutes minutes restantes',
+      one: 'Environ 1 minute restante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'Moins d’une minute restante';
+
+  @override
+  String get progressQuip1 => 'On ajuste les coins…';
+
+  @override
+  String get progressQuip2 => 'On lisse les bords…';
+
+  @override
+  String get progressQuip3 => 'On aligne les marges…';
+
+  @override
+  String get progressQuip4 => 'On range les pages…';
+
+  @override
+  String get progressQuip5 => 'Mesurer deux fois, recadrer une fois…';
+
+  @override
+  String get progressQuip6 => 'On remet les pixels en place…';
+
+  @override
+  String get straightenGo => 'Redresser';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'Vérification de la page $current sur $total…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'Redressement de la page $current sur $total…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'Garder les autres pages entières';
+
+  @override
   String get importErrorMixed =>
       'Choisissez un seul PDF, ou une ou plusieurs photos.';
 

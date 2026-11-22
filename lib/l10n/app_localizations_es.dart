@@ -1294,6 +1294,75 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo recortar esta página. Se conservó la imagen completa.';
 
   @override
+  String get straightenAskTitle => '¿Enderezar las páginas?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'La app busca los bordes de cada página para que puedas recortarlas. Para estas $count páginas tarda unos $minutes minutos.',
+      one:
+          'La app busca los bordes de cada página para que puedas recortarlas. Para estas $count páginas tarda alrededor de 1 minuto.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'La app busca los bordes de cada página para que puedas recortarlas. Para estas $count páginas tarda menos de un minuto.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Faltan unos $minutes minutos',
+      one: 'Falta alrededor de 1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'Falta menos de un minuto';
+
+  @override
+  String get progressQuip1 => 'Cuadrando las esquinas…';
+
+  @override
+  String get progressQuip2 => 'Alisando los bordes…';
+
+  @override
+  String get progressQuip3 => 'Alineando los márgenes…';
+
+  @override
+  String get progressQuip4 => 'Ordenando las páginas…';
+
+  @override
+  String get progressQuip5 => 'Medir dos veces, recortar una…';
+
+  @override
+  String get progressQuip6 => 'Acomodando los píxeles…';
+
+  @override
+  String get straightenGo => 'Enderezar';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'Revisando la página $current de $total…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'Enderezando la página $current de $total…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'Usar la imagen completa en el resto';
+
+  @override
   String get importErrorMixed => 'Elige un solo PDF, o una o varias fotos.';
 
   @override

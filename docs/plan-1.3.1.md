@@ -51,45 +51,47 @@ the spinner. Not measured on a phone yet: item H7 adds this measurement.
 
 ## Changes
 
-### H1 — Ask before the edge check on multi-page files (the user decides)
+### H1 — Ask before the edge check on multi-page files (the user decides) ✅
 
 When an import has **2 or more pages** that can be straightened (photos, or a
-PDF that is only photos), ask before step 1–2:
+PDF that is only photos), the app asks first:
 
 > **Straighten the pages?**
-> The app finds the edges of each page so you can crop them. This takes
-> longer for bigger files. This file has 18 pages.
+> The app finds the edges of each page so you can crop them. For these 18
+> pages this takes about 2 minutes.
 > [Skip] [Straighten]
 
-- One photo: no question. The check is quick, so it runs as now.
-- Typed PDFs and PDFs with form fields: no question, no check (as now).
+- The time is rough. It comes from this phone's own past runs (a running
+  average per page, kept in SharedPreferences). Before the first run it is a
+  first guess: 1.5 s to check and 4 s to straighten each page.
+- One photo: no question. The check is quick, so it runs as before.
+- Typed PDFs and PDFs with form fields: no question, no check (as before).
 - **Skip** goes straight to Review. Nothing is converted.
-- Settings: a new switch **"Straighten imported pages"** with three
-  choices: Ask (default) · Always · Never. (Decision 1.)
+- No setting (Arun, 2026-11-22): the app always asks. A forgotten
+  "Always" or "Never" setting would confuse users later.
 
-### H2 — Faster straightening (steps 4 and 5)
+### H2 — Faster straightening (steps 4 and 5) ✅
 
-- Render each PDF page to raw pixels and write the JPEG **once**. No PNG
-  encode or decode.
-- Crop a chosen page from those same pixels, in the same pass. No JPEG
-  decode and second encode.
-- Do two pages at the same time, in background isolates.
-- Expected: about 3× faster for a fully cropped file (from the Mac numbers).
-  H7 measures the real result before release.
+- Each PDF page is rendered to raw pixels, cropped when chosen, and written
+  as a JPEG **once**. No PNG encode or decode, no second JPEG.
+- One page per render call, so a long PDF is never all in memory at once.
+- Two pages at a time, in background isolates.
 
-### H3 — Show progress
+### H3 — Progress, time left, Skip ✅
 
-- "Checking page 5 of 18…" during steps 1–2.
-- "Straightening page 5 of 18…" during steps 4–5, in place of the bare
-  spinner.
+- "Checking page 5 of 18…" and "Straightening page 5 of 18…".
+- Below: "About 1 minute left" (from the speed so far), and a light line
+  that changes every 3 s ("Squaring up the corners…", "Measuring twice,
+  cropping once…"; six lines in each language).
+- A **Skip** button on both. Skip while checking: on to Review, nothing
+  changed. Skip while straightening: photo pages already done stay done; a
+  PDF stays as it was (all or none).
 
-### H4 — "Use whole image for the rest" on the crop screen
+### H4 — "Use whole image for the rest" on the crop screen ✅
 
-On a multi-page file, the user must now tap 18 times. Add a text button
-that keeps the crops chosen so far and leaves the remaining pages as they
-are. (Decision 2.)
+Keeps the crops chosen so far; the remaining pages stay as they are.
 
-### H5 — Read text for search after the edge step
+### H5 — Read text for search after the edge step ✅
 
 Start step 6 only when the edge step ends (or is skipped). Then it does not
 slow the edge step, and it reads each page once. Sorting (page 1 only) still
@@ -112,10 +114,11 @@ Share**. Mention the Skip button in What's new so users find it.
 
 ## Strings (all 7 locales)
 
-`straightenAskTitle`, `straightenAskBody` (with page count), `straightenSkip`,
-`straightenGo`, `edgeCheckingPage`, `straighteningPage`, `cropUseWholeRest`,
-`settingsStraightenTitle`, `settingsStraightenAsk`, `settingsStraightenAlways`,
-`settingsStraightenNever`, What's new.
+`straightenAskTitle`, `straightenAskBodyMinutes`, `straightenAskBodyQuick`,
+`straightenGo`, `cropCheckingPage`, `cropStraighteningPage`,
+`cropUseWholeRest`, `progressMinutesLeft`, `progressUnderMinuteLeft`,
+`progressQuip1`–`6`. Also fixed: three European Portuguese crop strings from
+1.3.0 ("A verificar os contornos…" → "Verificando as bordas…").
 
 ## Release
 

@@ -346,6 +346,139 @@ void main() {
     await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
     _mark('INFO:photo-only pdf offered the corner check');
 
+    // A long photo-only PDF: the user is asked first and told that it takes
+    // longer for bigger files. Skip goes straight to Review, unchanged.
+    Future<Document> newest() async =>
+        (await container.read(documentRepositoryProvider).watchAll().first)
+            .reduce((a, b) => a.id > b.id ? a : b);
+    Future<void> openLong(String name) async {
+      final path = await _photoOnlyPdf(tmp, pages: 6, name: name);
+      router.go(AppRoutes.library);
+      await _waitFor(tester, find.byType(LibraryScreen));
+      router.push(
+        AppRoutes.capture,
+        extra: [OpenedFile(path: path, name: name)],
+      );
+      await _waitFor(tester, find.text(l10n.straightenAskTitle), seconds: 60);
+      // About how long it takes, from this phone's past runs.
+      expect(
+        find.textContaining(
+          RegExp(r'For these 6 pages this takes (about|less)'),
+        ),
+        findsOneWidget,
+      );
+    }
+
+    await openLong('long_scan.pdf');
+    await _capture(tester, 'straighten_ask');
+    await tester.tap(find.byKey(const ValueKey('straighten-skip')));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    final skipped = await container
+        .read(pageRepositoryProvider)
+        .pagesOf((await newest()).id);
+    expect(skipped, hasLength(6));
+    expect(
+      skipped.every((pg) => pg.imagePath.contains('#page=')),
+      isTrue,
+      reason: 'Skip changed the pages',
+    );
+    _mark('INFO:long pdf skipped: 6 pdf pages kept');
+
+    // Again, straightened: page counts while it checks and while it
+    // straightens; page 1 cropped, the rest kept whole in one tap.
+    await openLong('long_scan_2.pdf');
+    final watch = Stopwatch()..start();
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    final checkCount = await _waitNoting(
+      tester,
+      find.byType(CropScreen),
+      find.textContaining(RegExp(r'^Checking page \d of 6')),
+      seconds: 180,
+    );
+    _mark(
+      'INFO:long pdf checked 6 pages in ${watch.elapsedMilliseconds} ms '
+      '(count shown: $checkCount)',
+    );
+    await _pause(tester, 800);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
+    await _capture(tester, 'crop_use_whole_rest');
+    await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
+    watch.reset();
+    final straightenCount = await _waitNoting(
+      tester,
+      find.byType(ReviewScreen),
+      find.textContaining(RegExp(r'^Straightening page \d of 6')),
+      seconds: 180,
+    );
+    _mark(
+      'INFO:long pdf straightened 6 pages in ${watch.elapsedMilliseconds} ms '
+      '(count shown: $straightenCount)',
+    );
+    final long = await container
+        .read(pageRepositoryProvider)
+        .pagesOf((await newest()).id);
+    expect(long, hasLength(6));
+    expect(
+      long.any((pg) => pg.imagePath.contains('#page=')),
+      isFalse,
+      reason: 'not every page became an image',
+    );
+    Future<int> widthOf(String stored) async => img
+        .decodeJpg(await File(PathResolver.resolve(stored)).readAsBytes())!
+        .width;
+    final w1 = await widthOf(long[0].imagePath);
+    final w2 = await widthOf(long[1].imagePath);
+    _mark('INFO:long pdf page widths $w1 (cropped) $w2 (whole)');
+    expect(w1, lessThan(w2), reason: 'page 1 was not cropped');
+
+    // Skip while the pages are checked: on to Review, nothing changed.
+    Future<void> expectUnchanged(String why) async {
+      final kept = await container
+          .read(pageRepositoryProvider)
+          .pagesOf((await newest()).id);
+      expect(kept, hasLength(6));
+      expect(
+        kept.every((pg) => pg.imagePath.contains('#page=')),
+        isTrue,
+        reason: why,
+      );
+      expect(
+        File(
+          PathResolver.resolve(kept[0].imagePath.split('#page=').first),
+        ).existsSync(),
+        isTrue,
+        reason: 'the PDF is gone after $why',
+      );
+    }
+
+    await openLong('long_scan_3.pdf');
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    await _waitFor(tester, find.byKey(const ValueKey('edge-check-skip')));
+    _mark('CAPTURE:edge_check_progress');
+    await tester.tap(find.byKey(const ValueKey('edge-check-skip')));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    await expectUnchanged('Skip while checking');
+    _mark('INFO:skip while checking went to Review, pages kept');
+
+    // Skip while the pages are straightened: the PDF stays as it was.
+    await openLong('long_scan_4.pdf');
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    await _waitFor(tester, find.byType(CropScreen), seconds: 180);
+    await _pause(tester, 800);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
+    await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
+    await _waitFor(
+      tester,
+      find.byKey(const ValueKey('straighten-progress-skip')),
+    );
+    _mark('CAPTURE:straighten_progress');
+    await tester.tap(find.byKey(const ValueKey('straighten-progress-skip')));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    await expectUnchanged('Skip while straightening');
+    _mark('INFO:skip while straightening went to Review, pdf kept');
+
     // Straight after scanning: "Skip fields · Save & Share" on the Review
     // screen saves the scan as a finished (Completed) PDF, after a
     // confirmation, and opens Send.
@@ -516,24 +649,31 @@ Future<String> _tiltedPhoto(Directory tmp, String folder, String name) async {
   return file.path;
 }
 
-/// A one-page PDF holding only that photo: no text layer, no fields.
-Future<String> _photoOnlyPdf(Directory tmp) async {
+/// A PDF whose [pages] pages each hold only that photo: no text layer, no
+/// fields.
+Future<String> _photoOnlyPdf(
+  Directory tmp, {
+  int pages = 1,
+  String name = 'photo_scan.pdf',
+}) async {
   final jpg = await File(
     await _tiltedPhoto(tmp, 'pdfsrc', 'page.jpg'),
   ).readAsBytes();
   final pdf = PdfDocument();
   pdf.pageSettings.margins.all = 0;
-  final page = pdf.pages.add();
-  final size = page.getClientSize();
-  page.graphics.drawImage(
-    PdfBitmap(jpg),
-    Rect.fromLTWH(0, 0, size.width, size.height),
-  );
+  for (var i = 0; i < pages; i++) {
+    final page = pdf.pages.add();
+    final size = page.getClientSize();
+    page.graphics.drawImage(
+      PdfBitmap(jpg),
+      Rect.fromLTWH(0, 0, size.width, size.height),
+    );
+  }
   final bytes = await pdf.save();
   pdf.dispose();
   final dir = Directory(p.join(tmp.path, 'opened_check', 'pdf'));
   await dir.create(recursive: true);
-  final file = File(p.join(dir.path, 'photo_scan.pdf'));
+  final file = File(p.join(dir.path, name));
   await file.writeAsBytes(bytes);
   return file.path;
 }
@@ -611,6 +751,24 @@ Future<void> _capture(WidgetTester tester, String name) async {
 
 // ignore: avoid_print
 void _mark(String m) => print(m);
+
+/// Waits for [target] like [_waitFor], and says whether [note] showed on the
+/// way (a progress text, which may be on screen only briefly).
+Future<bool> _waitNoting(
+  WidgetTester tester,
+  Finder target,
+  Finder note, {
+  int seconds = 30,
+}) async {
+  var seen = false;
+  final end = DateTime.now().add(Duration(seconds: seconds));
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 50));
+    if (note.evaluate().isNotEmpty) seen = true;
+    if (target.evaluate().isNotEmpty) return seen;
+  }
+  throw TestFailure('Timed out waiting for $target');
+}
 
 Future<void> _pause(WidgetTester tester, int ms) async {
   final end = DateTime.now().add(Duration(milliseconds: ms));

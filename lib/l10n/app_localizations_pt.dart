@@ -1276,10 +1276,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get actionChange => 'Alterar';
 
   @override
-  String get cropTitle => 'Verificar os contornos';
+  String get cropTitle => 'Verificar as bordas';
 
   @override
-  String get cropHint => 'Arraste os cantos até aos limites do documento.';
+  String get cropHint => 'Arraste os cantos até as bordas do documento.';
 
   @override
   String get cropUseWhole => 'Usar a imagem inteira';
@@ -1288,11 +1288,80 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cropApply => 'Recortar';
 
   @override
-  String get cropChecking => 'A verificar os contornos…';
+  String get cropChecking => 'Verificando as bordas…';
 
   @override
   String get cropFailed =>
       'Não foi possível recortar esta página. A imagem inteira foi mantida.';
+
+  @override
+  String get straightenAskTitle => 'Endireitar as páginas?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'O app encontra as bordas de cada página para você recortar. Para estas $count páginas, leva cerca de $minutes minutos.',
+      one:
+          'O app encontra as bordas de cada página para você recortar. Para estas $count páginas, leva cerca de 1 minuto.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'O app encontra as bordas de cada página para você recortar. Para estas $count páginas, leva menos de um minuto.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Faltam cerca de $minutes minutos',
+      one: 'Falta cerca de 1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'Falta menos de um minuto';
+
+  @override
+  String get progressQuip1 => 'Acertando os cantos…';
+
+  @override
+  String get progressQuip2 => 'Alisando as bordas…';
+
+  @override
+  String get progressQuip3 => 'Alinhando as margens…';
+
+  @override
+  String get progressQuip4 => 'Arrumando as páginas…';
+
+  @override
+  String get progressQuip5 => 'Medindo duas vezes, recortando uma…';
+
+  @override
+  String get progressQuip6 => 'Colocando os pixels no lugar…';
+
+  @override
+  String get straightenGo => 'Endireitar';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'Verificando a página $current de $total…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'Endireitando a página $current de $total…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'Usar a imagem inteira no restante';
 
   @override
   String get importErrorMixed => 'Escolha um só PDF, ou uma ou mais fotos.';

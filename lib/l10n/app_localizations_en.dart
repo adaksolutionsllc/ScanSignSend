@@ -1287,6 +1287,75 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not crop this page. The whole image was kept.';
 
   @override
+  String get straightenAskTitle => 'Straighten the pages?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'The app finds the edges of each page so you can crop them. For these $count pages this takes about $minutes minutes.',
+      one:
+          'The app finds the edges of each page so you can crop them. For these $count pages this takes about 1 minute.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'The app finds the edges of each page so you can crop them. For these $count pages this takes less than a minute.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'About $minutes minutes left',
+      one: 'About 1 minute left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'Less than a minute left';
+
+  @override
+  String get progressQuip1 => 'Squaring up the corners…';
+
+  @override
+  String get progressQuip2 => 'Smoothing the edges…';
+
+  @override
+  String get progressQuip3 => 'Lining up the margins…';
+
+  @override
+  String get progressQuip4 => 'Tidying the pages…';
+
+  @override
+  String get progressQuip5 => 'Measuring twice, cropping once…';
+
+  @override
+  String get progressQuip6 => 'Nudging pixels into place…';
+
+  @override
+  String get straightenGo => 'Straighten';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'Checking page $current of $total…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'Straightening page $current of $total…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'Use whole image for the rest';
+
+  @override
   String get importErrorMixed => 'Choose one PDF, or one or more photos.';
 
   @override

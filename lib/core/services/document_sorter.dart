@@ -83,9 +83,13 @@ class DocumentSorter {
   /// [nameFor] turns a title found on the page into the document name (it
   /// adds the date), resolved by the caller before any await. Never throws:
   /// naming and sorting are conveniences and must not break saving.
+  ///
+  /// The other pages' text is read only after [readRestAfter] (the edge
+  /// check, which may replace the pages meanwhile).
   Future<SortedBy?> sortNew(
     int docId, {
     required String Function(String title) nameFor,
+    Future<void>? readRestAfter,
   }) async {
     try {
       final pages = await pageRepo.pagesOf(docId);
@@ -117,7 +121,8 @@ class DocumentSorter {
       doc = await docRepo.getById(docId);
       if (doc == null) return null;
       final by = await _sort(doc, found ?? doc.title, text);
-      await _storeAllPagesText(docId, pages, text);
+      await readRestAfter;
+      await _storeAllPagesText(docId, text);
       return by;
     } catch (_) {
       return null;
@@ -128,27 +133,16 @@ class DocumentSorter {
   /// text after sorting, so the user never waits for it. Only replaces the
   /// page-1 text stored above — never text detection stored meanwhile, nor
   /// the imported-form marker.
-  Future<void> _storeAllPagesText(
-    int docId,
-    List<Page> pages,
-    String firstText,
-  ) async {
+  Future<void> _storeAllPagesText(int docId, String firstText) async {
+    // Read where the pages are now: the edge check may have replaced them.
+    final pages = await pageRepo.pagesOf(docId);
     if (pages.length < 2) return;
     final texts = [firstText];
     for (final page in pages.skip(1)) {
+      // One unreadable page doesn't stop the rest.
       try {
         texts.add((await layouts.textOnly(page.imagePath)).$2);
-      } catch (_) {
-        // The edge check may have replaced this page's file meanwhile (a
-        // crop, or a photo-only PDF turned into images): read it again from
-        // where the page is now. One unreadable page doesn't stop the rest.
-        try {
-          final now = (await pageRepo.pagesOf(
-            docId,
-          )).firstWhere((p) => p.id == page.id);
-          texts.add((await layouts.textOnly(now.imagePath)).$2);
-        } catch (_) {}
-      }
+      } catch (_) {}
     }
     final all = texts.where((t) => t.trim().isNotEmpty).join('\n');
     final doc = await docRepo.getById(docId);

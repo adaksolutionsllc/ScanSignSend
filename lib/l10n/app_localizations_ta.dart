@@ -1298,6 +1298,75 @@ class AppLocalizationsTa extends AppLocalizations {
       'இந்தப் பக்கத்தைச் செதுக்க முடியவில்லை. முழுப் படம் வைக்கப்பட்டது.';
 
   @override
+  String get straightenAskTitle => 'பக்கங்களை நேராக்கவா?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'ஒவ்வொரு பக்கத்தின் ஓரங்களையும் ஆப் கண்டறியும், நீங்கள் அவற்றைச் செதுக்கலாம். இந்த $count பக்கங்களுக்குச் சுமார் $minutes நிமிடங்கள் ஆகும்.',
+      one:
+          'ஒவ்வொரு பக்கத்தின் ஓரங்களையும் ஆப் கண்டறியும், நீங்கள் அவற்றைச் செதுக்கலாம். இந்த $count பக்கங்களுக்குச் சுமார் 1 நிமிடம் ஆகும்.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'ஒவ்வொரு பக்கத்தின் ஓரங்களையும் ஆப் கண்டறியும், நீங்கள் அவற்றைச் செதுக்கலாம். இந்த $count பக்கங்களுக்கு ஒரு நிமிடத்துக்கும் குறைவாக ஆகும்.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'சுமார் $minutes நிமிடங்கள் மீதம்',
+      one: 'சுமார் 1 நிமிடம் மீதம்',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'ஒரு நிமிடத்துக்கும் குறைவாக மீதம்';
+
+  @override
+  String get progressQuip1 => 'மூலைகள் சீராக்கப்படுகின்றன…';
+
+  @override
+  String get progressQuip2 => 'ஓரங்கள் மெருகேற்றப்படுகின்றன…';
+
+  @override
+  String get progressQuip3 => 'ஓர இடைவெளிகள் சீரமைக்கப்படுகின்றன…';
+
+  @override
+  String get progressQuip4 => 'பக்கங்கள் ஒழுங்குபடுத்தப்படுகின்றன…';
+
+  @override
+  String get progressQuip5 => 'இருமுறை அளந்து, ஒருமுறை வெட்டு…';
+
+  @override
+  String get progressQuip6 => 'பிக்சல்கள் இடத்தில் அமர்த்தப்படுகின்றன…';
+
+  @override
+  String get straightenGo => 'நேராக்கு';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'பக்கம் $current / $total சரிபார்க்கப்படுகிறது…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'பக்கம் $current / $total நேராக்கப்படுகிறது…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'மீதிப் பக்கங்களின் முழுப் படத்தையும் வை';
+
+  @override
   String get importErrorMixed =>
       'ஒரு PDF அல்லது ஒன்று அல்லது அதற்கு மேற்பட்ட படங்களைத் தேர்ந்தெடுங்கள்.';
 

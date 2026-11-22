@@ -1298,6 +1298,75 @@ class AppLocalizationsTe extends AppLocalizations {
       'ఈ పేజీని కత్తిరించలేకపోయాం. మొత్తం చిత్రం ఉంచబడింది.';
 
   @override
+  String get straightenAskTitle => 'పేజీలను నిటారుగా చేయాలా?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'యాప్ ప్రతి పేజీ అంచులను కనుగొంటుంది, మీరు వాటిని కత్తిరించవచ్చు. ఈ $count పేజీలకు సుమారు $minutes నిమిషాలు పడుతుంది.',
+      one:
+          'యాప్ ప్రతి పేజీ అంచులను కనుగొంటుంది, మీరు వాటిని కత్తిరించవచ్చు. ఈ $count పేజీలకు సుమారు 1 నిమిషం పడుతుంది.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'యాప్ ప్రతి పేజీ అంచులను కనుగొంటుంది, మీరు వాటిని కత్తిరించవచ్చు. ఈ $count పేజీలకు ఒక నిమిషం కంటే తక్కువ పడుతుంది.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'సుమారు $minutes నిమిషాలు మిగిలి ఉన్నాయి',
+      one: 'సుమారు 1 నిమిషం మిగిలి ఉంది',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'ఒక నిమిషం కంటే తక్కువ మిగిలి ఉంది';
+
+  @override
+  String get progressQuip1 => 'మూలలు సరిచేస్తోంది…';
+
+  @override
+  String get progressQuip2 => 'అంచులు నునుపు చేస్తోంది…';
+
+  @override
+  String get progressQuip3 => 'మార్జిన్లు సమలేఖనం చేస్తోంది…';
+
+  @override
+  String get progressQuip4 => 'పేజీలు సర్దుతోంది…';
+
+  @override
+  String get progressQuip5 => 'రెండుసార్లు కొలిచి, ఒక్కసారి కత్తిరించు…';
+
+  @override
+  String get progressQuip6 => 'పిక్సెల్‌లను సరైన చోట పెడుతోంది…';
+
+  @override
+  String get straightenGo => 'నిటారుగా చేయి';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'పేజీ $current / $total తనిఖీ చేస్తోంది…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'పేజీ $current / $total నిటారుగా చేస్తోంది…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'మిగతా పేజీల మొత్తం చిత్రాన్ని ఉంచు';
+
+  @override
   String get importErrorMixed =>
       'ఒక PDFని, లేదా ఒకటి లేదా అంతకంటే ఎక్కువ ఫోటోలను ఎంచుకోండి.';
 

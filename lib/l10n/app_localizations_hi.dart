@@ -1293,6 +1293,75 @@ class AppLocalizationsHi extends AppLocalizations {
   String get cropFailed => 'यह पेज क्रॉप नहीं हो सका। पूरी छवि रखी गई।';
 
   @override
+  String get straightenAskTitle => 'पृष्ठ सीधे करें?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'ऐप हर पृष्ठ के किनारे ढूँढता है ताकि आप उन्हें क्रॉप कर सकें। इन $count पृष्ठों में लगभग $minutes मिनट लगेंगे।',
+      one:
+          'ऐप हर पृष्ठ के किनारे ढूँढता है ताकि आप उन्हें क्रॉप कर सकें। इन $count पृष्ठों में लगभग 1 मिनट लगेगा।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'ऐप हर पृष्ठ के किनारे ढूँढता है ताकि आप उन्हें क्रॉप कर सकें। इन $count पृष्ठों में एक मिनट से कम लगेगा।';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'लगभग $minutes मिनट बाकी',
+      one: 'लगभग 1 मिनट बाकी',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'एक मिनट से कम बाकी';
+
+  @override
+  String get progressQuip1 => 'कोने सीधे किए जा रहे हैं…';
+
+  @override
+  String get progressQuip2 => 'किनारे संवारे जा रहे हैं…';
+
+  @override
+  String get progressQuip3 => 'हाशिये मिलाए जा रहे हैं…';
+
+  @override
+  String get progressQuip4 => 'पृष्ठ सजाए जा रहे हैं…';
+
+  @override
+  String get progressQuip5 => 'दो बार नापो, एक बार काटो…';
+
+  @override
+  String get progressQuip6 => 'पिक्सेल जगह पर बिठाए जा रहे हैं…';
+
+  @override
+  String get straightenGo => 'सीधा करें';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'पृष्ठ $current / $total जाँचा जा रहा है…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'पृष्ठ $current / $total सीधा किया जा रहा है…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'बाकी पृष्ठों की पूरी छवि रखें';
+
+  @override
   String get importErrorMixed => 'एक PDF चुनें, या एक या अधिक फ़ोटो।';
 
   @override

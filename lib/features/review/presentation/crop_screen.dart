@@ -10,6 +10,7 @@ import '../../../core/services/document_edges.dart';
 import '../../../core/services/edge_check_service.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/utils/router.dart';
+import '../../../shared/widgets/progress_extras.dart';
 
 /// "Check the edges": one page at a time, the corners found in a picked or
 /// opened photo (or a photo-only PDF) are shown for the user to confirm or
@@ -30,8 +31,27 @@ class _CropScreenState extends ConsumerState<CropScreen> {
   late EdgeQuad _quad = widget.candidates.first.quad;
   final Map<int, EdgeQuad> _crops = {};
   bool _applying = false;
+  (int, int)? _progress; // pages straightened, of how many
+  bool _skip = false; // Skip tapped while the pages are straightened
+  final _clock = Stopwatch();
 
   EdgeCandidate get _current => widget.candidates[_index];
+
+  // Read up front: ref can't be used in dispose.
+  late final EdgeCheckService _edges;
+
+  @override
+  void initState() {
+    super.initState();
+    _edges = ref.read(edgeCheckServiceProvider);
+  }
+
+  @override
+  void dispose() {
+    // Left with Back: nothing more will change these pages.
+    _edges.end(widget.docId);
+    super.dispose();
+  }
 
   void _decide({required bool crop}) {
     if (crop) _crops[_current.pageId] = _quad;
@@ -53,13 +73,24 @@ class _CropScreenState extends ConsumerState<CropScreen> {
     setState(() => _applying = true);
     var failed = const <int>[];
     try {
-      failed = await ref
-          .read(edgeCheckServiceProvider)
-          .apply(widget.docId, _crops);
+      failed = await _edges.apply(
+        widget.docId,
+        _crops,
+        onProgress: (done, total) {
+          if (done == 0) {
+            _clock
+              ..reset()
+              ..start();
+          }
+          if (mounted) setState(() => _progress = (done, total));
+        },
+        stop: () => _skip,
+      );
     } catch (_) {
       failed = _crops.keys.toList();
     }
-    if (failed.isNotEmpty) {
+    _edges.end(widget.docId);
+    if (failed.isNotEmpty && !_skip) {
       messenger.showSnackBar(SnackBar(content: Text(failedText)));
     }
     router.pushReplacement(
@@ -74,7 +105,7 @@ class _CropScreenState extends ConsumerState<CropScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.cropTitle),
-        bottom: total > 1
+        bottom: total > 1 && !_applying
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(20),
                 child: Padding(
@@ -85,7 +116,40 @@ class _CropScreenState extends ConsumerState<CropScreen> {
             : null,
       ),
       body: _applying
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  if (_progress case (
+                    final done,
+                    final total,
+                  ) when total > 1) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      l10n.cropStraighteningPage(
+                        (done + 1).clamp(1, total),
+                        total,
+                      ),
+                    ),
+                    ProgressExtras(
+                      done: done,
+                      total: total,
+                      elapsed: _clock.elapsed,
+                    ),
+                    // Go on without the rest of the straightening.
+                    const SizedBox(height: 12),
+                    TextButton(
+                      key: const ValueKey('straighten-progress-skip'),
+                      onPressed: _skip
+                          ? null
+                          : () => setState(() => _skip = true),
+                      child: Text(l10n.actionSkip),
+                    ),
+                  ],
+                ],
+              ),
+            )
           : Column(
               children: [
                 Padding(
@@ -107,6 +171,13 @@ class _CropScreenState extends ConsumerState<CropScreen> {
                     ),
                   ),
                 ),
+                // Many pages: the rest can be kept as they are at once.
+                if (_index + 1 < total)
+                  TextButton(
+                    key: const ValueKey('crop-use-whole-rest'),
+                    onPressed: _finish,
+                    child: Text(l10n.cropUseWholeRest),
+                  ),
               ],
             ),
       bottomNavigationBar: _applying
