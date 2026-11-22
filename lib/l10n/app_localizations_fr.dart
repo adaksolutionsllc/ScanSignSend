@@ -1562,4 +1562,55 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get sendNoText =>
       'Aucun texte trouvé dans ce document. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais.';
+
+  @override
+  String get receiptsExport => 'Exporter vers un tableur';
+
+  @override
+  String get receiptsTitle => 'Reçus';
+
+  @override
+  String get receiptsHint =>
+      'Les informations sont lues sur ce téléphone et peuvent être fausses. Touchez un reçu pour le corriger.';
+
+  @override
+  String get receiptsReading => 'Lecture des reçus…';
+
+  @override
+  String get receiptDate => 'Date';
+
+  @override
+  String get receiptMerchant => 'Commerçant';
+
+  @override
+  String get receiptTotal => 'Total';
+
+  @override
+  String get receiptTax => 'Taxe';
+
+  @override
+  String get receiptCurrency => 'Devise';
+
+  @override
+  String get receiptDocument => 'Document';
+
+  @override
+  String get receiptsExportCsv => 'Exporter en .csv';
+
+  @override
+  String receiptsFileName(String date) {
+    return 'Reçus $date';
+  }
+
+  @override
+  String get receiptMissing => 'Introuvable';
+
+  @override
+  String get receiptAmountInvalid => 'Saisissez un montant, par exemple 12,50';
+
+  @override
+  String get receiptEditTitle => 'Détails du reçu';
+
+  @override
+  String get receiptChooseDate => 'Choisir une date';
 }

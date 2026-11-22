@@ -873,5 +873,42 @@
   "@sendFormatTextHint": {
     "description": "Shown when Text or Word is chosen. Must say signatures are left out."
   },
-  "sendNoText": "No text found in this document. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese."
+  "sendNoText": "No text found in this document. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.",
+  "receiptsExport": "Export to spreadsheet",
+  "@receiptsExport": {
+    "description": "Library selection action for receipts: make a .csv of their date, merchant, total, tax and currency."
+  },
+  "receiptsTitle": "Receipts",
+  "receiptsHint": "Details are read on this phone and can be wrong. Tap a receipt to correct it.",
+  "@receiptsHint": {
+    "description": "Shown above the receipts list. Must say the details can be wrong; do not claim accuracy."
+  },
+  "receiptsReading": "Reading receipts…",
+  "receiptDate": "Date",
+  "receiptMerchant": "Merchant",
+  "@receiptMerchant": {
+    "description": "The shop or business that issued the receipt."
+  },
+  "receiptTotal": "Total",
+  "receiptTax": "Tax",
+  "receiptCurrency": "Currency",
+  "receiptDocument": "Document",
+  "receiptsExportCsv": "Export .csv",
+  "receiptsFileName": "Receipts {date}",
+  "@receiptsFileName": {
+    "description": "File name of the exported .csv, without the extension.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "2026-11-22"
+      }
+    }
+  },
+  "receiptMissing": "Not found",
+  "@receiptMissing": {
+    "description": "Shown when a detail could not be read from the receipt."
+  },
+  "receiptAmountInvalid": "Enter an amount, such as 12.50",
+  "receiptEditTitle": "Receipt details",
+  "receiptChooseDate": "Choose a date"
 }

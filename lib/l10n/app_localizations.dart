@@ -2675,6 +2675,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No text found in this document. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.'**
   String get sendNoText;
+
+  /// Library selection action for receipts: make a .csv of their date, merchant, total, tax and currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to spreadsheet'**
+  String get receiptsExport;
+
+  /// No description provided for @receiptsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts'**
+  String get receiptsTitle;
+
+  /// Shown above the receipts list. Must say the details can be wrong; do not claim accuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Details are read on this phone and can be wrong. Tap a receipt to correct it.'**
+  String get receiptsHint;
+
+  /// No description provided for @receiptsReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading receipts…'**
+  String get receiptsReading;
+
+  /// No description provided for @receiptDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get receiptDate;
+
+  /// The shop or business that issued the receipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchant'**
+  String get receiptMerchant;
+
+  /// No description provided for @receiptTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get receiptTotal;
+
+  /// No description provided for @receiptTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get receiptTax;
+
+  /// No description provided for @receiptCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get receiptCurrency;
+
+  /// No description provided for @receiptDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get receiptDocument;
+
+  /// No description provided for @receiptsExportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export .csv'**
+  String get receiptsExportCsv;
+
+  /// File name of the exported .csv, without the extension.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts {date}'**
+  String receiptsFileName(String date);
+
+  /// Shown when a detail could not be read from the receipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Not found'**
+  String get receiptMissing;
+
+  /// No description provided for @receiptAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount, such as 12.50'**
+  String get receiptAmountInvalid;
+
+  /// No description provided for @receiptEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt details'**
+  String get receiptEditTitle;
+
+  /// No description provided for @receiptChooseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date'**
+  String get receiptChooseDate;
 }
 
 class _AppLocalizationsDelegate

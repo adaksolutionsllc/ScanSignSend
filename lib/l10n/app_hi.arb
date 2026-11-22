@@ -427,5 +427,21 @@
   "sendShareWord": "Word फ़ाइल शेयर करें",
   "sendFormatImagesHint": "हर पेज की एक इमेज, आपकी भरी जानकारी और हस्ताक्षर के साथ।",
   "sendFormatTextHint": "हर पेज का टेक्स्ट और आपकी भरी जानकारी। हस्ताक्षर शामिल नहीं होते।",
-  "sendNoText": "इस दस्तावेज़ में कोई टेक्स्ट नहीं मिला। स्कैन से केवल लैटिन लिपि का टेक्स्ट पढ़ा जाता है, जैसे अंग्रेज़ी, फ़्रेंच, स्पैनिश और पुर्तगाली।"
+  "sendNoText": "इस दस्तावेज़ में कोई टेक्स्ट नहीं मिला। स्कैन से केवल लैटिन लिपि का टेक्स्ट पढ़ा जाता है, जैसे अंग्रेज़ी, फ़्रेंच, स्पैनिश और पुर्तगाली।",
+  "receiptsExport": "स्प्रेडशीट में एक्सपोर्ट करें",
+  "receiptsTitle": "रसीदें",
+  "receiptsHint": "जानकारी इसी फ़ोन पर पढ़ी जाती है और गलत हो सकती है। सुधारने के लिए रसीद पर टैप करें।",
+  "receiptsReading": "रसीदें पढ़ी जा रही हैं…",
+  "receiptDate": "तारीख",
+  "receiptMerchant": "दुकान",
+  "receiptTotal": "कुल",
+  "receiptTax": "टैक्स",
+  "receiptCurrency": "मुद्रा",
+  "receiptDocument": "दस्तावेज़",
+  "receiptsExportCsv": "CSV एक्सपोर्ट करें",
+  "receiptsFileName": "रसीदें {date}",
+  "receiptMissing": "नहीं मिला",
+  "receiptAmountInvalid": "राशि लिखें, जैसे 12.50",
+  "receiptEditTitle": "रसीद का विवरण",
+  "receiptChooseDate": "तारीख चुनें"
 }

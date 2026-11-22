@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/library/presentation/library_screen.dart';
 import '../../features/capture/presentation/capture_screen.dart';
 import '../../features/review/presentation/crop_screen.dart';
+import '../../features/receipts/presentation/receipts_screen.dart';
 import '../../features/review/presentation/review_screen.dart';
 import '../../features/field_detection/presentation/field_detection_screen.dart';
 import '../../features/fill_mode/presentation/fill_mode_screen.dart';
@@ -34,6 +35,7 @@ class AppRoutes {
   static const signaturesManager = '/settings/signatures';
   static const myDetails = '/settings/my-details';
   static const viewer = '/viewer/:docId';
+  static const receipts = '/receipts';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -107,6 +109,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.send,
         builder: (context, state) =>
             SendScreen(docId: int.parse(state.pathParameters['docId']!)),
+      ),
+      GoRoute(
+        path: AppRoutes.receipts,
+        builder: (context, state) => ReceiptsScreen(
+          docIds: [
+            for (final id in (state.uri.queryParameters['ids'] ?? '').split(
+              ',',
+            ))
+              ?int.tryParse(id),
+          ],
+        ),
       ),
       GoRoute(
         path: AppRoutes.settings,

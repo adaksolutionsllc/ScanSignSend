@@ -19,7 +19,7 @@ void main() {
     expect(AppDatabase.splitFullName(''), ('', ''));
   });
 
-  test('v2 → v10 migration preserves data and adds every later column and table', () async {
+  test('v2 → v11 migration preserves data and adds every later column and table', () async {
     final dbFile = File(
       '${Directory.systemTemp.path}/sss_migration_v3_${DateTime.now().microsecondsSinceEpoch}.db',
     );
@@ -147,6 +147,8 @@ void main() {
     expect(await db.select(db.userCategories).get(), isEmpty);
     expect(await db.select(db.categoryHints).get(), isEmpty);
     expect(await db.select(db.prefillHints).get(), isEmpty);
+    // v10 → v11: the receipt details table exists and starts empty.
+    expect(await db.select(db.receiptDetails).get(), isEmpty);
     // A document created after the upgrade starts with a default title.
     final fresh = await db
         .into(db.documents)

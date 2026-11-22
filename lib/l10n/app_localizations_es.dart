@@ -1560,4 +1560,55 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get sendNoText =>
       'No se encontró texto en este documento. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués.';
+
+  @override
+  String get receiptsExport => 'Exportar a hoja de cálculo';
+
+  @override
+  String get receiptsTitle => 'Recibos';
+
+  @override
+  String get receiptsHint =>
+      'Los datos se leen en este teléfono y pueden ser incorrectos. Toque un recibo para corregirlo.';
+
+  @override
+  String get receiptsReading => 'Leyendo los recibos…';
+
+  @override
+  String get receiptDate => 'Fecha';
+
+  @override
+  String get receiptMerchant => 'Comercio';
+
+  @override
+  String get receiptTotal => 'Total';
+
+  @override
+  String get receiptTax => 'Impuesto';
+
+  @override
+  String get receiptCurrency => 'Moneda';
+
+  @override
+  String get receiptDocument => 'Documento';
+
+  @override
+  String get receiptsExportCsv => 'Exportar .csv';
+
+  @override
+  String receiptsFileName(String date) {
+    return 'Recibos $date';
+  }
+
+  @override
+  String get receiptMissing => 'No encontrado';
+
+  @override
+  String get receiptAmountInvalid => 'Escriba un importe, por ejemplo 12,50';
+
+  @override
+  String get receiptEditTitle => 'Datos del recibo';
+
+  @override
+  String get receiptChooseDate => 'Elegir una fecha';
 }

@@ -39,6 +39,7 @@ lib/
     settings/        # profile, biometrics, purchase, signatures manager
     onboarding/      # first-run pages (shown by main.dart, not routed)
     viewer/          # in-app PDF viewer
+    receipts/        # receipt details + Export to spreadsheet (.csv)
   shared/
     theme/           # AppTheme (light/dark, status colours)
     widgets/         # Reusable widgets (PageCanvas, FieldBox, PaywallScreen)

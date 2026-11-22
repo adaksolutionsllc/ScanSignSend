@@ -213,6 +213,25 @@ class PrefillHints extends Table {
 
 // ─── Database ─────────────────────────────────────────────────────────────────
 
+/// Schema v11. What was read from a receipt (Bills & receipts) for Export to
+/// spreadsheet, and the user's corrections. One row per document, made the
+/// first time it is needed; deleted with the document.
+class ReceiptDetails extends Table {
+  IntColumn get documentId => integer().references(Documents, #id)();
+  DateTimeColumn get date => dateTime().nullable()();
+  TextColumn get merchant => text().withDefault(const Constant(''))();
+  // Minor units (cents, paise): no rounding errors.
+  IntColumn get total => integer().nullable()();
+  IntColumn get tax => integer().nullable()();
+  // ISO 4217 code ('INR', 'EUR'); empty when unknown.
+  TextColumn get currency => text().withDefault(const Constant(''))();
+  // The user corrected it: never read over again.
+  BoolColumn get edited => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {documentId};
+}
+
 @DriftDatabase(
   tables: [
     Documents,
@@ -224,6 +243,7 @@ class PrefillHints extends Table {
     UserCategories,
     CategoryHints,
     PrefillHints,
+    ReceiptDetails,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -235,7 +255,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -317,6 +337,10 @@ class AppDatabase extends _$AppDatabase {
           "UPDATE documents SET has_form_fields = 1, ocr_text = '' "
           "WHERE ocr_text = '__has_form_fields__'",
         );
+      }
+      // v10 → v11: receipt details for Export to spreadsheet.
+      if (from < 11) {
+        await m.createTable(receiptDetails);
       }
     },
   );

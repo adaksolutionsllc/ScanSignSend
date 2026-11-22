@@ -1563,4 +1563,55 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get sendNoText =>
       'ఈ పత్రంలో టెక్స్ట్ కనబడలేదు. స్కాన్‌ల నుండి లాటిన్ లిపి టెక్స్ట్ మాత్రమే చదవబడుతుంది, ఉదా. ఇంగ్లీష్, ఫ్రెంచ్, స్పానిష్, పోర్చుగీస్.';
+
+  @override
+  String get receiptsExport => 'స్ప్రెడ్‌షీట్‌కు ఎగుమతి చేయండి';
+
+  @override
+  String get receiptsTitle => 'రసీదులు';
+
+  @override
+  String get receiptsHint =>
+      'వివరాలు ఈ ఫోన్‌లోనే చదవబడతాయి, తప్పుగా ఉండవచ్చు. సరిచేయడానికి రసీదును నొక్కండి.';
+
+  @override
+  String get receiptsReading => 'రసీదులు చదువుతోంది…';
+
+  @override
+  String get receiptDate => 'తేదీ';
+
+  @override
+  String get receiptMerchant => 'దుకాణం';
+
+  @override
+  String get receiptTotal => 'మొత్తం';
+
+  @override
+  String get receiptTax => 'పన్ను';
+
+  @override
+  String get receiptCurrency => 'కరెన్సీ';
+
+  @override
+  String get receiptDocument => 'పత్రం';
+
+  @override
+  String get receiptsExportCsv => 'CSV ఎగుమతి చేయండి';
+
+  @override
+  String receiptsFileName(String date) {
+    return 'రసీదులు $date';
+  }
+
+  @override
+  String get receiptMissing => 'కనబడలేదు';
+
+  @override
+  String get receiptAmountInvalid => 'మొత్తాన్ని నమోదు చేయండి, ఉదా. 12.50';
+
+  @override
+  String get receiptEditTitle => 'రసీదు వివరాలు';
+
+  @override
+  String get receiptChooseDate => 'తేదీని ఎంచుకోండి';
 }

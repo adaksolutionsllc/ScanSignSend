@@ -427,5 +427,21 @@
   "sendShareWord": "Partager le fichier Word",
   "sendFormatImagesHint": "Une image par page, avec vos saisies et vos signatures.",
   "sendFormatTextHint": "Le texte de chaque page et vos saisies. Les signatures ne sont pas incluses.",
-  "sendNoText": "Aucun texte trouvé dans ce document. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais."
+  "sendNoText": "Aucun texte trouvé dans ce document. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais.",
+  "receiptsExport": "Exporter vers un tableur",
+  "receiptsTitle": "Reçus",
+  "receiptsHint": "Les informations sont lues sur ce téléphone et peuvent être fausses. Touchez un reçu pour le corriger.",
+  "receiptsReading": "Lecture des reçus…",
+  "receiptDate": "Date",
+  "receiptMerchant": "Commerçant",
+  "receiptTotal": "Total",
+  "receiptTax": "Taxe",
+  "receiptCurrency": "Devise",
+  "receiptDocument": "Document",
+  "receiptsExportCsv": "Exporter en .csv",
+  "receiptsFileName": "Reçus {date}",
+  "receiptMissing": "Introuvable",
+  "receiptAmountInvalid": "Saisissez un montant, par exemple 12,50",
+  "receiptEditTitle": "Détails du reçu",
+  "receiptChooseDate": "Choisir une date"
 }

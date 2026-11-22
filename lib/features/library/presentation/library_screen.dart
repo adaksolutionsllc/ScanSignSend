@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/db/app_database.dart';
+import '../../../core/models/document_category.dart';
 import '../../../core/models/document_model.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/page_raster_service.dart';
@@ -130,6 +131,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                     tooltip: context.l10n.libraryMerge,
                     onPressed: _mergeSelected,
                   ),
+                // Receipts only: their details make a spreadsheet.
+                if (_selectedDocs.isNotEmpty &&
+                    _selectedDocs.every(
+                      (d) => d.category == BuiltInCategory.bills.key,
+                    ))
+                  IconButton(
+                    key: const ValueKey('export-receipts'),
+                    icon: const Icon(Icons.table_view_outlined),
+                    tooltip: context.l10n.receiptsExport,
+                    onPressed: _exportReceipts,
+                  ),
                 IconButton(
                   icon: const Icon(Icons.label_outline),
                   tooltip: context.l10n.categoryChange,
@@ -207,6 +219,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   List<Document> get _selectedDocs =>
       _visible.where((d) => _selected.contains(d.id)).toList();
+
+  /// Receipts in the order they were selected, like Merge.
+  void _exportReceipts() {
+    final ids = _selected.join(',');
+    setState(_selected.clear);
+    context.push('${AppRoutes.receipts}?ids=$ids');
+  }
 
   Future<void> _changeSelectedCategory() async {
     await showCategorySheet(context, ref, _selectedDocs);

@@ -90,6 +90,9 @@ class DocumentRepository {
       await (_db.delete(
         _db.fields,
       )..where((t) => t.documentId.equals(id))).go();
+      await (_db.delete(
+        _db.receiptDetails,
+      )..where((t) => t.documentId.equals(id))).go();
       await (_db.delete(_db.documents)..where((t) => t.id.equals(id))).go();
     });
 

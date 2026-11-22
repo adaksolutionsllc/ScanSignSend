@@ -89,13 +89,14 @@ with `NativeDatabase.createInBackground` (drift's own background isolate).
 | Table | Purpose | Notable columns |
 |---|---|---|
 | `Documents` | One per document/template | `status` (`draft`/`pressed`/`fillable`/`template`, enum in `lib/core/models/document_model.dart`), `pressedPdfPath`, `fillablePdfPath`, `isTemplate`, `textSize`, `countedFree` |
-| `Pages` | Ordered pages | `documentId`, `pageIndex`, `imagePath` (may carry `#page=N` for PDF pages), `activeFilter` (`original`/`enhanced`/`clean`/`bw`; applied by `pageImageForPdf` in every export, Clean via `clean_filter.dart`), `ocrText` |
+| `Pages` | Ordered pages | `documentId`, `pageIndex`, `imagePath` (may carry `#page=N` for PDF pages), `activeFilter` (`original`/`enhanced`/`clean`/`bw`; applied by `pageImageForPdf` in every export, Clean via `clean_filter.dart`), `ocrText` (the page's text, read on demand by `PageTextService`; cleared by Rotate and Crop) |
 | `Fields` | Fill-in boxes | `type`, `boundingBoxJson` (normalised 0..1 to page content), `value`, `isChecked`, `signatureId`, `pdfFieldName`, `sourceKind` (`app` / AcroForm), `optionsJson` |
 | `Signatures` | Saved signatures/initials | `imagePath`, `isDefault`, `isInitials` |
 | `UserProfile` | Single-row settings | `biometricLockEnabled`, `aiEnhancedDetection`, `scanCount`, `isPurchased`, `includeInDeviceBackup` |
 | `FieldHints` | On-device learning from user edits | `phrase`, `type`, `accepted`, `rejected` |
+| `ReceiptDetails` (v11) | Receipt details for Export to spreadsheet, one row per document, deleted with it | `date`, `merchant`, `total`/`tax` (minor units), `currency` (ISO 4217), `edited` (user-corrected: never read over) |
 
-Migrations are additive (`from < N` blocks, v1→v7). Tests:
+Migrations are additive (`from < N` blocks, v1→v11). Tests:
 `test/migration_test.dart`, `test/migration_v1_to_v2_test.dart`. After touching
 the schema: `dart run build_runner build --delete-conflicting-outputs`.
 

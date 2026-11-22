@@ -1566,4 +1566,55 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get sendNoText =>
       'இந்த ஆவணத்தில் உரை எதுவும் இல்லை. ஸ்கேன்களில் லத்தீன் எழுத்து உரை மட்டுமே படிக்கப்படும், எ.கா. ஆங்கிலம், பிரெஞ்சு, ஸ்பானிஷ், போர்ச்சுகீஸ்.';
+
+  @override
+  String get receiptsExport => 'விரிதாளுக்கு ஏற்றுமதி செய்';
+
+  @override
+  String get receiptsTitle => 'ரசீதுகள்';
+
+  @override
+  String get receiptsHint =>
+      'விவரங்கள் இந்த ஃபோனிலேயே படிக்கப்படுகின்றன, தவறாக இருக்கலாம். திருத்த ரசீதைத் தட்டவும்.';
+
+  @override
+  String get receiptsReading => 'ரசீதுகள் படிக்கப்படுகின்றன…';
+
+  @override
+  String get receiptDate => 'தேதி';
+
+  @override
+  String get receiptMerchant => 'கடை';
+
+  @override
+  String get receiptTotal => 'மொத்தம்';
+
+  @override
+  String get receiptTax => 'வரி';
+
+  @override
+  String get receiptCurrency => 'நாணயம்';
+
+  @override
+  String get receiptDocument => 'ஆவணம்';
+
+  @override
+  String get receiptsExportCsv => 'CSV ஏற்றுமதி செய்';
+
+  @override
+  String receiptsFileName(String date) {
+    return 'ரசீதுகள் $date';
+  }
+
+  @override
+  String get receiptMissing => 'கிடைக்கவில்லை';
+
+  @override
+  String get receiptAmountInvalid => 'தொகையை உள்ளிடவும், எ.கா. 12.50';
+
+  @override
+  String get receiptEditTitle => 'ரசீது விவரங்கள்';
+
+  @override
+  String get receiptChooseDate => 'தேதியைத் தேர்ந்தெடு';
 }

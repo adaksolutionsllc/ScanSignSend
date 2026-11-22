@@ -427,5 +427,21 @@
   "sendShareWord": "Compartir archivo de Word",
   "sendFormatImagesHint": "Una imagen por página, con lo que rellenó y sus firmas.",
   "sendFormatTextHint": "El texto de cada página y lo que rellenó. Las firmas no se incluyen.",
-  "sendNoText": "No se encontró texto en este documento. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués."
+  "sendNoText": "No se encontró texto en este documento. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués.",
+  "receiptsExport": "Exportar a hoja de cálculo",
+  "receiptsTitle": "Recibos",
+  "receiptsHint": "Los datos se leen en este teléfono y pueden ser incorrectos. Toque un recibo para corregirlo.",
+  "receiptsReading": "Leyendo los recibos…",
+  "receiptDate": "Fecha",
+  "receiptMerchant": "Comercio",
+  "receiptTotal": "Total",
+  "receiptTax": "Impuesto",
+  "receiptCurrency": "Moneda",
+  "receiptDocument": "Documento",
+  "receiptsExportCsv": "Exportar .csv",
+  "receiptsFileName": "Recibos {date}",
+  "receiptMissing": "No encontrado",
+  "receiptAmountInvalid": "Escriba un importe, por ejemplo 12,50",
+  "receiptEditTitle": "Datos del recibo",
+  "receiptChooseDate": "Elegir una fecha"
 }

@@ -234,4 +234,25 @@ void main() {
       await close(tester);
     },
   );
+
+  testWidgets('Export to spreadsheet is offered for receipts only', (
+    tester,
+  ) async {
+    await addDoc(tester, 'Coffee', 'bills');
+    await addDoc(tester, 'Taxi', 'bills');
+    await addDoc(tester, 'Lease', 'home');
+    await open(tester);
+    final export = find.byKey(const ValueKey('export-receipts'));
+
+    await tester.longPress(find.text('Coffee'));
+    await settle(tester);
+    expect(export, findsOneWidget);
+    await tester.tap(find.text('Taxi'));
+    await settle(tester);
+    expect(export, findsOneWidget);
+    await tester.tap(find.text('Lease'));
+    await settle(tester);
+    expect(export, findsNothing, reason: 'a lease is not a receipt');
+    await close(tester);
+  });
 }

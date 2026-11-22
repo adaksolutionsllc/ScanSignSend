@@ -5157,6 +5157,448 @@ class PrefillHintsCompanion extends UpdateCompanion<PrefillHint> {
   }
 }
 
+class $ReceiptDetailsTable extends ReceiptDetails
+    with TableInfo<$ReceiptDetailsTable, ReceiptDetail> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReceiptDetailsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _documentIdMeta = const VerificationMeta(
+    'documentId',
+  );
+  @override
+  late final GeneratedColumn<int> documentId = GeneratedColumn<int>(
+    'document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES documents (id)',
+    ),
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _merchantMeta = const VerificationMeta(
+    'merchant',
+  );
+  @override
+  late final GeneratedColumn<String> merchant = GeneratedColumn<String>(
+    'merchant',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _totalMeta = const VerificationMeta('total');
+  @override
+  late final GeneratedColumn<int> total = GeneratedColumn<int>(
+    'total',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _taxMeta = const VerificationMeta('tax');
+  @override
+  late final GeneratedColumn<int> tax = GeneratedColumn<int>(
+    'tax',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _editedMeta = const VerificationMeta('edited');
+  @override
+  late final GeneratedColumn<bool> edited = GeneratedColumn<bool>(
+    'edited',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("edited" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    documentId,
+    date,
+    merchant,
+    total,
+    tax,
+    currency,
+    edited,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'receipt_details';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReceiptDetail> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('document_id')) {
+      context.handle(
+        _documentIdMeta,
+        documentId.isAcceptableOrUnknown(data['document_id']!, _documentIdMeta),
+      );
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    }
+    if (data.containsKey('merchant')) {
+      context.handle(
+        _merchantMeta,
+        merchant.isAcceptableOrUnknown(data['merchant']!, _merchantMeta),
+      );
+    }
+    if (data.containsKey('total')) {
+      context.handle(
+        _totalMeta,
+        total.isAcceptableOrUnknown(data['total']!, _totalMeta),
+      );
+    }
+    if (data.containsKey('tax')) {
+      context.handle(
+        _taxMeta,
+        tax.isAcceptableOrUnknown(data['tax']!, _taxMeta),
+      );
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('edited')) {
+      context.handle(
+        _editedMeta,
+        edited.isAcceptableOrUnknown(data['edited']!, _editedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {documentId};
+  @override
+  ReceiptDetail map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReceiptDetail(
+      documentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}document_id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      ),
+      merchant: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant'],
+      )!,
+      total: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total'],
+      ),
+      tax: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tax'],
+      ),
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      edited: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}edited'],
+      )!,
+    );
+  }
+
+  @override
+  $ReceiptDetailsTable createAlias(String alias) {
+    return $ReceiptDetailsTable(attachedDatabase, alias);
+  }
+}
+
+class ReceiptDetail extends DataClass implements Insertable<ReceiptDetail> {
+  final int documentId;
+  final DateTime? date;
+  final String merchant;
+  final int? total;
+  final int? tax;
+  final String currency;
+  final bool edited;
+  const ReceiptDetail({
+    required this.documentId,
+    this.date,
+    required this.merchant,
+    this.total,
+    this.tax,
+    required this.currency,
+    required this.edited,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['document_id'] = Variable<int>(documentId);
+    if (!nullToAbsent || date != null) {
+      map['date'] = Variable<DateTime>(date);
+    }
+    map['merchant'] = Variable<String>(merchant);
+    if (!nullToAbsent || total != null) {
+      map['total'] = Variable<int>(total);
+    }
+    if (!nullToAbsent || tax != null) {
+      map['tax'] = Variable<int>(tax);
+    }
+    map['currency'] = Variable<String>(currency);
+    map['edited'] = Variable<bool>(edited);
+    return map;
+  }
+
+  ReceiptDetailsCompanion toCompanion(bool nullToAbsent) {
+    return ReceiptDetailsCompanion(
+      documentId: Value(documentId),
+      date: date == null && nullToAbsent ? const Value.absent() : Value(date),
+      merchant: Value(merchant),
+      total: total == null && nullToAbsent
+          ? const Value.absent()
+          : Value(total),
+      tax: tax == null && nullToAbsent ? const Value.absent() : Value(tax),
+      currency: Value(currency),
+      edited: Value(edited),
+    );
+  }
+
+  factory ReceiptDetail.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReceiptDetail(
+      documentId: serializer.fromJson<int>(json['documentId']),
+      date: serializer.fromJson<DateTime?>(json['date']),
+      merchant: serializer.fromJson<String>(json['merchant']),
+      total: serializer.fromJson<int?>(json['total']),
+      tax: serializer.fromJson<int?>(json['tax']),
+      currency: serializer.fromJson<String>(json['currency']),
+      edited: serializer.fromJson<bool>(json['edited']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'documentId': serializer.toJson<int>(documentId),
+      'date': serializer.toJson<DateTime?>(date),
+      'merchant': serializer.toJson<String>(merchant),
+      'total': serializer.toJson<int?>(total),
+      'tax': serializer.toJson<int?>(tax),
+      'currency': serializer.toJson<String>(currency),
+      'edited': serializer.toJson<bool>(edited),
+    };
+  }
+
+  ReceiptDetail copyWith({
+    int? documentId,
+    Value<DateTime?> date = const Value.absent(),
+    String? merchant,
+    Value<int?> total = const Value.absent(),
+    Value<int?> tax = const Value.absent(),
+    String? currency,
+    bool? edited,
+  }) => ReceiptDetail(
+    documentId: documentId ?? this.documentId,
+    date: date.present ? date.value : this.date,
+    merchant: merchant ?? this.merchant,
+    total: total.present ? total.value : this.total,
+    tax: tax.present ? tax.value : this.tax,
+    currency: currency ?? this.currency,
+    edited: edited ?? this.edited,
+  );
+  ReceiptDetail copyWithCompanion(ReceiptDetailsCompanion data) {
+    return ReceiptDetail(
+      documentId: data.documentId.present
+          ? data.documentId.value
+          : this.documentId,
+      date: data.date.present ? data.date.value : this.date,
+      merchant: data.merchant.present ? data.merchant.value : this.merchant,
+      total: data.total.present ? data.total.value : this.total,
+      tax: data.tax.present ? data.tax.value : this.tax,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      edited: data.edited.present ? data.edited.value : this.edited,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReceiptDetail(')
+          ..write('documentId: $documentId, ')
+          ..write('date: $date, ')
+          ..write('merchant: $merchant, ')
+          ..write('total: $total, ')
+          ..write('tax: $tax, ')
+          ..write('currency: $currency, ')
+          ..write('edited: $edited')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(documentId, date, merchant, total, tax, currency, edited);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReceiptDetail &&
+          other.documentId == this.documentId &&
+          other.date == this.date &&
+          other.merchant == this.merchant &&
+          other.total == this.total &&
+          other.tax == this.tax &&
+          other.currency == this.currency &&
+          other.edited == this.edited);
+}
+
+class ReceiptDetailsCompanion extends UpdateCompanion<ReceiptDetail> {
+  final Value<int> documentId;
+  final Value<DateTime?> date;
+  final Value<String> merchant;
+  final Value<int?> total;
+  final Value<int?> tax;
+  final Value<String> currency;
+  final Value<bool> edited;
+  const ReceiptDetailsCompanion({
+    this.documentId = const Value.absent(),
+    this.date = const Value.absent(),
+    this.merchant = const Value.absent(),
+    this.total = const Value.absent(),
+    this.tax = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.edited = const Value.absent(),
+  });
+  ReceiptDetailsCompanion.insert({
+    this.documentId = const Value.absent(),
+    this.date = const Value.absent(),
+    this.merchant = const Value.absent(),
+    this.total = const Value.absent(),
+    this.tax = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.edited = const Value.absent(),
+  });
+  static Insertable<ReceiptDetail> custom({
+    Expression<int>? documentId,
+    Expression<DateTime>? date,
+    Expression<String>? merchant,
+    Expression<int>? total,
+    Expression<int>? tax,
+    Expression<String>? currency,
+    Expression<bool>? edited,
+  }) {
+    return RawValuesInsertable({
+      if (documentId != null) 'document_id': documentId,
+      if (date != null) 'date': date,
+      if (merchant != null) 'merchant': merchant,
+      if (total != null) 'total': total,
+      if (tax != null) 'tax': tax,
+      if (currency != null) 'currency': currency,
+      if (edited != null) 'edited': edited,
+    });
+  }
+
+  ReceiptDetailsCompanion copyWith({
+    Value<int>? documentId,
+    Value<DateTime?>? date,
+    Value<String>? merchant,
+    Value<int?>? total,
+    Value<int?>? tax,
+    Value<String>? currency,
+    Value<bool>? edited,
+  }) {
+    return ReceiptDetailsCompanion(
+      documentId: documentId ?? this.documentId,
+      date: date ?? this.date,
+      merchant: merchant ?? this.merchant,
+      total: total ?? this.total,
+      tax: tax ?? this.tax,
+      currency: currency ?? this.currency,
+      edited: edited ?? this.edited,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (documentId.present) {
+      map['document_id'] = Variable<int>(documentId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (merchant.present) {
+      map['merchant'] = Variable<String>(merchant.value);
+    }
+    if (total.present) {
+      map['total'] = Variable<int>(total.value);
+    }
+    if (tax.present) {
+      map['tax'] = Variable<int>(tax.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (edited.present) {
+      map['edited'] = Variable<bool>(edited.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReceiptDetailsCompanion(')
+          ..write('documentId: $documentId, ')
+          ..write('date: $date, ')
+          ..write('merchant: $merchant, ')
+          ..write('total: $total, ')
+          ..write('tax: $tax, ')
+          ..write('currency: $currency, ')
+          ..write('edited: $edited')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5169,6 +5611,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserCategoriesTable userCategories = $UserCategoriesTable(this);
   late final $CategoryHintsTable categoryHints = $CategoryHintsTable(this);
   late final $PrefillHintsTable prefillHints = $PrefillHintsTable(this);
+  late final $ReceiptDetailsTable receiptDetails = $ReceiptDetailsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5183,6 +5626,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userCategories,
     categoryHints,
     prefillHints,
+    receiptDetails,
   ];
 }
 
@@ -5264,6 +5708,27 @@ final class $$DocumentsTableReferences
     ).filter((f) => f.documentId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_fieldsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ReceiptDetailsTable, List<ReceiptDetail>>
+  _receiptDetailsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.receiptDetails,
+    aliasName: $_aliasNameGenerator(
+      db.documents.id,
+      db.receiptDetails.documentId,
+    ),
+  );
+
+  $$ReceiptDetailsTableProcessedTableManager get receiptDetailsRefs {
+    final manager = $$ReceiptDetailsTableTableManager(
+      $_db,
+      $_db.receiptDetails,
+    ).filter((f) => f.documentId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_receiptDetailsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -5405,6 +5870,31 @@ class $$DocumentsTableFilterComposer
           }) => $$FieldsTableFilterComposer(
             $db: $db,
             $table: $db.fields,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> receiptDetailsRefs(
+    Expression<bool> Function($$ReceiptDetailsTableFilterComposer f) f,
+  ) {
+    final $$ReceiptDetailsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.receiptDetails,
+      getReferencedColumn: (t) => t.documentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReceiptDetailsTableFilterComposer(
+            $db: $db,
+            $table: $db.receiptDetails,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5633,6 +6123,31 @@ class $$DocumentsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> receiptDetailsRefs<T extends Object>(
+    Expression<T> Function($$ReceiptDetailsTableAnnotationComposer a) f,
+  ) {
+    final $$ReceiptDetailsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.receiptDetails,
+      getReferencedColumn: (t) => t.documentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReceiptDetailsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.receiptDetails,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DocumentsTableTableManager
@@ -5648,7 +6163,11 @@ class $$DocumentsTableTableManager
           $$DocumentsTableUpdateCompanionBuilder,
           (Document, $$DocumentsTableReferences),
           Document,
-          PrefetchHooks Function({bool pagesRefs, bool fieldsRefs})
+          PrefetchHooks Function({
+            bool pagesRefs,
+            bool fieldsRefs,
+            bool receiptDetailsRefs,
+          })
         > {
   $$DocumentsTableTableManager(_$AppDatabase db, $DocumentsTable table)
     : super(
@@ -5745,42 +6264,89 @@ class $$DocumentsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({pagesRefs = false, fieldsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (pagesRefs) db.pages,
-                if (fieldsRefs) db.fields,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (pagesRefs)
-                    await $_getPrefetchedData<Document, $DocumentsTable, Page>(
-                      currentTable: table,
-                      referencedTable: $$DocumentsTableReferences
-                          ._pagesRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$DocumentsTableReferences(db, table, p0).pagesRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.documentId == item.id),
-                      typedResults: items,
-                    ),
-                  if (fieldsRefs)
-                    await $_getPrefetchedData<Document, $DocumentsTable, Field>(
-                      currentTable: table,
-                      referencedTable: $$DocumentsTableReferences
-                          ._fieldsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$DocumentsTableReferences(db, table, p0).fieldsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.documentId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({
+                pagesRefs = false,
+                fieldsRefs = false,
+                receiptDetailsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (pagesRefs) db.pages,
+                    if (fieldsRefs) db.fields,
+                    if (receiptDetailsRefs) db.receiptDetails,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (pagesRefs)
+                        await $_getPrefetchedData<
+                          Document,
+                          $DocumentsTable,
+                          Page
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DocumentsTableReferences
+                              ._pagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DocumentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pagesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.documentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (fieldsRefs)
+                        await $_getPrefetchedData<
+                          Document,
+                          $DocumentsTable,
+                          Field
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DocumentsTableReferences
+                              ._fieldsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DocumentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fieldsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.documentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (receiptDetailsRefs)
+                        await $_getPrefetchedData<
+                          Document,
+                          $DocumentsTable,
+                          ReceiptDetail
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DocumentsTableReferences
+                              ._receiptDetailsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DocumentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).receiptDetailsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.documentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -5797,7 +6363,11 @@ typedef $$DocumentsTableProcessedTableManager =
       $$DocumentsTableUpdateCompanionBuilder,
       (Document, $$DocumentsTableReferences),
       Document,
-      PrefetchHooks Function({bool pagesRefs, bool fieldsRefs})
+      PrefetchHooks Function({
+        bool pagesRefs,
+        bool fieldsRefs,
+        bool receiptDetailsRefs,
+      })
     >;
 typedef $$PagesTableCreateCompanionBuilder =
     PagesCompanion Function({
@@ -8136,6 +8706,364 @@ typedef $$PrefillHintsTableProcessedTableManager =
       PrefillHint,
       PrefetchHooks Function()
     >;
+typedef $$ReceiptDetailsTableCreateCompanionBuilder =
+    ReceiptDetailsCompanion Function({
+      Value<int> documentId,
+      Value<DateTime?> date,
+      Value<String> merchant,
+      Value<int?> total,
+      Value<int?> tax,
+      Value<String> currency,
+      Value<bool> edited,
+    });
+typedef $$ReceiptDetailsTableUpdateCompanionBuilder =
+    ReceiptDetailsCompanion Function({
+      Value<int> documentId,
+      Value<DateTime?> date,
+      Value<String> merchant,
+      Value<int?> total,
+      Value<int?> tax,
+      Value<String> currency,
+      Value<bool> edited,
+    });
+
+final class $$ReceiptDetailsTableReferences
+    extends BaseReferences<_$AppDatabase, $ReceiptDetailsTable, ReceiptDetail> {
+  $$ReceiptDetailsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DocumentsTable _documentIdTable(_$AppDatabase db) =>
+      db.documents.createAlias(
+        $_aliasNameGenerator(db.receiptDetails.documentId, db.documents.id),
+      );
+
+  $$DocumentsTableProcessedTableManager get documentId {
+    final $_column = $_itemColumn<int>('document_id')!;
+
+    final manager = $$DocumentsTableTableManager(
+      $_db,
+      $_db.documents,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_documentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ReceiptDetailsTableFilterComposer
+    extends Composer<_$AppDatabase, $ReceiptDetailsTable> {
+  $$ReceiptDetailsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchant => $composableBuilder(
+    column: $table.merchant,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get total => $composableBuilder(
+    column: $table.total,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tax => $composableBuilder(
+    column: $table.tax,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get edited => $composableBuilder(
+    column: $table.edited,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DocumentsTableFilterComposer get documentId {
+    final $$DocumentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.documentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableFilterComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReceiptDetailsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReceiptDetailsTable> {
+  $$ReceiptDetailsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchant => $composableBuilder(
+    column: $table.merchant,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get total => $composableBuilder(
+    column: $table.total,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tax => $composableBuilder(
+    column: $table.tax,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get edited => $composableBuilder(
+    column: $table.edited,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DocumentsTableOrderingComposer get documentId {
+    final $$DocumentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.documentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReceiptDetailsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReceiptDetailsTable> {
+  $$ReceiptDetailsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get merchant =>
+      $composableBuilder(column: $table.merchant, builder: (column) => column);
+
+  GeneratedColumn<int> get total =>
+      $composableBuilder(column: $table.total, builder: (column) => column);
+
+  GeneratedColumn<int> get tax =>
+      $composableBuilder(column: $table.tax, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<bool> get edited =>
+      $composableBuilder(column: $table.edited, builder: (column) => column);
+
+  $$DocumentsTableAnnotationComposer get documentId {
+    final $$DocumentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.documentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReceiptDetailsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReceiptDetailsTable,
+          ReceiptDetail,
+          $$ReceiptDetailsTableFilterComposer,
+          $$ReceiptDetailsTableOrderingComposer,
+          $$ReceiptDetailsTableAnnotationComposer,
+          $$ReceiptDetailsTableCreateCompanionBuilder,
+          $$ReceiptDetailsTableUpdateCompanionBuilder,
+          (ReceiptDetail, $$ReceiptDetailsTableReferences),
+          ReceiptDetail,
+          PrefetchHooks Function({bool documentId})
+        > {
+  $$ReceiptDetailsTableTableManager(
+    _$AppDatabase db,
+    $ReceiptDetailsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReceiptDetailsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReceiptDetailsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReceiptDetailsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> documentId = const Value.absent(),
+                Value<DateTime?> date = const Value.absent(),
+                Value<String> merchant = const Value.absent(),
+                Value<int?> total = const Value.absent(),
+                Value<int?> tax = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<bool> edited = const Value.absent(),
+              }) => ReceiptDetailsCompanion(
+                documentId: documentId,
+                date: date,
+                merchant: merchant,
+                total: total,
+                tax: tax,
+                currency: currency,
+                edited: edited,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> documentId = const Value.absent(),
+                Value<DateTime?> date = const Value.absent(),
+                Value<String> merchant = const Value.absent(),
+                Value<int?> total = const Value.absent(),
+                Value<int?> tax = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<bool> edited = const Value.absent(),
+              }) => ReceiptDetailsCompanion.insert(
+                documentId: documentId,
+                date: date,
+                merchant: merchant,
+                total: total,
+                tax: tax,
+                currency: currency,
+                edited: edited,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ReceiptDetailsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({documentId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (documentId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.documentId,
+                                referencedTable: $$ReceiptDetailsTableReferences
+                                    ._documentIdTable(db),
+                                referencedColumn:
+                                    $$ReceiptDetailsTableReferences
+                                        ._documentIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ReceiptDetailsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReceiptDetailsTable,
+      ReceiptDetail,
+      $$ReceiptDetailsTableFilterComposer,
+      $$ReceiptDetailsTableOrderingComposer,
+      $$ReceiptDetailsTableAnnotationComposer,
+      $$ReceiptDetailsTableCreateCompanionBuilder,
+      $$ReceiptDetailsTableUpdateCompanionBuilder,
+      (ReceiptDetail, $$ReceiptDetailsTableReferences),
+      ReceiptDetail,
+      PrefetchHooks Function({bool documentId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8158,4 +9086,6 @@ class $AppDatabaseManager {
       $$CategoryHintsTableTableManager(_db, _db.categoryHints);
   $$PrefillHintsTableTableManager get prefillHints =>
       $$PrefillHintsTableTableManager(_db, _db.prefillHints);
+  $$ReceiptDetailsTableTableManager get receiptDetails =>
+      $$ReceiptDetailsTableTableManager(_db, _db.receiptDetails);
 }

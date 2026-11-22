@@ -27,6 +27,7 @@ import 'package:scan_sign_send/core/services/import_service.dart';
 import 'package:scan_sign_send/core/services/opened_file_service.dart';
 import 'package:scan_sign_send/core/services/pdf_password_service.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
+import 'package:scan_sign_send/core/models/document_category.dart';
 import 'package:scan_sign_send/core/utils/path_resolver.dart';
 import 'package:image/image.dart' as img;
 import 'package:scan_sign_send/core/models/document_model.dart';
@@ -576,6 +577,41 @@ void main() {
         .map((d) => '${d.title}=${d.category}')
         .join(', ');
     _mark('INFO:sorted $sorted');
+
+    // Receipts → Export to spreadsheet (F3): the sorted receipt is read on
+    // the device, shown to check, and written as a .csv. The share sheet is
+    // answered "dismissed", so nothing counts as a send.
+    final receiptDoc = (await docs.watchAll().first).firstWhere(
+      (d) => d.category == BuiltInCategory.bills.key,
+    );
+    var csvPath = '';
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('dev.fluttercommunity.plus/share'),
+      (call) async {
+        csvPath = ((call.arguments as Map)['paths'] as List).single as String;
+        return '';
+      },
+    );
+    router.go('${AppRoutes.receipts}?ids=${receiptDoc.id}');
+    await _waitFor(tester, find.byKey(ValueKey('receipt-${receiptDoc.id}')));
+    await _waitFor(
+      tester,
+      find.widgetWithText(FilledButton, l10n.receiptsExportCsv).hitTestable(),
+    );
+    await _waitGone(tester, find.text(l10n.receiptsReading), seconds: 60);
+    await _pause(tester, 800);
+    await _capture(tester, 'receipts_export');
+    await tester.tap(find.text(l10n.receiptsExportCsv));
+    for (var i = 0; i < 40 && csvPath.isEmpty; i++) {
+      await _pause(tester, 250);
+    }
+    final csvLines = File(csvPath).readAsLinesSync();
+    expect(csvLines, hasLength(2), reason: 'a header and one receipt');
+    _mark('INFO:receipts csv ${p.basename(csvPath)}: ${csvLines.last}');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('dev.fluttercommunity.plus/share'),
+      (_) async => 'device-check',
+    );
     router.go(AppRoutes.library);
     await _waitFor(tester, find.byType(ChoiceChip));
     await _waitGone(tester, find.byType(CircularProgressIndicator));

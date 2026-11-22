@@ -1557,4 +1557,55 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get sendNoText =>
       'इस दस्तावेज़ में कोई टेक्स्ट नहीं मिला। स्कैन से केवल लैटिन लिपि का टेक्स्ट पढ़ा जाता है, जैसे अंग्रेज़ी, फ़्रेंच, स्पैनिश और पुर्तगाली।';
+
+  @override
+  String get receiptsExport => 'स्प्रेडशीट में एक्सपोर्ट करें';
+
+  @override
+  String get receiptsTitle => 'रसीदें';
+
+  @override
+  String get receiptsHint =>
+      'जानकारी इसी फ़ोन पर पढ़ी जाती है और गलत हो सकती है। सुधारने के लिए रसीद पर टैप करें।';
+
+  @override
+  String get receiptsReading => 'रसीदें पढ़ी जा रही हैं…';
+
+  @override
+  String get receiptDate => 'तारीख';
+
+  @override
+  String get receiptMerchant => 'दुकान';
+
+  @override
+  String get receiptTotal => 'कुल';
+
+  @override
+  String get receiptTax => 'टैक्स';
+
+  @override
+  String get receiptCurrency => 'मुद्रा';
+
+  @override
+  String get receiptDocument => 'दस्तावेज़';
+
+  @override
+  String get receiptsExportCsv => 'CSV एक्सपोर्ट करें';
+
+  @override
+  String receiptsFileName(String date) {
+    return 'रसीदें $date';
+  }
+
+  @override
+  String get receiptMissing => 'नहीं मिला';
+
+  @override
+  String get receiptAmountInvalid => 'राशि लिखें, जैसे 12.50';
+
+  @override
+  String get receiptEditTitle => 'रसीद का विवरण';
+
+  @override
+  String get receiptChooseDate => 'तारीख चुनें';
 }
