@@ -118,6 +118,7 @@ void main() {
         'settingsSectionSignatures',
         'searchPageCount',
         'extractedName',
+        'textPageN',
       },
       'es': {'filterOriginal', 'statusEditable', 'myDetailsGroupPersonal'},
       'pt': {'filterOriginal'},

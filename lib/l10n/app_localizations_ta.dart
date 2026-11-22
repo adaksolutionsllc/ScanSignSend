@@ -1503,4 +1503,31 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get importPasswordWrong =>
       'அந்தக் கடவுச்சொல் வேலை செய்யவில்லை. மீண்டும் முயலவும்.';
+
+  @override
+  String get textTooltip => 'பக்க உரை';
+
+  @override
+  String get textTitle => 'உரை';
+
+  @override
+  String get textCopyAll => 'அனைத்தையும் நகலெடு';
+
+  @override
+  String get textShareTxt => '.txt ஆகப் பகிர்';
+
+  @override
+  String get textCopied => 'உரை நகலெடுக்கப்பட்டது';
+
+  @override
+  String textPageN(int n) {
+    return 'பக்கம் $n';
+  }
+
+  @override
+  String get textReading => 'உரை படிக்கப்படுகிறது…';
+
+  @override
+  String get textNoneOnPage =>
+      'இந்தப் பக்கத்தில் உரை எதுவும் இல்லை. ஸ்கேன்களில் லத்தீன் எழுத்து உரை மட்டுமே படிக்கப்படும், எ.கா. ஆங்கிலம், பிரெஞ்சு, ஸ்பானிஷ், போர்ச்சுகீஸ்.';
 }

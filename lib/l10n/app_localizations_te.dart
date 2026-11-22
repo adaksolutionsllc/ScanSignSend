@@ -1500,4 +1500,31 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get importPasswordWrong =>
       'ఆ పాస్‌వర్డ్ పని చేయలేదు. మళ్లీ ప్రయత్నించండి.';
+
+  @override
+  String get textTooltip => 'పేజీ టెక్స్ట్';
+
+  @override
+  String get textTitle => 'టెక్స్ట్';
+
+  @override
+  String get textCopyAll => 'అన్నీ కాపీ చేయండి';
+
+  @override
+  String get textShareTxt => '.txt గా షేర్ చేయండి';
+
+  @override
+  String get textCopied => 'టెక్స్ట్ కాపీ అయింది';
+
+  @override
+  String textPageN(int n) {
+    return 'పేజీ $n';
+  }
+
+  @override
+  String get textReading => 'టెక్స్ట్ చదువుతోంది…';
+
+  @override
+  String get textNoneOnPage =>
+      'ఈ పేజీలో టెక్స్ట్ కనబడలేదు. స్కాన్‌ల నుండి లాటిన్ లిపి టెక్స్ట్ మాత్రమే చదవబడుతుంది, ఉదా. ఇంగ్లీష్, ఫ్రెంచ్, స్పానిష్, పోర్చుగీస్.';
 }

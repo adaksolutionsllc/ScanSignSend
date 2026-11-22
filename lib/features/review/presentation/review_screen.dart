@@ -19,6 +19,7 @@ import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/category_ui.dart';
+import '../../../shared/widgets/page_text_sheet.dart';
 import '../../press/presentation/finish_flow.dart';
 import '../../../core/services/document_sorter.dart';
 import '../../../core/services/merge_service.dart';
@@ -95,21 +96,30 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 stream: _docStream,
                 builder: (context, snap) {
                   final doc = snap.data;
-                  if (doc == null || !canSplitPages(doc)) {
-                    return const SizedBox.shrink();
-                  }
+                  if (doc == null) return const SizedBox.shrink();
                   return Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        key: const ValueKey('select-pages'),
-                        icon: const Icon(Icons.checklist),
-                        tooltip: context.l10n.reviewSelectPages,
-                        onPressed: _saving
-                            ? null
-                            : () => setState(() => _picked = {}),
+                        key: const ValueKey('page-text'),
+                        icon: const Icon(Icons.text_snippet_outlined),
+                        tooltip: context.l10n.textTooltip,
+                        onPressed: () => showPageTextSheet(
+                          context,
+                          docId: widget.docId,
+                          title: doc.title,
+                        ),
                       ),
-                      if (canAddPages(doc))
+                      if (canSplitPages(doc))
+                        IconButton(
+                          key: const ValueKey('select-pages'),
+                          icon: const Icon(Icons.checklist),
+                          tooltip: context.l10n.reviewSelectPages,
+                          onPressed: _saving
+                              ? null
+                              : () => setState(() => _picked = {}),
+                        ),
+                      if (canSplitPages(doc) && canAddPages(doc))
                         IconButton(
                           key: const ValueKey('add-pages'),
                           icon: const Icon(Icons.note_add_outlined),

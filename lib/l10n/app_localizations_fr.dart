@@ -1499,4 +1499,31 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get importPasswordWrong =>
       'Ce mot de passe ne fonctionne pas. Réessayez.';
+
+  @override
+  String get textTooltip => 'Texte des pages';
+
+  @override
+  String get textTitle => 'Texte';
+
+  @override
+  String get textCopyAll => 'Tout copier';
+
+  @override
+  String get textShareTxt => 'Partager en .txt';
+
+  @override
+  String get textCopied => 'Texte copié';
+
+  @override
+  String textPageN(int n) {
+    return 'Page $n';
+  }
+
+  @override
+  String get textReading => 'Lecture du texte…';
+
+  @override
+  String get textNoneOnPage =>
+      'Aucun texte trouvé sur cette page. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais.';
 }

@@ -408,5 +408,13 @@
   "passwordSet": "Definir",
   "importPasswordTitle": "Este PDF tem senha",
   "importPasswordBody": "Digite a senha para abri-lo. O app guarda a cópia dele sem a senha, neste dispositivo.",
-  "importPasswordWrong": "Essa senha não funcionou. Tente novamente."
+  "importPasswordWrong": "Essa senha não funcionou. Tente novamente.",
+  "textTooltip": "Texto das páginas",
+  "textTitle": "Texto",
+  "textCopyAll": "Copiar tudo",
+  "textShareTxt": "Partilhar como .txt",
+  "textCopied": "Texto copiado",
+  "textPageN": "Página {n}",
+  "textReading": "A ler o texto…",
+  "textNoneOnPage": "Nenhum texto encontrado nesta página. O texto das digitalizações só é lido em alfabeto latino, como português, inglês, francês e espanhol."
 }

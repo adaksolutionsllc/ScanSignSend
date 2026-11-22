@@ -828,5 +828,30 @@
   },
   "importPasswordTitle": "This PDF has a password",
   "importPasswordBody": "Enter its password to open it. The app keeps its copy without the password, on this device.",
-  "importPasswordWrong": "That password didn't work. Try again."
+  "importPasswordWrong": "That password didn't work. Try again.",
+  "textTooltip": "Page text",
+  "@textTooltip": {
+    "description": "App bar button: show the text read from the document's pages, to copy or share."
+  },
+  "textTitle": "Text",
+  "@textTitle": {
+    "description": "Title of the sheet that shows the pages' text."
+  },
+  "textCopyAll": "Copy all",
+  "textShareTxt": "Share as .txt",
+  "textCopied": "Text copied",
+  "textPageN": "Page {n}",
+  "@textPageN": {
+    "description": "Heading above one page's text.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "textReading": "Reading the text…",
+  "textNoneOnPage": "No text found on this page. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.",
+  "@textNoneOnPage": {
+    "description": "Shown for a page where no text was read. On-device OCR reads Latin-script text only; do not claim other scripts work."
+  }
 }

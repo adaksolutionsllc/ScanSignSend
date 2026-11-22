@@ -1497,4 +1497,31 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get importPasswordWrong =>
       'Esa contraseña no funcionó. Inténtalo de nuevo.';
+
+  @override
+  String get textTooltip => 'Texto de las páginas';
+
+  @override
+  String get textTitle => 'Texto';
+
+  @override
+  String get textCopyAll => 'Copiar todo';
+
+  @override
+  String get textShareTxt => 'Compartir como .txt';
+
+  @override
+  String get textCopied => 'Texto copiado';
+
+  @override
+  String textPageN(int n) {
+    return 'Página $n';
+  }
+
+  @override
+  String get textReading => 'Leyendo el texto…';
+
+  @override
+  String get textNoneOnPage =>
+      'No se encontró texto en esta página. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués.';
 }

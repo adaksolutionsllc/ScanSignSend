@@ -441,9 +441,27 @@ void main() {
           .activeFilter,
       'clean',
     );
+    await tester.ensureVisible(find.text(l10n.filterEnhanced).first);
+    await _pause(tester, 500);
     await tester.tap(find.text(l10n.filterEnhanced).first);
     await _pause(tester, 500);
+    expect(
+      (await container.read(pageRepositoryProvider).pagesOf(photoDoc.id))
+          .first
+          .activeFilter,
+      'enhanced',
+    );
     _mark('INFO:clean filter preview shown');
+    // Copy text (F1): the sheet lists every page. These test photos hold
+    // bars, not words, so each page says why it has no text.
+    await tester.tap(find.byKey(const ValueKey('page-text')));
+    await _waitFor(tester, find.text(l10n.textPageN(2)), seconds: 30);
+    await _waitFor(tester, find.text(l10n.textNoneOnPage), seconds: 60);
+    await _pause(tester, 800);
+    await _capture(tester, 'page_text_sheet');
+    await tester.tapAt(const Offset(20, 60));
+    await _pause(tester, 800);
+    _mark('INFO:page text sheet opened');
     router.push(
       '${AppRoutes.fieldDetection.replaceAll(':docId', '${photoDoc.id}')}'
       '?from=1',

@@ -1485,4 +1485,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importPasswordWrong => 'That password didn\'t work. Try again.';
+
+  @override
+  String get textTooltip => 'Page text';
+
+  @override
+  String get textTitle => 'Text';
+
+  @override
+  String get textCopyAll => 'Copy all';
+
+  @override
+  String get textShareTxt => 'Share as .txt';
+
+  @override
+  String get textCopied => 'Text copied';
+
+  @override
+  String textPageN(int n) {
+    return 'Page $n';
+  }
+
+  @override
+  String get textReading => 'Reading the text…';
+
+  @override
+  String get textNoneOnPage =>
+      'No text found on this page. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.';
 }

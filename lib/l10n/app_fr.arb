@@ -408,5 +408,13 @@
   "passwordSet": "Valider",
   "importPasswordTitle": "Ce PDF a un mot de passe",
   "importPasswordBody": "Saisissez son mot de passe pour l'ouvrir. L'app garde sa copie sans le mot de passe, sur cet appareil.",
-  "importPasswordWrong": "Ce mot de passe ne fonctionne pas. Réessayez."
+  "importPasswordWrong": "Ce mot de passe ne fonctionne pas. Réessayez.",
+  "textTooltip": "Texte des pages",
+  "textTitle": "Texte",
+  "textCopyAll": "Tout copier",
+  "textShareTxt": "Partager en .txt",
+  "textCopied": "Texte copié",
+  "textPageN": "Page {n}",
+  "textReading": "Lecture du texte…",
+  "textNoneOnPage": "Aucun texte trouvé sur cette page. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais."
 }

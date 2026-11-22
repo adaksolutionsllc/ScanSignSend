@@ -10,6 +10,7 @@ import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/services/app_lock_provider.dart';
 import '../../../shared/utils/share_pdf.dart';
+import '../../../shared/widgets/page_text_sheet.dart';
 
 /// First-class PDF viewer: pinch-zoom, page navigation, and in-document text
 /// search. Opens the document's exported PDF (pressed/fillable) when present,
@@ -96,6 +97,18 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
                               doc?.title ?? context.l10n.documentFallbackTitle,
                             )
                           : null,
+                    ),
+                    IconButton(
+                      key: const ValueKey('page-text'),
+                      tooltip: context.l10n.textTooltip,
+                      icon: const Icon(Icons.text_snippet_outlined),
+                      onPressed: doc == null
+                          ? null
+                          : () => showPageTextSheet(
+                              context,
+                              docId: doc.id,
+                              title: doc.title,
+                            ),
                     ),
                     IconButton(
                       tooltip: context.l10n.viewerSearchTooltip,

@@ -2561,6 +2561,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That password didn\'t work. Try again.'**
   String get importPasswordWrong;
+
+  /// App bar button: show the text read from the document's pages, to copy or share.
+  ///
+  /// In en, this message translates to:
+  /// **'Page text'**
+  String get textTooltip;
+
+  /// Title of the sheet that shows the pages' text.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get textTitle;
+
+  /// No description provided for @textCopyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy all'**
+  String get textCopyAll;
+
+  /// No description provided for @textShareTxt.
+  ///
+  /// In en, this message translates to:
+  /// **'Share as .txt'**
+  String get textShareTxt;
+
+  /// No description provided for @textCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Text copied'**
+  String get textCopied;
+
+  /// Heading above one page's text.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {n}'**
+  String textPageN(int n);
+
+  /// No description provided for @textReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the text…'**
+  String get textReading;
+
+  /// Shown for a page where no text was read. On-device OCR reads Latin-script text only; do not claim other scripts work.
+  ///
+  /// In en, this message translates to:
+  /// **'No text found on this page. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.'**
+  String get textNoneOnPage;
 }
 
 class _AppLocalizationsDelegate

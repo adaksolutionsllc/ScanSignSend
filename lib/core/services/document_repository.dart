@@ -227,6 +227,11 @@ class PageRepository {
     _db.pages,
   )..where((t) => t.id.equals(companion.id.value))).write(companion);
 
+  /// Keeps the text read from page [id] (PageTextService).
+  Future<void> setPageText(int id, String text) => (_db.update(
+    _db.pages,
+  )..where((t) => t.id.equals(id))).write(PagesCompanion(ocrText: Value(text)));
+
   /// Sets every image page of [documentId] to [filter] (Review → "Apply to
   /// all pages"). Pages of an imported PDF have no filter and are left out.
   Future<void> setFilterForAll(int documentId, String filter) =>
@@ -338,8 +343,12 @@ class PageRepository {
     await _db.transaction(() async {
       final pages = await _orderedPages(page.documentId);
       final pos = pages.indexWhere((pg) => pg.id == id);
+      // The kept text was read from the old image: read it again.
       await (_db.update(_db.pages)..where((t) => t.id.equals(id))).write(
-        PagesCompanion(imagePath: Value(PathResolver.toStorable(dest))),
+        PagesCompanion(
+          imagePath: Value(PathResolver.toStorable(dest)),
+          ocrText: const Value(''),
+        ),
       );
       final fields =
           await (_db.select(_db.fields)..where(
@@ -378,7 +387,10 @@ class PageRepository {
       final pages = await _orderedPages(page.documentId);
       final pos = pages.indexWhere((pg) => pg.id == id);
       await (_db.update(_db.pages)..where((t) => t.id.equals(id))).write(
-        PagesCompanion(imagePath: Value(PathResolver.toStorable(dest))),
+        PagesCompanion(
+          imagePath: Value(PathResolver.toStorable(dest)),
+          ocrText: const Value(''),
+        ),
       );
       final fields =
           await (_db.select(_db.fields)..where(

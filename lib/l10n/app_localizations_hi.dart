@@ -1494,4 +1494,31 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get importPasswordWrong =>
       'यह पासवर्ड काम नहीं आया। फिर से कोशिश करें।';
+
+  @override
+  String get textTooltip => 'पेज का टेक्स्ट';
+
+  @override
+  String get textTitle => 'टेक्स्ट';
+
+  @override
+  String get textCopyAll => 'सब कॉपी करें';
+
+  @override
+  String get textShareTxt => '.txt के रूप में शेयर करें';
+
+  @override
+  String get textCopied => 'टेक्स्ट कॉपी हो गया';
+
+  @override
+  String textPageN(int n) {
+    return 'पृष्ठ $n';
+  }
+
+  @override
+  String get textReading => 'टेक्स्ट पढ़ा जा रहा है…';
+
+  @override
+  String get textNoneOnPage =>
+      'इस पेज पर कोई टेक्स्ट नहीं मिला। स्कैन से केवल लैटिन लिपि का टेक्स्ट पढ़ा जाता है, जैसे अंग्रेज़ी, फ़्रेंच, स्पैनिश और पुर्तगाली।';
 }
