@@ -387,6 +387,7 @@
   "quickScan": "स्कैन करें",
   "quickOpenPdf": "PDF खोलें",
   "quickLastDraft": "पिछला ड्राफ़्ट भरें",
+  "shortcutNoDraft": "भरने के लिए कोई ड्राफ़्ट नहीं है। पहले कोई फ़ॉर्म स्कैन करें या खोलें।",
   "sendSmallerFile": "छोटी फ़ाइल",
   "sendSmallerFileHint": "कम रिज़ॉल्यूशन वाली फ़ोटो, ईमेल और अपलोड सीमाओं के लिए",
   "sendMakingSmaller": "छोटी कॉपी बन रही है…",

@@ -1426,6 +1426,10 @@ class AppLocalizationsTe extends AppLocalizations {
   String get quickLastDraft => 'చివరి డ్రాఫ్ట్ నింపండి';
 
   @override
+  String get shortcutNoDraft =>
+      'నింపడానికి డ్రాఫ్ట్ ఏదీ లేదు. ముందుగా ఒక ఫారమ్‌ను స్కాన్ చేయండి లేదా తెరవండి.';
+
+  @override
   String get sendSmallerFile => 'చిన్న ఫైల్';
 
   @override

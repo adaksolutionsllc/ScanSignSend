@@ -36,7 +36,7 @@ what changes, in what order, and what still needs a decision.
 D1 shortcuts are needed. D2 voice filling waits for a final answer; the phones' own Voice Control / Voice Access and keyboard dictation already cover much of it once E1 labels every control.
 | # | Item | Size | Notes |
 |---|---|---|---|
-| D1 | Siri / Assistant shortcuts | 2 d | §3.15a. Shares `shortcuts.xml` with C2. |
+| D1 | ✅ Siri shortcuts (iOS) | 2 d | §3.15a. Same three actions as the C2 quick actions. Android: no new code (see §3.15a). |
 | D2 | Voice filling in Fill mode | 4 d | §3.15b. On-device recognition only. Needs A1 (field order). No hi/ta/te on iOS. |
 
 ### E. Quality and store (≈ 4 d)
@@ -202,6 +202,31 @@ device check, screenshots).
     share extensions. Many apps ship it; if it stops working, the extension
     says "Open Scan Sign Send to continue" and the app collects the share
     the next time it comes to the front.
+
+### 3.15a Siri shortcuts (2 d) — ✅ iOS, 2026-11-22
+- **iOS:** App Intents (iOS 16+) in `ios/Runner/AppShortcuts.swift`: Scan a
+  document, Open a PDF, Fill my last draft — the C2 quick actions, through
+  the same Dart handler (app lock first). "Fill my form with my details" is
+  a second phrase of Fill my last draft: Fill mode already offers PreFill,
+  and nothing is filled until the user taps. With no draft, the app says so.
+  Titles and phrases in all 7 languages (`Localizable.strings`,
+  `AppShortcuts.strings`); the l10n test checks them against the Swift
+  source. Siri itself has no Tamil or Telugu; Spotlight and the Shortcuts
+  app still show the shortcuts.
+- **Verified:** the build extracts the 3 intents and 5 phrases; iOS indexes
+  them (Spotlight's Top Hit for "Fill my last draft" is "Fill my last draft
+  in Scan Sign Send"); widget test for the Dart side (queued at launch,
+  pinged later, no-draft message).
+- **Not verified:** running one. On the iOS 26.5 simulator every App
+  Shortcut fails with "Couldn't find shortcut" (linkd: "Couldn't find
+  AppShortcutsProvider"), a minimal SwiftUI control app too. Check on a real
+  iPhone (TestFlight): Siri, Spotlight and the Shortcuts app, cold and warm,
+  with App Lock on.
+- **Android — no new code (decided 2026-11-22):** App Actions survive only
+  through `shortcuts.xml` (`actions.xml` is retired), with no confirmation
+  that Gemini uses them; Google points to AppFunctions (Android 16) instead.
+  "Hey Google, open Scan Sign Send" works anyway, and the C2 quick actions
+  cover the shortcuts. Revisit with AppFunctions in a later release.
 
 ## 4. Still decided (from 2026-10-23, unchanged)
 - Share Extension: build it. Voice: on-device recognition only.

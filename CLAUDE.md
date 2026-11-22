@@ -108,6 +108,7 @@ Billing, product `com.adakventures.scansignsend.fullaccess`) bypasses.
 | `backup` | `BackupPlugin.swift` — `isExcludedFromBackup` | `AppBackupAgent` opt-in flag |
 | `privacy` | — (always-on `PrivacyOverlay.swift`) | `FLAG_SECURE` |
 | `ai_enhancer` | `AiFieldEnhancerPlugin.swift` — stub | — |
+| `shortcuts` | `AppShortcuts.swift` — Siri/Spotlight App Shortcuts (Scan, Open a PDF, Fill my last draft) queue a quick-action type | — (iOS only) |
 | `open_file` | `OpenFilePlugin.swift` — PDFs opened via "Open in…" (CFBundleDocumentTypes), and shares from the `ShareExtension` target via the App Group inbox | `OpenFileHandler.kt` — VIEW/SEND `application/pdf` intents |
 
 OCR is the `google_mlkit_text_recognition` plugin; PDFs are built in Dart with Syncfusion.

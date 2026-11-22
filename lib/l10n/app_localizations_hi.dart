@@ -1420,6 +1420,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get quickLastDraft => 'पिछला ड्राफ़्ट भरें';
 
   @override
+  String get shortcutNoDraft =>
+      'भरने के लिए कोई ड्राफ़्ट नहीं है। पहले कोई फ़ॉर्म स्कैन करें या खोलें।';
+
+  @override
   String get sendSmallerFile => 'छोटी फ़ाइल';
 
   @override

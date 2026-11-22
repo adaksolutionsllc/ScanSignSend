@@ -387,6 +387,7 @@
   "quickScan": "Escanear",
   "quickOpenPdf": "Abrir un PDF",
   "quickLastDraft": "Rellenar el último borrador",
+  "shortcutNoDraft": "No tienes ningún borrador para rellenar. Primero escanea o abre un formulario.",
   "sendSmallerFile": "Archivo más pequeño",
   "sendSmallerFileHint": "Fotos con menos resolución, para límites de correo y subida",
   "sendMakingSmaller": "Creando una copia más pequeña…",

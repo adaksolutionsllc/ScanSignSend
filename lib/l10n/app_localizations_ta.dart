@@ -1428,6 +1428,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get quickLastDraft => 'கடைசி வரைவை நிரப்பு';
 
   @override
+  String get shortcutNoDraft =>
+      'நிரப்புவதற்கு வரைவு எதுவும் இல்லை. முதலில் ஒரு படிவத்தை ஸ்கேன் செய்யவும் அல்லது திறக்கவும்.';
+
+  @override
   String get sendSmallerFile => 'சிறிய கோப்பு';
 
   @override

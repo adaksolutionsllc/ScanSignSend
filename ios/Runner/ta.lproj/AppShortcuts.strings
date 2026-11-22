@@ -1,0 +1,7 @@
+/* Siri / Shortcuts (AppShortcuts.swift). Keys are the English source text;
+   keep them in sync across every *.lproj (test/l10n_completeness_test.dart). */
+"Scan a document with ${applicationName}" = "${applicationName} மூலம் ஆவணத்தை ஸ்கேன் செய்";
+"Scan with ${applicationName}" = "${applicationName} மூலம் ஸ்கேன் செய்";
+"Open a PDF in ${applicationName}" = "${applicationName}-இல் PDF-ஐத் திற";
+"Fill my last draft in ${applicationName}" = "${applicationName}-இல் என் கடைசி வரைவை நிரப்பு";
+"Fill my form with my details in ${applicationName}" = "${applicationName}-இல் என் விவரங்களால் என் படிவத்தை நிரப்பு";

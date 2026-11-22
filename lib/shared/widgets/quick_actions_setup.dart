@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quick_actions/quick_actions.dart';
 
@@ -45,15 +46,21 @@ String? quickActionRoute(String type, List<Document> docs) => switch (type) {
 /// a PDF, and Fill last draft while there is one. Titles follow the app's
 /// language. An action waits for the app lock: the camera or file picker
 /// must never open over the lock screen.
+///
+/// The same three actions come from Siri, Spotlight and the Shortcuts app on
+/// iOS (AppShortcuts.swift), through [shortcuts]. Those can't be hidden when
+/// there is no draft, so "Fill my last draft" then says so.
 class QuickActionsSetup extends ConsumerStatefulWidget {
   const QuickActionsSetup({
     super.key,
     required this.child,
     this.quickActions = const QuickActions(),
+    this.shortcuts = const MethodChannel('com.scansignsend/shortcuts'),
   });
 
   final Widget child;
   final QuickActions quickActions;
+  final MethodChannel shortcuts;
 
   @override
   ConsumerState<QuickActionsSetup> createState() => _QuickActionsSetupState();
@@ -69,6 +76,10 @@ class _QuickActionsSetupState extends ConsumerState<QuickActionsSetup> {
   void initState() {
     super.initState();
     widget.quickActions.initialize(_handle);
+    widget.shortcuts.setMethodCallHandler((call) async {
+      if (call.method == 'pending') await _takeShortcut();
+    });
+    unawaited(_takeShortcut());
     _docsSub = ref.read(documentRepositoryProvider).watchAll().listen((docs) {
       _docs = docs;
       final hasDraft = lastDraft(docs) != null;
@@ -92,8 +103,19 @@ class _QuickActionsSetupState extends ConsumerState<QuickActionsSetup> {
 
   @override
   void dispose() {
+    widget.shortcuts.setMethodCallHandler(null);
     _docsSub?.cancel();
     super.dispose();
+  }
+
+  /// A Siri / Shortcuts action queued natively (cold launch included).
+  Future<void> _takeShortcut() async {
+    try {
+      final type = await widget.shortcuts.invokeMethod<String>('takePending');
+      if (type != null) await _handle(type);
+    } on MissingPluginException {
+      // Android and tests: no shortcuts channel.
+    }
   }
 
   void _apply() {
@@ -136,7 +158,14 @@ class _QuickActionsSetupState extends ConsumerState<QuickActionsSetup> {
       type,
       type == QuickActionType.lastDraft ? await docs.watchAll().first : _docs,
     );
-    if (route != null && mounted) unawaited(router.push(route));
+    if (!mounted) return;
+    if (route != null) {
+      unawaited(router.push(route));
+    } else if (type == QuickActionType.lastDraft) {
+      ScaffoldMessenger.maybeOf(
+        context,
+      )?.showSnackBar(SnackBar(content: Text(context.l10n.shortcutNoDraft)));
+    }
   }
 
   @override

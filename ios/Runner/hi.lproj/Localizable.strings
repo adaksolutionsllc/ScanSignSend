@@ -1,0 +1,5 @@
+/* Siri / Shortcuts (AppShortcuts.swift). Keys are the English source text;
+   keep them in sync across every *.lproj (test/l10n_completeness_test.dart). */
+"Scan a document" = "दस्तावेज़ स्कैन करें";
+"Open a PDF" = "PDF खोलें";
+"Fill my last draft" = "मेरा पिछला ड्राफ़्ट भरें";

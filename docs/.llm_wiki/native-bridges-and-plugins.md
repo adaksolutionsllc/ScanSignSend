@@ -15,6 +15,7 @@ All custom bridges are **`MethodChannel`s** using the standard codec under the
 | `com.scansignsend/backup` | `lib/core/services/backup_service.dart` | `apply({include, path})` | `ios/Runner/BackupPlugin.swift` (`isExcludedFromBackup`) | `MainActivity.kt` inline → `AppBackupAgent.setEnabled` + `BackupManager.dataChanged()` |
 | `com.scansignsend/privacy` | `lib/core/services/privacy_screen_service.dart` | `setSecure({enabled})` | **none** (iOS uses always-on `PrivacyOverlay`) | `MainActivity.kt` inline (`FLAG_SECURE`) |
 | `com.scansignsend/ai_enhancer` | `lib/core/services/ai_enhancer_service.dart` | `isAvailable` → `bool`; `enhance({ocrText})` → `List<Map>` | `ios/Runner/AiFieldEnhancerPlugin.swift` (**stub**, returns `[]`) | **none** |
+| `com.scansignsend/shortcuts` | `lib/shared/widgets/quick_actions_setup.dart` | `takePending` → `String?` (a `QuickActionType`); native→Dart `pending` ping | `ios/Runner/AppShortcuts.swift` (App Intents, iOS 16+) | — |
 | `com.scansignsend/open_file` | `lib/core/services/opened_file_service.dart` | `takePending` → `List<{path,name}>`; native→Dart `pending` ping | `ios/Runner/OpenFilePlugin.swift` (scene delegate) | `OpenFileHandler.kt` (from `MainActivity`) |
 
 Every Dart caller wraps calls in `try/catch` and degrades silently

@@ -781,6 +781,10 @@
   "quickScan": "Scan",
   "quickOpenPdf": "Open a PDF",
   "quickLastDraft": "Fill last draft",
+  "shortcutNoDraft": "You have no draft to fill. Scan or open a form first.",
+  "@shortcutNoDraft": {
+    "description": "Siri / Shortcuts ran Fill my last draft, but there is no draft."
+  },
   "sendSmallerFile": "Smaller file",
   "sendSmallerFileHint": "Lower-resolution photos, for email and upload limits",
   "sendMakingSmaller": "Making a smaller copy…",

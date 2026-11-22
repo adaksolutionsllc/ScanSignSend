@@ -149,6 +149,35 @@ void main() {
     }
   });
 
+  test('every Siri phrase and intent title has its English key', () {
+    // AppShortcuts.swift's literals are the keys iOS looks up; a changed
+    // phrase with a stale key would show in English in every language.
+    final swift = File('ios/Runner/AppShortcuts.swift').readAsStringSync();
+    final phrases = {
+      for (final m in RegExp(
+        r'^\s*"([^"]*\\\(\.applicationName\)[^"]*)",?$',
+        multiLine: true,
+      ).allMatches(swift))
+        m.group(1)!.replaceAll(r'\(.applicationName)', r'${applicationName}'),
+    };
+    final titles = {
+      for (final m in RegExp(
+        r'static var title: LocalizedStringResource = "([^"]+)"',
+      ).allMatches(swift))
+        m.group(1)!,
+    };
+    expect(phrases, hasLength(5));
+    expect(titles, hasLength(3));
+    expect(
+      _strings('ios/Runner/en.lproj/AppShortcuts.strings').keys.toSet(),
+      phrases,
+    );
+    expect(
+      _strings('ios/Runner/en.lproj/Localizable.strings').keys.toSet(),
+      titles,
+    );
+  });
+
   test('every locale translates the iOS permission prompts', () {
     // iOS reads these from <locale>.lproj/InfoPlist.strings, outside gen-l10n,
     // so a missing file shows the camera / Face ID prompt in English.
@@ -173,25 +202,30 @@ void main() {
         usageKeys,
         reason: '$locale InfoPlist.strings is out of sync with Info.plist',
       );
-      // The Share Extension's own text (Photos → Share → Scan Sign Send).
-      final share = _strings(
-        'ios/ShareExtension/$locale.lproj/Localizable.strings',
-      );
-      final shareEnglish = _strings(
-        'ios/ShareExtension/en.lproj/Localizable.strings',
-      );
-      expect(
-        share.keys.toSet(),
-        shareEnglish.keys.toSet(),
-        reason: '$locale Share Extension strings are out of sync with en',
-      );
-      if (locale != 'en') {
-        for (final key in share.keys) {
+      // Native text outside gen-l10n: the Share Extension (Photos → Share),
+      // and Siri / Shortcuts (intent titles and phrases).
+      for (final file in _nativeStrings) {
+        final strings = _strings(file.replaceAll('<l>', locale));
+        final english = _strings(file.replaceAll('<l>', 'en'));
+        expect(
+          strings.keys.toSet(),
+          english.keys.toSet(),
+          reason: '$locale ${file.replaceAll('<l>', locale)} is out of sync',
+        );
+        if (locale == 'en') continue;
+        for (final key in strings.keys) {
           expect(
-            share[key],
-            isNot(shareEnglish[key]),
-            reason: '$locale/$key is still the English Share Extension text',
+            strings[key],
+            isNot(english[key]),
+            reason: '$locale "$key" is still English in $file',
           );
+          if (key.contains(r'${applicationName}')) {
+            expect(
+              strings[key],
+              contains(r'${applicationName}'),
+              reason: '$locale "$key": a Siri phrase must name the app',
+            );
+          }
         }
       }
       if (locale == 'en') continue;
@@ -206,10 +240,18 @@ void main() {
   });
 }
 
+/// Native .strings files that must exist in every locale (`<l>`).
+const _nativeStrings = [
+  'ios/ShareExtension/<l>.lproj/Localizable.strings',
+  'ios/Runner/<l>.lproj/Localizable.strings',
+  'ios/Runner/<l>.lproj/AppShortcuts.strings',
+];
+
 /// The "key" = "value"; pairs of an iOS .strings file.
 Map<String, String> _strings(String path) => {
   for (final m in RegExp(
-    r'"([\w.]+)"\s*=\s*"(.*)";',
+    r'^"([^"]+)"\s*=\s*"(.*)";$',
+    multiLine: true,
   ).allMatches(File(path).readAsStringSync()))
     m.group(1)!: m.group(2)!,
 };

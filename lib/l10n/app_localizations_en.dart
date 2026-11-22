@@ -1413,6 +1413,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickLastDraft => 'Fill last draft';
 
   @override
+  String get shortcutNoDraft =>
+      'You have no draft to fill. Scan or open a form first.';
+
+  @override
   String get sendSmallerFile => 'Smaller file';
 
   @override

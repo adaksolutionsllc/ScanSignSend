@@ -2430,6 +2430,12 @@ abstract class AppLocalizations {
   /// **'Fill last draft'**
   String get quickLastDraft;
 
+  /// Siri / Shortcuts ran Fill my last draft, but there is no draft.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no draft to fill. Scan or open a form first.'**
+  String get shortcutNoDraft;
+
   /// No description provided for @sendSmallerFile.
   ///
   /// In en, this message translates to:

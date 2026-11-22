@@ -214,4 +214,93 @@ void main() {
     },
     timeout: const Timeout(Duration(seconds: 30)),
   );
+
+  testWidgets(
+    'Siri / Shortcuts: queued at launch or pinged later, same routes',
+    (tester) async {
+      const channel = MethodChannel('com.scansignsend/shortcuts');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      String? pending = QuickActionType.lastDraft; // ran before Dart started
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        final type = pending;
+        pending = null;
+        return call.method == 'takePending' ? type : null;
+      });
+      final opened = <String>[];
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(body: SizedBox()),
+          ),
+          GoRoute(
+            path: '/fill/:docId',
+            builder: (_, s) {
+              opened.add(s.uri.toString());
+              return const SizedBox();
+            },
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+            routerProvider.overrideWithValue(router),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('fr'),
+            localizationsDelegates: kLocalizationsDelegates,
+            supportedLocales: kSupportedLocales,
+            builder: (context, child) => QuickActionsSetup(
+              quickActions: _FakeQuickActions(),
+              child: child!,
+            ),
+          ),
+        ),
+      );
+      Future<void> settle() async {
+        for (var i = 0; i < 8; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+          );
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+      }
+
+      await settle();
+      final fr = AppLocalizationsFr();
+      expect(opened, isEmpty);
+      expect(
+        find.text(fr.shortcutNoDraft),
+        findsOneWidget,
+        reason: 'no draft: Siri still opened the app, so say why',
+      );
+
+      final created = DocumentRepository(db).createDocument('Bail');
+      await settle();
+      final id = (await created).id;
+      // The app is running: native queues the action and pings.
+      pending = QuickActionType.lastDraft;
+      // Not awaited: the handler waits on a live query that only runs
+      // while the test pumps.
+      unawaited(
+        messenger.handlePlatformMessage(
+          channel.name,
+          const StandardMethodCodec().encodeMethodCall(
+            const MethodCall('pending'),
+          ),
+          (_) {},
+        ),
+      );
+      await settle();
+      expect(opened, ['/fill/$id']);
+
+      messenger.setMockMethodCallHandler(channel, null);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 5));
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
+  );
 }

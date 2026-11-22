@@ -387,6 +387,7 @@
   "quickScan": "Digitalizar",
   "quickOpenPdf": "Abrir um PDF",
   "quickLastDraft": "Preencher o último rascunho",
+  "shortcutNoDraft": "Não tem nenhum rascunho para preencher. Digitalize ou abra primeiro um formulário.",
   "sendSmallerFile": "Arquivo menor",
   "sendSmallerFileHint": "Fotos em resolução menor, para limites de e-mail e envio",
   "sendMakingSmaller": "Criando uma cópia menor…",

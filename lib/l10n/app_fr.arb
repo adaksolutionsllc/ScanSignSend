@@ -387,6 +387,7 @@
   "quickScan": "Numériser",
   "quickOpenPdf": "Ouvrir un PDF",
   "quickLastDraft": "Remplir le dernier brouillon",
+  "shortcutNoDraft": "Vous n'avez aucun brouillon à remplir. Numérisez ou ouvrez d'abord un formulaire.",
   "sendSmallerFile": "Fichier plus léger",
   "sendSmallerFileHint": "Photos en résolution réduite, pour les limites des e-mails et des envois",
   "sendMakingSmaller": "Création d'une copie plus légère…",

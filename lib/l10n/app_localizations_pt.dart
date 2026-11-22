@@ -1423,6 +1423,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get quickLastDraft => 'Preencher o último rascunho';
 
   @override
+  String get shortcutNoDraft =>
+      'Não tem nenhum rascunho para preencher. Digitalize ou abra primeiro um formulário.';
+
+  @override
   String get sendSmallerFile => 'Arquivo menor';
 
   @override

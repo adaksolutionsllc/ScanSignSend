@@ -1423,6 +1423,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get quickLastDraft => 'Remplir le dernier brouillon';
 
   @override
+  String get shortcutNoDraft =>
+      'Vous n\'avez aucun brouillon à remplir. Numérisez ou ouvrez d\'abord un formulaire.';
+
+  @override
   String get sendSmallerFile => 'Fichier plus léger';
 
   @override

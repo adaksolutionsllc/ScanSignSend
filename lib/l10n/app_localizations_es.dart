@@ -1422,6 +1422,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quickLastDraft => 'Rellenar el último borrador';
 
   @override
+  String get shortcutNoDraft =>
+      'No tienes ningún borrador para rellenar. Primero escanea o abre un formulario.';
+
+  @override
   String get sendSmallerFile => 'Archivo más pequeño';
 
   @override
