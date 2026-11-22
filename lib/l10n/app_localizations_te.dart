@@ -271,6 +271,12 @@ class AppLocalizationsTe extends AppLocalizations {
   String get filterBw => 'నలుపు-తెలుపు';
 
   @override
+  String get filterClean => 'శుభ్రం';
+
+  @override
+  String get filterApplyAll => 'అన్ని పేజీలకు వర్తింపజేయండి';
+
+  @override
   String get detectTitle => 'ఫీల్డ్‌లను గుర్తించు';
 
   @override

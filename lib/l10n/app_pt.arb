@@ -78,6 +78,8 @@
   "filterOriginal": "Original",
   "filterEnhanced": "Melhorado",
   "filterBw": "P&B",
+  "filterClean": "Limpo",
+  "filterApplyAll": "Aplicar a todas as páginas",
   "detectTitle": "Detetar campos",
   "detectFormFieldsFoundTitle": "Campos de formulário detetados",
   "detectFormFieldsFoundBody": "Este PDF já contém campos de formulário.\nPode adicionar os seus próprios campos manualmente ou avançar diretamente para o preenchimento.",

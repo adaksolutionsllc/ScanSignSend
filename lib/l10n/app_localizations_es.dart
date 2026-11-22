@@ -269,6 +269,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get filterBw => 'B/N';
 
   @override
+  String get filterClean => 'Limpio';
+
+  @override
+  String get filterApplyAll => 'Aplicar a todas las páginas';
+
+  @override
   String get detectTitle => 'Detectar campos';
 
   @override

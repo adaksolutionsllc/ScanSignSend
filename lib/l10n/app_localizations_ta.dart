@@ -269,6 +269,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get filterBw => 'கருப்பு-வெள்ளை';
 
   @override
+  String get filterClean => 'சுத்தம்';
+
+  @override
+  String get filterApplyAll => 'எல்லாப் பக்கங்களுக்கும் பயன்படுத்து';
+
+  @override
   String get detectTitle => 'புலங்களைக் கண்டறி';
 
   @override

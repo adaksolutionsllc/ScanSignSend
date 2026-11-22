@@ -421,6 +421,29 @@ void main() {
       uncropped.first.imagePath,
     );
     _mark('INFO:review crop opens on one page');
+    // The Clean filter (F4) is worked out off the UI thread and shown in
+    // place of the photo; back to Enhanced so later steps are unchanged.
+    // The chips sit under the page picture, below the fold.
+    await tester.ensureVisible(find.text(l10n.filterClean).first);
+    await _pause(tester, 500);
+    await tester.tap(find.text(l10n.filterClean).first);
+    await _waitFor(
+      tester,
+      find.byWidgetPredicate((w) => w is Image && w.image is MemoryImage),
+      seconds: 30,
+    );
+    await tester.ensureVisible(find.text(l10n.reviewPageOf(1, 2)));
+    await _pause(tester, 800);
+    await _capture(tester, 'review_clean_filter');
+    expect(
+      (await container.read(pageRepositoryProvider).pagesOf(photoDoc.id))
+          .first
+          .activeFilter,
+      'clean',
+    );
+    await tester.tap(find.text(l10n.filterEnhanced).first);
+    await _pause(tester, 500);
+    _mark('INFO:clean filter preview shown');
     router.push(
       '${AppRoutes.fieldDetection.replaceAll(':docId', '${photoDoc.id}')}'
       '?from=1',

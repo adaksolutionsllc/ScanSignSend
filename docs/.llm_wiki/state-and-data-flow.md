@@ -89,7 +89,7 @@ with `NativeDatabase.createInBackground` (drift's own background isolate).
 | Table | Purpose | Notable columns |
 |---|---|---|
 | `Documents` | One per document/template | `status` (`draft`/`pressed`/`fillable`/`template`, enum in `lib/core/models/document_model.dart`), `pressedPdfPath`, `fillablePdfPath`, `isTemplate`, `textSize`, `countedFree` |
-| `Pages` | Ordered pages | `documentId`, `pageIndex`, `imagePath` (may carry `#page=N` for PDF pages), `activeFilter`, `ocrText` |
+| `Pages` | Ordered pages | `documentId`, `pageIndex`, `imagePath` (may carry `#page=N` for PDF pages), `activeFilter` (`original`/`enhanced`/`clean`/`bw`; applied by `pageImageForPdf` in every export, Clean via `clean_filter.dart`), `ocrText` |
 | `Fields` | Fill-in boxes | `type`, `boundingBoxJson` (normalised 0..1 to page content), `value`, `isChecked`, `signatureId`, `pdfFieldName`, `sourceKind` (`app` / AcroForm), `optionsJson` |
 | `Signatures` | Saved signatures/initials | `imagePath`, `isDefault`, `isInitials` |
 | `UserProfile` | Single-row settings | `biometricLockEnabled`, `aiEnhancedDetection`, `scanCount`, `isPurchased`, `includeInDeviceBackup` |

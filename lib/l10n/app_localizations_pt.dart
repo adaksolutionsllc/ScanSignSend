@@ -270,6 +270,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get filterBw => 'P&B';
 
   @override
+  String get filterClean => 'Limpo';
+
+  @override
+  String get filterApplyAll => 'Aplicar a todas as páginas';
+
+  @override
   String get detectTitle => 'Detetar campos';
 
   @override

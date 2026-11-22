@@ -1,12 +1,17 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:drift/drift.dart' show Value;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image/image.dart' as img;
 
 import '../../../core/db/app_database.dart' as db;
+import '../../../core/services/clean_filter.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/edge_check_service.dart';
 import '../../../core/services/page_raster_service.dart';
@@ -21,7 +26,7 @@ import '../../../shared/widgets/progress_dialog.dart';
 import '../../library/presentation/merge_flow.dart';
 import 'add_pages.dart';
 
-enum PageFilter { original, enhanced, bw }
+enum PageFilter { original, enhanced, clean, bw }
 
 class ReviewScreen extends ConsumerStatefulWidget {
   const ReviewScreen({super.key, required this.docId, this.organise = false});
@@ -167,6 +172,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   pageNumber: index + 1,
                   totalPages: _pages.length,
                   onFilterChanged: (f) => _setFilter(page, f),
+                  onApplyToAll: () => _setFilterForAll(filter),
                   onRotate: () => _rotatePage(page),
                   onCrop: _cropping == null ? () => _cropPage(page) : null,
                   onDelete: () => _deletePage(page),
@@ -332,12 +338,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   static PageFilter _filterFromString(String s) => switch (s) {
     'original' => PageFilter.original,
     'bw' => PageFilter.bw,
+    'clean' => PageFilter.clean,
     _ => PageFilter.enhanced,
   };
 
   static String _filterToString(PageFilter f) => switch (f) {
     PageFilter.original => 'original',
     PageFilter.enhanced => 'enhanced',
+    PageFilter.clean => 'clean',
     PageFilter.bw => 'bw',
   };
 
@@ -352,6 +360,18 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             activeFilter: Value(_filterToString(f)),
           ),
         );
+  }
+
+  /// Review → "Apply to all pages": every image page gets [f].
+  void _setFilterForAll(PageFilter f) {
+    setState(() {
+      for (final pg in _pages) {
+        _filters[pg.id] = f;
+      }
+    });
+    ref
+        .read(pageRepositoryProvider)
+        .setFilterForAll(widget.docId, _filterToString(f));
   }
 
   Future<void> _saveOrder() async {
@@ -480,6 +500,7 @@ class _PageCard extends StatelessWidget {
     required this.pageNumber,
     required this.totalPages,
     required this.onFilterChanged,
+    required this.onApplyToAll,
     required this.onRotate,
     required this.onCrop,
     required this.onDelete,
@@ -492,6 +513,7 @@ class _PageCard extends StatelessWidget {
   final int pageNumber;
   final int totalPages;
   final ValueChanged<PageFilter> onFilterChanged;
+  final VoidCallback onApplyToAll;
   final VoidCallback onRotate;
 
   /// Null while a crop is opening.
@@ -574,14 +596,23 @@ class _PageCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
               child: Wrap(
                 spacing: 8,
-                children: PageFilter.values.map((f) {
-                  return ChoiceChip(
-                    label: Text(_filterLabel(context, f)),
-                    selected: filter == f,
-                    onSelected: (_) => onFilterChanged(f),
-                    visualDensity: VisualDensity.compact,
-                  );
-                }).toList(),
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  for (final f in PageFilter.values)
+                    ChoiceChip(
+                      label: Text(_filterLabel(context, f)),
+                      selected: filter == f,
+                      onSelected: (_) => onFilterChanged(f),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  if (totalPages > 1)
+                    TextButton.icon(
+                      key: ValueKey('filter-all-${page.id}'),
+                      onPressed: onApplyToAll,
+                      icon: const Icon(Icons.done_all, size: 18),
+                      label: Text(context.l10n.filterApplyAll),
+                    ),
+                ],
               ),
             ),
         ],
@@ -598,6 +629,7 @@ class _PageCard extends StatelessWidget {
   String _filterLabel(BuildContext context, PageFilter f) => switch (f) {
     PageFilter.original => context.l10n.filterOriginal,
     PageFilter.enhanced => context.l10n.filterEnhanced,
+    PageFilter.clean => context.l10n.filterClean,
     PageFilter.bw => context.l10n.filterBw,
   };
 }
@@ -659,6 +691,9 @@ class _FilteredImage extends StatelessWidget {
 
     return switch (filter) {
       PageFilter.original => image,
+      // Shadows can't be removed by a colour matrix: the page is worked
+      // out, at preview size, by the same code the exports use.
+      PageFilter.clean => _CleanPreview(path: resolved, fallback: image),
       PageFilter.enhanced => ColorFiltered(
         colorFilter: const ColorFilter.matrix([
           1.2,
@@ -711,4 +746,103 @@ class _FilteredImage extends StatelessWidget {
       ),
     };
   }
+}
+
+/// A page with the Clean filter, made in an isolate at preview size and kept
+/// for the pages seen most recently. The plain photo shows meanwhile.
+class _CleanPreview extends StatefulWidget {
+  const _CleanPreview({required this.path, required this.fallback});
+  final String path;
+  final Widget fallback;
+
+  /// Wide enough for a page card; the exports work at full size.
+  static const _width = 1000;
+
+  static final _cache = <String, Future<Uint8List?>>{};
+
+  static Future<Uint8List?> _load(String path) {
+    // Most recent last; a new image path (rotate, crop) is a new entry.
+    final f = _cache.remove(path) ?? _make(path);
+    _cache[path] = f;
+    while (_cache.length > 24) {
+      _cache.remove(_cache.keys.first);
+    }
+    return f;
+  }
+
+  static Future<Uint8List?> _make(String path) async {
+    try {
+      // The platform decoder shrinks while decoding, much faster than
+      // decoding a full-size photo in Dart.
+      final buffer = await ui.ImmutableBuffer.fromUint8List(
+        await File(path).readAsBytes(),
+      );
+      final desc = await ui.ImageDescriptor.encoded(buffer);
+      final codec = await desc.instantiateCodec(
+        targetWidth: math.min(desc.width, _width),
+      );
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+      final rgba = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      final size = (image.width, image.height);
+      image.dispose();
+      codec.dispose();
+      desc.dispose();
+      buffer.dispose();
+      if (rgba == null) return null;
+      return compute(_cleanJpeg, (
+        rgba.buffer.asUint8List(rgba.offsetInBytes, rgba.lengthInBytes),
+        size.$1,
+        size.$2,
+      ));
+    } catch (e) {
+      debugPrint('Review: clean preview failed: $e');
+      return null;
+    }
+  }
+
+  @override
+  State<_CleanPreview> createState() => _CleanPreviewState();
+}
+
+class _CleanPreviewState extends State<_CleanPreview> {
+  late Future<Uint8List?> _jpeg = _CleanPreview._load(widget.path);
+
+  @override
+  void didUpdateWidget(_CleanPreview old) {
+    super.didUpdateWidget(old);
+    if (old.path != widget.path) _jpeg = _CleanPreview._load(widget.path);
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<Uint8List?>(
+    future: _jpeg,
+    builder: (context, snap) {
+      final bytes = snap.data;
+      if (bytes != null) {
+        return Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true);
+      }
+      if (snap.connectionState == ConnectionState.done) return widget.fallback;
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          widget.fallback,
+          const Center(child: CircularProgressIndicator()),
+        ],
+      );
+    },
+  );
+}
+
+/// compute() entry: RGBA pixels → the Clean page as JPEG.
+Uint8List _cleanJpeg((Uint8List, int, int) args) {
+  final (rgba, w, h) = args;
+  final page = img.Image.fromBytes(
+    width: w,
+    height: h,
+    bytes: rgba.buffer,
+    numChannels: 4,
+    order: img.ChannelOrder.rgba,
+  );
+  return img.encodeJpg(cleanPage(page), quality: 85);
 }

@@ -62,7 +62,7 @@ class Pages extends Table {
   IntColumn get documentId => integer().references(Documents, #id)();
   IntColumn get pageIndex => integer()();
   TextColumn get imagePath => text()();
-  // 'original' | 'enhanced' | 'bw'
+  // 'original' | 'enhanced' | 'bw' | 'clean'
   TextColumn get activeFilter =>
       text().withDefault(const Constant('enhanced'))();
   TextColumn get ocrText => text().withDefault(const Constant(''))();

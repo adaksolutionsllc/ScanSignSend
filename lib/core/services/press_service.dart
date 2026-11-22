@@ -39,7 +39,7 @@ final pressServiceProvider = Provider<PressService>((ref) {
 /// isolate so no drift/Flutter types cross the isolate boundary.
 class _PagePlan {
   final String imagePath; // may contain a '#page=N' fragment for PDF pages
-  final String activeFilter; // 'original' | 'enhanced' | 'bw'
+  final String activeFilter; // 'original' | 'enhanced' | 'bw' | 'clean'
   final List<_FieldPlan> fields;
   const _PagePlan(this.imagePath, this.activeFilter, this.fields);
 }

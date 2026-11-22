@@ -227,6 +227,16 @@ class PageRepository {
     _db.pages,
   )..where((t) => t.id.equals(companion.id.value))).write(companion);
 
+  /// Sets every image page of [documentId] to [filter] (Review → "Apply to
+  /// all pages"). Pages of an imported PDF have no filter and are left out.
+  Future<void> setFilterForAll(int documentId, String filter) =>
+      (_db.update(_db.pages)..where(
+            (t) =>
+                t.documentId.equals(documentId) &
+                t.imagePath.contains('#page=').not(),
+          ))
+          .write(PagesCompanion(activeFilter: Value(filter)));
+
   /// Deletes the page, **its fields**, and renumbers everything after it so
   /// later pages' fields stay on their own pages. The image file goes too
   /// once nothing else still points at it. Pages of an imported PDF all share

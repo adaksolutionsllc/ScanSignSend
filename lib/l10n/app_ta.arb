@@ -78,6 +78,8 @@
   "filterOriginal": "அசல்",
   "filterEnhanced": "மேம்பட்டது",
   "filterBw": "கருப்பு-வெள்ளை",
+  "filterClean": "சுத்தம்",
+  "filterApplyAll": "எல்லாப் பக்கங்களுக்கும் பயன்படுத்து",
   "detectTitle": "புலங்களைக் கண்டறி",
   "detectFormFieldsFoundTitle": "படிவப் புலங்கள் கண்டறியப்பட்டன",
   "detectFormFieldsFoundBody": "இந்த PDF-இல் ஏற்கெனவே படிவப் புலங்கள் உள்ளன.\nநீங்களே புலங்களைச் சேர்க்கலாம் அல்லது நேரடியாக நிரப்பத் தொடரலாம்.",

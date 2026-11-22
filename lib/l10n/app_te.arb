@@ -78,6 +78,8 @@
   "filterOriginal": "అసలు",
   "filterEnhanced": "మెరుగైనది",
   "filterBw": "నలుపు-తెలుపు",
+  "filterClean": "శుభ్రం",
+  "filterApplyAll": "అన్ని పేజీలకు వర్తింపజేయండి",
   "detectTitle": "ఫీల్డ్‌లను గుర్తించు",
   "detectFormFieldsFoundTitle": "ఫారమ్ ఫీల్డ్‌లు కనుగొనబడ్డాయి",
   "detectFormFieldsFoundBody": "ఈ PDFలో ఇప్పటికే ఫారమ్ ఫీల్డ్‌లు ఉన్నాయి.\nమీరు సొంత ఫీల్డ్‌లను జోడించవచ్చు లేదా నేరుగా పూరించడానికి కొనసాగవచ్చు.",

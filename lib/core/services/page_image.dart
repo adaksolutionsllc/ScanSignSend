@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
+import 'clean_filter.dart';
+
 /// How page photos go into an exported PDF.
 class PageImageQuality {
   const PageImageQuality(this.dpi, this.jpegQuality);
@@ -43,7 +45,8 @@ Uint8List pageImageForPdf(
     final maxH = pageH / 72 * quality.dpi;
     final scale = math.min(maxW / decoded.width, maxH / decoded.height);
     final shrink = scale < 1;
-    final filtered = filter == 'enhanced' || filter == 'bw';
+    final filtered =
+        filter == 'enhanced' || filter == 'bw' || filter == 'clean';
     final recompress = quality != PageImageQuality.standard;
     if (!shrink && !filtered && !recompress) return raw;
 
@@ -63,6 +66,10 @@ Uint8List pageImageForPdf(
       case 'enhanced':
         // Mild contrast/brightness lift — mirrors Review's on-screen filter.
         out = img.adjustColor(out, contrast: 1.2, brightness: 1.02);
+      case 'clean':
+        // After the resize: it scales with the image, so it matches the
+        // smaller Review preview.
+        out = cleanPage(out);
     }
     final jpeg = img.encodeJpg(
       out,

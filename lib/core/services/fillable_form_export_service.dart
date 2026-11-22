@@ -188,7 +188,7 @@ class _ExportJob {
 class _PagePlan {
   final String imagePath;
 
-  /// The Review filter ('original' | 'enhanced' | 'bw'), as the flattened
+  /// The Review filter ('original' | 'enhanced' | 'bw' | 'clean'), as the flattened
   /// export applies it.
   final String filter;
   const _PagePlan({required this.imagePath, this.filter = 'original'});

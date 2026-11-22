@@ -78,6 +78,8 @@
   "filterOriginal": "मूल",
   "filterEnhanced": "बेहतर",
   "filterBw": "श्वेत-श्याम",
+  "filterClean": "साफ़",
+  "filterApplyAll": "सभी पेजों पर लागू करें",
   "detectTitle": "फ़ील्ड पहचानें",
   "detectFormFieldsFoundTitle": "फ़ॉर्म फ़ील्ड मिले",
   "detectFormFieldsFoundBody": "इस PDF में पहले से फ़ॉर्म फ़ील्ड मौजूद हैं।\nआप स्वयं फ़ील्ड जोड़ सकते हैं या सीधे भरने के लिए आगे बढ़ सकते हैं।",

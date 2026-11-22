@@ -268,6 +268,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterBw => 'B&W';
 
   @override
+  String get filterClean => 'Clean';
+
+  @override
+  String get filterApplyAll => 'Apply to all pages';
+
+  @override
   String get detectTitle => 'Detect Fields';
 
   @override

@@ -269,6 +269,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get filterBw => 'श्वेत-श्याम';
 
   @override
+  String get filterClean => 'साफ़';
+
+  @override
+  String get filterApplyAll => 'सभी पेजों पर लागू करें';
+
+  @override
   String get detectTitle => 'फ़ील्ड पहचानें';
 
   @override

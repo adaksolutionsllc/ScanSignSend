@@ -576,6 +576,18 @@ abstract class AppLocalizations {
   /// **'B&W'**
   String get filterBw;
 
+  /// Page filter that removes shadows and makes the paper white. One short word.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean'**
+  String get filterClean;
+
+  /// Button under a page's filters: use this page's filter on every page of the document.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to all pages'**
+  String get filterApplyAll;
+
   /// No description provided for @detectTitle.
   ///
   /// In en, this message translates to:

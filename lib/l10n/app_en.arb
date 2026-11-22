@@ -164,6 +164,14 @@
   "@filterBw": {
     "description": "Black and white image filter. Abbreviate if the locale has a common short form."
   },
+  "filterClean": "Clean",
+  "@filterClean": {
+    "description": "Page filter that removes shadows and makes the paper white. One short word."
+  },
+  "filterApplyAll": "Apply to all pages",
+  "@filterApplyAll": {
+    "description": "Button under a page's filters: use this page's filter on every page of the document."
+  },
   "detectTitle": "Detect Fields",
   "detectFormFieldsFoundTitle": "Form fields detected",
   "detectFormFieldsFoundBody": "This PDF already contains form fields.\nYou can add your own fields manually or continue directly to fill.",
