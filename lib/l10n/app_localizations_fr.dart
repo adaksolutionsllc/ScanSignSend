@@ -1526,4 +1526,40 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get textNoneOnPage =>
       'Aucun texte trouvé sur cette page. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais.';
+
+  @override
+  String get sendFormat => 'Format';
+
+  @override
+  String get sendFormatPdf => 'PDF';
+
+  @override
+  String get sendFormatImages => 'Images';
+
+  @override
+  String get sendFormatText => 'Texte';
+
+  @override
+  String get sendFormatWord => 'Word';
+
+  @override
+  String get sendShareImages => 'Partager les images';
+
+  @override
+  String get sendShareText => 'Partager le texte';
+
+  @override
+  String get sendShareWord => 'Partager le fichier Word';
+
+  @override
+  String get sendFormatImagesHint =>
+      'Une image par page, avec vos saisies et vos signatures.';
+
+  @override
+  String get sendFormatTextHint =>
+      'Le texte de chaque page et vos saisies. Les signatures ne sont pas incluses.';
+
+  @override
+  String get sendNoText =>
+      'Aucun texte trouvé dans ce document. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais.';
 }

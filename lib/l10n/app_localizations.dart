@@ -2609,6 +2609,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No text found on this page. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.'**
   String get textNoneOnPage;
+
+  /// Label above the choice of file type to share (PDF, Images, Text, Word).
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get sendFormat;
+
+  /// No description provided for @sendFormatPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get sendFormatPdf;
+
+  /// No description provided for @sendFormatImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get sendFormatImages;
+
+  /// No description provided for @sendFormatText.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get sendFormatText;
+
+  /// Microsoft Word document (.docx). Keep the product name 'Word'.
+  ///
+  /// In en, this message translates to:
+  /// **'Word'**
+  String get sendFormatWord;
+
+  /// No description provided for @sendShareImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Share images'**
+  String get sendShareImages;
+
+  /// No description provided for @sendShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Share text'**
+  String get sendShareText;
+
+  /// No description provided for @sendShareWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Word file'**
+  String get sendShareWord;
+
+  /// No description provided for @sendFormatImagesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One picture per page, with your fill-ins and signatures.'**
+  String get sendFormatImagesHint;
+
+  /// Shown when Text or Word is chosen. Must say signatures are left out.
+  ///
+  /// In en, this message translates to:
+  /// **'The words on each page and what you filled in. Signatures are not included.'**
+  String get sendFormatTextHint;
+
+  /// No description provided for @sendNoText.
+  ///
+  /// In en, this message translates to:
+  /// **'No text found in this document. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.'**
+  String get sendNoText;
 }
 
 class _AppLocalizationsDelegate

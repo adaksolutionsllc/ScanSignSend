@@ -1521,4 +1521,40 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get textNoneOnPage =>
       'इस पेज पर कोई टेक्स्ट नहीं मिला। स्कैन से केवल लैटिन लिपि का टेक्स्ट पढ़ा जाता है, जैसे अंग्रेज़ी, फ़्रेंच, स्पैनिश और पुर्तगाली।';
+
+  @override
+  String get sendFormat => 'फ़ॉर्मैट';
+
+  @override
+  String get sendFormatPdf => 'PDF';
+
+  @override
+  String get sendFormatImages => 'इमेज';
+
+  @override
+  String get sendFormatText => 'टेक्स्ट';
+
+  @override
+  String get sendFormatWord => 'Word';
+
+  @override
+  String get sendShareImages => 'इमेज शेयर करें';
+
+  @override
+  String get sendShareText => 'टेक्स्ट शेयर करें';
+
+  @override
+  String get sendShareWord => 'Word फ़ाइल शेयर करें';
+
+  @override
+  String get sendFormatImagesHint =>
+      'हर पेज की एक इमेज, आपकी भरी जानकारी और हस्ताक्षर के साथ।';
+
+  @override
+  String get sendFormatTextHint =>
+      'हर पेज का टेक्स्ट और आपकी भरी जानकारी। हस्ताक्षर शामिल नहीं होते।';
+
+  @override
+  String get sendNoText =>
+      'इस दस्तावेज़ में कोई टेक्स्ट नहीं मिला। स्कैन से केवल लैटिन लिपि का टेक्स्ट पढ़ा जाता है, जैसे अंग्रेज़ी, फ़्रेंच, स्पैनिश और पुर्तगाली।';
 }

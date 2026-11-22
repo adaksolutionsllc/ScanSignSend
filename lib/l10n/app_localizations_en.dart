@@ -1512,4 +1512,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get textNoneOnPage =>
       'No text found on this page. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.';
+
+  @override
+  String get sendFormat => 'Format';
+
+  @override
+  String get sendFormatPdf => 'PDF';
+
+  @override
+  String get sendFormatImages => 'Images';
+
+  @override
+  String get sendFormatText => 'Text';
+
+  @override
+  String get sendFormatWord => 'Word';
+
+  @override
+  String get sendShareImages => 'Share images';
+
+  @override
+  String get sendShareText => 'Share text';
+
+  @override
+  String get sendShareWord => 'Share Word file';
+
+  @override
+  String get sendFormatImagesHint =>
+      'One picture per page, with your fill-ins and signatures.';
+
+  @override
+  String get sendFormatTextHint =>
+      'The words on each page and what you filled in. Signatures are not included.';
+
+  @override
+  String get sendNoText =>
+      'No text found in this document. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.';
 }

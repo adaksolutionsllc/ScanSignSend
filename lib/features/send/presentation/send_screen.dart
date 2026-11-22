@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 
 import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
@@ -15,6 +16,8 @@ import '../../../core/services/review_prompt_service.dart';
 import '../../../core/services/fillable_form_export_service.dart';
 import '../../../core/services/pdf_password_service.dart';
 import '../../../core/services/press_service.dart';
+import '../../../core/services/send_formats_service.dart';
+import '../../../core/services/text_export.dart';
 import '../../../shared/utils/file_size.dart';
 import '../../../shared/utils/share_pdf.dart';
 import '../../../core/services/template_service.dart';
@@ -173,9 +176,14 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     );
   }
 
+  /// Send → Format. Smaller file and Password-protect are PDF options.
+  SendFormat _format = SendFormat.pdf;
+
   /// The file Share sends: the smaller copy when chosen and ready.
   String _toShare(String pdfPath) =>
-      _smaller && _smallerPath != null ? _smallerPath! : pdfPath;
+      _smaller && _smallerPath != null && _format == SendFormat.pdf
+      ? _smallerPath!
+      : pdfPath;
 
   Widget _smallerSwitch(BuildContext context, Document doc, String pdfPath) {
     final l10n = context.l10n;
@@ -208,6 +216,104 @@ class _SendScreenState extends ConsumerState<SendScreen> {
           ? null
           : (on) => _toggleSmaller(on, doc, pdfPath),
     );
+  }
+
+  /// Send → Format: PDF, Images, Text or Word, with what the chosen one
+  /// holds.
+  Widget _formatChoice(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final hint = switch (_format) {
+      SendFormat.pdf => null,
+      SendFormat.images => l10n.sendFormatImagesHint,
+      SendFormat.text || SendFormat.word => l10n.sendFormatTextHint,
+    };
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.sendFormat, style: theme.textTheme.labelLarge),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final f in SendFormat.values)
+                ChoiceChip(
+                  key: ValueKey('format-${f.name}'),
+                  label: Text(switch (f) {
+                    SendFormat.pdf => l10n.sendFormatPdf,
+                    SendFormat.images => l10n.sendFormatImages,
+                    SendFormat.text => l10n.sendFormatText,
+                    SendFormat.word => l10n.sendFormatWord,
+                  }),
+                  selected: _format == f,
+                  onSelected: _sharing
+                      ? null
+                      : (_) => setState(() => _format = f),
+                ),
+            ],
+          ),
+          if (hint != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              hint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _shareLabel(AppLocalizations l10n) => switch (_format) {
+    SendFormat.pdf => l10n.sendSharePressed,
+    SendFormat.images => l10n.sendShareImages,
+    SendFormat.text => l10n.sendShareText,
+    SendFormat.word => l10n.sendShareWord,
+  };
+
+  /// The files for Send → Images, Text or Word, named after the document.
+  static Future<List<(String, String)>> _otherFiles(
+    SendFormatsService service,
+    SendFormat format, {
+    required int docId,
+    required String pdfPath,
+    required String title,
+    required AppLocalizations l10n,
+  }) async {
+    final dir = await shareDir();
+    final name =
+        safeFileName(title) ?? safeFileName(l10n.documentFallbackTitle)!;
+    switch (format) {
+      case SendFormat.images:
+        return [
+          for (final f in await service.pageImages(pdfPath, dir, name))
+            (f, 'image/jpeg'),
+        ];
+      case SendFormat.text || SendFormat.word:
+        final pages = await service.textPages(docId);
+        if (pages.every((pg) => pg.isEmpty)) throw const _NoText();
+        if (format == SendFormat.text) {
+          final file = File(p.join(dir.path, '$name.txt'));
+          await file.writeAsString(buildTxt(pages, l10n.textPageN));
+          return [(file.path, 'text/plain')];
+        }
+        final file = File(p.join(dir.path, '$name.docx'));
+        await file.writeAsBytes(buildDocx(title, pages, l10n.textPageN));
+        return [
+          (
+            file.path,
+            'application/vnd.openxmlformats-officedocument.'
+                'wordprocessingml.document',
+          ),
+        ];
+      case SendFormat.pdf:
+        throw StateError('PDF is shared as it is');
+    }
   }
 
   @override
@@ -274,6 +380,8 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                     ),
                     const SizedBox(height: 32),
 
+                    if (!_shared && pdfPath != null) _formatChoice(context),
+
                     if (!_shared)
                       SizedBox(
                         width: double.infinity,
@@ -297,15 +405,21 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                   ),
                                 )
                               : const Icon(Icons.share),
-                          label: Text(
-                            _sharing
-                                ? context.l10n.sendOpeningShareSheet
-                                : context.l10n.sendSharePressed,
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _sharing
+                                  ? context.l10n.sendOpeningShareSheet
+                                  : _shareLabel(context.l10n),
+                            ),
                           ),
                         ),
                       ),
 
-                    if (!_shared && pdfPath != null && doc != null)
+                    if (!_shared &&
+                        pdfPath != null &&
+                        doc != null &&
+                        _format == SendFormat.pdf)
                       FutureBuilder<bool>(
                         future: _canShrink,
                         builder: (context, can) => can.data == true
@@ -316,7 +430,10 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                             : const SizedBox.shrink(),
                       ),
 
-                    if (!_shared && pdfPath != null && doc != null)
+                    if (!_shared &&
+                        pdfPath != null &&
+                        doc != null &&
+                        _format == SendFormat.pdf)
                       FutureBuilder<bool>(
                         future: _canProtectFor(doc),
                         builder: (context, can) => can.data == true
@@ -458,6 +575,41 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     final origin = (box != null && box.hasSize)
         ? box.localToGlobal(Offset.zero) & box.size
         : null;
+    if (_format != SendFormat.pdf) {
+      final service = ref.read(sendFormatsServiceProvider);
+      try {
+        final files = await _otherFiles(
+          service,
+          _format,
+          docId: widget.docId,
+          pdfPath: pdfPath,
+          title: title,
+          l10n: l10n,
+        );
+        final sent = await shareDocumentFiles(
+          lock: lock,
+          files: files,
+          title: title,
+          origin: origin,
+        );
+        if (sent && !_shared) unawaited(_afterSend(reviews));
+        if (mounted) {
+          setState(() {
+            _sharing = false;
+            _shared = _shared || sent;
+          });
+        }
+      } on _NoText {
+        if (mounted) setState(() => _sharing = false);
+        messenger.showSnackBar(SnackBar(content: Text(l10n.sendNoText)));
+      } catch (e) {
+        if (mounted) setState(() => _sharing = false);
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.sendShareFailed('$e'))),
+        );
+      }
+      return;
+    }
     // The password-protected copy is made at share time, from the chosen
     // file (the smaller copy, when that's on).
     var toSend = pdfPath;
@@ -604,4 +756,9 @@ class _PasswordDialogState extends State<_PasswordDialog> {
       ],
     );
   }
+}
+
+/// Text or Word was chosen, and no page has text or filled-in values.
+class _NoText implements Exception {
+  const _NoText();
 }

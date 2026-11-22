@@ -416,5 +416,16 @@
   "textCopied": "Texto copiado",
   "textPageN": "Página {n}",
   "textReading": "Leyendo el texto…",
-  "textNoneOnPage": "No se encontró texto en esta página. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués."
+  "textNoneOnPage": "No se encontró texto en esta página. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués.",
+  "sendFormat": "Formato",
+  "sendFormatPdf": "PDF",
+  "sendFormatImages": "Imágenes",
+  "sendFormatText": "Texto",
+  "sendFormatWord": "Word",
+  "sendShareImages": "Compartir imágenes",
+  "sendShareText": "Compartir texto",
+  "sendShareWord": "Compartir archivo de Word",
+  "sendFormatImagesHint": "Una imagen por página, con lo que rellenó y sus firmas.",
+  "sendFormatTextHint": "El texto de cada página y lo que rellenó. Las firmas no se incluyen.",
+  "sendNoText": "No se encontró texto en este documento. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués."
 }

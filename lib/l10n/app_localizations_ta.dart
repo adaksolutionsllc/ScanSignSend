@@ -1530,4 +1530,40 @@ class AppLocalizationsTa extends AppLocalizations {
   @override
   String get textNoneOnPage =>
       'இந்தப் பக்கத்தில் உரை எதுவும் இல்லை. ஸ்கேன்களில் லத்தீன் எழுத்து உரை மட்டுமே படிக்கப்படும், எ.கா. ஆங்கிலம், பிரெஞ்சு, ஸ்பானிஷ், போர்ச்சுகீஸ்.';
+
+  @override
+  String get sendFormat => 'வடிவம்';
+
+  @override
+  String get sendFormatPdf => 'PDF';
+
+  @override
+  String get sendFormatImages => 'படங்கள்';
+
+  @override
+  String get sendFormatText => 'உரை';
+
+  @override
+  String get sendFormatWord => 'Word';
+
+  @override
+  String get sendShareImages => 'படங்களைப் பகிர்';
+
+  @override
+  String get sendShareText => 'உரையைப் பகிர்';
+
+  @override
+  String get sendShareWord => 'Word கோப்பைப் பகிர்';
+
+  @override
+  String get sendFormatImagesHint =>
+      'ஒவ்வொரு பக்கத்துக்கும் ஒரு படம், நீங்கள் நிரப்பியவை மற்றும் கையொப்பங்களுடன்.';
+
+  @override
+  String get sendFormatTextHint =>
+      'ஒவ்வொரு பக்கத்தின் உரையும் நீங்கள் நிரப்பியவையும். கையொப்பங்கள் சேர்க்கப்படாது.';
+
+  @override
+  String get sendNoText =>
+      'இந்த ஆவணத்தில் உரை எதுவும் இல்லை. ஸ்கேன்களில் லத்தீன் எழுத்து உரை மட்டுமே படிக்கப்படும், எ.கா. ஆங்கிலம், பிரெஞ்சு, ஸ்பானிஷ், போர்ச்சுகீஸ்.';
 }

@@ -853,5 +853,25 @@
   "textNoneOnPage": "No text found on this page. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese.",
   "@textNoneOnPage": {
     "description": "Shown for a page where no text was read. On-device OCR reads Latin-script text only; do not claim other scripts work."
-  }
+  },
+  "sendFormat": "Format",
+  "@sendFormat": {
+    "description": "Label above the choice of file type to share (PDF, Images, Text, Word)."
+  },
+  "sendFormatPdf": "PDF",
+  "sendFormatImages": "Images",
+  "sendFormatText": "Text",
+  "sendFormatWord": "Word",
+  "@sendFormatWord": {
+    "description": "Microsoft Word document (.docx). Keep the product name 'Word'."
+  },
+  "sendShareImages": "Share images",
+  "sendShareText": "Share text",
+  "sendShareWord": "Share Word file",
+  "sendFormatImagesHint": "One picture per page, with your fill-ins and signatures.",
+  "sendFormatTextHint": "The words on each page and what you filled in. Signatures are not included.",
+  "@sendFormatTextHint": {
+    "description": "Shown when Text or Word is chosen. Must say signatures are left out."
+  },
+  "sendNoText": "No text found in this document. Text is read from scans in Latin script only, such as English, French, Spanish and Portuguese."
 }

@@ -44,8 +44,8 @@ Future<void> shareDocumentText({
   required String title,
   Rect? origin,
 }) async {
-  final dir = await _shareDir();
-  final file = File(p.join(dir.path, '${_safeName(title) ?? 'Text'}.txt'));
+  final dir = await shareDir();
+  final file = File(p.join(dir.path, '${safeFileName(title) ?? 'Text'}.txt'));
   await file.writeAsString(text, flush: true);
   await lock.whileExternal(
     () => Share.shareXFiles(
@@ -56,9 +56,27 @@ Future<void> shareDocumentText({
   );
 }
 
+/// Opens the share sheet for [files] (path, MIME type), made for Send in a
+/// format other than PDF. Returns false only when the user dismissed it.
+Future<bool> shareDocumentFiles({
+  required AppLockNotifier lock,
+  required List<(String, String)> files,
+  required String title,
+  Rect? origin,
+}) async {
+  final result = await lock.whileExternal(
+    () => Share.shareXFiles(
+      [for (final (path, mime) in files) XFile(path, mimeType: mime)],
+      subject: title,
+      sharePositionOrigin: origin,
+    ),
+  );
+  return result.status != ShareResultStatus.dismissed;
+}
+
 /// The OS cache folder shared files are named in (never backed up). Only
 /// the latest shared file is kept.
-Future<Directory> _shareDir() async {
+Future<Directory> shareDir() async {
   final base = await getApplicationCacheDirectory();
   final dir = Directory(p.join(base.path, 'share'));
   if (dir.existsSync()) await dir.delete(recursive: true);
@@ -67,7 +85,7 @@ Future<Directory> _shareDir() async {
 
 /// [title] made safe as a file name, at most 80 characters; null if nothing
 /// is left.
-String? _safeName(String title) {
+String? safeFileName(String title) {
   final safe = title
       .replaceAll(RegExp(r'[\\/:*?"<>|\n\r\t]'), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
@@ -80,9 +98,9 @@ String? _safeName(String title) {
 /// document. Only the latest shared copy is kept. Falls back to the original.
 Future<String> _namedCopy(String pdfPath, String title) async {
   try {
-    final name = _safeName(title);
+    final name = safeFileName(title);
     if (name == null) return pdfPath;
-    final dir = await _shareDir();
+    final dir = await shareDir();
     return (await File(pdfPath).copy(p.join(dir.path, '$name.pdf'))).path;
   } catch (_) {
     return pdfPath;

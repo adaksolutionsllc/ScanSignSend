@@ -693,6 +693,48 @@ void main() {
     await _capture(tester, 'send_password');
     await tester.tap(find.text(l10n.actionCancel));
     await _pause(tester, 500);
+
+    // Send → Format → Images (F2): one JPEG per page of the finished PDF,
+    // rendered on the device. The sheet is answered "dismissed", so this
+    // share doesn't count as a send.
+    var sharedPaths = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('dev.fluttercommunity.plus/share'),
+      (call) async {
+        sharedPaths = [
+          for (final f in (call.arguments as Map)['paths'] as List) '$f',
+        ];
+        return '';
+      },
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('format-images')));
+    await _pause(tester, 300);
+    await tester.tap(find.byKey(const ValueKey('format-images')));
+    await _waitFor(tester, find.text(l10n.sendShareImages));
+    await _pause(tester, 500);
+    expect(find.byKey(const ValueKey('smaller-file')), findsNothing);
+    await _capture(tester, 'send_format_images');
+    await tester.ensureVisible(find.text(l10n.sendShareImages));
+    await _pause(tester, 300);
+    await tester.tap(find.text(l10n.sendShareImages));
+    for (var i = 0; i < 120 && sharedPaths.isEmpty; i++) {
+      await _pause(tester, 250);
+    }
+    expect(sharedPaths, hasLength(1));
+    final shot = img.decodeJpg(File(sharedPaths.single).readAsBytesSync())!;
+    expect(shot.width, greaterThan(1000));
+    _mark(
+      'INFO:send as images ${p.basename(sharedPaths.single)} '
+      '${shot.width}x${shot.height}',
+    );
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('dev.fluttercommunity.plus/share'),
+      (_) async => 'device-check',
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('format-pdf')));
+    await _pause(tester, 300);
+    await tester.tap(find.byKey(const ValueKey('format-pdf')));
+    await _pause(tester, 500);
     final formPdf = PdfDocument();
     final formPage = formPdf.pages.add();
     formPdf.form.fields.add(

@@ -119,6 +119,8 @@ void main() {
         'searchPageCount',
         'extractedName',
         'textPageN',
+        'sendFormat',
+        'sendFormatImages',
       },
       'es': {'filterOriginal', 'statusEditable', 'myDetailsGroupPersonal'},
       'pt': {'filterOriginal'},
@@ -129,11 +131,13 @@ void main() {
     for (final locale in _expectedLocales.where((l) => l != 'en')) {
       final arb = _readArb(locale);
       // autoDocumentTitle and sendSizeChange are only placeholders and a
-      // dash or arrow, no words.
+      // dash or arrow, no words. PDF and Word are names.
       final allowed = {
         'appTitle',
         'autoDocumentTitle',
         'sendSizeChange',
+        'sendFormatPdf',
+        'sendFormatWord',
         ...?cognates[locale],
       };
       final untranslated =

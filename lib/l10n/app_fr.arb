@@ -416,5 +416,16 @@
   "textCopied": "Texte copié",
   "textPageN": "Page {n}",
   "textReading": "Lecture du texte…",
-  "textNoneOnPage": "Aucun texte trouvé sur cette page. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais."
+  "textNoneOnPage": "Aucun texte trouvé sur cette page. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais.",
+  "sendFormat": "Format",
+  "sendFormatPdf": "PDF",
+  "sendFormatImages": "Images",
+  "sendFormatText": "Texte",
+  "sendFormatWord": "Word",
+  "sendShareImages": "Partager les images",
+  "sendShareText": "Partager le texte",
+  "sendShareWord": "Partager le fichier Word",
+  "sendFormatImagesHint": "Une image par page, avec vos saisies et vos signatures.",
+  "sendFormatTextHint": "Le texte de chaque page et vos saisies. Les signatures ne sont pas incluses.",
+  "sendNoText": "Aucun texte trouvé dans ce document. Le texte des scans est lu en alphabet latin uniquement, comme le français, l’anglais, l’espagnol et le portugais."
 }

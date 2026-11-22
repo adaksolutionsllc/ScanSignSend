@@ -1508,7 +1508,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get textCopyAll => 'Copiar tudo';
 
   @override
-  String get textShareTxt => 'Partilhar como .txt';
+  String get textShareTxt => 'Compartilhar como .txt';
 
   @override
   String get textCopied => 'Texto copiado';
@@ -1519,9 +1519,45 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get textReading => 'A ler o texto…';
+  String get textReading => 'Lendo o texto…';
 
   @override
   String get textNoneOnPage =>
       'Nenhum texto encontrado nesta página. O texto das digitalizações só é lido em alfabeto latino, como português, inglês, francês e espanhol.';
+
+  @override
+  String get sendFormat => 'Formato';
+
+  @override
+  String get sendFormatPdf => 'PDF';
+
+  @override
+  String get sendFormatImages => 'Imagens';
+
+  @override
+  String get sendFormatText => 'Texto';
+
+  @override
+  String get sendFormatWord => 'Word';
+
+  @override
+  String get sendShareImages => 'Compartilhar imagens';
+
+  @override
+  String get sendShareText => 'Compartilhar texto';
+
+  @override
+  String get sendShareWord => 'Compartilhar arquivo do Word';
+
+  @override
+  String get sendFormatImagesHint =>
+      'Uma imagem por página, com o que você preencheu e as assinaturas.';
+
+  @override
+  String get sendFormatTextHint =>
+      'O texto de cada página e o que você preencheu. As assinaturas não são incluídas.';
+
+  @override
+  String get sendNoText =>
+      'Nenhum texto encontrado neste documento. O texto das digitalizações só é lido em alfabeto latino, como português, inglês, francês e espanhol.';
 }

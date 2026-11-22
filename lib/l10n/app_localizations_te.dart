@@ -1527,4 +1527,40 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get textNoneOnPage =>
       'ఈ పేజీలో టెక్స్ట్ కనబడలేదు. స్కాన్‌ల నుండి లాటిన్ లిపి టెక్స్ట్ మాత్రమే చదవబడుతుంది, ఉదా. ఇంగ్లీష్, ఫ్రెంచ్, స్పానిష్, పోర్చుగీస్.';
+
+  @override
+  String get sendFormat => 'ఫార్మాట్';
+
+  @override
+  String get sendFormatPdf => 'PDF';
+
+  @override
+  String get sendFormatImages => 'చిత్రాలు';
+
+  @override
+  String get sendFormatText => 'టెక్స్ట్';
+
+  @override
+  String get sendFormatWord => 'Word';
+
+  @override
+  String get sendShareImages => 'చిత్రాలను షేర్ చేయండి';
+
+  @override
+  String get sendShareText => 'టెక్స్ట్ షేర్ చేయండి';
+
+  @override
+  String get sendShareWord => 'Word ఫైల్ షేర్ చేయండి';
+
+  @override
+  String get sendFormatImagesHint =>
+      'ప్రతి పేజీకి ఒక చిత్రం, మీరు నింపినవి మరియు సంతకాలతో.';
+
+  @override
+  String get sendFormatTextHint =>
+      'ప్రతి పేజీ టెక్స్ట్ మరియు మీరు నింపినవి. సంతకాలు చేర్చబడవు.';
+
+  @override
+  String get sendNoText =>
+      'ఈ పత్రంలో టెక్స్ట్ కనబడలేదు. స్కాన్‌ల నుండి లాటిన్ లిపి టెక్స్ట్ మాత్రమే చదవబడుతుంది, ఉదా. ఇంగ్లీష్, ఫ్రెంచ్, స్పానిష్, పోర్చుగీస్.';
 }

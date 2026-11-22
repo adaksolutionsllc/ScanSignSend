@@ -412,9 +412,20 @@
   "textTooltip": "Texto das páginas",
   "textTitle": "Texto",
   "textCopyAll": "Copiar tudo",
-  "textShareTxt": "Partilhar como .txt",
+  "textShareTxt": "Compartilhar como .txt",
   "textCopied": "Texto copiado",
   "textPageN": "Página {n}",
-  "textReading": "A ler o texto…",
-  "textNoneOnPage": "Nenhum texto encontrado nesta página. O texto das digitalizações só é lido em alfabeto latino, como português, inglês, francês e espanhol."
+  "textReading": "Lendo o texto…",
+  "textNoneOnPage": "Nenhum texto encontrado nesta página. O texto das digitalizações só é lido em alfabeto latino, como português, inglês, francês e espanhol.",
+  "sendFormat": "Formato",
+  "sendFormatPdf": "PDF",
+  "sendFormatImages": "Imagens",
+  "sendFormatText": "Texto",
+  "sendFormatWord": "Word",
+  "sendShareImages": "Compartilhar imagens",
+  "sendShareText": "Compartilhar texto",
+  "sendShareWord": "Compartilhar arquivo do Word",
+  "sendFormatImagesHint": "Uma imagem por página, com o que você preencheu e as assinaturas.",
+  "sendFormatTextHint": "O texto de cada página e o que você preencheu. As assinaturas não são incluídas.",
+  "sendNoText": "Nenhum texto encontrado neste documento. O texto das digitalizações só é lido em alfabeto latino, como português, inglês, francês e espanhol."
 }

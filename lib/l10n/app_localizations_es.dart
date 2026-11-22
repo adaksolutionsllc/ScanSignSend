@@ -1524,4 +1524,40 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get textNoneOnPage =>
       'No se encontró texto en esta página. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués.';
+
+  @override
+  String get sendFormat => 'Formato';
+
+  @override
+  String get sendFormatPdf => 'PDF';
+
+  @override
+  String get sendFormatImages => 'Imágenes';
+
+  @override
+  String get sendFormatText => 'Texto';
+
+  @override
+  String get sendFormatWord => 'Word';
+
+  @override
+  String get sendShareImages => 'Compartir imágenes';
+
+  @override
+  String get sendShareText => 'Compartir texto';
+
+  @override
+  String get sendShareWord => 'Compartir archivo de Word';
+
+  @override
+  String get sendFormatImagesHint =>
+      'Una imagen por página, con lo que rellenó y sus firmas.';
+
+  @override
+  String get sendFormatTextHint =>
+      'El texto de cada página y lo que rellenó. Las firmas no se incluyen.';
+
+  @override
+  String get sendNoText =>
+      'No se encontró texto en este documento. El texto de los escaneos solo se lee en alfabeto latino, como español, inglés, francés y portugués.';
 }
