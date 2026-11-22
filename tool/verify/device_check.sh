@@ -97,6 +97,35 @@ provide() {
   fi
 }
 
+# What the iOS Share Extension leaves behind (the test asks with NEED:share):
+# the photos the test made, as one finished share in the App Group inbox
+# (ios/Shared/ShareInbox.swift). The app is then sent to the background and
+# brought back, and finds the share when it becomes active. (The extension
+# also opens scansignsend://import, but `simctl openurl` stops at an "Open
+# in…?" prompt that can't be tapped from here.)
+share() {
+  local data group batch tmp
+  data="$(xcrun simctl get_app_container "$DEV" com.adakVentures.scanSignSend data)"
+  # "groups" lists them all; naming the group fails on Xcode 27's simctl.
+  group="$(xcrun simctl get_app_container "$DEV" com.adakVentures.scanSignSend groups |
+    awk '$1 == "group.com.adakVentures.scanSignSend" { print $2 }')"
+  [[ -n $group ]] || { echo "No App Group container" >&2; return 1; }
+  batch="$(uuidgen)"
+  tmp="$group/Inbox/$batch.partial"
+  mkdir -p "$tmp"
+  local i=0 entries=""
+  for f in "$data"/Library/Caches/opened_check/share/*.jpg; do
+    cp "$f" "$tmp/$i.jpg"
+    entries+="${entries:+,}{\"file\":\"$i.jpg\",\"name\":\"$(basename "$f")\"}"
+    i=$((i + 1))
+  done
+  echo "[$entries]" > "$tmp/manifest.json"
+  mv "$tmp" "$group/Inbox/$batch"
+  xcrun simctl launch "$DEV" com.apple.Preferences >/dev/null
+  sleep 2
+  foreground
+}
+
 shot() {
   if [[ $PLATFORM == ios ]]; then
     xcrun simctl io "$DEV" screenshot "$1" >/dev/null 2>&1
@@ -124,6 +153,8 @@ run() {  # run <test file> [flutter test args...]
       shot "$OUT/$(printf %02d "$n")_${BASH_REMATCH[1]}.png"
     elif [[ "$line" == *NEED:w4* ]]; then
       provide
+    elif [[ "$line" == *NEED:share* ]]; then
+      share
     elif [[ "$line" == *NEED:form* ]]; then
       # The store flow's demo form, into the app's cache (Android only).
       adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \

@@ -108,7 +108,7 @@ Billing, product `com.adakventures.scansignsend.fullaccess`) bypasses.
 | `backup` | `BackupPlugin.swift` — `isExcludedFromBackup` | `AppBackupAgent` opt-in flag |
 | `privacy` | — (always-on `PrivacyOverlay.swift`) | `FLAG_SECURE` |
 | `ai_enhancer` | `AiFieldEnhancerPlugin.swift` — stub | — |
-| `open_file` | `OpenFilePlugin.swift` — PDFs opened via "Open in…" (CFBundleDocumentTypes) | `OpenFileHandler.kt` — VIEW/SEND `application/pdf` intents |
+| `open_file` | `OpenFilePlugin.swift` — PDFs opened via "Open in…" (CFBundleDocumentTypes), and shares from the `ShareExtension` target via the App Group inbox | `OpenFileHandler.kt` — VIEW/SEND `application/pdf` intents |
 
 OCR is the `google_mlkit_text_recognition` plugin; PDFs are built in Dart with Syncfusion.
 Details: `docs/.llm_wiki/native-bridges-and-plugins.md`.

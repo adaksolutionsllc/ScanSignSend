@@ -75,6 +75,34 @@ Dart (`ScanService.scan`) maps `UNAVAILABLE` → empty list and rethrows other
   `flutter_deeplinking_enabled` = false); otherwise the file URI is pushed
   to go_router as a route ("Page Not Found").
 
+### Share Extension (iOS only, 1.4.0)
+- Target `ShareExtension` (`com.adakVentures.scanSignSend.ShareExtension`,
+  `ios/ShareExtension/`): Photos/Files/Mail → Share → Scan Sign Send for
+  photos and PDFs. Plain UIKit, no Flutter, no database (~120 MB limit).
+  Version comes from `Flutter/Generated.xcconfig` via
+  `ShareExtension.xcconfig`; strings in its own `*.lproj/Localizable.strings`
+  (checked by `l10n_completeness_test.dart`).
+- Hand-over (`ios/Shared/ShareInbox.swift`, in both targets): files go to
+  `<App Group group.com.adakVentures.scanSignSend>/Inbox/<uuid>.partial/`,
+  then `manifest.json` ([{file, name}] in share order), then the folder is
+  renamed to `<uuid>`. The extension opens `scansignsend://import?batch=<uuid>`
+  (UIApplication reached through the responder chain; extensions have no
+  API for it). If that fails it says "Open Scan Sign Send to continue".
+- `OpenFilePlugin` takes a batch from the URL, and also sweeps the inbox on
+  `UIScene.willEnterForegroundNotification` (cold launch included). Flutter
+  doesn't forward `sceneDidBecomeActive` to the plugin, and on a headless
+  simulator the app never becomes active, so the notification is used.
+  Stale `.partial` folders (> 1 h) are deleted. Files are queued with the
+  batch id, so one share = one document.
+- Signing: both targets have the App Group entitlement. Local releases
+  (`flutter build ipa`, automatic signing, `-allowProvisioningUpdates`) let
+  Xcode register the App ID and group. The CI `beta` lane signs manually
+  with one profile and needs a second one for the extension.
+- Tests: device check `NEED:share` writes a batch into the group container
+  (`simctl get_app_container … groups`; naming the group fails on Xcode 27)
+  and backgrounds/foregrounds the app. `simctl openurl` stops at an
+  "Open in…?" prompt; the extension's own open showed no prompt.
+
 ### Backup (`com.scansignsend/backup`)
 - iOS sets `URLResourceValues.isExcludedFromBackup = !include` on the
   Documents directory passed from Dart.

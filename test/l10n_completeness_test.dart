@@ -173,6 +173,27 @@ void main() {
         usageKeys,
         reason: '$locale InfoPlist.strings is out of sync with Info.plist',
       );
+      // The Share Extension's own text (Photos → Share → Scan Sign Send).
+      final share = _strings(
+        'ios/ShareExtension/$locale.lproj/Localizable.strings',
+      );
+      final shareEnglish = _strings(
+        'ios/ShareExtension/en.lproj/Localizable.strings',
+      );
+      expect(
+        share.keys.toSet(),
+        shareEnglish.keys.toSet(),
+        reason: '$locale Share Extension strings are out of sync with en',
+      );
+      if (locale != 'en') {
+        for (final key in share.keys) {
+          expect(
+            share[key],
+            isNot(shareEnglish[key]),
+            reason: '$locale/$key is still the English Share Extension text',
+          );
+        }
+      }
       if (locale == 'en') continue;
       for (final key in usageKeys) {
         expect(
@@ -184,3 +205,11 @@ void main() {
     }
   });
 }
+
+/// The "key" = "value"; pairs of an iOS .strings file.
+Map<String, String> _strings(String path) => {
+  for (final m in RegExp(
+    r'"([\w.]+)"\s*=\s*"(.*)";',
+  ).allMatches(File(path).readAsStringSync()))
+    m.group(1)!: m.group(2)!,
+};

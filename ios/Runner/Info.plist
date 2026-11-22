@@ -69,6 +69,19 @@
 		<string>ta</string>
 		<string>te</string>
 	</array>
+	<!-- scansignsend://import?batch=<uuid>: the Share Extension hands over
+	     a share it left in the App Group inbox (OpenFilePlugin). -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.adakVentures.scanSignSend.import</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>scansignsend</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Scan Sign Send</string>
 	<key>CFBundleExecutable</key>

@@ -27,7 +27,7 @@ what changes, in what order, and what still needs a decision.
 ### C. Getting files in and out (≈ 6 d)
 | # | Item | Size | Notes |
 |---|---|---|---|
-| C1 | iOS Share Extension | 3–4 d | §3.7. Photos → Share → Scan Sign Send. Reuses the 1.3.0 batch import and edge check. Second App ID, App Group, profile. |
+| C1 | ✅ iOS Share Extension | 3–4 d | §3.7. Photos → Share → Scan Sign Send. Reuses the 1.3.0 batch import and edge check. Second App ID, App Group, profile. |
 | C2 | ✅ Home-screen quick actions | 0.5 d | §3.6. Scan, Open PDF, Fill my last draft. |
 | C3 | ✅ Smaller files | 1 d | Restored below (§3). 200 dpi default + "Smaller file" switch on Send. |
 | C4 | ✅ Password-protected PDF (protect on Send + open protected PDFs) | 1.5 d + 0.5 d spike | Restored below (§3). PDFKit on iOS; dropped if the spike fails. |
@@ -172,6 +172,36 @@ device check, screenshots).
   choosing a bundled-library path on iOS.
 - Wording: "Password-protect" / "Anyone opening this PDF needs the password".
   Never "secure", "military grade" or "unbreakable".
+
+### 3.7 iOS Share Extension (3–4 d) — ✅ 2026-11-21
+- Photos (or Files, Mail) → Share → Scan Sign Send, for photos and PDFs. A
+  native extension copies them into the App Group inbox and opens the app,
+  which imports them through the "Open in…" path: one share = one document.
+  Design and test notes: `docs/.llm_wiki/native-bridges-and-plugins.md`.
+- Verified on the iOS 26.5 simulator with a UI test driving Photos: the
+  extension is in the share sheet's app row, opens the app with no prompt,
+  and the photo arrives under its own name. The device check covers the
+  app side (inbox → import → 2-page document).
+- **Fixed on the way:** the app's inbox check first used
+  `sceneDidBecomeActive`, which Flutter never passes to the plugin.
+- **Release to do:**
+  - First signed build registers the App ID
+    `com.adakVentures.scanSignSend.ShareExtension` and App Group
+    `group.com.adakVentures.scanSignSend` (Xcode, automatic signing). Ask
+    Arun first: it changes the developer account.
+  - Test on a real iPhone (TestFlight): share from Photos, also with the app
+    killed and with App Lock on.
+  - The CI `beta` lane needs a second provisioning profile; the local
+    release script doesn't.
+  - Found, not caused by C1: on the iOS simulator, Vision returns a wrong
+    strip (bottom quarter) from about the third edge check of a run, for
+    the same test photo it found correctly before; macOS Vision is right
+    every time. Check on a real iPhone: import the same photo 4–5 times.
+  - App Review risk (judgement, not verified): opening the app from a share
+    extension uses the responder chain, which Apple doesn't document for
+    share extensions. Many apps ship it; if it stops working, the extension
+    says "Open Scan Sign Send to continue" and the app collects the share
+    the next time it comes to the front.
 
 ## 4. Still decided (from 2026-10-23, unchanged)
 - Share Extension: build it. Voice: on-device recognition only.

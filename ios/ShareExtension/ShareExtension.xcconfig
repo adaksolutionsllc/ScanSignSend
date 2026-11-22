@@ -1,0 +1,4 @@
+// The Share Extension shares the app's version and build number (App Store
+// Connect rejects a mismatch). Flutter writes both into Generated.xcconfig.
+// No Pods here: the extension links no Flutter code or plugins.
+#include "../Flutter/Generated.xcconfig"

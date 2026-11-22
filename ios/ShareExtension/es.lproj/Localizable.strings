@@ -1,0 +1,7 @@
+/* Share Extension text. Keep keys in sync across every *.lproj
+   (test/l10n_completeness_test.dart). */
+"share.adding" = "Añadiendo a Scan Sign Send…";
+"share.done" = "Listo";
+"share.failed" = "No se pudieron añadir estos archivos. Inténtalo de nuevo.";
+"share.nothing" = "Solo se pueden añadir fotos y PDF.";
+"share.openApp" = "Añadido. Abre Scan Sign Send para continuar.";

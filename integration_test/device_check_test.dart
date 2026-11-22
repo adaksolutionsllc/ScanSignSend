@@ -427,6 +427,55 @@ void main() {
     await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
     _mark('INFO:photo-only pdf offered the corner check');
 
+    // Photos → Share → Scan Sign Send (iOS). The Share Extension leaves the
+    // photos in the App Group inbox and opens scansignsend://import; the
+    // script does both, as a share sheet can't be driven from here. From
+    // there it is the app's own native code: the share arrives as one
+    // document, its photos in the order they were shared.
+    if (Platform.isIOS) {
+      router.go(AppRoutes.library);
+      await _waitFor(tester, find.byType(LibraryScreen));
+      final shareDocs = container.read(documentRepositoryProvider);
+      final lastId = (await shareDocs.watchAll().first)
+          .map((d) => d.id)
+          .reduce(max);
+      await _tiltedPhoto(tmp, 'share', 'Shared_page_1.jpg');
+      await _tiltedPhoto(tmp, 'share', 'Shared_page_2.jpg');
+      _mark('NEED:share');
+      await _waitFor(
+        tester,
+        find.byWidgetPredicate((w) => w is CropScreen || w is ReviewScreen),
+        seconds: 60,
+      );
+      // One crop per photo: Crop, then the next photo (or Review) once the
+      // first is applied.
+      final cropOrReview = find.byWidgetPredicate(
+        (w) => (w is Text && w.data == l10n.cropApply) || w is ReviewScreen,
+      );
+      for (var i = 0; i < 4; i++) {
+        await _waitFor(tester, cropOrReview, seconds: 60);
+        if (find.byType(ReviewScreen).evaluate().isNotEmpty) break;
+        await _pause(tester, 1200);
+        await tester.tap(find.text(l10n.cropApply));
+        await _pause(tester, 600);
+      }
+      await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+      final shared = (await shareDocs.watchAll().first)
+          .where((d) => d.id > lastId)
+          .toList();
+      expect(shared, hasLength(1), reason: 'one share, one document');
+      final sharedPages = await container
+          .read(pageRepositoryProvider)
+          .pagesOf(shared.single.id);
+      expect(sharedPages, hasLength(2));
+      await _pause(tester, 1500);
+      await _capture(tester, 'share_extension_import');
+      _mark(
+        'INFO:share extension inbox imported "${shared.single.title}" '
+        '(${sharedPages.length} pages)',
+      );
+    }
+
     // Straight after scanning: "Skip fields · Save & Share" on the Review
     // screen saves the scan as a finished (Completed) PDF, after a
     // confirmation, and opens Send.
@@ -601,7 +650,9 @@ void main() {
         .read(pdfPasswordServiceProvider)
         .protect(plainForm.path, 'secret12');
     final inbox = Directory(p.join(tmp.path, 'locked_inbox'))..createSync();
-    final lockedCopy = File(lockedPdf).copySync(p.join(inbox.path, 'lease.pdf'));
+    final lockedCopy = File(
+      lockedPdf,
+    ).copySync(p.join(inbox.path, 'lease.pdf'));
     router.go(AppRoutes.library);
     await _waitFor(tester, find.byType(LibraryScreen));
     router.push(

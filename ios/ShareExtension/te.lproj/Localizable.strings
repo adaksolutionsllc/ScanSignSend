@@ -1,0 +1,7 @@
+/* Share Extension text. Keep keys in sync across every *.lproj
+   (test/l10n_completeness_test.dart). */
+"share.adding" = "Scan Sign Sendకు జోడిస్తోంది…";
+"share.done" = "పూర్తయింది";
+"share.failed" = "ఈ ఫైల్‌లను జోడించలేకపోయాము. దయచేసి మళ్లీ ప్రయత్నించండి.";
+"share.nothing" = "ఫోటోలు మరియు PDFలను మాత్రమే జోడించగలరు.";
+"share.openApp" = "జోడించబడింది. కొనసాగించడానికి Scan Sign Sendను తెరవండి.";
