@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/services/document_repository.dart';
+import '../../../core/services/edge_check_service.dart';
 import '../../../core/services/page_raster_service.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
@@ -167,6 +168,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   totalPages: _pages.length,
                   onFilterChanged: (f) => _setFilter(page, f),
                   onRotate: () => _rotatePage(page),
+                  onCrop: _cropping == null ? () => _cropPage(page) : null,
                   onDelete: () => _deletePage(page),
                   picked: picked?.contains(page.id),
                   onTogglePick: () => setState(() {
@@ -371,6 +373,35 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     }
   }
 
+  /// The page whose Crop is open; one at a time.
+  int? _cropping;
+
+  /// Opens the corner editor on one page, starting from the whole image,
+  /// and comes back here.
+  Future<void> _cropPage(db.Page page) async {
+    final router = GoRouter.of(context);
+    setState(() => _cropping = page.id);
+    try {
+      final candidate = await ref
+          .read(edgeCheckServiceProvider)
+          .manualCandidate(page);
+      if (!mounted) return;
+      await router.push(
+        '${AppRoutes.crop.replaceAll(':docId', '${widget.docId}')}?back=1',
+        extra: [candidate],
+      );
+    } catch (e) {
+      debugPrint('Review: crop failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.cropFailed)));
+      }
+    } finally {
+      if (mounted) setState(() => _cropping = null);
+    }
+  }
+
   Future<void> _deletePage(db.Page page) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -450,6 +481,7 @@ class _PageCard extends StatelessWidget {
     required this.totalPages,
     required this.onFilterChanged,
     required this.onRotate,
+    required this.onCrop,
     required this.onDelete,
     this.picked,
     this.onTogglePick,
@@ -461,6 +493,9 @@ class _PageCard extends StatelessWidget {
   final int totalPages;
   final ValueChanged<PageFilter> onFilterChanged;
   final VoidCallback onRotate;
+
+  /// Null while a crop is opening.
+  final VoidCallback? onCrop;
   final VoidCallback onDelete;
 
   /// Whether the page is picked, while picking pages; null otherwise.
@@ -504,12 +539,19 @@ class _PageCard extends StatelessWidget {
                     onChanged: (_) => onTogglePick?.call(),
                   )
                 else ...[
-                  if (!_isPdfPage)
+                  if (!_isPdfPage) ...[
+                    IconButton(
+                      key: ValueKey('crop-page-${page.id}'),
+                      icon: const Icon(Icons.crop),
+                      tooltip: context.l10n.cropApply,
+                      onPressed: onCrop,
+                    ),
                     IconButton(
                       icon: const Icon(Icons.rotate_right),
                       tooltip: context.l10n.reviewRotateTooltip,
                       onPressed: onRotate,
                     ),
+                  ],
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     tooltip: context.l10n.reviewDeletePageTooltip,

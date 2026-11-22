@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,7 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:uuid/uuid.dart';
 
 import '../db/app_database.dart';
+import '../models/field_model.dart';
 import '../utils/path_resolver.dart';
 import 'document_edges.dart';
 import 'document_repository.dart';
@@ -108,6 +110,16 @@ class EdgeCheckService {
     }
   }
 
+  /// Page [page] for cropping by hand (Crop in Review), starting from the
+  /// whole image. No edges are suggested: a page in Review was cropped by
+  /// the scanner or offered the edge check when it came in, so a second
+  /// guess is more often wrong (a box on a form) than useful.
+  Future<EdgeCandidate> manualCandidate(Page page) async => EdgeCandidate(
+    pageId: page.id,
+    imagePath: await _raster.imageFor(page.imagePath),
+    quad: EdgeQuad.full,
+  );
+
   /// The document's corners in the image at [path], or null if none found.
   Future<EdgeQuad?> detect(String path) async {
     if (!kIsWeb && Platform.isIOS) {
@@ -144,7 +156,8 @@ class EdgeCheckService {
     final failed = <int>[];
     for (final page in pages) {
       final quad = crops[page.id];
-      if (quad == null) continue;
+      // Corners left on the image's own corners: nothing to cut.
+      if (quad == null || quad.isWhole) continue;
       try {
         final src = PathResolver.resolve(page.imagePath);
         // A new name each time, so an image cached under the old path is
@@ -154,13 +167,12 @@ class EdgeCheckService {
           'page_${page.pageIndex}_${const Uuid().v4().substring(0, 8)}.jpg',
         );
         await compute(_cropFile, (src, dest, quad.toList()));
-        await _pageRepo.updatePage(
-          PagesCompanion(
-            id: Value(page.id),
-            imagePath: Value(PathResolver.toStorable(dest)),
-          ),
+        // Fields exist when the page is cropped from Review after detection.
+        await _pageRepo.setCroppedImage(
+          page.id,
+          dest,
+          moveField: (b) => croppedBox(b, quad),
         );
-        await _deleteQuietly(src);
       } catch (e) {
         debugPrint('EdgeCheckService: crop failed: $e');
         failed.add(page.id);
@@ -251,6 +263,26 @@ bool isImageOnlyPdf(String path) {
   } catch (_) {
     return false;
   }
+}
+
+/// Field box [b] after its page is cropped to [quad]: the box around its
+/// moved corners, cut to the page. Null when less than a sliver of it is left.
+BoundingBox? croppedBox(BoundingBox b, EdgeQuad quad) {
+  final corners = [
+    for (final (x, y) in [
+      (b.x, b.y),
+      (b.x + b.w, b.y),
+      (b.x + b.w, b.y + b.h),
+      (b.x, b.y + b.h),
+    ])
+      quad.toCropped(math.Point(x, y)),
+  ];
+  final left = corners.map((c) => c.x).reduce(math.min).clamp(0.0, 1.0);
+  final right = corners.map((c) => c.x).reduce(math.max).clamp(0.0, 1.0);
+  final top = corners.map((c) => c.y).reduce(math.min).clamp(0.0, 1.0);
+  final bottom = corners.map((c) => c.y).reduce(math.max).clamp(0.0, 1.0);
+  if (right - left < 0.005 || bottom - top < 0.005) return null;
+  return BoundingBox(x: left, y: top, w: right - left, h: bottom - top);
 }
 
 EdgeQuad? _detectFile(String path) {

@@ -20,6 +20,15 @@ class EdgeQuad {
 
   List<math.Point<double>> get points => [tl, tr, br, bl];
 
+  /// Every corner on the image's own corner.
+  bool get isWhole {
+    final c = points, f = full.points;
+    for (var i = 0; i < 4; i++) {
+      if (c[i].distanceTo(f[i]) > 1e-6) return false;
+    }
+    return true;
+  }
+
   /// [x0, y0, … x3, y3] in tl, tr, br, bl order — the platform channel form.
   List<double> toList() => [
     for (final p in points) ...[p.x, p.y],
@@ -83,6 +92,41 @@ class EdgeQuad {
       if (c[i].distanceTo(corners[i]) > margin) return true;
     }
     return false;
+  }
+
+  /// Where the image point [p] lands in the image cropped to this quad, as a
+  /// fraction of the cropped image: the inverse of the bilinear map
+  /// [cropToQuad] samples with. Outside 0–1 when [p] is cut away.
+  math.Point<double> toCropped(math.Point<double> p) {
+    // Newton's method on P(u, v) - p = 0; a convex quad converges in a few
+    // steps from the centre.
+    var u = 0.5, v = 0.5;
+    for (var i = 0; i < 20; i++) {
+      final fx =
+          tl.x * (1 - u) * (1 - v) +
+          tr.x * u * (1 - v) +
+          br.x * u * v +
+          bl.x * (1 - u) * v -
+          p.x;
+      final fy =
+          tl.y * (1 - u) * (1 - v) +
+          tr.y * u * (1 - v) +
+          br.y * u * v +
+          bl.y * (1 - u) * v -
+          p.y;
+      final dxu = (tr.x - tl.x) * (1 - v) + (br.x - bl.x) * v;
+      final dyu = (tr.y - tl.y) * (1 - v) + (br.y - bl.y) * v;
+      final dxv = (bl.x - tl.x) * (1 - u) + (br.x - tr.x) * u;
+      final dyv = (bl.y - tl.y) * (1 - u) + (br.y - tr.y) * u;
+      final det = dxu * dyv - dxv * dyu;
+      if (det.abs() < 1e-12) break;
+      final du = (fx * dyv - fy * dxv) / det;
+      final dv = (fy * dxu - fx * dyu) / det;
+      u -= du;
+      v -= dv;
+      if (du.abs() < 1e-9 && dv.abs() < 1e-9) break;
+    }
+    return math.Point(u, v);
   }
 
   /// Corners closer than this to the image corners count as "already

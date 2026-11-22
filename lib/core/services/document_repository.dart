@@ -352,6 +352,45 @@ class PageRepository {
     return true;
   }
 
+  /// Points page [id] at the cropped image [dest] and moves its fields with
+  /// the content: [moveField] gives each box's place in the new image, or
+  /// null when the crop cut it away, and that field is deleted.
+  Future<void> setCroppedImage(
+    int id,
+    String dest, {
+    required BoundingBox? Function(BoundingBox) moveField,
+  }) async {
+    final page = await (_db.select(
+      _db.pages,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (page == null) return;
+    await _db.transaction(() async {
+      final pages = await _orderedPages(page.documentId);
+      final pos = pages.indexWhere((pg) => pg.id == id);
+      await (_db.update(_db.pages)..where((t) => t.id.equals(id))).write(
+        PagesCompanion(imagePath: Value(PathResolver.toStorable(dest))),
+      );
+      final fields =
+          await (_db.select(_db.fields)..where(
+                (t) =>
+                    t.documentId.equals(page.documentId) &
+                    t.pageIndex.equals(pos),
+              ))
+              .get();
+      for (final f in fields) {
+        final moved = moveField(BoundingBox.fromJsonString(f.boundingBoxJson));
+        if (moved == null) {
+          await (_db.delete(_db.fields)..where((t) => t.id.equals(f.id))).go();
+        } else {
+          await (_db.update(_db.fields)..where((t) => t.id.equals(f.id))).write(
+            FieldsCompanion(boundingBoxJson: Value(moved.toJsonString())),
+          );
+        }
+      }
+    });
+    await _deleteFileIfUnreferenced(page.imagePath);
+  }
+
   /// Deletes [stored] once no page row points at it any more. Matches on the
   /// `<uuid>/<filename>` tail: rows from older builds hold an absolute path,
   /// newer ones a relative one, and both must count as a reference.

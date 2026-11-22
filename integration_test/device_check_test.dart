@@ -402,6 +402,25 @@ void main() {
       2,
     );
     await _capture(tester, 'add_pages_review');
+    // Any image page can be cropped from Review (F5); "Use whole image"
+    // leaves it as it was.
+    final uncropped = await container
+        .read(pageRepositoryProvider)
+        .pagesOf(photoDoc.id);
+    await tester.tap(find.byKey(ValueKey('crop-page-${uncropped.first.id}')));
+    await _waitFor(tester, find.byType(CropScreen), seconds: 60);
+    await _pause(tester, 1200);
+    await _capture(tester, 'review_crop_page');
+    await tester.tap(find.text(l10n.cropUseWhole));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    await _pause(tester, 800);
+    expect(
+      (await container.read(pageRepositoryProvider).pagesOf(photoDoc.id))
+          .first
+          .imagePath,
+      uncropped.first.imagePath,
+    );
+    _mark('INFO:review crop opens on one page');
     router.push(
       '${AppRoutes.fieldDetection.replaceAll(':docId', '${photoDoc.id}')}'
       '?from=1',
