@@ -41,6 +41,10 @@ dependencies:
   # Image processing utilities
   image: ^4.2.0
 
+  # Zip writer for Send → Word (.docx). Already in the build through
+  # `image`; listed so the app can import it.
+  archive: ^4.0.9
+
   # In-app purchases (StoreKit 2 on iOS, Play Billing on Android)
   in_app_purchase: ^3.2.0
 
