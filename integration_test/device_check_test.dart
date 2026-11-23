@@ -547,9 +547,9 @@ void main() {
     await restarted.restore();
     expect(restarted.view(resumable)?.paused, isTrue, reason: 'not saved');
     await restarted.resume(resumable);
-    final until = DateTime.now().add(const Duration(seconds: 180));
+    final resumeBy = DateTime.now().add(const Duration(seconds: 180));
     while (restarted.hasJob(resumable)) {
-      if (DateTime.now().isAfter(until)) fail('the resumed job never ended');
+      if (DateTime.now().isAfter(resumeBy)) fail('the resumed job never ended');
       await _pause(tester, 250);
     }
     final resumed = await container

@@ -60,16 +60,20 @@ Facts from the code:
 
 ### J2 — Checkpoints (crash and kill safe)
 
-- New drift table `ImportJobs` (schema 9 → 10): document id, step, paused,
-  per-page results as JSON, attempts, updated time. One row per document. The
-  row goes when the job ends.
+- One JSON file per job in `Documents/jobs/<docId>.json` (`ImportJobStore`):
+  step, paused, per-page results, tries. The file goes when the job ends.
+  **Changed (2026-11-23):** not a drift table. `release/1.4.0` already uses
+  schema versions 10 and 11; a 1.3.2 version 10 would make users who update
+  from 1.3.2 skip 1.4.0's own version 10 step.
 - The job saves after **every page**:
   - A: the corners found for that page.
   - B: the user's choice for that page (crop with these corners, or keep).
   - C: the page's new image. Photo pages: as now, plus the row. PDF pages:
     images go to a staging folder next to the PDF and stay there until the
     last page. The switch-over stays one transaction (all or none).
-  - D: the text of that page.
+  - D: **not checkpointed (changed).** Reading the text for search stays in
+    `DocumentSorter`, as in 1.3.1. A kill during D leaves the later pages out
+    of search until fields are detected. Small, and outside the user's wait.
 - Each image is written to `name.part` and then renamed. A file with its
   final name is always complete.
 - On start, the app reads `ImportJobs`. A job left by a crash or a kill shows
@@ -78,8 +82,9 @@ Facts from the code:
 - Crash loop guard: the row counts tries on the current page. When the same
   page stops the app twice, that page is kept as is, the job goes on, and the
   user sees "Page 9 was kept as is".
-- Cancel keeps the document as it was before step C (the PDF stays a PDF;
-  photo pages already straightened stay straightened, as Skip does now).
+- **Changed:** no separate Cancel. Skip already means "go on without the
+  rest": the PDF stays a PDF, photo pages already straightened stay
+  straightened, and the job's staged files are removed.
 
 ### J3 — Pause, Resume, Cancel
 
@@ -117,7 +122,9 @@ Known limits (Apple forums, not Apple docs — check on a device):
   pauses and resumes on return.
 
 **Android:** a foreground service while a job runs, with a progress
-notification ("Straightening Tax form · 7 of 18") and a Pause action.
+notification ("Straightening “Tax form”", "Page 7 of 18"). **Changed:** no
+Pause action in the notification: without the notification permission
+(decision 2) most Android 13+ users would not see it. Tap opens the app.
 - Type `mediaProcessing` on Android 15+ (permission
   `FOREGROUND_SERVICE_MEDIA_PROCESSING`; a 6-hour limit in 24 hours, shared).
   Type `dataSync` on Android 14 (`FOREGROUND_SERVICE_DATA_SYNC`).
@@ -206,6 +213,21 @@ metrics do. The fix makes the claim true; the claim does not change.
 3. After a crash or kill: **Paused · Resume**, not by itself. A system pause
    (older iOS) resumes by itself.
 4. Scope: **import steps only**. Detect Fields and Save are timed first.
+
+## Built (2026-11-23, commits c22dac3, 47235d8, 0e41f13)
+
+- J1–J5 and J7 as above, with the changes marked. Files:
+  `import_job.dart`, `import_job_runner.dart`, `background_work_service.dart`,
+  `job_screen.dart`, `import_job_bar.dart`, `BackgroundWorkPlugin.swift`,
+  `ImportWorkService.kt`, `TextRecognitionPlugin.swift/.kt`.
+- Tests: runner (13), edge resume (6), job screen and bar (8), crop and
+  Review flows rewritten, OCR answer parsing; 272 in all. Mutation check: 5
+  of 5 caught.
+- Device check: new step pauses a 6-page straighten, leaves to the Library,
+  and finishes it with a second runner (a stand-in for a restarted app).
+- Still to do: a real kill on a phone (iOS and Android), the iOS 26 system
+  progress on a phone, Play Console foreground-service declaration (Arun),
+  What's New ×7, build 24.
 
 ## Size
 
