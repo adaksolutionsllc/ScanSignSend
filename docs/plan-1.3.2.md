@@ -225,6 +225,13 @@ metrics do. The fix makes the claim true; the claim does not change.
   of 5 caught.
 - Device check: new step pauses a 6-page straighten, leaves to the Library,
   and finishes it with a second runner (a stand-in for a restarted app).
+- OCR gate (4 demo forms rendered as scans; fields from OCR vs from the
+  PDF text layer): iOS Vision 38/50 matched, 2 extra; Android ML Kit 38/50
+  matched, 4 extra. Vision is not worse: the gate passes. Time per page:
+  2.3 s Vision on the simulator (CPU only), 0.76 s ML Kit on the emulator.
+  Not measured on a phone yet.
+- Device checks green on the iOS simulator and the Android emulator,
+  including pause → Library bar → restart → resume (24 pages, none twice).
 - Still to do: a real kill on a phone (iOS and Android), the iOS 26 system
   progress on a phone, Play Console foreground-service declaration (Arun),
   What's New ×7, build 24.
