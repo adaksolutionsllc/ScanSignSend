@@ -12,7 +12,7 @@ PREENCHER E ASSINAR
 • Texto, datas, caixas de seleção, botões de opção, rubricas e assinaturas
 • Arraste para mover, faça pinça para redimensionar — os campos se ajustam ao formulário
 • Desenhe sua assinatura uma vez e reutilize
-• PreFill: salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes
+• PreFill: salve seus dados uma vez em “Meus dados” e preencha com um toque os campos correspondentes
 • Ao assinar, a data de hoje é preenchida onde o formulário pede
 
 ENVIAR

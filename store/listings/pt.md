@@ -9,7 +9,7 @@ Preencha formulários offline
 ## short_description
 Digitalize, assine com o dedo e envie PDF assinados. Tudo offline.
 ## promotional_text
-Sem contas. Sem subscrições. Sem nuvem. Digitalize qualquer documento, preencha-o e assine-o no seu dispositivo, e partilhe um PDF pronto em segundos.
+Sem contas. Sem assinaturas. Sem nuvem. Digitalize qualquer documento, preencha e assine no seu aparelho e compartilhe um PDF pronto em segundos.
 
 ## keywords
 digitalizar,assinatura,documento,scanner,contrato,esign,eletrônica,digital,sem internet
@@ -29,7 +29,7 @@ PREENCHER E ASSINAR
 • Texto, datas, caixas de seleção, botões de opção, rubricas e assinaturas
 • Arraste para mover, faça pinça para redimensionar — os campos se ajustam ao formulário
 • Desenhe sua assinatura uma vez e reutilize
-• PreFill: salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes
+• PreFill: salve seus dados uma vez em “Meus dados” e preencha com um toque os campos correspondentes
 • Ao assinar, a data de hoje é preenchida onde o formulário pede
 
 ENVIAR
@@ -59,9 +59,9 @@ Feito pela ADAK Ventures.
 ## whats_new
 Novo na 1.3.1: arquivos grandes são importados mais rápido.
 Ao importar 2 páginas ou mais, o app pergunta se você quer endireitá-las e mostra quanto tempo isso leva, aproximadamente. Escolha “Manter como está” para continuar na hora.
-Endireite as páginas depois, na tela de revisão das páginas.
-Durante o processo, você vê o número da página, o tempo restante e um botão Ignorar.
-Pule os campos para salvar e compartilhar uma digitalização como PDF concluído.
+Endireite as páginas depois em Revisar páginas.
+Durante o processo, você vê o número da página, o tempo restante e um botão Pular.
+“Pular campos · Salvar e compartilhar” salva uma digitalização como PDF concluído na hora.
 
 ## iap_display_name
 Ilimitado
