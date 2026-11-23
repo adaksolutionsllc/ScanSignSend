@@ -43,13 +43,12 @@ the 6.9" slot) and an *iPad Pro 13-inch* (2064×2752).
 - `integration_test` is not in pubspec.yaml — Flutter would embed its
   framework in release IPAs. `capture.sh` adds it for the run and restores
   `pubspec.yaml`/`pubspec.lock` afterwards (so commit before capturing).
-- ML Kit has no arm64 simulator slice, so for the run `capture.sh` writes a
-  `pubspec_overrides.yaml` pointing at `mlkit_stub/`, and lets the Runner
-  target build for the simulator. A trap restores the iOS project on exit;
-  if a run is killed, run `git checkout ios/Runner.xcodeproj/project.pbxproj`,
-  delete `pubspec_overrides.yaml` and `pod install`.
+- Release builds are device-only, so `capture.sh` lets the Runner target
+  build for the simulator for the run. A trap restores the iOS project on
+  exit; if a run is killed, run
+  `git checkout ios/Runner.xcodeproj/project.pbxproj` and `pod install`.
 - The demo forms (`make_forms.py`) are born-digital PDFs with a text layer,
-  so detection reads labels from the PDF, not OCR — the stub costs nothing.
+  so detection reads labels from the PDF, not OCR.
   fr/es/pt get a form in their language; hi/ta/te use the English form, as
   most forms in India are.
 - Everything on screen is fictional: the forms and the applicants.

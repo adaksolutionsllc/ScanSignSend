@@ -55,12 +55,7 @@ open(p, "w").write(t.replace(dev, dev + "  integration_test:\n    sdk: flutter\n
 PY
 
 if [[ $PLATFORM == ios ]]; then
-  # ML Kit has no arm64 simulator slice; the project is device-only.
-  cat > pubspec_overrides.yaml <<'EOF'
-dependency_overrides:
-  google_mlkit_text_recognition:
-    path: tool/store_capture/mlkit_stub
-EOF
+  # The release builds are device-only; allow the simulator for this run.
   flutter pub get >/dev/null
   sed -i '' 's/SUPPORTED_PLATFORMS = iphoneos;/SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";/' \
     ios/Runner.xcodeproj/project.pbxproj

@@ -78,6 +78,9 @@ dependencies {
     // Keeps the free-allowance counter across uninstall/reinstall (with the
     // user's Google Backup on). See MainActivity's entitlement channel.
     implementation("com.google.android.gms:play-services-auth-blockstore:16.4.0")
+    // Text on the page, read on the phone (see TextRecognitionPlugin); the
+    // Latin model is bundled, so nothing is downloaded.
+    implementation("com.google.mlkit:text-recognition:16.0.1")
     // Gemini Nano on the phone, for sorting documents into categories (see
     // OnDeviceAiPlugin). Beta: every call is guarded and falls back to
     // keyword sorting in Dart.

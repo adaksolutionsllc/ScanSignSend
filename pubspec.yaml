@@ -35,9 +35,6 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^28.2.12
   syncfusion_flutter_signaturepad: ^28.2.12
 
-  # OCR — Google ML Kit Text Recognition on both iOS and Android
-  google_mlkit_text_recognition: ^0.13.0
-
   # Image processing utilities
   image: ^4.2.0
 

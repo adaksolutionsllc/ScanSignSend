@@ -53,6 +53,7 @@ class MainActivity : FlutterFragmentActivity() {
         super.configureFlutterEngine(flutterEngine)
         flutterEngine.plugins.add(DocumentScannerPlugin())
         flutterEngine.plugins.add(OnDeviceAiPlugin())
+        flutterEngine.plugins.add(TextRecognitionPlugin())
         openFileHandler = OpenFileHandler(this, flutterEngine.dartExecutor.binaryMessenger)
             .also { handler ->
                 launchIntent?.let(handler::receive)
