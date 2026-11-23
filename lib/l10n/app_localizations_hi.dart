@@ -1349,6 +1349,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get straightenGo => 'सीधा करें';
 
   @override
+  String get straightenKeep => 'जैसा है वैसा रखें';
+
+  @override
+  String get straightenAskLater =>
+      'अगर पृष्ठ पहले से सीधे हैं तो ‘जैसा है वैसा रखें’ चुनें। आप बाद में भी ‘पृष्ठ जाँचें’ में उन्हें सीधा कर सकते हैं।';
+
+  @override
+  String get reviewStraighten => 'पृष्ठ सीधे करें';
+
+  @override
+  String get reviewStraightenNone =>
+      'ठीक करने लायक कोई पृष्ठ किनारा नहीं मिला।';
+
+  @override
   String cropCheckingPage(int current, int total) {
     return 'पृष्ठ $current / $total जाँचा जा रहा है…';
   }

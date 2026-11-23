@@ -735,6 +735,10 @@
   "progressQuip5": "Measuring twice, cropping once…",
   "progressQuip6": "Nudging pixels into place…",
   "straightenGo": "Straighten",
+  "straightenKeep": "Keep as is",
+  "straightenAskLater": "Choose Keep as is if the pages are already straight. You can still straighten them later on the Review Pages screen.",
+  "reviewStraighten": "Straighten pages",
+  "reviewStraightenNone": "No page edges to fix were found.",
   "cropCheckingPage": "Checking page {current} of {total}…",
   "@cropCheckingPage": {
     "placeholders": {

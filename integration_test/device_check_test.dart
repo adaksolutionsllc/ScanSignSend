@@ -367,6 +367,8 @@ void main() {
         ),
         findsOneWidget,
       );
+      expect(find.text(l10n.straightenAskLater), findsOneWidget);
+      expect(find.text(l10n.straightenKeep), findsOneWidget);
     }
 
     await openLong('long_scan.pdf');
@@ -383,6 +385,33 @@ void main() {
       reason: 'Skip changed the pages',
     );
     _mark('INFO:long pdf skipped: 6 pdf pages kept');
+
+    // Kept as is, then straightened later from Review: back on the same
+    // Review, the pages now images.
+    await _waitFor(tester, find.byKey(const ValueKey('review-straighten')));
+    await _capture(tester, 'review_straighten_button');
+    await tester.tap(find.byKey(const ValueKey('review-straighten')));
+    await _waitFor(tester, find.byType(CropScreen), seconds: 180);
+    await _pause(tester, 800);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
+    await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
+    await _waitGone(tester, find.byType(CropScreen), seconds: 180);
+    await _pause(tester, 1000);
+    expect(
+      find.byType(ReviewScreen, skipOffstage: false),
+      findsOneWidget,
+      reason: 'a second Review was opened',
+    );
+    final later = await container
+        .read(pageRepositoryProvider)
+        .pagesOf((await newest()).id);
+    expect(
+      later.any((pg) => pg.imagePath.contains('#page=')),
+      isFalse,
+      reason: 'Straighten pages left PDF pages',
+    );
+    _mark('INFO:straightened later from Review');
 
     // Again, straightened: page counts while it checks and while it
     // straightens; page 1 cropped, the rest kept whole in one tap.

@@ -1343,6 +1343,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get straightenGo => 'Straighten';
 
   @override
+  String get straightenKeep => 'Keep as is';
+
+  @override
+  String get straightenAskLater =>
+      'Choose Keep as is if the pages are already straight. You can still straighten them later on the Review Pages screen.';
+
+  @override
+  String get reviewStraighten => 'Straighten pages';
+
+  @override
+  String get reviewStraightenNone => 'No page edges to fix were found.';
+
+  @override
   String cropCheckingPage(int current, int total) {
     return 'Checking page $current of $total…';
   }

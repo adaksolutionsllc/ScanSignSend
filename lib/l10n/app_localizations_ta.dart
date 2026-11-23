@@ -1354,6 +1354,20 @@ class AppLocalizationsTa extends AppLocalizations {
   String get straightenGo => 'நேராக்கு';
 
   @override
+  String get straightenKeep => 'அப்படியே வை';
+
+  @override
+  String get straightenAskLater =>
+      'பக்கங்கள் ஏற்கெனவே நேராக இருந்தால் ‘அப்படியே வை’ என்பதைத் தேர்ந்தெடுங்கள். பின்னர் ‘பக்கங்களைச் சரிபார்’ திரையிலும் அவற்றை நேராக்கலாம்.';
+
+  @override
+  String get reviewStraighten => 'பக்கங்களை நேராக்கு';
+
+  @override
+  String get reviewStraightenNone =>
+      'சரிசெய்ய வேண்டிய பக்க ஓரங்கள் எதுவும் கிடைக்கவில்லை.';
+
+  @override
   String cropCheckingPage(int current, int total) {
     return 'பக்கம் $current / $total சரிபார்க்கப்படுகிறது…';
   }

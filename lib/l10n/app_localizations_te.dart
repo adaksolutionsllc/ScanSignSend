@@ -1354,6 +1354,19 @@ class AppLocalizationsTe extends AppLocalizations {
   String get straightenGo => 'నిటారుగా చేయి';
 
   @override
+  String get straightenKeep => 'ఉన్నట్లే ఉంచు';
+
+  @override
+  String get straightenAskLater =>
+      'పేజీలు ఇప్పటికే నిటారుగా ఉంటే ‘ఉన్నట్లే ఉంచు’ ఎంచుకోండి. తర్వాత ‘పేజీలను సమీక్షించు’ స్క్రీన్‌లో కూడా వాటిని నిటారుగా చేయవచ్చు.';
+
+  @override
+  String get reviewStraighten => 'పేజీలను నిటారుగా చేయి';
+
+  @override
+  String get reviewStraightenNone => 'సరిచేయాల్సిన పేజీ అంచులు ఏవీ కనబడలేదు.';
+
+  @override
   String cropCheckingPage(int current, int total) {
     return 'పేజీ $current / $total తనిఖీ చేస్తోంది…';
   }

@@ -69,7 +69,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           // restored route) there is nothing to ask, so show Review.
           return candidates == null || candidates.isEmpty
               ? ReviewScreen(docId: docId)
-              : CropScreen(docId: docId, candidates: candidates);
+              : CropScreen(
+                  docId: docId,
+                  candidates: candidates,
+                  // Opened from Review: go back there when done.
+                  popWhenDone: state.uri.queryParameters['back'] == '1',
+                );
         },
       ),
       GoRoute(

@@ -91,6 +91,18 @@ PDF that is only photos), the app asks first:
 
 Keeps the crops chosen so far; the remaining pages stay as they are.
 
+### H4b — "Keep as is" and Straighten pages in Review ✅
+
+- The question's Skip is now **Keep as is**, with one more sentence:
+  "Choose Keep as is if the pages are already straight. You can still
+  straighten them later on the Review Pages screen."
+- Review shows **Straighten pages** for photo pages and photo-only PDFs,
+  while the document has no fields (cropping moves the page under them). It
+  runs the same check with progress and Skip, opens the same crop screen,
+  and returns to the same Review (`/crop/:docId?back=1`). Nothing to fix:
+  "No page edges to fix were found."
+- 1.4.0 also has Crop on each page (F5); merge both.
+
 ### H5 — Read text for search after the edge step ✅
 
 Start step 6 only when the edge step ends (or is skipped). Then it does not
@@ -116,7 +128,8 @@ Share**. Mention the Skip button in What's new so users find it.
 
 `straightenAskTitle`, `straightenAskBodyMinutes`, `straightenAskBodyQuick`,
 `straightenGo`, `cropCheckingPage`, `cropStraighteningPage`,
-`cropUseWholeRest`, `progressMinutesLeft`, `progressUnderMinuteLeft`,
+`cropUseWholeRest`, `straightenKeep`, `straightenAskLater`,
+`reviewStraighten`, `reviewStraightenNone`, `progressMinutesLeft`, `progressUnderMinuteLeft`,
 `progressQuip1`–`6`. Also fixed: three European Portuguese crop strings from
 1.3.0 ("A verificar os contornos…" → "Verificando as bordas…").
 

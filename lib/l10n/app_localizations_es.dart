@@ -1350,6 +1350,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get straightenGo => 'Enderezar';
 
   @override
+  String get straightenKeep => 'Dejar como está';
+
+  @override
+  String get straightenAskLater =>
+      'Elige Dejar como está si las páginas ya están rectas. Puedes enderezarlas más tarde en Revisar páginas.';
+
+  @override
+  String get reviewStraighten => 'Enderezar páginas';
+
+  @override
+  String get reviewStraightenNone =>
+      'No se encontraron bordes de página que corregir.';
+
+  @override
   String cropCheckingPage(int current, int total) {
     return 'Revisando la página $current de $total…';
   }

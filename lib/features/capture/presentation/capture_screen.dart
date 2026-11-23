@@ -279,7 +279,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   }
 
   /// Asks whether to check the edges of a [pages]-page file, and says about
-  /// how long it takes ([estimate]). Dismissed counts as Skip.
+  /// how long it takes ([estimate]) and that Review can still do it later.
+  /// Dismissed counts as Keep as is.
   Future<bool> _askToStraighten(int pages, Duration estimate) async {
     if (!mounted) return false;
     final l10n = context.l10n;
@@ -288,16 +289,24 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.straightenAskTitle),
-        content: Text(
-          minutes == null
-              ? l10n.straightenAskBodyQuick(pages)
-              : l10n.straightenAskBodyMinutes(pages, minutes),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              minutes == null
+                  ? l10n.straightenAskBodyQuick(pages)
+                  : l10n.straightenAskBodyMinutes(pages, minutes),
+            ),
+            const SizedBox(height: 12),
+            Text(l10n.straightenAskLater),
+          ],
         ),
         actions: [
           TextButton(
             key: const ValueKey('straighten-skip'),
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.actionSkip),
+            child: Text(l10n.straightenKeep),
           ),
           FilledButton(
             key: const ValueKey('straighten-go'),

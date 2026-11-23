@@ -1351,6 +1351,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get straightenGo => 'Redresser';
 
   @override
+  String get straightenKeep => 'Garder tel quel';
+
+  @override
+  String get straightenAskLater =>
+      'Choisissez Garder tel quel si les pages sont déjà droites. Vous pourrez toujours les redresser plus tard dans Vérifier les pages.';
+
+  @override
+  String get reviewStraighten => 'Redresser les pages';
+
+  @override
+  String get reviewStraightenNone =>
+      'Aucun bord de page à corriger n’a été trouvé.';
+
+  @override
   String cropCheckingPage(int current, int total) {
     return 'Vérification de la page $current sur $total…';
   }

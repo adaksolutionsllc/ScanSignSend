@@ -2340,6 +2340,30 @@ abstract class AppLocalizations {
   /// **'Straighten'**
   String get straightenGo;
 
+  /// No description provided for @straightenKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep as is'**
+  String get straightenKeep;
+
+  /// No description provided for @straightenAskLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Keep as is if the pages are already straight. You can still straighten them later on the Review Pages screen.'**
+  String get straightenAskLater;
+
+  /// No description provided for @reviewStraighten.
+  ///
+  /// In en, this message translates to:
+  /// **'Straighten pages'**
+  String get reviewStraighten;
+
+  /// No description provided for @reviewStraightenNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No page edges to fix were found.'**
+  String get reviewStraightenNone;
+
   /// No description provided for @cropCheckingPage.
   ///
   /// In en, this message translates to:

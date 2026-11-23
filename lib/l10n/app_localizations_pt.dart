@@ -1351,6 +1351,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get straightenGo => 'Endireitar';
 
   @override
+  String get straightenKeep => 'Manter como está';
+
+  @override
+  String get straightenAskLater =>
+      'Escolha Manter como está se as páginas já estiverem retas. Você ainda pode endireitá-las depois em Rever páginas.';
+
+  @override
+  String get reviewStraighten => 'Endireitar páginas';
+
+  @override
+  String get reviewStraightenNone =>
+      'Nenhuma borda de página para corrigir foi encontrada.';
+
+  @override
   String cropCheckingPage(int current, int total) {
     return 'Verificando a página $current de $total…';
   }
