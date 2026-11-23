@@ -379,7 +379,19 @@
   "cropCheckingPage": "पृष्ठ {current} / {total} जाँचा जा रहा है…",
   "cropStraighteningPage": "पृष्ठ {current} / {total} सीधा किया जा रहा है…",
   "cropUseWholeRest": "बाकी पृष्ठों की पूरी छवि रखें",
+  "jobKeepUsing": "ऐप का उपयोग जारी रखें",
   "importErrorMixed": "एक PDF चुनें, या एक या अधिक फ़ोटो।",
   "sendHome": "होम",
-  "searchPageCount": "{count, plural, =1{1 पेज} other{{count} पेज}}"
+  "searchPageCount": "{count, plural, =1{1 पेज} other{{count} पेज}}",
+  "jobPause": "रोकें",
+  "jobResume": "फिर से शुरू करें",
+  "jobPaused": "रुका हुआ",
+  "jobPausedHint": "रुका हुआ। अब तक पूरे हुए पृष्ठ सहेजे गए हैं।",
+  "jobWaiting": "प्रतीक्षा में",
+  "jobScreenOn": "यह पूरा होने तक स्क्रीन चालू रहेगी।",
+  "jobPagesToCheck": "{count, plural, =1{जाँचने के लिए 1 पृष्ठ} other{जाँचने के लिए {count} पृष्ठ}}",
+  "jobCheckNow": "अभी जाँचें",
+  "jobKeptAsIs": "{count, plural, =1{1 पृष्ठ से ऐप बंद हो गया, इसलिए उसे जैसा था वैसा ही रखा गया।} other{{count} पृष्ठों से ऐप बंद हो गया, इसलिए उन्हें जैसा था वैसा ही रखा गया।}}",
+  "jobCheckingTitle": "“{title}” के किनारे जाँचे जा रहे हैं",
+  "jobStraighteningTitle": "“{title}” सीधा किया जा रहा है"
 }

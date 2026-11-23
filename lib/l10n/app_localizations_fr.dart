@@ -1378,6 +1378,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cropUseWholeRest => 'Garder les autres pages entières';
 
   @override
+  String get jobKeepUsing => 'Continuer à utiliser l’app';
+
+  @override
   String get importErrorMixed =>
       'Choisissez un seul PDF, ou une ou plusieurs photos.';
 
@@ -1393,5 +1396,60 @@ class AppLocalizationsFr extends AppLocalizations {
       one: '1 page',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'Mettre en pause';
+
+  @override
+  String get jobResume => 'Reprendre';
+
+  @override
+  String get jobPaused => 'En pause';
+
+  @override
+  String get jobPausedHint =>
+      'En pause. Les pages déjà traitées sont enregistrées.';
+
+  @override
+  String get jobWaiting => 'En attente';
+
+  @override
+  String get jobScreenOn => 'L’écran reste allumé jusqu’à la fin.';
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages à vérifier',
+      one: '1 page à vérifier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'Vérifier';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count pages ont arrêté l’app : elles ont été gardées telles quelles.',
+      one: '1 page a arrêté l’app : elle a été gardée telle quelle.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return 'Vérification des bords de « $title »';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return 'Redressement de « $title »';
   }
 }

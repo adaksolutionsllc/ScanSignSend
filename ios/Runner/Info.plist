@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Long import jobs keep running when the user leaves the app (iOS 26+,
+	     BackgroundWorkPlugin.swift). -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).importJob.*</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Scan Sign Send uses the camera to scan paper documents into PDFs. Photos are processed on your device and never uploaded.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

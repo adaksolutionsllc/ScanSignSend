@@ -13,6 +13,7 @@ import 'core/services/app_lock_provider.dart';
 import 'core/utils/l10n_ext.dart';
 import 'core/utils/path_resolver.dart';
 import 'core/utils/router.dart';
+import 'features/review/presentation/import_job_bar.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'shared/theme/app_theme.dart';
 
@@ -213,7 +214,8 @@ class _MainAppState extends ConsumerState<_MainApp> {
       // AppLockGate reads context.l10n and needs a Localizations/Directionality
       // ancestor, which only MaterialApp.router itself provides — so it must sit
       // inside this builder, not wrap the MaterialApp from outside.
-      builder: (context, child) => AppLockGate(child: child!),
+      builder: (context, child) =>
+          AppLockGate(child: ImportJobHost(child: child!)),
     );
   }
 }

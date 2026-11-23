@@ -18,8 +18,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:scan_sign_send/core/services/background_work_service.dart';
+import 'package:scan_sign_send/core/services/import_job.dart';
+import 'package:scan_sign_send/core/services/import_job_runner.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
+import 'package:scan_sign_send/core/services/edge_check_service.dart';
 import 'package:scan_sign_send/core/services/opened_file_service.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
 import 'package:scan_sign_send/core/utils/path_resolver.dart';
@@ -507,6 +511,66 @@ void main() {
     await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
     await expectUnchanged('Skip while straightening');
     _mark('INFO:skip while straightening went to Review, pdf kept');
+
+    // Pause, use the app, and go on after a restart (plan 1.3.2): the job
+    // is saved after every page. A new runner stands in for a restarted
+    // app: it reads the saved job, shows it paused, and finishes it.
+    await openLong('long_scan_5.pdf');
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    await _waitFor(tester, find.byType(CropScreen), seconds: 180);
+    await _pause(tester, 800);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
+    await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
+    await _waitFor(tester, find.byKey(const ValueKey('job-pause')));
+    await tester.tap(find.byKey(const ValueKey('job-pause')));
+    final runner = container.read(importJobRunnerProvider);
+    final resumable = (await newest()).id;
+    await _waitFor(
+      tester,
+      find.byKey(const ValueKey('job-resume')),
+      seconds: 60,
+    );
+    expect(runner.view(resumable)!.running, isFalse);
+    _mark('CAPTURE:job_paused');
+    await tester.tap(find.byKey(const ValueKey('job-keep-using')));
+    await _waitFor(tester, find.byType(LibraryScreen));
+    await _waitFor(tester, find.text(l10n.jobPaused));
+    await _pause(tester, 600);
+    _mark('CAPTURE:library_job_paused');
+    final restarted = ImportJobRunner(
+      edges: container.read(edgeCheckServiceProvider),
+      docRepo: container.read(documentRepositoryProvider),
+      store: ImportJobStore(),
+      phone: BackgroundWorkService(),
+    );
+    await restarted.restore();
+    expect(restarted.view(resumable)?.paused, isTrue, reason: 'not saved');
+    await restarted.resume(resumable);
+    final until = DateTime.now().add(const Duration(seconds: 180));
+    while (restarted.hasJob(resumable)) {
+      if (DateTime.now().isAfter(until)) fail('the resumed job never ended');
+      await _pause(tester, 250);
+    }
+    final resumed = await container
+        .read(pageRepositoryProvider)
+        .pagesOf(resumable);
+    expect(resumed, hasLength(6));
+    expect(
+      resumed.any((pg) => pg.imagePath.contains('#page=')),
+      isFalse,
+      reason: 'the resumed job left PDF pages',
+    );
+    expect(
+      resumed.map((pg) => pg.imagePath).toSet(),
+      hasLength(6),
+      reason: 'a page twice',
+    );
+    // The first runner still holds the paused job: Skip clears it.
+    await runner.skip(resumable);
+    await _pause(tester, 600);
+    expect(find.text(l10n.jobPaused), findsNothing);
+    _mark('INFO:paused job saved and resumed after a restart: 6 pages');
 
     // Photos with no words: Detect Fields finds nothing. TestFlight 1.3.1
     // (22): a painting got 7 fields from its brush strokes.

@@ -762,6 +762,7 @@
     }
   },
   "cropUseWholeRest": "Use whole image for the rest",
+  "jobKeepUsing": "Keep using the app",
   "importErrorMixed": "Choose one PDF, or one or more photos.",
   "sendHome": "Home",
   "searchPageCount": "{count, plural, =1{1 page} other{{count} pages}}",
@@ -769,6 +770,45 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "jobPause": "Pause",
+  "jobResume": "Resume",
+  "jobPaused": "Paused",
+  "jobPausedHint": "Paused. The pages done so far are saved.",
+  "jobWaiting": "Waiting",
+  "jobScreenOn": "The screen stays on until this is done.",
+  "jobPagesToCheck": "{count, plural, =1{1 page to check} other{{count} pages to check}}",
+  "@jobPagesToCheck": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jobCheckNow": "Check now",
+  "jobKeptAsIs": "{count, plural, =1{1 page stopped the app, so it was kept as it is.} other{{count} pages stopped the app, so they were kept as they are.}}",
+  "@jobKeptAsIs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jobCheckingTitle": "Checking the edges of “{title}”",
+  "@jobCheckingTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "jobStraighteningTitle": "Straightening “{title}”",
+  "@jobStraighteningTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
       }
     }
   }

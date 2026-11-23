@@ -2382,6 +2382,12 @@ abstract class AppLocalizations {
   /// **'Use whole image for the rest'**
   String get cropUseWholeRest;
 
+  /// No description provided for @jobKeepUsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep using the app'**
+  String get jobKeepUsing;
+
   /// No description provided for @importErrorMixed.
   ///
   /// In en, this message translates to:
@@ -2399,6 +2405,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 page} other{{count} pages}}'**
   String searchPageCount(int count);
+
+  /// No description provided for @jobPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get jobPause;
+
+  /// No description provided for @jobResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get jobResume;
+
+  /// No description provided for @jobPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get jobPaused;
+
+  /// No description provided for @jobPausedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused. The pages done so far are saved.'**
+  String get jobPausedHint;
+
+  /// No description provided for @jobWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get jobWaiting;
+
+  /// No description provided for @jobScreenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'The screen stays on until this is done.'**
+  String get jobScreenOn;
+
+  /// No description provided for @jobPagesToCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 page to check} other{{count} pages to check}}'**
+  String jobPagesToCheck(int count);
+
+  /// No description provided for @jobCheckNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Check now'**
+  String get jobCheckNow;
+
+  /// No description provided for @jobKeptAsIs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 page stopped the app, so it was kept as it is.} other{{count} pages stopped the app, so they were kept as they are.}}'**
+  String jobKeptAsIs(int count);
+
+  /// No description provided for @jobCheckingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the edges of “{title}”'**
+  String jobCheckingTitle(String title);
+
+  /// No description provided for @jobStraighteningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Straightening “{title}”'**
+  String jobStraighteningTitle(String title);
 }
 
 class _AppLocalizationsDelegate

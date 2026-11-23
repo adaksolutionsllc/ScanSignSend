@@ -8,24 +8,23 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/services/document_edges.dart';
 import '../../../core/services/edge_check_service.dart';
+import '../../../core/services/import_job_runner.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/utils/router.dart';
-import '../../../shared/widgets/progress_extras.dart';
 
 /// "Check the edges": one page at a time, the corners found in a picked or
 /// opened photo (or a photo-only PDF) are shown for the user to confirm or
-/// drag. Only pages EdgeCheckService thought worth fixing come here; the
-/// rest go straight to Review. Ends on Review either way.
+/// drag. Only pages the check thought worth fixing come here; the rest go
+/// straight to Review.
+///
+/// The pages and each choice live in the document's import job
+/// ([ImportJobRunner]), so leaving and coming back (even after the app
+/// stopped) starts at the first page not decided yet. When done, the job
+/// straightens the pages and [JobScreen] shows it.
 class CropScreen extends ConsumerStatefulWidget {
-  const CropScreen({
-    super.key,
-    required this.docId,
-    required this.candidates,
-    this.popWhenDone = false,
-  });
+  const CropScreen({super.key, required this.docId, this.popWhenDone = false});
 
   final int docId;
-  final List<EdgeCandidate> candidates;
 
   /// Opened from Review (Straighten pages): return to it, rather than open
   /// Review again on top.
@@ -36,89 +35,86 @@ class CropScreen extends ConsumerStatefulWidget {
 }
 
 class _CropScreenState extends ConsumerState<CropScreen> {
+  List<EdgeCandidate> _candidates = const [];
+  bool _loaded = false;
   int _index = 0;
-  late EdgeQuad _quad = widget.candidates.first.quad;
-  final Map<int, EdgeQuad> _crops = {};
-  bool _applying = false;
-  (int, int)? _progress; // pages straightened, of how many
-  bool _skip = false; // Skip tapped while the pages are straightened
-  final _clock = Stopwatch();
+  EdgeQuad? _quad;
+  bool _finishing = false;
 
-  EdgeCandidate get _current => widget.candidates[_index];
+  EdgeCandidate get _current => _candidates[_index];
 
-  // Read up front: ref can't be used in dispose.
-  late final EdgeCheckService _edges;
+  // Read up front: ref can't be used after an await once the screen is gone.
+  late final ImportJobRunner _runner;
 
   @override
   void initState() {
     super.initState();
-    _edges = ref.read(edgeCheckServiceProvider);
+    _runner = ref.read(importJobRunnerProvider);
+    _load();
   }
 
-  @override
-  void dispose() {
-    // Left with Back: nothing more will change these pages.
-    _edges.end(widget.docId);
-    super.dispose();
+  Future<void> _load() async {
+    final router = GoRouter.of(context);
+    final (candidates, chosen) = await _runner.toChoose(widget.docId);
+    if (!mounted) return;
+    if (candidates.isEmpty) {
+      // No job waiting for the user (a restored route): show Review.
+      router.pushReplacement(
+        AppRoutes.review.replaceAll(':docId', '${widget.docId}'),
+      );
+      return;
+    }
+    final first = candidates.indexWhere((c) => !chosen.containsKey(c.pageId));
+    setState(() {
+      _candidates = candidates;
+      _loaded = true;
+      _index = first < 0 ? candidates.length - 1 : first;
+      _quad = _current.quad;
+    });
+    if (first < 0) _finish();
   }
 
-  void _decide({required bool crop}) {
-    if (crop) _crops[_current.pageId] = _quad;
-    if (_index + 1 < widget.candidates.length) {
+  Future<void> _decide({required bool crop}) async {
+    await _runner.choose(widget.docId, _current.pageId, crop ? _quad : null);
+    if (!mounted) return;
+    if (_index + 1 < _candidates.length) {
       setState(() {
         _index++;
         _quad = _current.quad;
       });
     } else {
-      _finish();
+      await _finish();
     }
   }
 
+  /// The pages not decided keep their whole image; the job straightens the
+  /// rest.
   Future<void> _finish() async {
-    // Resolve before the await.
-    final failedText = context.l10n.cropFailed;
-    final messenger = ScaffoldMessenger.of(context);
+    if (_finishing) return;
+    _finishing = true;
     final router = GoRouter.of(context);
-    setState(() => _applying = true);
-    var failed = const <int>[];
-    try {
-      failed = await _edges.apply(
-        widget.docId,
-        _crops,
-        onProgress: (done, total) {
-          if (done == 0) {
-            _clock
-              ..reset()
-              ..start();
-          }
-          if (mounted) setState(() => _progress = (done, total));
-        },
-        stop: () => _skip,
-      );
-    } catch (_) {
-      failed = _crops.keys.toList();
-    }
-    _edges.end(widget.docId);
-    if (failed.isNotEmpty && !_skip) {
-      messenger.showSnackBar(SnackBar(content: Text(failedText)));
-    }
-    if (widget.popWhenDone) {
-      router.pop();
-    } else {
-      router.pushReplacement(
-        AppRoutes.review.replaceAll(':docId', '${widget.docId}'),
-      );
-    }
+    await _runner.startStraighten(widget.docId);
+    router.pushReplacement(
+      '${AppRoutes.job.replaceAll(':docId', '${widget.docId}')}'
+      '${widget.popWhenDone ? '?back=1' : ''}',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final total = widget.candidates.length;
+    final total = _candidates.length;
+    final quad = _quad;
+    if (!_loaded || quad == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.cropTitle)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.cropTitle),
-        bottom: total > 1 && !_applying
+        bottom: total > 1
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(20),
                 child: Padding(
@@ -128,107 +124,68 @@ class _CropScreenState extends ConsumerState<CropScreen> {
               )
             : null,
       ),
-      body: _applying
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(),
-                  if (_progress case (
-                    final done,
-                    final total,
-                  ) when total > 1) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      l10n.cropStraighteningPage(
-                        (done + 1).clamp(1, total),
-                        total,
-                      ),
-                    ),
-                    ProgressExtras(
-                      done: done,
-                      total: total,
-                      elapsed: _clock.elapsed,
-                    ),
-                    // Go on without the rest of the straightening.
-                    const SizedBox(height: 12),
-                    TextButton(
-                      key: const ValueKey('straighten-progress-skip'),
-                      onPressed: _skip
-                          ? null
-                          : () => setState(() => _skip = true),
-                      child: Text(l10n.actionSkip),
-                    ),
-                  ],
-                ],
-              ),
-            )
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Text(
-                    l10n.cropHint,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: _QuadEditor(
-                      key: ValueKey(_current.pageId),
-                      imagePath: _current.imagePath,
-                      quad: _quad,
-                      onChanged: (q) => setState(() => _quad = q),
-                    ),
-                  ),
-                ),
-                // Many pages: the rest can be kept as they are at once.
-                if (_index + 1 < total)
-                  TextButton(
-                    key: const ValueKey('crop-use-whole-rest'),
-                    onPressed: _finish,
-                    child: Text(l10n.cropUseWholeRest),
-                  ),
-              ],
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Text(
+              l10n.cropHint,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-      bottomNavigationBar: _applying
-          ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 52),
-                        ),
-                        onPressed: () => _decide(crop: false),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(l10n.cropUseWhole),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 52),
-                        ),
-                        onPressed: _quad.isConvex
-                            ? () => _decide(crop: true)
-                            : null,
-                        icon: const Icon(Icons.crop),
-                        label: Text(l10n.cropApply),
-                      ),
-                    ),
-                  ],
-                ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: _QuadEditor(
+                key: ValueKey(_current.pageId),
+                imagePath: _current.imagePath,
+                quad: quad,
+                onChanged: (q) => setState(() => _quad = q),
               ),
             ),
+          ),
+          // Many pages: the rest can be kept as they are at once.
+          if (_index + 1 < total)
+            TextButton(
+              key: const ValueKey('crop-use-whole-rest'),
+              onPressed: _finishing ? null : _finish,
+              child: Text(l10n.cropUseWholeRest),
+            ),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 52),
+                  ),
+                  onPressed: _finishing ? null : () => _decide(crop: false),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(l10n.cropUseWhole),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
+                  onPressed: quad.isConvex && !_finishing
+                      ? () => _decide(crop: true)
+                      : null,
+                  icon: const Icon(Icons.crop),
+                  label: Text(l10n.cropApply),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

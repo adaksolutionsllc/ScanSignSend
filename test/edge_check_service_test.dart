@@ -262,6 +262,118 @@ void main() {
     expect(calls, 0);
   });
 
+  group('resume (plan 1.3.2)', () {
+    test('pages checked before are not checked again', () async {
+      final id = await photos(3);
+      final three = await pages.pagesOf(id);
+      final started = <int>[], saved = <int>[];
+      final found = await edges.candidatesFor(
+        id,
+        // Page 1 was found worth a crop, page 2 not, before the app stopped.
+        known: {three[0].id: _quad.toList(), three[1].id: null},
+        onStart: (page) async => started.add(page),
+        onPage: (page, _) async => saved.add(page),
+      );
+      expect(started, [three[2].id], reason: 'only the page not checked');
+      expect(saved, [three[2].id]);
+      expect(found.first.pageId, three[0].id);
+      expect(found.first.quad.toList(), _quad.toList());
+      expect(found.map((c) => c.pageId), isNot(contains(three[1].id)));
+    });
+
+    test('a pause stops new pages and keeps what was found', () async {
+      final id = await photos(3);
+      var paused = false;
+      final saved = <int>[];
+      final found = await edges.candidatesFor(
+        id,
+        hold: () => paused,
+        onPage: (page, _) async {
+          saved.add(page);
+          paused = true;
+        },
+      );
+      expect(saved, hasLength(1));
+      expect(found.length, lessThanOrEqualTo(1));
+    });
+
+    test('pages straightened before are not done again', () async {
+      final id = await photos(3);
+      final before = await pages.pagesOf(id);
+      final started = <int>[], finished = <int>[];
+      final progress = <(int, int)>[];
+      await edges.apply(
+        id,
+        {for (final pg in before) pg.id: _quad},
+        done: {before[0].id},
+        onStart: (page) async => started.add(page),
+        onDone: (page) async => finished.add(page),
+        onProgress: (d, t) => progress.add((d, t)),
+      );
+      expect(started, unorderedEquals([before[1].id, before[2].id]));
+      expect(finished, unorderedEquals(started));
+      expect(progress.first, (1, 3), reason: 'counts the page done before');
+      expect(progress.last, (3, 3));
+      final after = await pages.pagesOf(id);
+      expect(after[0].imagePath, before[0].imagePath, reason: 'not again');
+      expect(after[1].imagePath, isNot(before[1].imagePath));
+    });
+
+    test('a pause while straightening keeps the pages done', () async {
+      final id = await photos(4);
+      final before = await pages.pagesOf(id);
+      var paused = false;
+      final failed = await edges.apply(
+        id,
+        {for (final pg in before) pg.id: _quad},
+        hold: () => paused,
+        onDone: (_) async => paused = true,
+      );
+      expect(failed, isEmpty);
+      final after = await pages.pagesOf(id);
+      final changed = [
+        for (var i = 0; i < 4; i++)
+          if (after[i].imagePath != before[i].imagePath) i,
+      ];
+      expect(changed, isNotEmpty);
+      expect(changed.length, lessThanOrEqualTo(2), reason: 'two at a time');
+      expect(after[3].imagePath, before[3].imagePath, reason: 'not started');
+    });
+
+    test(
+      'a photo document is not PDF-backed; discardStaged leaves it',
+      () async {
+        final id = await photos(2);
+        final before = await pages.pagesOf(id);
+        expect(await edges.isPdfBacked(id), isFalse);
+        await edges.discardStaged(id, 'abcd1234');
+        for (final pg in before) {
+          expect(File(PathResolver.resolve(pg.imagePath)).existsSync(), isTrue);
+        }
+      },
+    );
+
+    test('discardStaged removes only the job\'s page images', () async {
+      final id = await pdf(typed: false);
+      expect(await edges.isPdfBacked(id), isTrue);
+      final source = PathResolver.resolve(
+        (await pages.pagesOf(id)).first.imagePath.split('#page=').first,
+      );
+      final dir = p.dirname(source);
+      final mine = File(p.join(dir, 'page_0_abcd1234.jpg'))
+        ..writeAsStringSync('x');
+      final part = File(p.join(dir, 'page_1_abcd1234.jpg.part'))
+        ..writeAsStringSync('x');
+      final other = File(p.join(dir, 'page_0_zzzz9999.jpg'))
+        ..writeAsStringSync('x');
+      await edges.discardStaged(id, 'abcd1234');
+      expect(mine.existsSync(), isFalse);
+      expect(part.existsSync(), isFalse);
+      expect(other.existsSync(), isTrue);
+      expect(File(source).existsSync(), isTrue, reason: 'the PDF stays');
+    });
+  });
+
   group('saveRender (a rendered PDF page saved in one pass)', () {
     final page = _photo();
     late String out;

@@ -50,9 +50,18 @@ typedef PageProgress = void Function(int done, int total);
 /// True once the user has tapped Skip on a long job.
 typedef ShouldStop = bool Function();
 
+/// A page is about to start, or has finished (checkpoints, plan 1.3.2).
+typedef PageEvent = Future<void> Function(int pageId);
+
 /// Thrown inside a job the user skipped.
 class _Stopped implements Exception {
   const _Stopped();
+}
+
+/// Thrown inside a job the user paused: unlike [_Stopped], the pages
+/// written so far stay for the resume.
+class _Held implements Exception {
+  const _Held();
 }
 
 /// Edge and corner correction for pages that did not come from the camera
@@ -151,25 +160,52 @@ class EdgeCheckService {
   /// The pages of document [docId] worth offering a corner fix, in order.
   /// Empty when none are, or when [stop] says the user skipped the check.
   /// Never throws: the check is a convenience.
+  ///
+  /// For a resumed job: pages in [known] were checked before (page id →
+  /// corners worth cropping, or null) and are not checked again. [onStart]
+  /// and [onPage] run around each page checked now, for the checkpoint.
+  /// When [hold] says the job is paused, no new page starts and the pages
+  /// found so far are returned.
   Future<List<EdgeCandidate>> candidatesFor(
     int docId, {
     PageProgress? onProgress,
     ShouldStop? stop,
+    ShouldStop? hold,
+    Map<int, List<double>?> known = const {},
+    PageEvent? onStart,
+    Future<void> Function(int pageId, EdgeQuad? quad)? onPage,
   }) async {
     try {
       final pages = await checkablePages(docId);
       final clock = Stopwatch()..start();
       final out = <EdgeCandidate>[];
+      var checked = 0;
       for (final (i, page) in pages.indexed) {
         if (stop?.call() ?? false) return const [];
+        if (hold?.call() ?? false) return out;
         onProgress?.call(i, pages.length);
+        if (known.containsKey(page.id)) {
+          if (EdgeQuad.fromList(known[page.id]) case final quad?) {
+            final image = await _raster.imageFor(page.imagePath);
+            out.add(
+              EdgeCandidate(pageId: page.id, imagePath: image, quad: quad),
+            );
+          }
+          continue;
+        }
+        await onStart?.call(page.id);
         final image = await _raster.imageFor(page.imagePath);
         final quad = await detect(image);
-        if (quad != null && quad.worthCropping) {
-          out.add(EdgeCandidate(pageId: page.id, imagePath: image, quad: quad));
+        final worth = quad != null && quad.worthCropping ? quad : null;
+        if (worth != null) {
+          out.add(
+            EdgeCandidate(pageId: page.id, imagePath: image, quad: worth),
+          );
         }
+        checked++;
+        await onPage?.call(page.id, worth);
       }
-      await _learn(checkMsKey, clock.elapsed, pages.length);
+      await _learn(checkMsKey, clock.elapsed, checked);
       return out;
     } catch (e) {
       debugPrint('EdgeCheckService: $e');
@@ -222,29 +258,53 @@ class EdgeCheckService {
   /// When [stop] says the user skipped, no new page starts: photo pages
   /// already cropped stay cropped, and a PDF stays as it was (all or none).
   /// Returns the ids of pages that could not be cropped.
+  ///
+  /// For a resumed job: pages in [done] were finished before. A PDF's pages
+  /// are written as `page_<n>_<tag>.jpg` when [tag] is given, so a resume
+  /// finds them; [discardStaged] removes them. When [hold] says the job is
+  /// paused, no new page starts and the pages written so far stay.
+  /// [onStart] and [onDone] run around each page, for the checkpoint.
   Future<List<int>> apply(
     int docId,
     Map<int, EdgeQuad> crops, {
     PageProgress? onProgress,
     ShouldStop? stop,
+    ShouldStop? hold,
+    Set<int> done = const {},
+    String? tag,
+    PageEvent? onStart,
+    PageEvent? onDone,
   }) async {
     if (crops.isEmpty) return const [];
     final pages = await _pageRepo.pagesOf(docId);
     final pdf = _sourcePdf(pages);
     if (pdf != null) {
-      return _pdfToImages(pdf, pages, crops, onProgress, stop);
+      return _pdfToImages(
+        pdf,
+        pages,
+        crops,
+        onProgress: onProgress,
+        stop: stop,
+        hold: hold,
+        doneBefore: done,
+        tag: tag,
+        onStart: onStart,
+        onDone: onDone,
+      );
     }
 
     final todo = [
       for (final pg in pages)
-        if (crops[pg.id] != null) pg,
+        if (crops[pg.id] != null && !done.contains(pg.id)) pg,
     ];
+    final total = todo.length + done.length;
     final failed = <int>[];
-    var done = 0;
+    var finished = done.length;
     final clock = Stopwatch()..start();
-    onProgress?.call(0, todo.length);
+    onProgress?.call(finished, total);
     await runTwoAtATime(todo, (page) async {
-      if (stop?.call() ?? false) return;
+      if ((stop?.call() ?? false) || (hold?.call() ?? false)) return;
+      await onStart?.call(page.id);
       try {
         final src = PathResolver.resolve(page.imagePath);
         final dest = _newPagePath(p.dirname(src), page.pageIndex);
@@ -260,12 +320,36 @@ class EdgeCheckService {
         debugPrint('EdgeCheckService: crop failed: $e');
         failed.add(page.id);
       }
-      onProgress?.call(++done, todo.length);
+      await onDone?.call(page.id);
+      onProgress?.call(++finished, total);
     });
-    if (!(stop?.call() ?? false)) {
+    if (!(stop?.call() ?? false) && !(hold?.call() ?? false)) {
       await _learn(straightenMsKey, clock.elapsed, todo.length);
     }
     return failed;
+  }
+
+  /// True when document [docId]'s pages are still an imported PDF's.
+  Future<bool> isPdfBacked(int docId) async =>
+      _sourcePdf(await _pageRepo.pagesOf(docId)) != null;
+
+  /// Removes the page images a paused or stopped job with [tag] wrote for
+  /// the PDF behind document [docId]. The PDF itself stays.
+  Future<void> discardStaged(int docId, String tag) async {
+    try {
+      final pdf = _sourcePdf(await _pageRepo.pagesOf(docId));
+      if (pdf == null) return;
+      final dir = Directory(p.dirname(pdf));
+      for (final f in dir.listSync().whereType<File>()) {
+        final name = p.basename(f.path);
+        if (name.startsWith('page_') &&
+            (name.endsWith('_$tag.jpg') || name.endsWith('_$tag.jpg.part'))) {
+          await _deleteQuietly(f.path);
+        }
+      }
+    } catch (e) {
+      debugPrint('EdgeCheckService: $e');
+    }
   }
 
   /// A new name each time, so an image cached under the old path is never
@@ -290,20 +374,40 @@ class EdgeCheckService {
   Future<List<int>> _pdfToImages(
     String pdfPath,
     List<Page> pages,
-    Map<int, EdgeQuad> crops,
+    Map<int, EdgeQuad> crops, {
     PageProgress? onProgress,
     ShouldStop? stop,
-  ) async {
+    ShouldStop? hold,
+    Set<int> doneBefore = const {},
+    String? tag,
+    PageEvent? onStart,
+    PageEvent? onDone,
+  }) async {
     final bytes = await File(pdfPath).readAsBytes();
     final dir = p.dirname(pdfPath);
+    String destFor(int index) => tag == null
+        ? _newPagePath(dir, index)
+        : p.join(dir, 'page_${index}_$tag.jpg');
     final written = <int, String>{};
+    final todo = <Page>[];
+    for (final page in pages) {
+      final index = _pdfPageIndex(page.imagePath);
+      final dest = destFor(index);
+      if (doneBefore.contains(page.id) && File(dest).existsSync()) {
+        written[index] = dest;
+      } else {
+        todo.add(page);
+      }
+    }
     final failed = <int>[];
-    var done = 0;
+    var done = written.length;
     final clock = Stopwatch()..start();
-    onProgress?.call(0, pages.length);
+    onProgress?.call(done, pages.length);
     try {
-      await runTwoAtATime(pages, (page) async {
+      await runTwoAtATime(todo, (page) async {
         if (stop?.call() ?? false) throw const _Stopped();
+        if (hold?.call() ?? false) throw const _Held();
+        await onStart?.call(page.id);
         final index = _pdfPageIndex(page.imagePath);
         // One page per render: the renderer would otherwise hand over every
         // page of a long PDF at once, each a large image in memory.
@@ -312,19 +416,25 @@ class EdgeCheckService {
           pages: [index],
           dpi: pdfPageDpi,
         ).first;
-        final dest = _newPagePath(dir, index);
+        final dest = destFor(index);
+        // Written whole, then renamed: a file with its final name is never
+        // half a page, even when the app stops while writing.
         final cropped = await compute(saveRender, (
           raster.pixels,
           raster.width,
           raster.height,
           crops[page.id]?.toList(),
-          dest,
+          '$dest.part',
         ));
+        await File('$dest.part').rename(dest);
         if (!cropped && crops[page.id] != null) failed.add(page.id);
         written[index] = dest;
+        await onDone?.call(page.id);
         onProgress?.call(++done, pages.length);
       });
     } catch (e) {
+      // Paused: the pages written stay for the resume.
+      if (e is _Held) return const [];
       for (final f in written.values) {
         await _deleteQuietly(f);
       }
@@ -345,7 +455,7 @@ class EdgeCheckService {
     });
     await _raster.evict(PathResolver.toStorable(pdfPath));
     await _deleteQuietly(pdfPath);
-    await _learn(straightenMsKey, clock.elapsed, pages.length);
+    await _learn(straightenMsKey, clock.elapsed, todo.length);
     return failed;
   }
 

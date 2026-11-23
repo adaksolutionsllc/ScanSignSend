@@ -1,8 +1,9 @@
-// Review → Straighten pages (1.3.1): a user who kept the pages as they were
-// at import can still straighten them later, with progress and Skip, and
-// comes back to the same Review screen.
+// Review → Straighten pages (1.3.1, 1.3.2): a user who kept the pages as
+// they were at import can still straighten them later. It runs as an import
+// job (progress, Pause, Skip) and comes back to the same Review screen.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:drift/drift.dart' show DatabaseConnection;
@@ -18,7 +19,11 @@ import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/edge_check_service.dart';
 import 'package:scan_sign_send/core/utils/l10n_ext.dart';
 import 'package:scan_sign_send/core/utils/router.dart';
+import 'package:scan_sign_send/core/services/background_work_service.dart';
+import 'package:scan_sign_send/core/services/import_job.dart';
+import 'package:scan_sign_send/core/services/import_job_runner.dart';
 import 'package:scan_sign_send/features/review/presentation/crop_screen.dart';
+import 'package:scan_sign_send/features/review/presentation/job_screen.dart';
 import 'package:scan_sign_send/features/review/presentation/review_screen.dart';
 import 'package:scan_sign_send/l10n/app_localizations_en.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,10 +47,15 @@ class _FakeEdges implements EdgeCheckService {
     int docId, {
     PageProgress? onProgress,
     ShouldStop? stop,
-  }) {
+    ShouldStop? hold,
+    Map<int, List<double>?> known = const {},
+    PageEvent? onStart,
+    Future<void> Function(int pageId, EdgeQuad? quad)? onPage,
+  }) async {
     progress = onProgress;
     this.stop = stop;
-    return found.future;
+    final out = await found.future;
+    return stop?.call() ?? false ? const [] : out;
   }
 
   @override
@@ -54,10 +64,24 @@ class _FakeEdges implements EdgeCheckService {
     Map<int, EdgeQuad> crops, {
     PageProgress? onProgress,
     ShouldStop? stop,
+    ShouldStop? hold,
+    Set<int> done = const {},
+    String? tag,
+    PageEvent? onStart,
+    PageEvent? onDone,
   }) async {
     applied = crops;
     return const [];
   }
+
+  @override
+  Future<bool> isPdfBacked(int docId) async => false;
+
+  @override
+  Future<void> discardStaged(int docId, String tag) async {}
+
+  @override
+  void begin(int docId) {}
 
   @override
   void end(int docId) {}
@@ -69,6 +93,7 @@ class _FakeEdges implements EdgeCheckService {
 void main() {
   final l10n = AppLocalizationsEn();
   late AppDatabase db;
+  late Directory jobs;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -79,10 +104,14 @@ void main() {
       ),
     );
   });
-  tearDown(() => db.close());
+  setUp(() => jobs = Directory.systemTemp.createTempSync('jobs'));
+  tearDown(() async {
+    await db.close();
+    jobs.deleteSync(recursive: true);
+  });
 
   Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 30; i++) {
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 5)),
       );
@@ -121,6 +150,14 @@ void main() {
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
         edgeCheckServiceProvider.overrideWithValue(edges),
+        importJobRunnerProvider.overrideWith(
+          (ref) => ImportJobRunner(
+            edges: edges,
+            docRepo: DocumentRepository(db),
+            store: ImportJobStore(folder: () async => jobs),
+            phone: BackgroundWorkService(),
+          ),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -153,13 +190,15 @@ void main() {
     final (edges, docId) = await open(tester);
     expect(find.text(l10n.reviewStraighten), findsOneWidget);
     await tester.tap(straighten);
-    await tester.pump();
+    await settle(tester); // the job's checkpoint is a real file write
 
     // Progress while it checks, with the time left and Skip.
     edges.progress!(0, 3);
     await tester.pump();
+    expect(find.byType(JobScreen), findsOneWidget);
     expect(find.text(l10n.cropCheckingPage(1, 3)), findsOneWidget);
-    expect(find.byKey(const ValueKey('review-straighten-skip')), findsOne);
+    expect(find.byKey(const ValueKey('edge-check-skip')), findsOne);
+    expect(find.byKey(const ValueKey('job-pause')), findsOne);
 
     final pages = (await tester.runAsync(
       () => PageRepository(db).pagesOf(docId),
@@ -193,7 +232,7 @@ void main() {
   testWidgets('nothing to fix says so; Skip says nothing', (tester) async {
     final (edges, _) = await open(tester);
     await tester.tap(straighten);
-    await tester.pump();
+    await settle(tester); // the job's checkpoint is a real file write
     edges.found.complete(const []);
     await settle(tester);
     expect(find.text(l10n.reviewStraightenNone), findsOneWidget);
@@ -204,11 +243,11 @@ void main() {
     ).removeCurrentSnackBar();
     edges.found = Completer();
     await tester.tap(straighten);
-    await tester.pump();
+    await settle(tester); // the job's checkpoint is a real file write
     edges.progress!(0, 3);
     await tester.pump();
     expect(edges.stop!(), isFalse);
-    await tester.tap(find.byKey(const ValueKey('review-straighten-skip')));
+    await tester.tap(find.byKey(const ValueKey('edge-check-skip')));
     await tester.pump();
     expect(edges.stop!(), isTrue);
     edges.found.complete(const []);

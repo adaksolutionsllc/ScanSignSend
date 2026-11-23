@@ -1376,6 +1376,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get cropUseWholeRest => 'बाकी पृष्ठों की पूरी छवि रखें';
 
   @override
+  String get jobKeepUsing => 'ऐप का उपयोग जारी रखें';
+
+  @override
   String get importErrorMixed => 'एक PDF चुनें, या एक या अधिक फ़ोटो।';
 
   @override
@@ -1390,5 +1393,59 @@ class AppLocalizationsHi extends AppLocalizations {
       one: '1 पेज',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'रोकें';
+
+  @override
+  String get jobResume => 'फिर से शुरू करें';
+
+  @override
+  String get jobPaused => 'रुका हुआ';
+
+  @override
+  String get jobPausedHint => 'रुका हुआ। अब तक पूरे हुए पृष्ठ सहेजे गए हैं।';
+
+  @override
+  String get jobWaiting => 'प्रतीक्षा में';
+
+  @override
+  String get jobScreenOn => 'यह पूरा होने तक स्क्रीन चालू रहेगी।';
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'जाँचने के लिए $count पृष्ठ',
+      one: 'जाँचने के लिए 1 पृष्ठ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'अभी जाँचें';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count पृष्ठों से ऐप बंद हो गया, इसलिए उन्हें जैसा था वैसा ही रखा गया।',
+      one: '1 पृष्ठ से ऐप बंद हो गया, इसलिए उसे जैसा था वैसा ही रखा गया।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return '“$title” के किनारे जाँचे जा रहे हैं';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return '“$title” सीधा किया जा रहा है';
   }
 }

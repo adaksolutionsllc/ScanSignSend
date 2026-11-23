@@ -1380,6 +1380,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get cropUseWholeRest => 'మిగతా పేజీల మొత్తం చిత్రాన్ని ఉంచు';
 
   @override
+  String get jobKeepUsing => 'యాప్‌ను వాడుతూ ఉండండి';
+
+  @override
   String get importErrorMixed =>
       'ఒక PDFని, లేదా ఒకటి లేదా అంతకంటే ఎక్కువ ఫోటోలను ఎంచుకోండి.';
 
@@ -1395,5 +1398,59 @@ class AppLocalizationsTe extends AppLocalizations {
       one: '1 పేజీ',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'పాజ్ చేయి';
+
+  @override
+  String get jobResume => 'కొనసాగించు';
+
+  @override
+  String get jobPaused => 'పాజ్ అయింది';
+
+  @override
+  String get jobPausedHint =>
+      'పాజ్ అయింది. ఇప్పటివరకు పూర్తయిన పేజీలు సేవ్ అయ్యాయి.';
+
+  @override
+  String get jobWaiting => 'వేచి ఉంది';
+
+  @override
+  String get jobScreenOn => 'ఇది పూర్తయ్యే వరకు స్క్రీన్ ఆన్‌లో ఉంటుంది.';
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'తనిఖీ చేయాల్సిన $count పేజీలు',
+      one: 'తనిఖీ చేయాల్సిన 1 పేజీ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'ఇప్పుడు తనిఖీ చేయి';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count పేజీలు యాప్‌ను ఆపేశాయి, అందుకే వాటిని అలాగే ఉంచాం.',
+      one: '1 పేజీ యాప్‌ను ఆపేసింది, అందుకే దాన్ని అలాగే ఉంచాం.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return '“$title” అంచులు తనిఖీ అవుతున్నాయి';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return '“$title” నిటారుగా చేస్తోంది';
   }
 }

@@ -1381,6 +1381,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get cropUseWholeRest => 'மீதிப் பக்கங்களின் முழுப் படத்தையும் வை';
 
   @override
+  String get jobKeepUsing => 'ஆப்பைத் தொடர்ந்து பயன்படுத்து';
+
+  @override
   String get importErrorMixed =>
       'ஒரு PDF அல்லது ஒன்று அல்லது அதற்கு மேற்பட்ட படங்களைத் தேர்ந்தெடுங்கள்.';
 
@@ -1396,5 +1399,60 @@ class AppLocalizationsTa extends AppLocalizations {
       one: '1 பக்கம்',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'இடைநிறுத்து';
+
+  @override
+  String get jobResume => 'தொடர்';
+
+  @override
+  String get jobPaused => 'இடைநிறுத்தப்பட்டது';
+
+  @override
+  String get jobPausedHint =>
+      'இடைநிறுத்தப்பட்டது. இதுவரை முடிந்த பக்கங்கள் சேமிக்கப்பட்டுள்ளன.';
+
+  @override
+  String get jobWaiting => 'காத்திருக்கிறது';
+
+  @override
+  String get jobScreenOn => 'இது முடியும் வரை திரை இயக்கத்தில் இருக்கும்.';
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'சரிபார்க்க $count பக்கங்கள்',
+      one: 'சரிபார்க்க 1 பக்கம்',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'இப்போது சரிபார்';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count பக்கங்கள் ஆப்பை நிறுத்தின, அதனால் அவை அப்படியே வைக்கப்பட்டன.',
+      one: '1 பக்கம் ஆப்பை நிறுத்தியது, அதனால் அது அப்படியே வைக்கப்பட்டது.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return '“$title” இன் ஓரங்கள் சரிபார்க்கப்படுகின்றன';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return '“$title” நேராக்கப்படுகிறது';
   }
 }

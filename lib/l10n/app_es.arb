@@ -379,7 +379,19 @@
   "cropCheckingPage": "Revisando la página {current} de {total}…",
   "cropStraighteningPage": "Enderezando la página {current} de {total}…",
   "cropUseWholeRest": "Usar la imagen completa en el resto",
+  "jobKeepUsing": "Seguir usando la app",
   "importErrorMixed": "Elige un solo PDF, o una o varias fotos.",
   "sendHome": "Inicio",
-  "searchPageCount": "{count, plural, =1{1 página} other{{count} páginas}}"
+  "searchPageCount": "{count, plural, =1{1 página} other{{count} páginas}}",
+  "jobPause": "Pausa",
+  "jobResume": "Reanudar",
+  "jobPaused": "En pausa",
+  "jobPausedHint": "En pausa. Las páginas ya hechas están guardadas.",
+  "jobWaiting": "En espera",
+  "jobScreenOn": "La pantalla queda encendida hasta que termine.",
+  "jobPagesToCheck": "{count, plural, =1{1 página por revisar} other{{count} páginas por revisar}}",
+  "jobCheckNow": "Revisar ahora",
+  "jobKeptAsIs": "{count, plural, =1{1 página detuvo la app, así que se dejó como estaba.} other{{count} páginas detuvieron la app, así que se dejaron como estaban.}}",
+  "jobCheckingTitle": "Revisando los bordes de «{title}»",
+  "jobStraighteningTitle": "Enderezando «{title}»"
 }

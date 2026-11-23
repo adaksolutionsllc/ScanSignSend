@@ -8,12 +8,12 @@ import 'package:go_router/go_router.dart';
 import '../../../core/db/app_database.dart' as db;
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/edge_check_service.dart';
+import '../../../core/services/import_job_runner.dart';
 import '../../../core/services/page_raster_service.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../shared/widgets/category_ui.dart';
-import '../../../shared/widgets/progress_extras.dart';
 import '../../press/presentation/finish_flow.dart';
 
 enum PageFilter { original, enhanced, bw }
@@ -40,10 +40,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   /// the document has no fields yet, since cropping moves the page under
   /// them.
   bool _canStraighten = false;
-  bool _checking = false;
-  (int, int)? _checkProgress; // page being checked, of how many
-  bool _skipCheck = false;
-  final _checkClock = Stopwatch();
 
   @override
   void initState() {
@@ -62,81 +58,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     if (mounted) setState(() => _canStraighten = pages.isNotEmpty);
   }
 
-  /// Checks every page's edges again (with progress and Skip) and opens the
-  /// crop screen, which comes back here.
+  /// Checks every page's edges again as an import job (progress, Pause,
+  /// Skip; see JobScreen), then the crop screen, which comes back here.
   Future<void> _straighten() async {
-    final none = context.l10n.reviewStraightenNone;
-    final messenger = ScaffoldMessenger.of(context);
+    final runner = ref.read(importJobRunnerProvider);
     final router = GoRouter.of(context);
     if (_dirty) await _saveOrder();
-    setState(() {
-      _checking = true;
-      _checkProgress = null;
-      _skipCheck = false;
-    });
-    final candidates = await ref
-        .read(edgeCheckServiceProvider)
-        .candidatesFor(
-          widget.docId,
-          onProgress: (done, total) {
-            if (done == 0) {
-              _checkClock
-                ..reset()
-                ..start();
-            }
-            if (mounted) setState(() => _checkProgress = (done + 1, total));
-          },
-          stop: () => _skipCheck,
-        );
-    if (!mounted) return;
-    setState(() => _checking = false);
-    if (candidates.isEmpty) {
-      if (!_skipCheck) {
-        messenger.showSnackBar(SnackBar(content: Text(none)));
-      }
-      return;
-    }
+    await runner.startCheck(widget.docId);
     await router.push(
-      '${AppRoutes.crop.replaceAll(':docId', '${widget.docId}')}?back=1',
-      extra: candidates,
-    );
-  }
-
-  Widget _checkingView(BuildContext context) {
-    final l10n = context.l10n;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 20),
-          Text(switch (_checkProgress) {
-            (final current, final total) => l10n.cropCheckingPage(
-              current,
-              total,
-            ),
-            null => l10n.cropChecking,
-          }),
-          if (_checkProgress case (
-            final current,
-            final total,
-          ) when total > 1) ...[
-            ProgressExtras(
-              done: current - 1,
-              total: total,
-              elapsed: _checkClock.elapsed,
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              key: const ValueKey('review-straighten-skip'),
-              onPressed: _skipCheck
-                  ? null
-                  : () => setState(() => _skipCheck = true),
-              child: Text(l10n.actionSkip),
-            ),
-          ],
-        ],
-      ),
+      '${AppRoutes.job.replaceAll(':docId', '${widget.docId}')}?back=1',
     );
   }
 
@@ -155,127 +85,122 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             ),
         ],
       ),
-      body: _checking
-          ? _checkingView(context)
-          : StreamBuilder<List<db.Page>>(
-              stream: pagesStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final pages = snapshot.data ?? [];
-                if (_pages.isEmpty || !_dirty) {
-                  _pages = List.from(pages);
-                } else {
-                  // Keep the unsaved order, but pick up row changes (a rotate writes
-                  // a new imagePath) and drop pages deleted meanwhile.
-                  final byId = {for (final pg in pages) pg.id: pg};
-                  _pages = [
-                    for (final pg in _pages)
-                      if (byId[pg.id] != null) byId[pg.id]!,
-                  ];
-                }
+      body: StreamBuilder<List<db.Page>>(
+        stream: pagesStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final pages = snapshot.data ?? [];
+          if (_pages.isEmpty || !_dirty) {
+            _pages = List.from(pages);
+          } else {
+            // Keep the unsaved order, but pick up row changes (a rotate writes
+            // a new imagePath) and drop pages deleted meanwhile.
+            final byId = {for (final pg in pages) pg.id: pg};
+            _pages = [
+              for (final pg in _pages)
+                if (byId[pg.id] != null) byId[pg.id]!,
+            ];
+          }
 
-                if (pages.isEmpty) {
-                  return Center(child: Text(context.l10n.reviewNoPagesFound));
-                }
+          if (pages.isEmpty) {
+            return Center(child: Text(context.l10n.reviewNoPagesFound));
+          }
 
-                final list = ReorderableListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                  itemCount: _pages.length,
-                  onReorder: (oldIndex, newIndex) {
-                    setState(() {
-                      if (newIndex > oldIndex) newIndex--;
-                      final page = _pages.removeAt(oldIndex);
-                      _pages.insert(newIndex, page);
-                      _dirty = true;
-                    });
-                  },
-                  itemBuilder: (context, index) {
-                    final page = _pages[index];
-                    // Seed from the persisted per-page filter so the choice survives
-                    // reopening and flows into the pressed PDF.
-                    final filter =
-                        _filters[page.id] ??
-                        _filterFromString(page.activeFilter);
-                    return _PageCard(
-                      key: ValueKey(page.id),
-                      page: page,
-                      filter: filter,
-                      pageNumber: index + 1,
-                      totalPages: _pages.length,
-                      onFilterChanged: (f) => _setFilter(page, f),
-                      onRotate: () => _rotatePage(page),
-                      onDelete: () => _deletePage(page),
-                    );
-                  },
-                );
-                // The category sorting chose lands a moment after the scan; show it
-                // here so a wrong one is corrected straight away.
-                return Column(
-                  children: [
-                    SortedIntoBar(docId: widget.docId),
-                    if (_canStraighten)
-                      Align(
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: TextButton.icon(
-                            key: const ValueKey('review-straighten'),
-                            onPressed: _straighten,
-                            icon: const Icon(Icons.crop),
-                            label: Text(context.l10n.reviewStraighten),
-                          ),
-                        ),
-                      ),
-                    Expanded(child: list),
-                  ],
-                );
-              },
-            ),
+          final list = ReorderableListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+            itemCount: _pages.length,
+            onReorder: (oldIndex, newIndex) {
+              setState(() {
+                if (newIndex > oldIndex) newIndex--;
+                final page = _pages.removeAt(oldIndex);
+                _pages.insert(newIndex, page);
+                _dirty = true;
+              });
+            },
+            itemBuilder: (context, index) {
+              final page = _pages[index];
+              // Seed from the persisted per-page filter so the choice survives
+              // reopening and flows into the pressed PDF.
+              final filter =
+                  _filters[page.id] ?? _filterFromString(page.activeFilter);
+              return _PageCard(
+                key: ValueKey(page.id),
+                page: page,
+                filter: filter,
+                pageNumber: index + 1,
+                totalPages: _pages.length,
+                onFilterChanged: (f) => _setFilter(page, f),
+                onRotate: () => _rotatePage(page),
+                onDelete: () => _deletePage(page),
+              );
+            },
+          );
+          // The category sorting chose lands a moment after the scan; show it
+          // here so a wrong one is corrected straight away.
+          return Column(
+            children: [
+              SortedIntoBar(docId: widget.docId),
+              if (_canStraighten)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: TextButton.icon(
+                      key: const ValueKey('review-straighten'),
+                      onPressed: _straighten,
+                      icon: const Icon(Icons.crop),
+                      label: Text(context.l10n.reviewStraighten),
+                    ),
+                  ),
+                ),
+              Expanded(child: list),
+            ],
+          );
+        },
+      ),
       // Detect Fields is the main path; skipping fields saves the scan as a
       // finished PDF (the organiser use) and goes to Send.
-      bottomNavigationBar: _checking
-          ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: _saving
-                    ? const SizedBox(
-                        height: 100,
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          FilledButton.icon(
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size(0, 52),
-                            ),
-                            onPressed: _proceed,
-                            icon: const Icon(Icons.auto_awesome),
-                            label: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(context.l10n.reviewDetectFields),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(0, 48),
-                            ),
-                            onPressed: _savePdf,
-                            icon: const Icon(Icons.ios_share),
-                            label: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(context.l10n.reviewSkipFieldsSave),
-                            ),
-                          ),
-                        ],
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: _saving
+              ? const SizedBox(
+                  height: 100,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 52),
                       ),
-              ),
-            ),
+                      onPressed: _proceed,
+                      icon: const Icon(Icons.auto_awesome),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(context.l10n.reviewDetectFields),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                      ),
+                      onPressed: _savePdf,
+                      icon: const Icon(Icons.ios_share),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(context.l10n.reviewSkipFieldsSave),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 

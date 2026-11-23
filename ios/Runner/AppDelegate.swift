@@ -22,5 +22,6 @@ import UIKit
     OpenFilePlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "OpenFilePlugin")!)
     EdgeDetectionPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "EdgeDetectionPlugin")!)
     TextRecognitionPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "TextRecognitionPlugin")!)
+    BackgroundWorkPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "BackgroundWorkPlugin")!)
   }
 }

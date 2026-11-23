@@ -13,6 +13,7 @@ import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/document_sorter.dart';
 import '../../../core/services/edge_check_service.dart';
+import '../../../core/services/import_job_runner.dart';
 import '../../../core/services/import_service.dart';
 import '../../../core/services/opened_file_service.dart';
 import '../../../core/services/free_usage_service.dart';
@@ -45,9 +46,6 @@ class CaptureScreen extends ConsumerStatefulWidget {
 class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   bool _loading = false;
   String? _loadingMessageKey; // resolved through AppLocalizations in build()
-  (int, int)? _edgeProgress; // page being checked, of how many
-  bool _skipEdges = false; // Skip tapped while the pages are checked
-  final _edgeClock = Stopwatch();
 
   @override
   void initState() {
@@ -152,10 +150,10 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     _nameFor = _namer(context);
     _sorter = ref.read(documentSorterProvider);
     final edges = ref.read(edgeCheckServiceProvider);
+    final runner = ref.read(importJobRunnerProvider);
     setState(() {
       _loading = true;
       _loadingMessageKey = 'importing';
-      _skipEdges = false;
     });
     int? checking;
     try {
@@ -181,37 +179,21 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 checkable.length,
                 await edges.estimateFor(checkable),
               ));
-      if (mounted) setState(() => _loadingMessageKey = 'edges');
-      final candidates = check
-          ? await edges.candidatesFor(
-              doc.id,
-              onProgress: (done, total) {
-                if (done == 0) {
-                  _edgeClock
-                    ..reset()
-                    ..start();
-                }
-                if (mounted && total > 1) {
-                  setState(() => _edgeProgress = (done + 1, total));
-                }
-              },
-              stop: () => _skipEdges,
-            )
-          : const <EdgeCandidate>[];
-      // The crop screen ends it otherwise.
-      if (candidates.isEmpty || !mounted) edges.end(doc.id);
-      if (mounted) {
-        setState(() {
-          _loading = false;
-          _edgeProgress = null;
-        });
-        if (candidates.isNotEmpty) {
+      if (check && checkable.isNotEmpty) {
+        // The check runs as a job: the user can pause it, or leave it and
+        // use the app (plan 1.3.2). The job ends the edge step.
+        await runner.startCheck(doc.id);
+        if (mounted) {
+          setState(() => _loading = false);
           context.pushReplacement(
-            AppRoutes.crop.replaceAll(':docId', '${doc.id}'),
-            extra: candidates,
+            AppRoutes.job.replaceAll(':docId', '${doc.id}'),
           );
-          return;
         }
+        return;
+      }
+      edges.end(doc.id);
+      if (mounted) {
+        setState(() => _loading = false);
         // A PDF that already carries a fillable form goes straight to Fill
         // mode — its fields are ready to use. "Edit fields" there still lets
         // the user adjust or add to them.
@@ -223,10 +205,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     } catch (e) {
       if (checking != null) edges.end(checking);
       if (mounted) {
-        setState(() {
-          _loading = false;
-          _edgeProgress = null;
-        });
+        setState(() => _loading = false);
         // ImportService reports a typed cause so the message can be localized
         // here; anything else falls back to the generic failure text.
         final l10n = context.l10n;
@@ -439,36 +418,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   Text(switch (_loadingMessageKey) {
                     'saving' => context.l10n.captureSavingPages,
                     'importing' => context.l10n.captureImporting,
-                    'edges' => switch (_edgeProgress) {
-                      (final done, final total) =>
-                        context.l10n.cropCheckingPage(done, total),
-                      null => context.l10n.cropChecking,
-                    },
                     _ => context.l10n.captureLaunching,
                   }, style: const TextStyle(color: Colors.white70)),
-                  // A long file: the user can go on without the check.
-                  if (_edgeProgress case (
-                    final int current,
-                    final int total,
-                  ) when _loadingMessageKey == 'edges') ...[
-                    ProgressExtras(
-                      done: current - 1,
-                      total: total,
-                      elapsed: _edgeClock.elapsed,
-                      color: Colors.white70,
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      key: const ValueKey('edge-check-skip'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: _skipEdges
-                          ? null
-                          : () => setState(() => _skipEdges = true),
-                      child: Text(context.l10n.actionSkip),
-                    ),
-                  ],
                 ],
               ),
             )

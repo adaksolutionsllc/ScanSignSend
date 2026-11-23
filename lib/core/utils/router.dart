@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/library/presentation/library_screen.dart';
 import '../../features/capture/presentation/capture_screen.dart';
 import '../../features/review/presentation/crop_screen.dart';
+import '../../features/review/presentation/job_screen.dart';
 import '../../features/review/presentation/review_screen.dart';
 import '../../features/field_detection/presentation/field_detection_screen.dart';
 import '../../features/fill_mode/presentation/fill_mode_screen.dart';
@@ -13,7 +14,8 @@ import '../../features/send/presentation/send_screen.dart';
 import '../../features/library/presentation/search_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/viewer/presentation/document_viewer_screen.dart';
-import '../services/edge_check_service.dart';
+import '../services/import_job.dart';
+import '../services/import_job_runner.dart';
 import '../services/opened_file_service.dart';
 import '../../features/settings/presentation/signatures_manager_screen.dart';
 import '../../features/settings/presentation/my_details_screen.dart';
@@ -24,6 +26,7 @@ class AppRoutes {
   static const capture = '/capture';
   static const review = '/review/:docId';
   static const crop = '/crop/:docId';
+  static const job = '/job/:docId';
   static const fieldDetection = '/field-detection/:docId';
   static const fillMode = '/fill/:docId';
   static const signatureCapture = '/signature/:docId/:fieldId';
@@ -36,7 +39,22 @@ class AppRoutes {
   static const viewer = '/viewer/:docId';
 }
 
+/// Where a document with a long import job opens (plan 1.3.2): its job's
+/// progress, or the crop screen when pages wait for the user. Null without
+/// a job.
+String? jobRouteFor(ImportJobRunner runner, int docId) {
+  final view = runner.view(docId);
+  if (view == null) return null;
+  return (view.step == JobStep.choose ? AppRoutes.crop : AppRoutes.job)
+      .replaceAll(':docId', '$docId');
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
+  // A document whose pages are still changing opens its job instead.
+  String? toJob(GoRouterState state) => jobRouteFor(
+    ref.read(importJobRunnerProvider),
+    int.parse(state.pathParameters['docId']!),
+  );
   return GoRouter(
     initialLocation: AppRoutes.library,
     routes: [
@@ -57,25 +75,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.review,
+        redirect: (context, state) => toJob(state),
         builder: (context, state) =>
             ReviewScreen(docId: int.parse(state.pathParameters['docId']!)),
       ),
       GoRoute(
         path: AppRoutes.crop,
-        builder: (context, state) {
-          final docId = int.parse(state.pathParameters['docId']!);
-          final candidates = state.extra as List<EdgeCandidate>?;
-          // The pages to check only travel in memory; without them (a
-          // restored route) there is nothing to ask, so show Review.
-          return candidates == null || candidates.isEmpty
-              ? ReviewScreen(docId: docId)
-              : CropScreen(
-                  docId: docId,
-                  candidates: candidates,
-                  // Opened from Review: go back there when done.
-                  popWhenDone: state.uri.queryParameters['back'] == '1',
-                );
-        },
+        builder: (context, state) => CropScreen(
+          docId: int.parse(state.pathParameters['docId']!),
+          // Opened from Review: go back there when done.
+          popWhenDone: state.uri.queryParameters['back'] == '1',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.job,
+        builder: (context, state) => JobScreen(
+          docId: int.parse(state.pathParameters['docId']!),
+          popWhenDone: state.uri.queryParameters['back'] == '1',
+        ),
       ),
       GoRoute(
         path: AppRoutes.fieldDetection,
@@ -85,6 +102,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.fillMode,
+        redirect: (context, state) => toJob(state),
         builder: (context, state) =>
             FillModeScreen(docId: int.parse(state.pathParameters['docId']!)),
       ),

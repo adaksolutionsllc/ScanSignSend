@@ -379,7 +379,19 @@
   "cropCheckingPage": "பக்கம் {current} / {total} சரிபார்க்கப்படுகிறது…",
   "cropStraighteningPage": "பக்கம் {current} / {total} நேராக்கப்படுகிறது…",
   "cropUseWholeRest": "மீதிப் பக்கங்களின் முழுப் படத்தையும் வை",
+  "jobKeepUsing": "ஆப்பைத் தொடர்ந்து பயன்படுத்து",
   "importErrorMixed": "ஒரு PDF அல்லது ஒன்று அல்லது அதற்கு மேற்பட்ட படங்களைத் தேர்ந்தெடுங்கள்.",
   "sendHome": "முகப்பு",
-  "searchPageCount": "{count, plural, =1{1 பக்கம்} other{{count} பக்கங்கள்}}"
+  "searchPageCount": "{count, plural, =1{1 பக்கம்} other{{count} பக்கங்கள்}}",
+  "jobPause": "இடைநிறுத்து",
+  "jobResume": "தொடர்",
+  "jobPaused": "இடைநிறுத்தப்பட்டது",
+  "jobPausedHint": "இடைநிறுத்தப்பட்டது. இதுவரை முடிந்த பக்கங்கள் சேமிக்கப்பட்டுள்ளன.",
+  "jobWaiting": "காத்திருக்கிறது",
+  "jobScreenOn": "இது முடியும் வரை திரை இயக்கத்தில் இருக்கும்.",
+  "jobPagesToCheck": "{count, plural, =1{சரிபார்க்க 1 பக்கம்} other{சரிபார்க்க {count} பக்கங்கள்}}",
+  "jobCheckNow": "இப்போது சரிபார்",
+  "jobKeptAsIs": "{count, plural, =1{1 பக்கம் ஆப்பை நிறுத்தியது, அதனால் அது அப்படியே வைக்கப்பட்டது.} other{{count} பக்கங்கள் ஆப்பை நிறுத்தின, அதனால் அவை அப்படியே வைக்கப்பட்டன.}}",
+  "jobCheckingTitle": "“{title}” இன் ஓரங்கள் சரிபார்க்கப்படுகின்றன",
+  "jobStraighteningTitle": "“{title}” நேராக்கப்படுகிறது"
 }

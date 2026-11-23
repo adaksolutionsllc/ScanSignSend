@@ -20,6 +20,7 @@ class MainActivity : FlutterFragmentActivity() {
         const val PRIVACY_CHANNEL = "com.scansignsend/privacy"
         const val BACKUP_CHANNEL = "com.scansignsend/backup"
         const val ENTITLEMENT_CHANNEL = "com.scansignsend/entitlement"
+        const val BACKGROUND_CHANNEL = "com.scansignsend/background"
         const val FREE_USED_KEY = "com.adakventures.scansignsend.freeDocumentsUsed"
     }
 
@@ -75,6 +76,43 @@ class MainActivity : FlutterFragmentActivity() {
                                 window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                             }
                         }
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // Long import jobs (plan 1.3.2): the screen stays on while one runs
+        // with the app open, and a foreground service keeps the app running
+        // when the user leaves it. See BackgroundWorkService (Dart).
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BACKGROUND_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                val title = call.argument<String>("title") ?: ""
+                val subtitle = call.argument<String>("subtitle") ?: ""
+                val done = call.argument<Int>("done") ?: 0
+                val total = call.argument<Int>("total") ?: 0
+                when (call.method) {
+                    "keepScreenOn" -> {
+                        val on = call.argument<Boolean>("on") ?: false
+                        runOnUiThread {
+                            if (on) {
+                                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                            } else {
+                                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                            }
+                        }
+                        result.success(null)
+                    }
+                    "begin" -> {
+                        ImportWorkService.begin(this, title, subtitle, done, total)
+                        result.success(null)
+                    }
+                    "progress" -> {
+                        ImportWorkService.progress(this, title, subtitle, done, total)
+                        result.success(null)
+                    }
+                    "end" -> {
+                        ImportWorkService.end(this)
                         result.success(null)
                     }
                     else -> result.notImplemented()
