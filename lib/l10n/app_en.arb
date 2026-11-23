@@ -476,9 +476,9 @@
   "detectSelectedHint": "Drag to move · pinch or drag the corner to resize · tap again to edit",
   "detectRadioAddChoiceHint": "Tap Radio again to add another choice to this question",
   "detectFieldDeleted": "Field deleted",
-  "detectRemoveDetected": "Remove detected fields",
-  "detectRemovedDetected": "{count, plural, =1{Removed 1 detected field} other{Removed {count} detected fields}}",
-  "@detectRemovedDetected": {
+  "detectRemoveAll": "Remove all",
+  "detectRemovedAll": "{count, plural, =1{Removed 1 field} other{Removed {count} fields}}",
+  "@detectRemovedAll": {
     "placeholders": {
       "count": {
         "type": "int"

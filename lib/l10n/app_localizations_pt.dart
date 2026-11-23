@@ -910,15 +910,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get detectFieldDeleted => 'Campo excluído';
 
   @override
-  String get detectRemoveDetected => 'Remover campos detectados';
+  String get detectRemoveAll => 'Remover todos';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count campos detectados removidos',
-      one: '1 campo detectado removido',
+      other: '$count campos removidos',
+      one: '1 campo removido',
     );
     return '$_temp0';
   }

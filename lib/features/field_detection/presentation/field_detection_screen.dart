@@ -63,13 +63,6 @@ class _FieldDetectionScreenState extends ConsumerState<FieldDetectionScreen> {
         title: Text(context.l10n.detectTitle),
         actions: state.phase == DetectionPhase.done
             ? [
-                // Undo auto-detect: clears its fields, keeps the user's own.
-                if (state.fields.any((f) => f.detected))
-                  IconButton(
-                    icon: const Icon(Icons.auto_fix_off),
-                    tooltip: context.l10n.detectRemoveDetected,
-                    onPressed: () => _removeDetected(context),
-                  ),
                 TextButton(
                   onPressed: () => _confirmAll(context),
                   child: Text(context.l10n.detectConfirmAll),
@@ -102,6 +95,7 @@ class _FieldDetectionScreenState extends ConsumerState<FieldDetectionScreen> {
             fieldDetectionNotifierProvider(widget.docId).notifier,
           ),
           onProceed: () => _proceed(context),
+          onRemoveAll: () => _removeAll(context),
         ),
       },
     );
@@ -109,25 +103,25 @@ class _FieldDetectionScreenState extends ConsumerState<FieldDetectionScreen> {
 
   bool _proceeding = false;
 
-  void _removeDetected(BuildContext context) {
+  void _removeAll(BuildContext context) {
     final l10n = context.l10n;
     final notifier = ref.read(
       fieldDetectionNotifierProvider(widget.docId).notifier,
     );
-    final removed = notifier.removeDetected();
+    final removed = notifier.removeAll();
     if (removed.isEmpty) return;
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(l10n.detectRemovedDetected(removed.length)),
+          content: Text(l10n.detectRemovedAll(removed.length)),
           duration: const Duration(seconds: 4),
           persist: false,
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
             label: l10n.actionUndo,
-            onPressed: () => notifier.restoreDetected(removed),
+            onPressed: () => notifier.restore(removed),
           ),
         ),
       );
@@ -250,12 +244,14 @@ class _EditorView extends ConsumerStatefulWidget {
     required this.state,
     required this.notifier,
     required this.onProceed,
+    required this.onRemoveAll,
   });
 
   final int docId;
   final FieldDetectionState state;
   final FieldDetectionNotifier notifier;
   final VoidCallback onProceed;
+  final VoidCallback onRemoveAll;
 
   @override
   ConsumerState<_EditorView> createState() => _EditorViewState();
@@ -432,16 +428,33 @@ class _EditorViewState extends ConsumerState<_EditorView> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: SizedBox(
-                  width: double.infinity,
                   height: 52,
-                  child: FilledButton.icon(
-                    onPressed: widget.onProceed,
-                    icon: const Icon(Icons.edit_note),
-                    label: Text(
-                      state.fields.isEmpty
-                          ? context.l10n.detectSkipToFill
-                          : context.l10n.detectFillFields(state.fields.length),
-                    ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: widget.onProceed,
+                          icon: const Icon(Icons.edit_note),
+                          label: Text(
+                            state.fields.isEmpty
+                                ? context.l10n.detectSkipToFill
+                                : context.l10n.detectFillFields(
+                                    state.fields.length,
+                                  ),
+                          ),
+                        ),
+                      ),
+                      if (state.fields.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          key: const ValueKey('detect-remove-all'),
+                          onPressed: widget.onRemoveAll,
+                          icon: const Icon(Icons.delete_sweep_outlined),
+                          label: Text(context.l10n.detectRemoveAll),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),

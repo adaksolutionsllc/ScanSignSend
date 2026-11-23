@@ -421,18 +421,13 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
       if (f.detected) f,
   ];
 
-  /// Undoes auto-detect: removes every field it proposed and keeps the
-  /// ones the user placed. Returns them for an Undo. Not a lesson — one
-  /// "clear the lot" says nothing about any single label.
-  List<EditableField> removeDetected() {
-    final removed = detectedFields;
+  /// Removes every field in the editor, detected or placed by the user, and
+  /// returns them for an Undo. The PDF's own form fields stay. Not a lesson:
+  /// one "clear the lot" says nothing about any single label.
+  List<EditableField> removeAll() {
+    final removed = [...state.fields];
     if (removed.isEmpty) return removed;
-    state = state.copyWith(
-      fields: [
-        for (final f in state.fields)
-          if (!f.detected) f,
-      ],
-    );
+    state = state.copyWith(fields: const []);
     final ids = [for (final f in removed) f.dbId];
     _enqueue(() async {
       for (final id in ids) {
@@ -442,8 +437,8 @@ class FieldDetectionNotifier extends StateNotifier<FieldDetectionState> {
     return removed;
   }
 
-  /// Puts back fields taken away by [removeDetected], still marked detected.
-  void restoreDetected(List<EditableField> fields) {
+  /// Puts back fields taken away by [removeAll], as they were.
+  void restore(List<EditableField> fields) {
     if (fields.isEmpty) return;
     state = state.copyWith(fields: [...state.fields, ...fields]);
     _enqueue(() async {

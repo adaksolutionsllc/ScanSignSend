@@ -912,15 +912,15 @@ class AppLocalizationsTa extends AppLocalizations {
   String get detectFieldDeleted => 'புலம் நீக்கப்பட்டது';
 
   @override
-  String get detectRemoveDetected => 'கண்டறிந்த புலங்களை நீக்கு';
+  String get detectRemoveAll => 'அனைத்தையும் நீக்கு';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'கண்டறிந்த $count புலங்கள் நீக்கப்பட்டன',
-      one: 'கண்டறிந்த 1 புலம் நீக்கப்பட்டது',
+      other: '$count புலங்கள் நீக்கப்பட்டன',
+      one: '1 புலம் நீக்கப்பட்டது',
     );
     return '$_temp0';
   }

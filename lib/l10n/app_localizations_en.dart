@@ -905,15 +905,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detectFieldDeleted => 'Field deleted';
 
   @override
-  String get detectRemoveDetected => 'Remove detected fields';
+  String get detectRemoveAll => 'Remove all';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Removed $count detected fields',
-      one: 'Removed 1 detected field',
+      other: 'Removed $count fields',
+      one: 'Removed 1 field',
     );
     return '$_temp0';
   }

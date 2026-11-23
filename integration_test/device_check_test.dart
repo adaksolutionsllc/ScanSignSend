@@ -508,6 +508,15 @@ void main() {
     await expectUnchanged('Skip while straightening');
     _mark('INFO:skip while straightening went to Review, pdf kept');
 
+    // Photos with no words: Detect Fields finds nothing. TestFlight 1.3.1
+    // (22): a painting got 7 fields from its brush strokes.
+    final picture = (await newest()).id;
+    router.go(AppRoutes.fieldDetection.replaceAll(':docId', '$picture'));
+    await _waitFor(tester, find.text(l10n.detectSkipToFill), seconds: 120);
+    await _pause(tester, 800);
+    await _capture(tester, 'detect_picture_no_fields');
+    _mark('INFO:photos with no words got no fields');
+
     // Straight after scanning: "Skip fields · Save & Share" on the Review
     // screen saves the scan as a finished (Completed) PDF, after a
     // confirmation, and opens Send.

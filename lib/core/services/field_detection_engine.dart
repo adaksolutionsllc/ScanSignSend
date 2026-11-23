@@ -87,6 +87,11 @@ class FieldDetectionEngine {
     PageLayout layout, {
     LearnedHints hints = LearnedHints.none,
   }) {
+    // A page with no words (a photo, a painting) is not a form: the lines
+    // found in a picture are its edges and brush strokes, not blanks.
+    if (!_hasWords(layout.lines)) {
+      return DetectionResult(const [], layout.bodyTextSize);
+    }
     // Fallback ≈ 11pt on a letter/A4 page.
     final textSize = layout.bodyTextSize ?? 0.0145;
     final lineH = textSize * 1.45;
@@ -831,6 +836,21 @@ class FieldDetectionEngine {
 
   /// A short line that reads like a person's name: 2–5 words, mostly
   /// capitalised, no sentence punctuation.
+  /// At least a few letters in real words. OCR finds the odd stray
+  /// character in a picture ("I", "~"); those don't make a page of text.
+  static bool _hasWords(List<LayoutLine> lines) {
+    var letters = 0;
+    for (final l in lines) {
+      for (final w in l.words) {
+        final n = _letter.allMatches(w.text).length;
+        if (n >= 2) letters += n;
+      }
+    }
+    return letters >= 4;
+  }
+
+  static final _letter = RegExp(r'[\p{L}\p{N}]', unicode: true);
+
   static bool _looksLikeName(String text) {
     final t = text.trim();
     if (t.isEmpty || t.length > 48 || RegExp(r'[.:;!?]$').hasMatch(t)) {

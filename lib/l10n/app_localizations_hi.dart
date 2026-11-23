@@ -909,15 +909,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get detectFieldDeleted => 'फ़ील्ड हटाया गया';
 
   @override
-  String get detectRemoveDetected => 'पहचाने गए फ़ील्ड हटाएँ';
+  String get detectRemoveAll => 'सभी हटाएँ';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count पहचाने गए फ़ील्ड हटाए गए',
-      one: '1 पहचाना गया फ़ील्ड हटाया गया',
+      other: '$count फ़ील्ड हटाए गए',
+      one: '1 फ़ील्ड हटाया गया',
     );
     return '$_temp0';
   }

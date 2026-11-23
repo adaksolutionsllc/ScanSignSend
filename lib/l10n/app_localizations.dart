@@ -1686,17 +1686,17 @@ abstract class AppLocalizations {
   /// **'Field deleted'**
   String get detectFieldDeleted;
 
-  /// No description provided for @detectRemoveDetected.
+  /// No description provided for @detectRemoveAll.
   ///
   /// In en, this message translates to:
-  /// **'Remove detected fields'**
-  String get detectRemoveDetected;
+  /// **'Remove all'**
+  String get detectRemoveAll;
 
-  /// No description provided for @detectRemovedDetected.
+  /// No description provided for @detectRemovedAll.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Removed 1 detected field} other{Removed {count} detected fields}}'**
-  String detectRemovedDetected(int count);
+  /// **'{count, plural, =1{Removed 1 field} other{Removed {count} fields}}'**
+  String detectRemovedAll(int count);
 
   /// No description provided for @actionUndo.
   ///
