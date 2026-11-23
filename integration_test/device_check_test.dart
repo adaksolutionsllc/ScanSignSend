@@ -356,8 +356,8 @@ void main() {
     Future<Document> newest() async =>
         (await container.read(documentRepositoryProvider).watchAll().first)
             .reduce((a, b) => a.id > b.id ? a : b);
-    Future<void> openLong(String name) async {
-      final path = await _photoOnlyPdf(tmp, pages: 6, name: name);
+    Future<void> openLong(String name, {int pages = 6}) async {
+      final path = await _photoOnlyPdf(tmp, pages: pages, name: name);
       router.go(AppRoutes.library);
       await _waitFor(tester, find.byType(LibraryScreen));
       router.push(
@@ -368,7 +368,7 @@ void main() {
       // About how long it takes, from this phone's past runs.
       expect(
         find.textContaining(
-          RegExp(r'For these 6 pages this takes (about|less)'),
+          RegExp('For these $pages pages this takes (about|less)'),
         ),
         findsOneWidget,
       );
@@ -469,11 +469,11 @@ void main() {
     expect(w1, lessThan(w2), reason: 'page 1 was not cropped');
 
     // Skip while the pages are checked: on to Review, nothing changed.
-    Future<void> expectUnchanged(String why) async {
+    Future<void> expectUnchanged(String why, {int pages = 6}) async {
       final kept = await container
           .read(pageRepositoryProvider)
           .pagesOf((await newest()).id);
-      expect(kept, hasLength(6));
+      expect(kept, hasLength(pages));
       expect(
         kept.every((pg) => pg.imagePath.contains('#page=')),
         isTrue,
@@ -497,13 +497,14 @@ void main() {
     await expectUnchanged('Skip while checking');
     _mark('INFO:skip while checking went to Review, pages kept');
 
-    // Skip while the pages are straightened: the PDF stays as it was.
-    await openLong('long_scan_4.pdf');
+    // Skip while the pages are straightened: the PDF stays as it was. More
+    // pages, so that Skip lands while the job still works.
+    await openLong('long_scan_4.pdf', pages: 24);
     await tester.tap(find.byKey(const ValueKey('straighten-go')));
     await _waitFor(tester, find.byType(CropScreen), seconds: 180);
     await _pause(tester, 800);
     await tester.tap(find.text(l10n.cropApply));
-    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 24)));
     await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
     await _waitFor(
       tester,
@@ -512,7 +513,7 @@ void main() {
     _mark('CAPTURE:straighten_progress');
     await tester.tap(find.byKey(const ValueKey('straighten-progress-skip')));
     await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
-    await expectUnchanged('Skip while straightening');
+    await expectUnchanged('Skip while straightening', pages: 24);
     _mark('INFO:skip while straightening went to Review, pdf kept');
 
     // Pause, use the app, and go on after a restart (plan 1.3.2): the job
