@@ -521,12 +521,12 @@ void main() {
     // Pause, use the app, and go on after a restart (plan 1.3.2): the job
     // is saved after every page. A new runner stands in for a restarted
     // app: it reads the saved job, shows it paused, and finishes it.
-    await openLong('long_scan_5.pdf');
+    await openLong('long_scan_5.pdf', pages: 24);
     await tester.tap(find.byKey(const ValueKey('straighten-go')));
     await _waitFor(tester, find.byType(CropScreen), seconds: 180);
     await _pause(tester, 800);
     await tester.tap(find.text(l10n.cropApply));
-    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 24)));
     await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
     await _waitFor(tester, find.byKey(const ValueKey('job-pause')));
     await _pause(tester, 700); // the job screen slides in
@@ -538,7 +538,15 @@ void main() {
       find.byKey(const ValueKey('job-resume')),
       seconds: 60,
     );
-    expect(runner.view(resumable)!.running, isFalse);
+    // The pages in work finish first; then nothing runs.
+    final stopBy = DateTime.now().add(const Duration(seconds: 60));
+    while (runner.view(resumable)!.running) {
+      if (DateTime.now().isAfter(stopBy)) fail('the pause never stopped it');
+      await _pause(tester, 200);
+    }
+    final pausedAt = runner.view(resumable)!.done;
+    _mark('INFO:paused at page $pausedAt of 24');
+    expect(pausedAt, lessThan(24), reason: 'finished before the pause');
     _mark('CAPTURE:job_paused');
     await tester.tap(find.byKey(const ValueKey('job-keep-using')));
     await _waitFor(tester, find.byType(LibraryScreen));
@@ -562,7 +570,7 @@ void main() {
     final resumed = await container
         .read(pageRepositoryProvider)
         .pagesOf(resumable);
-    expect(resumed, hasLength(6));
+    expect(resumed, hasLength(24));
     expect(
       resumed.any((pg) => pg.imagePath.contains('#page=')),
       isFalse,
@@ -570,14 +578,14 @@ void main() {
     );
     expect(
       resumed.map((pg) => pg.imagePath).toSet(),
-      hasLength(6),
+      hasLength(24),
       reason: 'a page twice',
     );
     // The first runner still holds the paused job: Skip clears it.
     await runner.skip(resumable);
     await _pause(tester, 600);
     expect(find.text(l10n.jobPaused), findsNothing);
-    _mark('INFO:paused job saved and resumed after a restart: 6 pages');
+    _mark('INFO:paused job saved and resumed after a restart: 24 pages');
 
     // Photos with no words: Detect Fields finds nothing. TestFlight 1.3.1
     // (22): a painting got 7 fields from its brush strokes.
