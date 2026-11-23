@@ -5,7 +5,9 @@
 #
 # Runs integration_test/device_check_test.dart (library, settings, send,
 # viewer, rating sheet, store listing) and saves a screenshot at each
-# CAPTURE: marker to build/verify/<device>/NN_<name>.png. --full also runs the
+# CAPTURE: marker to build/verify/<device>/NN_<name>.png. --ocr-gate runs only
+# integration_test/ocr_gate_test.dart (OCR fields vs text-layer fields; see
+# its GATE lines). --full also runs the
 # whole store flow (import → detect → fill → sign → flatten → send → preview)
 # from integration_test/store_capture_test.dart; on iOS that's capture.sh.
 #
@@ -92,6 +94,22 @@ provide() {
   fi
 }
 
+# The OCR gate's forms, into the app's temp folder as gate_<name>.pdf.
+provide_gate() {
+  python3 tool/store_capture/make_forms.py >/dev/null
+  local f
+  for f in tool/store_capture/forms/*.pdf test/fixtures/irs_fw4_2026.pdf; do
+    local name="gate_$(basename "$f" .pdf).pdf"
+    [[ $f == *irs_fw4_2026.pdf ]] && name=gate_fw4.pdf
+    if [[ $PLATFORM == ios ]]; then
+      cp "$f" "$(xcrun simctl get_app_container "$DEV" com.adakVentures.scanSignSend data)/Library/Caches/$name"
+    else
+      adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \
+        sh -c "cat > cache/$name" < "$f"
+    fi
+  done
+}
+
 shot() {
   if [[ $PLATFORM == ios ]]; then
     xcrun simctl io "$DEV" screenshot "$1" >/dev/null 2>&1
@@ -117,6 +135,8 @@ run() {  # run <test file> [flutter test args...]
     if [[ "$line" =~ CAPTURE:([a-z0-9_]+) ]]; then
       n=$((n + 1))
       shot "$OUT/$(printf %02d "$n")_${BASH_REMATCH[1]}.png"
+    elif [[ "$line" == *NEED:gate* ]]; then
+      provide_gate
     elif [[ "$line" == *NEED:w4* ]]; then
       provide
     elif [[ "$line" == *NEED:form* ]]; then
@@ -136,6 +156,10 @@ run() {  # run <test file> [flutter test args...]
 }
 
 status=0
+if [[ $FULL == --ocr-gate ]]; then
+  run integration_test/ocr_gate_test.dart | grep -E "GATE|passed|failed" || status=$?
+  exit "$status"
+fi
 run integration_test/device_check_test.dart || status=$?
 
 if [[ $FULL == --full && $status == 0 ]]; then

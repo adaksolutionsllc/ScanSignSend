@@ -51,9 +51,10 @@ class TextRecognitionPlugin: NSObject, FlutterPlugin {
     private static func read(path: String) throws -> [String: Any] {
         let url = URL(fileURLWithPath: path)
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
-              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+              let decoded = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
             return ["width": 0, "height": 0, "lines": []]
         }
+        let image = onWhite(decoded)
         let w = Double(image.width), h = Double(image.height)
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
@@ -93,6 +94,26 @@ class TextRecognitionPlugin: NSObject, FlutterPlugin {
             lines.append(["text": text, "box": lineBox, "words": words])
         }
         return ["width": w, "height": h, "lines": lines]
+    }
+
+    /// [image] drawn on white when it has transparency: PDF pages rendered
+    /// without a background would otherwise read as black text on black.
+    private static func onWhite(_ image: CGImage) -> CGImage {
+        switch image.alphaInfo {
+        case .none, .noneSkipFirst, .noneSkipLast: return image
+        default: break
+        }
+        guard let context = CGContext(
+            data: nil, width: image.width, height: image.height,
+            bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+        ) else { return image }
+        let all = CGRect(x: 0, y: 0, width: image.width, height: image.height)
+        context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        context.fill(all)
+        context.draw(image, in: all)
+        return context.makeImage() ?? image
     }
 
     /// Runs of non-space characters.
