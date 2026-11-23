@@ -6,6 +6,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
@@ -296,6 +297,19 @@ void main() {
     test('a bad crop keeps the whole page and says so', () {
       expect(save([0.1, 0.1, 0.9]), isFalse);
       expect(saved().width, 400);
+    });
+
+    test('a page with no background is white, not black', () {
+      // What PDFKit and PdfRenderer give for a page that paints no
+      // background: transparent everywhere except the ink. The JPEG encoder
+      // puts it on white.
+      final pixels = Uint8List(40 * 50 * 4);
+      for (var i = 0; i < 40 * 4; i += 4) {
+        pixels[i + 3] = 255; // one black line of text, at the top
+      }
+      saveRender((pixels, 40, 50, null, out));
+      expect(saved().getPixel(20, 30).r, greaterThan(245));
+      expect(saved().getPixel(20, 0).r, lessThan(40));
     });
   });
 

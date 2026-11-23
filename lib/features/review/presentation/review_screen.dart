@@ -508,7 +508,16 @@ class _RasterThumb extends ConsumerWidget {
         if (path == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        return Image.file(File(path), fit: BoxFit.contain, cacheWidth: 800);
+        // White under the page itself: many PDFs have no background of their
+        // own, and in dark mode their black text sat on the dark card.
+        return Image.file(
+          File(path),
+          key: const ValueKey('review-pdf-page'),
+          fit: BoxFit.contain,
+          cacheWidth: 800,
+          color: Colors.white,
+          colorBlendMode: BlendMode.dstOver,
+        );
       },
     );
   }
