@@ -154,6 +154,43 @@ To verify during the build (not guessed): the exact Info.plist keys for
 `BGContinuedProcessingTask` (`BGTaskSchedulerPermittedIdentifiers` with a
 wildcard id), and the current Play declaration form.
 
+### J7 — No network at all (Arun, 2026-11-23: "This shouldn't be there")
+
+iOS Settings shows a **Cellular Data** switch for the app. iOS shows it for
+any app that uses the network. Our code does not, but Google ML Kit (the text
+reader) does:
+
+- The built app holds `https://play.googleapis.com/log`,
+  `https://jmt17.google.com/log` and an experiments/config URL (from
+  `MLKitCommon`, `GoogleDataTransport`, `GTMSessionFetcher`).
+- ML Kit terms: images and text stay on the device, but the APIs "send
+  metrics about the performance and utilization of the APIs" to Google
+  (device info, app version, latency).
+- The Android release manifest gets `INTERNET` and `ACCESS_NETWORK_STATE`
+  from the ML Kit libraries.
+
+So "Nothing is sent", the PrivacyInfo comment and the "Data Not Collected"
+label are not fully true today. Documents never leave the phone, but usage
+metrics do. The fix makes the claim true; the claim does not change.
+
+- **iOS:** read text with Apple Vision (`VNRecognizeTextRequest`, on the
+  device) through a new `com.scansignsend/ocr` channel. Remove the
+  `google_mlkit_text_recognition` package, so no ML Kit code is in the iOS app.
+  The app reads only Latin script today, and Vision reads all four Latin
+  locales (en, fr, es, pt).
+- **Android:** call ML Kit text recognition from Kotlin on the same channel
+  (bundled model, as now), and strip `INTERNET` and `ACCESS_NETWORK_STATE`
+  from the manifest. The metrics cannot leave without them.
+- `OcrService` keeps its interface. Only lines and words are used
+  (`PageLayoutService`), and Vision gives both.
+- **Gate:** field detection must find as many fields on iOS with Vision as
+  with ML Kit, on the test forms and the device check. If Vision is worse,
+  stop and tell Arun before going on.
+- Check on Android with no `INTERNET`: purchase and restore, the camera
+  scanner (Play services), the review prompt.
+- The Cellular Data row should not come back on a fresh install. An existing
+  install may keep the row: iOS remembers it. Not verified yet.
+
 ## Out of scope
 
 - Detect Fields and Save & Share on big files. They were not in the report.
@@ -162,10 +199,18 @@ wildcard id), and the current Play declaration form.
 - A "done" notification on iOS. The system progress UI ends when the job
   ends.
 
+## Decisions (Arun, 2026-11-23: all recommendations accepted)
+
+1. Android foreground service: **yes**. Arun fills in the Play declaration.
+2. Notification permission: **not asked** in 1.3.2.
+3. After a crash or kill: **Paused · Resume**, not by itself. A system pause
+   (older iOS) resumes by itself.
+4. Scope: **import steps only**. Detect Fields and Save are timed first.
+
 ## Size
 
-About 6 working days: J1 2 d, J2 1.5 d, J3 0.5 d, J4 0.25 d, J5 1.5 d
-(iOS and Android), J6 with the device runs and strings.
+About 7.5 working days: J1 2 d, J2 1.5 d, J3 0.5 d, J4 0.25 d, J5 1.5 d
+(iOS and Android), J7 1.5 d, J6 with the device runs and strings.
 
 ## Merge
 
