@@ -29,6 +29,7 @@ import 'package:scan_sign_send/core/services/profile_repository.dart';
 import 'package:scan_sign_send/core/utils/path_resolver.dart';
 import 'package:image/image.dart' as img;
 import 'package:scan_sign_send/core/models/document_model.dart';
+import 'package:scan_sign_send/features/review/presentation/job_screen.dart';
 import 'package:scan_sign_send/features/fill_mode/presentation/fill_mode_screen.dart';
 import 'package:scan_sign_send/features/review/presentation/crop_screen.dart';
 import 'package:scan_sign_send/features/review/presentation/review_screen.dart';
@@ -401,6 +402,8 @@ void main() {
     await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
     await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
     await _waitGone(tester, find.byType(CropScreen), seconds: 180);
+    // The job screen shows the straightening, then returns to Review.
+    await _waitGone(tester, find.byType(JobScreen), seconds: 180);
     await _pause(tester, 1000);
     expect(
       find.byType(ReviewScreen, skipOffstage: false),
