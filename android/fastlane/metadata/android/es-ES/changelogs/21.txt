@@ -1,5 +1,0 @@
-Novedades de la 1.3: tus documentos se ordenan solos por categorías en tu teléfono y la búsqueda encuentra las palabras de cada página.
-Los escaneos y las fotos toman el nombre de su título.
-Las fotos que importas o abres se enderezan según los bordes de la página.
-Omite los campos para guardar y compartir un escaneo como PDF terminado.
-Abre fotos desde Archivos o el menú de compartir.

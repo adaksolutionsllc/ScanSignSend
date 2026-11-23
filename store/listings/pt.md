@@ -57,11 +57,11 @@ Conclua 2 documentos (de até 2 páginas cada) de graça. O Ilimitado é uma com
 Feito pela ADAK Ventures.
 
 ## whats_new
-Novo na 1.3: seus documentos se organizam sozinhos em categorias no seu celular, e a busca encontra as palavras de cada página.
-Digitalizações e fotos recebem o nome do título.
-Fotos importadas ou abertas são endireitadas pelas bordas da página.
+Novo na 1.3.1: arquivos grandes são importados mais rápido.
+Ao importar 2 páginas ou mais, o app pergunta se você quer endireitá-las e mostra quanto tempo isso leva, aproximadamente. Escolha “Manter como está” para continuar na hora.
+Endireite as páginas depois, na tela de revisão das páginas.
+Durante o processo, você vê o número da página, o tempo restante e um botão Ignorar.
 Pule os campos para salvar e compartilhar uma digitalização como PDF concluído.
-Abra fotos pelo app Arquivos ou pelo menu de compartilhar.
 
 ## iap_display_name
 Ilimitado
