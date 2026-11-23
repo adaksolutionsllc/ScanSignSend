@@ -547,7 +547,7 @@ void main() {
     final pausedAt = runner.view(resumable)!.done;
     _mark('INFO:paused at page $pausedAt of 24');
     expect(pausedAt, lessThan(24), reason: 'finished before the pause');
-    _mark('CAPTURE:job_paused');
+    await _capture(tester, 'job_paused');
     await tester.tap(find.byKey(const ValueKey('job-keep-using')));
     await _waitFor(tester, find.byType(LibraryScreen));
     await _waitFor(tester, find.text(l10n.jobPaused));
