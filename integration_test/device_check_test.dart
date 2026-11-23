@@ -492,6 +492,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('straighten-go')));
     await _waitFor(tester, find.byKey(const ValueKey('edge-check-skip')));
     _mark('CAPTURE:edge_check_progress');
+    await _pause(tester, 700); // the job screen slides in
     await tester.tap(find.byKey(const ValueKey('edge-check-skip')));
     await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
     await expectUnchanged('Skip while checking');
@@ -511,6 +512,7 @@ void main() {
       find.byKey(const ValueKey('straighten-progress-skip')),
     );
     _mark('CAPTURE:straighten_progress');
+    await _pause(tester, 700); // the job screen slides in
     await tester.tap(find.byKey(const ValueKey('straighten-progress-skip')));
     await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
     await expectUnchanged('Skip while straightening', pages: 24);
@@ -527,6 +529,7 @@ void main() {
     await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
     await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
     await _waitFor(tester, find.byKey(const ValueKey('job-pause')));
+    await _pause(tester, 700); // the job screen slides in
     await tester.tap(find.byKey(const ValueKey('job-pause')));
     final runner = container.read(importJobRunnerProvider);
     final resumable = (await newest()).id;
