@@ -488,14 +488,14 @@ void main() {
       );
     }
 
-    await openLong('long_scan_3.pdf');
+    await openLong('long_scan_3.pdf', pages: 24);
     await tester.tap(find.byKey(const ValueKey('straighten-go')));
     await _waitFor(tester, find.byKey(const ValueKey('edge-check-skip')));
     _mark('CAPTURE:edge_check_progress');
     await _pause(tester, 700); // the job screen slides in
     await tester.tap(find.byKey(const ValueKey('edge-check-skip')));
     await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
-    await expectUnchanged('Skip while checking');
+    await expectUnchanged('Skip while checking', pages: 24);
     _mark('INFO:skip while checking went to Review, pages kept');
 
     // Skip while the pages are straightened: the PDF stays as it was. More
