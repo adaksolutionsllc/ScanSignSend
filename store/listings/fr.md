@@ -57,11 +57,11 @@ Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. Illimité est un ac
 Conçu par ADAK Ventures.
 
 ## whats_new
-Nouveau dans la 1.3.1 : les gros fichiers s'importent plus vite.
-Quand vous importez 2 pages ou plus, l'app vous demande si vous voulez les redresser et indique le temps approximatif. Choisissez « Garder tel quel » pour continuer tout de suite.
-Redressez les pages plus tard depuis Vérifier les pages.
-Pendant le traitement : numéro de page, temps restant et bouton Passer.
-« Ignorer les champs · Enregistrer et partager » enregistre un scan comme PDF terminé.
+Nouveau dans la 1.3.2 : les gros fichiers se traitent en arrière-plan.
+Pendant la vérification ou le redressement des pages, touchez « Continuer à utiliser l’app ». La bibliothèque affiche la progression.
+Mettez en pause et reprenez à tout moment.
+Si l’app se ferme, les pages déjà traitées sont gardées. Touchez Reprendre pour continuer.
+L’écran reste allumé pendant le traitement.
 
 ## iap_display_name
 Illimité

@@ -57,11 +57,11 @@ Conclua 2 documentos (de até 2 páginas cada) de graça. O Ilimitado é uma com
 Feito pela ADAK Ventures.
 
 ## whats_new
-Novo na 1.3.1: arquivos grandes são importados mais rápido.
-Ao importar 2 páginas ou mais, o app pergunta se você quer endireitá-las e mostra quanto tempo isso leva, aproximadamente. Escolha “Manter como está” para continuar na hora.
-Endireite as páginas depois em Revisar páginas.
-Durante o processo, você vê o número da página, o tempo restante e um botão Pular.
-“Pular campos · Salvar e compartilhar” salva uma digitalização como PDF concluído na hora.
+Novo na 1.3.2: arquivos grandes são processados em segundo plano.
+Enquanto as páginas são verificadas ou endireitadas, toque em “Continuar usando o app”. A biblioteca mostra o progresso.
+Pause e retome quando quiser.
+Se o app fechar, as páginas já feitas ficam salvas. Toque em Retomar para continuar.
+A tela fica ligada enquanto o app trabalha.
 
 ## iap_display_name
 Ilimitado

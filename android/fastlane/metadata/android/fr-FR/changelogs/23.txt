@@ -1,5 +1,0 @@
-Nouveau dans la 1.3.1 : les gros fichiers s'importent plus vite.
-Quand vous importez 2 pages ou plus, l'app vous demande si vous voulez les redresser et indique le temps approximatif. Choisissez « Garder tel quel » pour continuer tout de suite.
-Redressez les pages plus tard depuis Vérifier les pages.
-Pendant le traitement : numéro de page, temps restant et bouton Passer.
-« Ignorer les champs · Enregistrer et partager » enregistre un scan comme PDF terminé.

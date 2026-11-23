@@ -57,11 +57,11 @@ Finish 2 documents (up to 2 pages each) free. Unlimited is a one-time purchase f
 Built by ADAK Ventures.
 
 ## whats_new
-New in 1.3.1: big files import faster.
-When you import 2 or more pages, the app asks if you want to straighten them and shows about how long it takes. Choose “Keep as is” to go on at once.
-Straighten pages later from Review Pages.
-While it works, you see the page count, the time left and a Skip button.
-“Skip fields · Save & Share” saves a scan as a finished PDF straight away.
+New in 1.3.2: big files work in the background.
+While pages are checked or straightened, tap “Keep using the app”. The Library shows the progress.
+Pause and resume at any time.
+If the app closes, the pages done so far are kept. Tap Resume to go on.
+The screen stays on while the app works.
 
 ## iap_display_name
 Unlimited

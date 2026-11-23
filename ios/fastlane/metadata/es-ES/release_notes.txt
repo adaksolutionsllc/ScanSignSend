@@ -1,5 +1,5 @@
-Novedades de la 1.3.1: los archivos grandes se importan más rápido.
-Al importar 2 páginas o más, la app te pregunta si quieres enderezarlas y te indica cuánto tardará, aproximadamente. Elige “Dejar como está” para seguir al instante.
-Endereza las páginas más tarde desde Revisar páginas.
-Mientras trabaja, verás el número de página, el tiempo restante y un botón Omitir.
-“Omitir campos · Guardar y compartir” guarda un escaneo como PDF terminado.
+Novedades de la 1.3.2: los archivos grandes se procesan en segundo plano.
+Mientras se revisan o enderezan las páginas, toca “Seguir usando la app”. La biblioteca muestra el progreso.
+Pausa y reanuda cuando quieras.
+Si la app se cierra, se conservan las páginas ya hechas. Toca Reanudar para seguir.
+La pantalla queda encendida mientras la app trabaja.
