@@ -7,7 +7,10 @@
 # viewer, rating sheet, store listing) and saves a screenshot at each
 # CAPTURE: marker to build/verify/<device>/NN_<name>.png. --ocr-gate runs only
 # integration_test/ocr_gate_test.dart (OCR fields vs text-layer fields; see
-# its GATE lines). --full also runs the
+# its GATE lines). --upgrade [tag…] runs integration_test/upgrade_verify_test.dart
+# once per old version (default: tool/verify/upgrade/versions.txt) on that
+# version's data from test/fixtures/upgrade/ (made by upgrade_seed.sh).
+# --full also runs the
 # whole store flow (import → detect → fill → sign → flatten → send → preview)
 # from integration_test/store_capture_test.dart; on iOS that's capture.sh.
 #
@@ -16,7 +19,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DEV="${1:?usage: device_check.sh <simulator-udid|emulator-NNNN> [--full]}"
+DEV="${1:?usage: device_check.sh <simulator-udid|emulator-NNNN> [--full|--ocr-gate|--upgrade [tag…]]}"
 FULL="${2:-}"
 
 if [[ $DEV == emulator-* ]]; then
@@ -110,6 +113,27 @@ provide_gate() {
   done
 }
 
+# An old version's data into the freshly installed app (NEED:upgrade), then
+# the marker the test waits for. Settings go through `defaults import` on iOS:
+# the running app reads them from cfprefsd, not from the file.
+provide_upgrade() {
+  local fx="$PWD/test/fixtures/upgrade/$FROM/$PLATFORM"
+  if [[ $PLATFORM == ios ]]; then
+    local c
+    c="$(xcrun simctl get_app_container "$DEV" com.adakVentures.scanSignSend data)"
+    tar -xzf "$fx/data.tar.gz" -C "$c"
+    xcrun simctl spawn "$DEV" defaults import com.adakVentures.scanSignSend "$fx/prefs.plist"
+    cp "$fx/expect.json" "$c/Library/Caches/upgrade_expect.json"
+    touch "$c/Library/Caches/upgrade_ready"
+  else
+    gunzip -c "$fx/data.tar.gz" |
+      adb -s "$DEV" exec-in run-as com.adakventures.scansignsend tar -xf -
+    adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \
+      sh -c 'cat > cache/upgrade_expect.json' < "$fx/expect.json"
+    adb -s "$DEV" shell run-as com.adakventures.scansignsend touch cache/upgrade_ready
+  fi
+}
+
 shot() {
   if [[ $PLATFORM == ios ]]; then
     xcrun simctl io "$DEV" screenshot "$1" >/dev/null 2>&1
@@ -137,6 +161,8 @@ run() {  # run <test file> [flutter test args...]
       shot "$OUT/$(printf %02d "$n")_${BASH_REMATCH[1]}.png"
     elif [[ "$line" == *NEED:gate* ]]; then
       provide_gate
+    elif [[ "$line" == *NEED:upgrade* ]]; then
+      provide_upgrade
     elif [[ "$line" == *NEED:w4* ]]; then
       provide
     elif [[ "$line" == *NEED:form* ]]; then
@@ -158,6 +184,29 @@ run() {  # run <test file> [flutter test args...]
 status=0
 if [[ $FULL == --ocr-gate ]]; then
   run integration_test/ocr_gate_test.dart | grep -E "GATE|passed|failed" || status=$?
+  exit "$status"
+fi
+if [[ $FULL == --upgrade ]]; then
+  tags=("${@:3}")
+  if [[ ${#tags[@]} == 0 ]]; then
+    while read -r t; do tags+=("$t"); done < <(grep -v '^#' tool/verify/upgrade/versions.txt | grep .)
+  fi
+  for FROM in "${tags[@]}"; do
+    if [[ ! -f test/fixtures/upgrade/$FROM/$PLATFORM/data.tar.gz ]]; then
+      echo "FAIL: no fixture for $FROM on $PLATFORM (tool/verify/upgrade_seed.sh $DEV $FROM)"
+      status=1
+      continue
+    fi
+    # A fresh install, as the old data must be the only data.
+    if [[ $PLATFORM == ios ]]; then
+      xcrun simctl uninstall "$DEV" com.adakVentures.scanSignSend 2>/dev/null || true
+    else
+      adb -s "$DEV" uninstall com.adakventures.scansignsend >/dev/null 2>&1 || true
+    fi
+    echo "== upgrade from $FROM"
+    run integration_test/upgrade_verify_test.dart --dart-define=FROM="$FROM" || status=$?
+  done
+  echo "Screenshots in $OUT"
   exit "$status"
 fi
 run integration_test/device_check_test.dart || status=$?

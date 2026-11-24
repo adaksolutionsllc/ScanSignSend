@@ -6,6 +6,12 @@
 #   scripts/release.sh all        # both
 #   scripts/release.sh listing    # App Store metadata + screenshots (no submit)
 #
+# A build needs a QA pass first: the qa-reviewer agent writes
+# build/qa/<sha>/result.json. It must be for this commit, or for an earlier
+# one when only the version number, store text or docs changed since. To go
+# without it: scripts/release.sh ios --skip-qa "<reason>" (the reason is
+# written to build/qa/skipped.log).
+#
 # Production is deliberately NOT automated here: promote a tested build from
 # App Store Connect (submit for review) and Play Console (internal → production,
 # staged rollout) by hand — see store/SUBMISSION_CHECKLIST.md.
@@ -24,8 +30,40 @@ set -euo pipefail
 
 target="${1:-}"
 case "$target" in ios|android|all|ios-upload|listing) ;; *)
-  echo "usage: $0 ios|android|all|ios-upload|listing" >&2; exit 64 ;;
+  echo "usage: $0 ios|android|all|ios-upload|listing [--skip-qa \"<reason>\"]" >&2; exit 64 ;;
 esac
+skip_qa=""
+if [[ "${2:-}" == --skip-qa ]]; then
+  skip_qa="${3:?--skip-qa needs a reason}"
+fi
+
+# The QA pass that covers HEAD: a result for HEAD, or for an ancestor when
+# only release text changed since (version line, store copy, docs).
+qa_gate() {
+  local f sha verdict changed
+  for f in $(ls -t build/qa/*/result.json 2>/dev/null); do
+    sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha"])' "$f")"
+    verdict="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["verdict"])' "$f")"
+    git merge-base --is-ancestor "$sha" HEAD 2>/dev/null || continue
+    changed="$(git diff --name-only "$sha" HEAD | grep -vE \
+      '^(store/|docs/|android/fastlane/metadata/|ios/fastlane/metadata/|pubspec\.yaml$)|\.md$' || true)"
+    [[ -z "$changed" ]] || continue
+    if git diff -U0 "$sha" HEAD -- pubspec.yaml | grep -E '^[+-][^+-]' | grep -qvE '^[+-]version:'; then
+      continue
+    fi
+    case "$verdict" in
+      PASS) echo "✓ QA passed on ${sha:0:7} ($f)"; return 0 ;;
+      "PASS WITH RISKS")
+        echo "⚠ QA passed with risks on ${sha:0:7}: read ${f%result.json}report.md"
+        return 0 ;;
+      *) echo "✗ QA verdict on ${sha:0:7} is $verdict: ${f%result.json}report.md" >&2
+        return 1 ;;
+    esac
+  done
+  echo "✗ No QA pass covers $(git rev-parse --short HEAD). Ask Claude: \"QA this branch\"," >&2
+  echo "  or run: $0 $target --skip-qa \"<reason>\"" >&2
+  return 1
+}
 
 # Uploads can die on a dropped connection mid-transfer (altool reports
 # "The network connection was lost" and fastlane gives up). Retry the upload
@@ -85,6 +123,17 @@ version="$(grep -E '^version:' pubspec.yaml | awk '{print $2}')"
 echo "▶ Releasing $version to: $target"
 
 [[ -z "$(git status --porcelain)" ]] || { echo "Commit your changes first." >&2; exit 1; }
+
+if [[ "$target" == ios || "$target" == android || "$target" == all ]]; then
+  if [[ -n "$skip_qa" ]]; then
+    mkdir -p build/qa
+    printf '%s %s %s %s: %s\n' "$(date -u +%FT%TZ)" "$version" "$target" \
+      "$(git rev-parse --short HEAD)" "$skip_qa" >> build/qa/skipped.log
+    echo "⚠ QA skipped: $skip_qa (logged in build/qa/skipped.log)"
+  else
+    qa_gate || exit 1
+  fi
+fi
 
 if [[ "$target" == ios-upload ]]; then
   # Re-upload the last IPA built by this script (after a failed upload).

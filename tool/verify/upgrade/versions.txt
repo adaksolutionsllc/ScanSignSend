@@ -1,0 +1,6 @@
+# Old versions whose users must upgrade safely (device_check.sh --upgrade).
+# One per database schema, plus the last live version. Oldest supported: 1.0.0.
+# At each release: add the version that was live before it.
+v1.0.0-build8
+v1.2.0-build18
+v1.3.1-build23

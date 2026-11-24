@@ -14,6 +14,8 @@ analyzer:
     # Needs integration_test, which tool/store_capture/capture.sh adds only for
     # its own runs (as a dev dependency it would ship in release IPAs).
     - integration_test/**
+    # Compiled against OLD tags by tool/verify/upgrade_seed.sh, not this code.
+    - tool/verify/upgrade/**
 
 linter:
   # The lint rules applied to this project can be customized in the
