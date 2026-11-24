@@ -594,9 +594,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get sendPressedPdfNotFound => 'முடிக்கப்பட்ட PDF கிடைக்கவில்லை.';
 
   @override
-  String get sendShareMessage => 'Scan Sign Send மூலம் கையொப்பமிடப்பட்டது';
-
-  @override
   String sendShareFailed(String error) {
     return 'பகிர்வு தோல்வி: $error';
   }
@@ -1331,24 +1328,6 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get progressUnderMinuteLeft => 'ஒரு நிமிடத்துக்கும் குறைவாக மீதம்';
-
-  @override
-  String get progressQuip1 => 'மூலைகள் சீராக்கப்படுகின்றன…';
-
-  @override
-  String get progressQuip2 => 'ஓரங்கள் மெருகேற்றப்படுகின்றன…';
-
-  @override
-  String get progressQuip3 => 'ஓர இடைவெளிகள் சீரமைக்கப்படுகின்றன…';
-
-  @override
-  String get progressQuip4 => 'பக்கங்கள் ஒழுங்குபடுத்தப்படுகின்றன…';
-
-  @override
-  String get progressQuip5 => 'இருமுறை அளந்து, ஒருமுறை வெட்டு…';
-
-  @override
-  String get progressQuip6 => 'பிக்சல்கள் இடத்தில் அமர்த்தப்படுகின்றன…';
 
   @override
   String get straightenGo => 'நேராக்கு';

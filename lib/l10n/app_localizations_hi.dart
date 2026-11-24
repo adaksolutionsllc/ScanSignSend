@@ -592,9 +592,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get sendPressedPdfNotFound => 'पूरा PDF नहीं मिला।';
 
   @override
-  String get sendShareMessage => 'Scan Sign Send से हस्ताक्षरित';
-
-  @override
   String sendShareFailed(String error) {
     return 'साझा करना विफल: $error';
   }
@@ -1326,24 +1323,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get progressUnderMinuteLeft => 'एक मिनट से कम बाकी';
-
-  @override
-  String get progressQuip1 => 'कोने सीधे किए जा रहे हैं…';
-
-  @override
-  String get progressQuip2 => 'किनारे संवारे जा रहे हैं…';
-
-  @override
-  String get progressQuip3 => 'हाशिये मिलाए जा रहे हैं…';
-
-  @override
-  String get progressQuip4 => 'पृष्ठ सजाए जा रहे हैं…';
-
-  @override
-  String get progressQuip5 => 'दो बार नापो, एक बार काटो…';
-
-  @override
-  String get progressQuip6 => 'पिक्सेल जगह पर बिठाए जा रहे हैं…';
 
   @override
   String get straightenGo => 'सीधा करें';

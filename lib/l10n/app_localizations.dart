@@ -1146,12 +1146,6 @@ abstract class AppLocalizations {
   /// **'The finished PDF couldn\'t be found.'**
   String get sendPressedPdfNotFound;
 
-  /// Body text attached to the outgoing share. Keep the product name untranslated.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed with Scan Sign Send'**
-  String get sendShareMessage;
-
   /// No description provided for @sendShareFailed.
   ///
   /// In en, this message translates to:
@@ -2297,42 +2291,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Less than a minute left'**
   String get progressUnderMinuteLeft;
-
-  /// No description provided for @progressQuip1.
-  ///
-  /// In en, this message translates to:
-  /// **'Squaring up the corners…'**
-  String get progressQuip1;
-
-  /// No description provided for @progressQuip2.
-  ///
-  /// In en, this message translates to:
-  /// **'Smoothing the edges…'**
-  String get progressQuip2;
-
-  /// No description provided for @progressQuip3.
-  ///
-  /// In en, this message translates to:
-  /// **'Lining up the margins…'**
-  String get progressQuip3;
-
-  /// No description provided for @progressQuip4.
-  ///
-  /// In en, this message translates to:
-  /// **'Tidying the pages…'**
-  String get progressQuip4;
-
-  /// No description provided for @progressQuip5.
-  ///
-  /// In en, this message translates to:
-  /// **'Measuring twice, cropping once…'**
-  String get progressQuip5;
-
-  /// No description provided for @progressQuip6.
-  ///
-  /// In en, this message translates to:
-  /// **'Nudging pixels into place…'**
-  String get progressQuip6;
 
   /// No description provided for @straightenGo.
   ///

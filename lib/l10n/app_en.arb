@@ -328,10 +328,6 @@
   "sendShareAgain": "Share Again",
   "sendNotYetPressed": "This document isn't finished yet.",
   "sendPressedPdfNotFound": "The finished PDF couldn't be found.",
-  "sendShareMessage": "Signed with Scan Sign Send",
-  "@sendShareMessage": {
-    "description": "Body text attached to the outgoing share. Keep the product name untranslated."
-  },
   "sendShareFailed": "Share failed: {error}",
   "@sendShareFailed": {
     "placeholders": {
@@ -728,12 +724,6 @@
     }
   },
   "progressUnderMinuteLeft": "Less than a minute left",
-  "progressQuip1": "Squaring up the corners…",
-  "progressQuip2": "Smoothing the edges…",
-  "progressQuip3": "Lining up the margins…",
-  "progressQuip4": "Tidying the pages…",
-  "progressQuip5": "Measuring twice, cropping once…",
-  "progressQuip6": "Nudging pixels into place…",
   "straightenGo": "Straighten",
   "straightenKeep": "Keep as is",
   "straightenAskLater": "Choose Keep as is if the pages are already straight. You can still straighten them later on the Review Pages screen.",

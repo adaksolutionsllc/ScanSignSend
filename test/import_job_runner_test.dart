@@ -456,6 +456,23 @@ void main() {
     expect(runner.view(doc)!.step, JobStep.choose);
   });
 
+  test('time left: from page times, not from time away from the app', () async {
+    await runner.startCheck(doc);
+    await settle();
+    expect(runner.view(doc)!.left, isNull, reason: 'no page timed yet');
+    edges.release(); // page 11: about 150 ms
+    await settle();
+    // Page 12 is in work when the user comes back after the screen was off.
+    runner.onAppResumed();
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    edges.release();
+    await settle();
+    // Page 13 is left: one page at page 11's time, not page 12's.
+    final left = runner.view(doc)!.left!;
+    expect(left, greaterThan(const Duration(milliseconds: 100)));
+    expect(left, lessThan(const Duration(milliseconds: 500)));
+  });
+
   test('the screen is held only while a job runs', () async {
     await runner.startCheck(doc);
     await settle();

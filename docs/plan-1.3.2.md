@@ -236,6 +236,24 @@ metrics do. The fix makes the claim true; the claim does not change.
   progress on a phone, Play Console foreground-service declaration (Arun),
   What's New ×7, build 24.
 
+## Tester feedback on build 24 (2026-11-23)
+
+- "About 65 minutes left" on page 7 of 18. The time left was the time since
+  the job started, divided by the pages done. When the phone stopped the app
+  (screen off), that time still grew. Fix: time each page. A page in work
+  when the app comes back is not timed. Time left = the middle time of the
+  last 5 pages × the pages left.
+- The light lines ("Lining up the margins…") confused the user, who had
+  already lined up the edges. Removed (6 strings × 7 languages).
+- "Save to Files" from the share sheet saved a text file ("Signed with Scan
+  Sign Send") next to each PDF. The share sheet now gets the PDF only. The
+  email subject stays the document title.
+- Screen off: the app holds the screen on during a job. The tester's screen
+  went off, so most likely the phone was locked by hand. Below iOS 26 the
+  phone gives about 30 s, then the job pauses and goes on when the app is
+  back (as decided). On iOS 26 the system progress should keep it going:
+  not yet seen on a phone.
+
 ## Size
 
 About 7.5 working days: J1 2 d, J2 1.5 d, J3 0.5 d, J4 0.25 d, J5 1.5 d

@@ -20,7 +20,7 @@ import '../../../core/services/free_usage_service.dart';
 import '../../../core/services/scan_service.dart';
 import '../../../core/utils/router.dart';
 import '../../../shared/widgets/paywall_screen.dart';
-import '../../../shared/widgets/progress_extras.dart';
+import '../../../shared/utils/time_left.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/services/app_lock_provider.dart';

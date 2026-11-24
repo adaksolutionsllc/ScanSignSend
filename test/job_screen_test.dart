@@ -76,9 +76,7 @@ JobView _view({
   running: running,
   done: done,
   total: total,
-  doneThisRun: done,
-  totalThisRun: total,
-  working: const Duration(seconds: 8),
+  left: const Duration(minutes: 3),
 );
 
 void main() {
@@ -134,6 +132,7 @@ void main() {
     final runner = await open(tester);
     expect(find.text(l10n.cropStraighteningPage(5, 18)), findsOneWidget);
     expect(find.text(l10n.jobScreenOn), findsOneWidget);
+    expect(find.text(l10n.progressMinutesLeft(3)), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('job-pause')));
     await tester.tap(find.byKey(const ValueKey('straighten-progress-skip')));
     expect(runner.calls, ['pause 7', 'skip 7']);

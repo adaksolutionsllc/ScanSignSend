@@ -593,9 +593,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sendPressedPdfNotFound => 'O PDF concluído não foi encontrado.';
 
   @override
-  String get sendShareMessage => 'Assinado com o Scan Sign Send';
-
-  @override
   String sendShareFailed(String error) {
     return 'Falha ao compartilhar: $error';
   }
@@ -1327,24 +1324,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get progressUnderMinuteLeft => 'Falta menos de um minuto';
-
-  @override
-  String get progressQuip1 => 'Acertando os cantos…';
-
-  @override
-  String get progressQuip2 => 'Alisando as bordas…';
-
-  @override
-  String get progressQuip3 => 'Alinhando as margens…';
-
-  @override
-  String get progressQuip4 => 'Arrumando as páginas…';
-
-  @override
-  String get progressQuip5 => 'Medindo duas vezes, recortando uma…';
-
-  @override
-  String get progressQuip6 => 'Colocando os pixels no lugar…';
 
   @override
   String get straightenGo => 'Endireitar';

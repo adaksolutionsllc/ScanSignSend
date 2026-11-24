@@ -287,7 +287,6 @@ class _SendScreenState extends ConsumerState<SendScreen> {
         lock: ref.read(appLockProvider.notifier),
         pdfPath: pdfPath,
         title: title,
-        message: l10n.sendShareMessage,
         origin: origin,
       );
       // Only "sent" if it was: dismissing the share sheet isn't sending.

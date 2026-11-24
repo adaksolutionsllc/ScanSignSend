@@ -594,9 +594,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sendPressedPdfNotFound => 'Le PDF terminé est introuvable.';
 
   @override
-  String get sendShareMessage => 'Signé avec Scan Sign Send';
-
-  @override
   String sendShareFailed(String error) {
     return 'Échec du partage : $error';
   }
@@ -1328,24 +1325,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get progressUnderMinuteLeft => 'Moins d’une minute restante';
-
-  @override
-  String get progressQuip1 => 'On ajuste les coins…';
-
-  @override
-  String get progressQuip2 => 'On lisse les bords…';
-
-  @override
-  String get progressQuip3 => 'On aligne les marges…';
-
-  @override
-  String get progressQuip4 => 'On range les pages…';
-
-  @override
-  String get progressQuip5 => 'Mesurer deux fois, recadrer une fois…';
-
-  @override
-  String get progressQuip6 => 'On remet les pixels en place…';
 
   @override
   String get straightenGo => 'Redresser';

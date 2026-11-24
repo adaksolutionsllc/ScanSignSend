@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,9 +54,7 @@ class JobView {
     required this.running,
     required this.done,
     required this.total,
-    required this.doneThisRun,
-    required this.totalThisRun,
-    required this.working,
+    this.left,
   });
 
   final int docId;
@@ -67,10 +66,9 @@ class JobView {
   /// waiting, or one restored after the app stopped).
   final int done, total;
 
-  /// Since the job last started or resumed: pages done, of how many, in
-  /// [working]. For the time left, which must not count paused time.
-  final int doneThisRun, totalThisRun;
-  final Duration working;
+  /// About how long the rest takes, from the time of recent pages. Null
+  /// until a page was timed.
+  final Duration? left;
 
   /// Ready to run, but another job runs first.
   bool get waiting => !paused && !running && step != JobStep.choose;
@@ -132,8 +130,11 @@ class ImportJobRunner extends ChangeNotifier {
   final _jobs = <int, ImportJob>{};
   int? _running;
   final _progress = <int, (int, int)>{};
-  final _startDone = <int, int>{};
-  final _clocks = <int, Stopwatch>{};
+  // The time of each page, for the time left. Not the time since the job
+  // started: that counts the time the phone stopped the app (screen off).
+  final _pageTimes = <int, List<Duration>>{};
+  final _pageClock = Stopwatch();
+  var _pageTimed = false;
   final _skipped = <int>{};
   final _systemPaused = <int>{};
   final _results = <int, JobResult>{};
@@ -161,7 +162,6 @@ class ImportJobRunner extends ChangeNotifier {
     final job = _jobs[docId];
     if (job == null) return null;
     final (done, total) = _progress[docId] ?? (0, 0);
-    final start = _startDone[docId] ?? done;
     return JobView(
       docId: docId,
       step: job.step,
@@ -169,10 +169,17 @@ class ImportJobRunner extends ChangeNotifier {
       running: _running == docId,
       done: done,
       total: total,
-      doneThisRun: done - start,
-      totalThisRun: total - start,
-      working: _clocks[docId]?.elapsed ?? Duration.zero,
+      left: _timeLeft(docId, total - done),
     );
+  }
+
+  /// The middle time of the last 5 pages, times the pages left: one slow
+  /// page does not change it much.
+  Duration? _timeLeft(int docId, int pagesLeft) {
+    final times = _pageTimes[docId];
+    if (times == null || times.isEmpty || pagesLeft <= 0) return null;
+    final recent = times.sublist(math.max(0, times.length - 5))..sort();
+    return recent[recent.length ~/ 2] * pagesLeft;
   }
 
   List<JobView> get views => [for (final id in _jobs.keys) view(id)!];
@@ -278,6 +285,8 @@ class ImportJobRunner extends ChangeNotifier {
 
   /// The app is in front again: jobs the system paused go on.
   void onAppResumed() {
+    // The phone may have stopped the app while away: don't time this page.
+    _pageTimed = false;
     for (final id in [..._systemPaused]) {
       unawaited(resume(id));
     }
@@ -306,7 +315,6 @@ class ImportJobRunner extends ChangeNotifier {
     unawaited(
       _run(next).whenComplete(() {
         _running = null;
-        _clocks[next.docId]?.stop();
         notifyListeners();
         _pump();
       }),
@@ -316,8 +324,7 @@ class ImportJobRunner extends ChangeNotifier {
   Future<void> _run(ImportJob job) async {
     final id = job.docId;
     _titles[id] = (await _docRepo.getById(id))?.title ?? '';
-    _startDone.remove(id);
-    _clocks[id] = Stopwatch()..start();
+    _pageTimed = false;
     try {
       // Pages that stopped the app twice are not tried again.
       for (final page in job.givenUp) {
@@ -354,6 +361,7 @@ class ImportJobRunner extends ChangeNotifier {
       hold: () => job.paused,
       onStart: (page) => _started(job, page),
       onPage: (page, quad) async {
+        _timed(id);
         job.tries.remove(page);
         job.found[page] = quad?.toList();
         await _store.save(job);
@@ -399,6 +407,7 @@ class ImportJobRunner extends ChangeNotifier {
         tag: job.tag,
         onStart: (page) => _started(job, page),
         onDone: (page) async {
+          _timed(id);
           job.tries.remove(page);
           job.done.add(page);
           await _store.save(job);
@@ -416,14 +425,24 @@ class ImportJobRunner extends ChangeNotifier {
   }
 
   Future<void> _started(ImportJob job, int page) async {
+    _pageClock
+      ..reset()
+      ..start();
+    _pageTimed = true;
     job.tries[page] = (job.tries[page] ?? 0) + 1;
     await _store.save(job);
+  }
+
+  void _timed(int docId) {
+    if (_pageTimed) {
+      _pageTimes.putIfAbsent(docId, () => []).add(_pageClock.elapsed);
+    }
+    _pageTimed = false;
   }
 
   void _onProgress(ImportJob job, int done, int total) {
     final id = job.docId;
     _progress[id] = (done, total);
-    _startDone.putIfAbsent(id, () => done);
     notifyListeners();
     final title = _titles[id] ?? '';
     final heading = job.step == JobStep.check
@@ -450,8 +469,7 @@ class ImportJobRunner extends ChangeNotifier {
     final id = job.docId;
     _jobs.remove(id);
     _progress.remove(id);
-    _startDone.remove(id);
-    _clocks.remove(id);
+    _pageTimes.remove(id);
     _skipped.remove(id);
     _systemPaused.remove(id);
     _results[id] = result;

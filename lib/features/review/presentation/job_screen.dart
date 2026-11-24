@@ -6,7 +6,7 @@ import '../../../core/services/import_job.dart';
 import '../../../core/services/import_job_runner.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/utils/router.dart';
-import '../../../shared/widgets/progress_extras.dart';
+import '../../../shared/utils/time_left.dart';
 
 /// A long import job of one document (plan 1.3.2): checking the edges, or
 /// straightening. Shows the progress, with Pause / Resume, Skip and Keep
@@ -112,11 +112,15 @@ class _JobScreenState extends ConsumerState<JobScreen> {
                 const SizedBox(height: 8),
                 Text(l10n.jobWaiting),
               ] else if (view != null && view.running && total > 1) ...[
-                ProgressExtras(
-                  done: view.doneThisRun,
-                  total: view.totalThisRun,
-                  elapsed: view.working,
-                ),
+                if (view.left case final left?) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    timeLeftText(l10n, left),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Text(
                   l10n.jobScreenOn,
