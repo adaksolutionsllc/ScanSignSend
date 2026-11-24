@@ -67,8 +67,26 @@ PdfPage addEdgeToEdgePage(PdfDocument doc, Size size) {
   return section.pages.add();
 }
 
+/// The page a scanned image of [iw] × [ih] pixels goes on: the image's own
+/// shape, with its short side as wide as A4, so the image fills the page.
+/// A fixed A4 page left white strips at the sides of anything taller (Indian
+/// stamp paper, US Legal). A shape within 2% of A4 goes on exact A4; the image
+/// is stretched that little to fill it.
+Size scanPageSize(double iw, double ih) {
+  const a4 = PdfPageSize.a4;
+  if (iw <= 0 || ih <= 0) return a4;
+  final portrait = ih >= iw;
+  final ratio = portrait ? ih / iw : iw / ih;
+  final a4Ratio = a4.height / a4.width;
+  final long = (ratio - a4Ratio).abs() / a4Ratio <= 0.02
+      ? a4.height
+      : a4.width * ratio;
+  return portrait ? Size(a4.width, long) : Size(long, a4.width);
+}
+
 /// The size an output page should have for the stored page [path]: an
-/// imported PDF page keeps its own size; a scan goes on A4.
+/// imported PDF page keeps its own size; anything else goes on A4. Callers
+/// that can read a scan's image use [scanPageSize] instead.
 Size outputPageSize(String path, PdfDocument? Function(String) openSource) {
   final hash = path.indexOf('#page=');
   if (hash >= 0) {

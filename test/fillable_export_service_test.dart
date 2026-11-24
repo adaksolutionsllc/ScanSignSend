@@ -1,6 +1,7 @@
 // End-to-end: the real "Save as Fillable" export. Filled values must read as
 // text on the form — no border box around them — while staying editable.
 
+import 'dart:convert' show latin1;
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
@@ -123,6 +124,69 @@ void main() {
       cb.borderWidth,
       greaterThan(0),
       reason: 'a checkbox keeps its outline so it can be seen',
+    );
+    pdf.dispose();
+  });
+
+  test('a scan taller than A4 fills its page with no side strips', () async {
+    final docs = DocumentRepository(db);
+    final pages = PageRepository(db);
+    final fields = FieldRepository(db);
+    final pageDir = Directory(p.join(docsDir.path, 'pages', 'tall'))
+      ..createSync(recursive: true);
+    // Indian stamp paper / US Legal shape (8.5 × 14 in).
+    final image = File(p.join(pageDir.path, 'page_0.jpg'))
+      ..writeAsBytesSync(
+        img.encodeJpg(
+          img.Image(width: 850, height: 1400)
+            ..clear(img.ColorRgb8(255, 255, 255)),
+        ),
+      );
+    final doc = await docs.createDocument('Stamp paper');
+    await pages.addPage(
+      documentId: doc.id,
+      pageIndex: 0,
+      imagePath: image.path,
+    );
+    await fields.addField(
+      FieldsCompanion.insert(
+        documentId: doc.id,
+        pageIndex: 0,
+        type: FieldType.text.name,
+        boundingBoxJson: const BoundingBox(
+          x: 0.1,
+          y: 0.5,
+          w: 0.3,
+          h: 0.02,
+        ).toJsonString(),
+        label: const Value('name'),
+        pdfFieldName: const Value('name'),
+      ),
+    );
+
+    final out = await FillableFormExportService(
+      docs,
+      pages,
+      fields,
+    ).export(doc.id);
+
+    final pdf = PdfDocument(inputBytes: File(out).readAsBytesSync());
+    final size = pdf.pages[0].size;
+    expect(size.width, closeTo(595, 0.5));
+    expect(size.height, closeTo(595 * 1400 / 850, 0.5), reason: 'not A4');
+    final bounds = pdf.form.fields[0].bounds;
+    expect(
+      bounds.left,
+      closeTo(0.1 * 595, 1),
+      reason: 'the field moves with the page edge, not a letterbox',
+    );
+    expect(bounds.top, closeTo(0.5 * size.height, 1));
+    expect(
+      RegExp(
+        r'/Subtype\s*/Image',
+      ).hasMatch(latin1.decode(File(out).readAsBytesSync())),
+      isTrue,
+      reason: 'the scan itself is drawn on the page',
     );
     pdf.dispose();
   });

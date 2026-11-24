@@ -348,7 +348,7 @@ void _drawSignature(PdfGraphics gfx, String path, Rect rect) {
   );
 }
 
-/// Builds every page onto A4 — a scanned image or an imported PDF page — and
+/// Builds every page — a scanned image or an imported PDF page — and
 /// adds every field (app-authored or from the source form) as a live widget
 /// placed in the rect the page content actually occupies.
 void _buildPages(
@@ -364,12 +364,23 @@ void _buildPages(
 
   for (var i = 0; i < job.pages.length; i++) {
     final plan = job.pages[i];
-    // An imported page keeps its own size; scans go on A4. No margins.
-    final size = outputPageSize(plan.imagePath, open);
+    // An imported page keeps its own size; a scan's page takes the image's
+    // own shape. No margins.
+    final scan = _loadScan(plan.imagePath);
+    final size = scan != null
+        ? scanPageSize(scan.width.toDouble(), scan.height.toDouble())
+        : outputPageSize(plan.imagePath, open);
     final pw = size.width, ph = size.height;
     final page = addEdgeToEdgePage(pdfDoc, size);
     final content =
-        _drawPageContent(page.graphics, plan.imagePath, pw, ph, sources) ??
+        _drawPageContent(
+          page.graphics,
+          plan.imagePath,
+          scan,
+          pw,
+          ph,
+          sources,
+        ) ??
         Rect.fromLTWH(0, 0, pw, ph);
     final onPage = job.fields.where((f) => f.pageIndex == i).toList();
     for (final f in onPage) {
@@ -381,14 +392,36 @@ void _buildPages(
   }
 }
 
-/// Draws [path] fitted (contain, centred) and returns the rect it occupies.
+/// The scanned image at [path], or null for an imported PDF page or an
+/// unreadable image.
+PdfBitmap? _loadScan(String path) {
+  if (path.contains('#page=')) return null;
+  try {
+    final file = File(path);
+    if (!file.existsSync()) return null;
+    final bmp = PdfBitmap(file.readAsBytesSync());
+    return bmp.width > 0 && bmp.height > 0 ? bmp : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Draws the page content and returns the rect it occupies. A [scan] fills
+/// its page (the page was sized to it); an imported page at [path] is fitted
+/// (contain, centred).
 Rect? _drawPageContent(
   PdfGraphics gfx,
   String path,
+  PdfBitmap? scan,
   double pw,
   double ph,
   Map<String, PdfDocument?> sources,
 ) {
+  if (scan != null) {
+    final dest = Rect.fromLTWH(0, 0, pw, ph);
+    gfx.drawImage(scan, dest);
+    return dest;
+  }
   Rect fit(double w, double h) {
     final scale = (w / pw > h / ph) ? pw / w : ph / h;
     return Rect.fromLTWH(
@@ -417,13 +450,7 @@ Rect? _drawPageContent(
       gfx.drawPdfTemplate(template, dest.topLeft, dest.size);
       return dest;
     }
-    final file = File(path);
-    if (!file.existsSync()) return null;
-    final bmp = PdfBitmap(file.readAsBytesSync());
-    if (bmp.width <= 0 || bmp.height <= 0) return null;
-    final dest = fit(bmp.width.toDouble(), bmp.height.toDouble());
-    gfx.drawImage(bmp, dest);
-    return dest;
+    return null;
   } catch (_) {
     // An unreadable page exports blank rather than failing the whole export.
     return null;
