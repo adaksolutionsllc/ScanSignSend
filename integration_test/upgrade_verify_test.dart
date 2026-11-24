@@ -35,6 +35,7 @@ import 'package:scan_sign_send/features/library/presentation/library_screen.dart
 import 'package:scan_sign_send/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:scan_sign_send/l10n/app_localizations.dart';
 import 'package:scan_sign_send/main.dart' as app;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 const _from = String.fromEnvironment('FROM');
@@ -82,6 +83,8 @@ void main() {
             as Map<String, dynamic>;
     final oldDocs = (expected['documents'] as List)
         .cast<Map<String, dynamic>>();
+
+    if (Platform.isAndroid) await tester.runAsync(_androidSettings);
 
     final testOnError = FlutterError.onError;
     final testErrorWidget = ErrorWidget.builder;
@@ -142,8 +145,27 @@ void main() {
       expect(pages!.length, want['pages'], reason: '$why pages');
       for (final page in pages) {
         final path = PathResolver.resolve(page.imagePath);
-        expect(File(path).existsSync(), isTrue, reason: '$why page $path');
-        await tester.runAsync(() => _decodes(path));
+        // An imported PDF's page is stored as "<pdf>#page=<n>": the PDF must
+        // be there and have that page; any other page is an image.
+        final parts = path.split('#page=');
+        expect(
+          File(parts.first).existsSync(),
+          isTrue,
+          reason: '$why page $path',
+        );
+        if (parts.length == 2) {
+          final pdf = PdfDocument(
+            inputBytes: File(parts.first).readAsBytesSync(),
+          );
+          expect(
+            int.parse(parts.last),
+            lessThan(pdf.pages.count),
+            reason: '$why page $path',
+          );
+          pdf.dispose();
+        } else {
+          await tester.runAsync(() => _decodes(path));
+        }
         files++;
       }
 
@@ -197,13 +219,22 @@ void main() {
       await tester.runAsync(() => _decodes(PathResolver.resolve(s.imagePath)));
     }
 
-    final profile = await tester.runAsync(
-      () => db.select(db.userProfile).getSingle(),
+    // The row the app shows: the lowest id (ProfileRepository). 1.0.0 could
+    // leave duplicate rows (a first-launch race).
+    final rows = await tester.runAsync(
+      () => (db.select(
+        db.userProfile,
+      )..orderBy([(t) => OrderingTerm(expression: t.id)])).get(),
     );
+    _mark('INFO:$_from: ${rows!.length} profile row(s)');
+    final profile = rows.first;
     final old = expected['profile'] as Map<String, dynamic>;
-    expect(profile!.email, old['email'], reason: 'profile email');
+    expect(profile.email, old['email'], reason: 'profile email');
     expect(profile.isPurchased, old['isPurchased'], reason: 'purchase flag');
-    final (first, last) = AppDatabase.splitFullName(old['fullName'] as String);
+    // 1.0.0 kept one full name (split on upgrade); from 1.2.0 first and last.
+    final (first, last) = old.containsKey('firstName')
+        ? (old['firstName'] as String, old['lastName'] as String)
+        : AppDatabase.splitFullName(old['fullName'] as String);
     expect(
       (profile.firstName, profile.lastName),
       (first, last),
@@ -219,8 +250,18 @@ void main() {
     final router = c.read(routerProvider);
     for (final doc in docs.where((d) => !d.isTemplate)) {
       final title = find.text(doc.title);
-      await _waitFor(tester, title);
-      await tester.tap(title.first);
+      // The grid builds only the cards on screen, and a tip or sheet may
+      // cover it (Android: keyword sorting). A card not on screen opens by
+      // the route its tap uses (LibraryScreen).
+      if (title.hitTestable().evaluate().isNotEmpty) {
+        await tester.tap(title.hitTestable().first);
+      } else {
+        _mark('INFO:$_from: ${doc.title} opened by its route');
+        router.push(
+          (doc.status == 'pressed' ? AppRoutes.viewer : AppRoutes.fillMode)
+              .replaceAll(':docId', '${doc.id}'),
+        );
+      }
       await _pause(tester, 2500);
       expect(find.byType(ErrorWidget), findsNothing, reason: doc.title);
       await _capture(tester, '${_tag}_upgrade_open_${doc.id}');
@@ -252,6 +293,38 @@ void main() {
       _mark('INFO:$_from: a draft was filled and flattened');
     }
   });
+}
+
+/// Android reads the settings file once, when the test process starts, so
+/// the old version's file, restored after that, is not seen. The settings
+/// must be in that file under the keys the new version reads: check that,
+/// then hand them to the running app.
+Future<void> _androidSettings() async {
+  final docs = await getApplicationDocumentsDirectory(); // <data>/app_flutter
+  final file = File(
+    p.join(docs.parent.path, 'shared_prefs', 'FlutterSharedPreferences.xml'),
+  );
+  expect(file.existsSync(), isTrue, reason: 'old settings file restored');
+  final xml = file.readAsStringSync();
+  final prefs = await SharedPreferences.getInstance();
+  final bools = RegExp(
+    r'<boolean name="flutter\.([^"]+)" value="(true|false)"',
+  );
+  for (final m in bools.allMatches(xml)) {
+    await prefs.setBool(m[1]!, m[2] == 'true');
+  }
+  final strings = RegExp(r'<string name="flutter\.([^"]+)">([^<]*)</string>');
+  for (final m in strings.allMatches(xml)) {
+    await prefs.setString(m[1]!, m[2]!);
+  }
+  expect(
+    bools.allMatches(xml).any((m) => m[1] == 'onboarding_done'),
+    isTrue,
+    reason: 'first-run pages done, in the old settings',
+  );
+  _mark(
+    'INFO:android settings from the old file: ${bools.allMatches(xml).length} switches',
+  );
 }
 
 Future<void> _decodes(String path) async {

@@ -122,7 +122,10 @@ provide_upgrade() {
     local c
     c="$(xcrun simctl get_app_container "$DEV" com.adakVentures.scanSignSend data)"
     tar -xzf "$fx/data.tar.gz" -C "$c"
-    xcrun simctl spawn "$DEV" defaults import com.adakVentures.scanSignSend "$fx/prefs.plist"
+    # Into the container's own domain (its plist path): the app does not
+    # read the simulator-wide com.adakVentures.scanSignSend domain.
+    xcrun simctl spawn "$DEV" defaults import \
+      "$c/Library/Preferences/com.adakVentures.scanSignSend.plist" "$fx/prefs.plist"
     cp "$fx/expect.json" "$c/Library/Caches/upgrade_expect.json"
     touch "$c/Library/Caches/upgrade_ready"
   else

@@ -23,6 +23,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
+import 'package:scan_sign_send/core/db/database_provider.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/fillable_form_export_service.dart';
 import 'package:scan_sign_send/core/services/import_service.dart';
@@ -88,9 +89,19 @@ void main() {
     await prefs.setBool('onboarding_done', true);
 
     // The root, not the Library: from 1.2.0 "What's new" can show first.
+    // The app sets its own error handlers; the test binding needs its own
+    // back (as in upgrade_verify_test.dart), or any framework message ends
+    // the run.
+    final testOnError = FlutterError.onError;
+    final testErrorWidget = ErrorWidget.builder;
     app.main();
     await _waitFor(tester, find.byType(app.ScanSignSendApp));
-    await tester.pump(const Duration(seconds: 2));
+    FlutterError.onError = testOnError;
+    ErrorWidget.builder = testErrorWidget;
+    // Let the app's own first-launch reads create the profile row first: a
+    // seed write racing them gave 1.0.0 (no transaction) three profile rows,
+    // with the data in one the newer app does not read.
+    await _pause(tester, 6000);
     final c = ProviderScope.containerOf(
       tester.element(find.byType(app.ScanSignSendApp)),
     );
@@ -109,6 +120,16 @@ void main() {
             isPurchased: Value(true),
           ),
         );
+    // From 1.2.0 (schema 8) the name is kept as first and last name, and
+    // full_name is no longer written; a 1.0.0 database has no such columns.
+    try {
+      await c
+          .read(appDatabaseProvider)
+          .customStatement(
+            "UPDATE user_profile SET full_name = '', first_name = 'Asha K', "
+            "last_name = 'Rao'",
+          );
+    } catch (_) {}
 
     final docsDir = await getApplicationDocumentsDirectory();
     final sigDir = Directory(p.join(docsDir.path, 'signatures'));
@@ -207,7 +228,9 @@ void main() {
     );
 
     // 4. A photo page with fields the user drew, signed.
-    final photo = File(p.join(tmp.path, 'Upgrade receipt photo.png'));
+    // Not the name import() copies to: copying a file onto itself empties
+    // it on Android.
+    final photo = File(p.join(tmp.path, 'receipt_source.png'));
     await photo.writeAsBytes(await _pagePng());
     final scan = await import('Upgrade receipt photo.png', from: photo.path);
     await fields.addField(
@@ -240,6 +263,16 @@ void main() {
     );
 
     print('SEED:done');
+    // flutter test uninstalls the app from an iOS simulator when the test
+    // ends: hold it until the script has saved the data (seed_saved).
+    final saved = File(p.join(tmp.path, 'seed_saved'));
+    final hold = DateTime.now().add(const Duration(seconds: 180));
+    while (!saved.existsSync()) {
+      if (DateTime.now().isAfter(hold)) fail('the data was not saved');
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 250)),
+      );
+    }
   });
 }
 
@@ -283,4 +316,11 @@ Future<void> _waitFor(WidgetTester tester, Finder f, {int seconds = 60}) async {
     if (f.evaluate().isNotEmpty) return;
   }
   throw TestFailure('Timed out waiting for $f');
+}
+
+Future<void> _pause(WidgetTester tester, int ms) async {
+  final end = DateTime.now().add(Duration(milliseconds: ms));
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
 }

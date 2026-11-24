@@ -1,0 +1,93 @@
+{
+ "tag": "v1.2.0-build18",
+ "schema": 8,
+ "documents": [
+  {
+   "title": "Upgrade W4 pressed",
+   "status": "pressed",
+   "isTemplate": false,
+   "pageCount": 5,
+   "pages": 5,
+   "fields": 49,
+   "values": [
+    "12 Elm Street",
+    "Asha K",
+    "Rao"
+   ],
+   "signed": 1,
+   "checked": 1,
+   "pressedPdf": true,
+   "fillablePdf": false
+  },
+  {
+   "title": "Upgrade W4 draft",
+   "status": "draft",
+   "isTemplate": false,
+   "pageCount": 5,
+   "pages": 5,
+   "fields": 48,
+   "values": [
+    "Rao",
+    "ஆஷா"
+   ],
+   "signed": 0,
+   "checked": 1,
+   "pressedPdf": false,
+   "fillablePdf": false
+  },
+  {
+   "title": "Upgrade W4 fillable",
+   "status": "draft",
+   "isTemplate": false,
+   "pageCount": 5,
+   "pages": 5,
+   "fields": 48,
+   "values": [
+    "Asha K",
+    "Rao"
+   ],
+   "signed": 0,
+   "checked": 1,
+   "pressedPdf": false,
+   "fillablePdf": true
+  },
+  {
+   "title": "Upgrade receipt photo",
+   "status": "draft",
+   "isTemplate": false,
+   "pageCount": 1,
+   "pages": 1,
+   "fields": 3,
+   "values": [
+    "2026-01-15",
+    "Asha K Rao — ஆஷா"
+   ],
+   "signed": 1,
+   "checked": 0,
+   "pressedPdf": false,
+   "fillablePdf": false
+  },
+  {
+   "title": "Upgrade W4 draft",
+   "status": "template",
+   "isTemplate": true,
+   "pageCount": 5,
+   "pages": 5,
+   "fields": 48,
+   "values": [],
+   "signed": 0,
+   "checked": 0,
+   "pressedPdf": false,
+   "fillablePdf": false
+  }
+ ],
+ "signatures": 1,
+ "profileRows": 1,
+ "profile": {
+  "fullName": "",
+  "email": "asha@example.com",
+  "isPurchased": true,
+  "firstName": "Asha K",
+  "lastName": "Rao"
+ }
+}

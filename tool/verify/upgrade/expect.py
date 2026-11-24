@@ -32,18 +32,25 @@ for d in q("SELECT * FROM documents ORDER BY id"):
         "fillablePdf": d["fillable_pdf_path"] is not None,
     })
 
-profile = q("SELECT * FROM user_profile LIMIT 1")
+# The row the app shows: the lowest id (ProfileRepository).
+profile = q("SELECT * FROM user_profile ORDER BY id LIMIT 1")
+profile_rows = len(q("SELECT id FROM user_profile"))
 out = {
     "tag": sys.argv[2],
     "schema": db.execute("PRAGMA user_version").fetchone()[0],
     "documents": docs,
     "signatures": len(q("SELECT id FROM signatures")),
+    "profileRows": profile_rows,
     "profile": {
         "fullName": profile[0]["full_name"] if profile else "",
         "email": profile[0]["email"] if profile else "",
         "isPurchased": bool(profile[0]["is_purchased"]) if profile else False,
     },
 }
+# From schema 8 (1.2.0) the name is kept as first and last name.
+if profile and "first_name" in profile[0].keys():
+    out["profile"]["firstName"] = profile[0]["first_name"] or ""
+    out["profile"]["lastName"] = profile[0]["last_name"] or ""
 assert docs, "the old version saved no documents"
 json.dump(out, sys.stdout, indent=1, ensure_ascii=False)
 print()

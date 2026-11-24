@@ -81,6 +81,42 @@ provide_w4() {
   fi
 }
 
+# Saves the app's data while the seed test holds the app open (SEED:done),
+# then lets the test end.
+save_data() {
+  rm -rf "$OUT"; mkdir -p "$OUT/db"
+  if [[ $PLATFORM == ios ]]; then
+    C="$(xcrun simctl get_app_container "$DEV" "$IOS_ID" data)"
+    dirs=(Documents)
+    [[ -d "$C/Library/Application Support" ]] && dirs+=("Library/Application Support")
+    tar -C "$C" -czf "$OUT/data.tar.gz" "${dirs[@]}"
+    # The app's settings are in its container, not in the simulator-wide
+    # domain that `simctl spawn defaults export` reads.
+    local plist="$C/Library/Preferences/$IOS_ID.plist" _
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+      plutil -p "$plist" 2>/dev/null | grep -q onboarding_done && break
+      sleep 1
+    done
+    plutil -convert binary1 -o "$OUT/prefs.plist" "$plist"
+    cp "$C"/Documents/scan_sign_send.db* "$OUT/db/"
+  else
+    have=$(adb -s "$DEV" shell run-as "$ANDROID_ID" ls | tr -d '\r' |
+      grep -xE 'app_flutter|shared_prefs|files|databases|no_backup' | tr '\n' ' ')
+    # shellcheck disable=SC2086
+    # Not flutter_assets: the debug build's own code (about 120 MB), which no
+    # store user has and which must not stand in for the new version's.
+    adb -s "$DEV" exec-out run-as "$ANDROID_ID" tar -cf - $have |
+      tar -czf "$OUT/data.tar.gz" --exclude 'app_flutter/flutter_assets' @-
+    tar -xzf "$OUT/data.tar.gz" -C "$OUT/db" --strip-components 1 \
+      --include 'app_flutter/scan_sign_send.db*'
+  fi
+  if [[ $PLATFORM == ios ]]; then
+    touch "$C/Library/Caches/seed_saved"
+  else
+    adb -s "$DEV" shell run-as "$ANDROID_ID" touch cache/seed_saved
+  fi
+}
+
 echo "Seeding ${TAG} on ${PLATFORM}…"
 set +e
 v=""; [[ $PLATFORM == ios ]] && v="-v"
@@ -88,29 +124,11 @@ seeded=0
 while IFS= read -r line; do
   [[ "$line" =~ ^\[\ *\+?[0-9]+\ ms\] ]] || echo "$line"
   [[ "$line" == *NEED:w4* ]] && provide_w4
-  [[ "$line" == *SEED:done* ]] && seeded=1
+  [[ "$line" == *SEED:done* ]] && { save_data </dev/null; seeded=1; }
 done < <(flutter test integration_test/upgrade_seed_test.dart -d "$DEV" $v 2>&1)
 set -e
 [[ $seeded == 1 ]] || { echo "The seed did not finish" >&2; exit 1; }
 
-rm -rf "$OUT"; mkdir -p "$OUT/db"
-if [[ $PLATFORM == ios ]]; then
-  xcrun simctl terminate "$DEV" "$IOS_ID" 2>/dev/null || true
-  C="$(xcrun simctl get_app_container "$DEV" "$IOS_ID" data)"
-  dirs=(Documents)
-  [[ -d "$C/Library/Application Support" ]] && dirs+=("Library/Application Support")
-  tar -C "$C" -czf "$OUT/data.tar.gz" "${dirs[@]}"
-  xcrun simctl spawn "$DEV" defaults export "$IOS_ID" "$OUT/prefs.plist"
-  cp "$C"/Documents/scan_sign_send.db* "$OUT/db/"
-else
-  adb -s "$DEV" shell am force-stop "$ANDROID_ID"
-  have=$(adb -s "$DEV" shell run-as "$ANDROID_ID" ls | tr -d '\r' |
-    grep -xE 'app_flutter|shared_prefs|files|databases|no_backup' | tr '\n' ' ')
-  # shellcheck disable=SC2086
-  adb -s "$DEV" exec-out run-as "$ANDROID_ID" tar -cf - $have | gzip > "$OUT/data.tar.gz"
-  tar -xzf "$OUT/data.tar.gz" -C "$OUT/db" --strip-components 1 \
-    --include 'app_flutter/scan_sign_send.db*'
-fi
 python3 -I "$REPO/tool/verify/upgrade/expect.py" "$OUT/db/scan_sign_send.db" "$TAG" > "$OUT/expect.json"
 rm -rf "$OUT/db"
 echo "Fixture: $OUT ($(du -sh "$OUT" | cut -f1))"
