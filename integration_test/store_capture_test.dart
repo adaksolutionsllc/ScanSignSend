@@ -19,6 +19,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
+import 'package:scan_sign_send/core/services/document_sorter.dart';
 import 'package:scan_sign_send/core/services/profile_repository.dart';
 import 'package:scan_sign_send/features/library/presentation/library_screen.dart';
 import 'package:scan_sign_send/features/onboarding/presentation/onboarding_screen.dart';
@@ -125,6 +126,9 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
     await prefs.setStringList(kTourPagesSeen, kTourPageIds);
+    // The "sorted by keywords" tip (no Apple Intelligence on the simulator,
+    // or not in this language) would cover the Library shot.
+    await prefs.setBool(DocumentSorter.keywordTipShownKey, true);
     FilePicker.platform = _DemoPicker();
     if (_form.startsWith('cache:')) {
       final tmp = await getTemporaryDirectory();
@@ -433,7 +437,9 @@ Future<void> _drawSignature(WidgetTester tester, Finder pad) async {
 Future<void> _capture(WidgetTester tester, String name) async {
   if (_video) return _pause(tester, 700);
   _mark('CAPTURE:$name');
-  await _pause(tester, 1800);
+  // The marker reaches capture.sh through `flutter test`'s output, which lags
+  // when the Mac is busy; hold the screen long enough for the screenshot.
+  await _pause(tester, 4000);
 }
 
 /// A marker line for capture.sh: CAPTURE:, BEAT: or REC:.
