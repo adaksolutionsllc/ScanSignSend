@@ -349,12 +349,19 @@ void main() {
     await _pause(tester, 1500);
     // The viewer shows a spinner until the PDF is drawn (slower on Android
     // and with Indic text).
-    final drawnBy = DateTime.now().add(const Duration(seconds: 20));
+    final drawnBy = DateTime.now().add(const Duration(seconds: 60));
     while (find.byType(CircularProgressIndicator).evaluate().isNotEmpty &&
         DateTime.now().isBefore(drawnBy)) {
       await _pause(tester, 250);
     }
     await _pause(tester, 1500);
+    // On a slow emulator the template snackbar can come after the clear above.
+    if (!_video) {
+      ScaffoldMessenger.of(
+        tester.element(find.byType(Scaffold).last),
+      ).clearSnackBars();
+      await _pause(tester, 500);
+    }
     await _capture(tester, 'pdf');
     _mark('REC:stop');
 
