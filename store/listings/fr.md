@@ -22,6 +22,7 @@ Scannez n'importe quel document avec l'appareil photo ou importez un PDF, laisse
 SCANNER
 • Des scans nets avec détection automatique des bords, plusieurs pages à la fois
 • Importez vos PDF et photos — les photos sont redressées selon les bords de la page
+• Les gros fichiers se traitent en arrière-plan : continuez à utiliser l'app, mettez en pause, reprenez, et retrouvez votre progression si l'app se ferme
 • Réorganisez, faites pivoter et nettoyez les pages avant de signer
 
 REMPLIR ET SIGNER

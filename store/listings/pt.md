@@ -22,6 +22,7 @@ Digitalize qualquer documento com a câmera ou importe um PDF, deixe o app encon
 DIGITALIZAR
 • Digitalizações nítidas com detecção automática de bordas, várias páginas de uma vez
 • Importe PDFs e fotos — as fotos são endireitadas pelas bordas da página
+• Arquivos grandes são processados em segundo plano: continue usando o app, pause e retome, e volte de onde parou se o app fechar
 • Reordene, gire e limpe as páginas antes de assinar
 
 PREENCHER E ASSINAR

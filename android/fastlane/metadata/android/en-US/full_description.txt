@@ -5,6 +5,7 @@ Scan any document with your camera or import a PDF, let the app find the blanks,
 SCAN
 • Clear scans with automatic edge detection, several pages at a time
 • Import PDFs and photos — photos are straightened to the page edges
+• Big files work in the background: keep using the app, pause and resume, and pick up where you left off if the app closes
 • Reorder, rotate and clean up pages before you sign
 
 FILL & SIGN

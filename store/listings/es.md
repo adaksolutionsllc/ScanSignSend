@@ -22,6 +22,7 @@ Escanea cualquier documento con la cámara o importa un PDF, deja que la app enc
 ESCANEAR
 • Escaneos nítidos con detección automática de bordes, varias páginas a la vez
 • Importa PDF y fotos; las fotos se enderezan según los bordes de la página
+• Los archivos grandes se procesan en segundo plano: sigue usando la app, pausa y reanuda, y continúa donde lo dejaste si la app se cierra
 • Reordena, gira y limpia las páginas antes de firmar
 
 RELLENAR Y FIRMAR
