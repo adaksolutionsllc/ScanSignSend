@@ -39,9 +39,16 @@ class _ImportJobHostState extends ConsumerState<ImportJobHost>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      ref.read(importJobRunnerProvider).onAppResumed();
-    }
+    if (state != AppLifecycleState.resumed) return;
+    final pages = ref.read(importJobRunnerProvider).onAppResumed();
+    if (pages.isEmpty || !mounted) return;
+    // iOS showed "Task failed" on the lock screen: say that nothing was lost.
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.jobResumedNotice(pages.first)),
+        duration: const Duration(seconds: 10),
+      ),
+    );
   }
 
   @override
@@ -51,6 +58,7 @@ class _ImportJobHostState extends ConsumerState<ImportJobHost>
       checking: l10n.jobCheckingTitle,
       straightening: l10n.jobStraighteningTitle,
       page: l10n.reviewPageOf,
+      paused: l10n.jobPausedBanner,
     );
     return widget.child;
   }

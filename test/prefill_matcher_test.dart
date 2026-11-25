@@ -212,10 +212,7 @@ void main() {
     ];
 
     test('"Name" beside "Last name" is the first name', () {
-      final f = form([
-        ('Name', FieldType.text),
-        ('Last name', FieldType.text),
-      ]);
+      final f = form([('Name', FieldType.text), ('Last name', FieldType.text)]);
       expect(PrefillMatcher.matchForm(f), {
         0: PrefillSlot.firstName,
         1: PrefillSlot.lastName,
@@ -257,7 +254,10 @@ void main() {
         PrefillMatcher.valueForField(w4, s2, 0, priya),
         '12 Elm Street, Apt 4',
       );
-      expect(PrefillMatcher.valueForField(w4, s2, 1, priya), 'Austin, TX 78701');
+      expect(
+        PrefillMatcher.valueForField(w4, s2, 1, priya),
+        'Austin, TX 78701',
+      );
 
       final withApt = form([
         ('Street address', FieldType.text),
@@ -296,17 +296,14 @@ void main() {
     test('date of birth in the form\'s style, and age from it', () {
       final d = MyDetails(dateOfBirth: DateTime(1990, 6, 15));
       expect(
-        d.valueFor(PrefillSlot.dateOfBirth, dateFormat: DateFormat('dd/MM/yyyy')),
+        d.valueFor(
+          PrefillSlot.dateOfBirth,
+          dateFormat: DateFormat('dd/MM/yyyy'),
+        ),
         '15/06/1990',
       );
-      expect(
-        d.valueFor(PrefillSlot.age, today: DateTime(2026, 6, 14)),
-        '35',
-      );
-      expect(
-        d.valueFor(PrefillSlot.age, today: DateTime(2026, 6, 15)),
-        '36',
-      );
+      expect(d.valueFor(PrefillSlot.age, today: DateTime(2026, 6, 14)), '35');
+      expect(d.valueFor(PrefillSlot.age, today: DateTime(2026, 6, 15)), '36');
     });
   });
 }

@@ -769,6 +769,23 @@
   "jobPausedHint": "Paused. The pages done so far are saved.",
   "jobWaiting": "Waiting",
   "jobScreenOn": "The screen stays on until this is done.",
+  "jobLockHint": "You can use other apps meanwhile. If you lock the phone, iPhone may pause this. It goes on from the same page when you open the app.",
+  "jobResumedNotice": "Your phone paused this while you were away. Nothing was lost. It goes on from page {page}.",
+  "@jobResumedNotice": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "jobPausedBanner": "“{title}” paused. Open the app to go on.",
+  "@jobPausedBanner": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "jobPagesToCheck": "{count, plural, =1{1 page to check} other{{count} pages to check}}",
   "@jobPagesToCheck": {
     "placeholders": {

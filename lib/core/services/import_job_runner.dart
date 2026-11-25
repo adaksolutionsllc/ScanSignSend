@@ -27,6 +27,7 @@ class JobStrings {
     required this.checking,
     required this.straightening,
     required this.page,
+    required this.paused,
   });
 
   /// "Checking the edges of “{title}”".
@@ -38,10 +39,15 @@ class JobStrings {
   /// "Page {current} of {total}".
   final String Function(int current, int total) page;
 
+  /// "“{title}” paused. Open the app to go on.": the system's progress
+  /// title once it has ended the background time.
+  final String Function(String title) paused;
+
   static final fallback = JobStrings(
     checking: (t) => t,
     straightening: (t) => t,
     page: (c, t) => '$c / $t',
+    paused: (t) => t,
   );
 }
 
@@ -283,13 +289,26 @@ class ImportJobRunner extends ChangeNotifier {
     }
   }
 
-  /// The app is in front again: jobs the system paused go on.
-  void onAppResumed() {
+  /// The app is in front again: jobs the system paused go on. Returns the
+  /// page each of them goes on from, for a message that nothing was lost.
+  List<int> onAppResumed() {
     // The phone may have stopped the app while away: don't time this page.
     _pageTimed = false;
+    final pages = <int>[];
     for (final id in [..._systemPaused]) {
+      final job = _jobs[id];
+      if (job == null) continue;
+      // From the pages finished: the progress is told only when a page
+      // starts, and the paused job has not started the next one.
+      final finished = job.step == JobStep.straighten
+          ? job.done.length
+          : job.found.length;
+      final (_, total) = _progress[id] ?? (0, 0);
+      final page = math.min(finished + 1, math.max(total, 1));
+      pages.add(page);
       unawaited(resume(id));
     }
+    return pages;
   }
 
   /// The system ended the app's background time: pause at the next page,
@@ -449,12 +468,13 @@ class ImportJobRunner extends ChangeNotifier {
         ? strings.checking(title)
         : strings.straightening(title);
     final line = strings.page((done + 1).clamp(1, total), total);
+    final paused = strings.paused(title);
     if (_phoneBusy) {
-      unawaited(_phone.progress(heading, line, done, total));
+      unawaited(_phone.progress(heading, line, done, total, paused: paused));
     } else {
       _phoneBusy = true;
       unawaited(_phone.keepScreenOn(true));
-      unawaited(_phone.begin(heading, line, done, total));
+      unawaited(_phone.begin(heading, line, done, total, paused: paused));
     }
   }
 

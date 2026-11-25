@@ -7,7 +7,8 @@ import 'package:flutter/services.dart';
 /// Channel `com.scansignsend/background`:
 /// - "keepScreenOn" {on}: iOS `isIdleTimerDisabled`, Android
 ///   `FLAG_KEEP_SCREEN_ON`.
-/// - "begin" / "progress" {title, subtitle, done, total}, "end": iOS 26+ a
+/// - "begin" / "progress" {title, subtitle, done, total, paused}, "end":
+///   `paused` is the title iOS shows once it has ended the time. iOS 26+ a
 ///   continued-processing task (the system shows the progress), older iOS a
 ///   short background task; Android a foreground service with a progress
 ///   notification (BackgroundWorkPlugin.swift, ImportWorkService.kt).
@@ -27,21 +28,33 @@ class BackgroundWorkService {
 
   Future<void> keepScreenOn(bool on) => _call('keepScreenOn', {'on': on});
 
-  Future<void> begin(String title, String subtitle, int done, int total) =>
-      _call('begin', {
-        'title': title,
-        'subtitle': subtitle,
-        'done': done,
-        'total': total,
-      });
+  Future<void> begin(
+    String title,
+    String subtitle,
+    int done,
+    int total, {
+    String paused = '',
+  }) => _call('begin', {
+    'title': title,
+    'subtitle': subtitle,
+    'done': done,
+    'total': total,
+    'paused': paused,
+  });
 
-  Future<void> progress(String title, String subtitle, int done, int total) =>
-      _call('progress', {
-        'title': title,
-        'subtitle': subtitle,
-        'done': done,
-        'total': total,
-      });
+  Future<void> progress(
+    String title,
+    String subtitle,
+    int done,
+    int total, {
+    String paused = '',
+  }) => _call('progress', {
+    'title': title,
+    'subtitle': subtitle,
+    'done': done,
+    'total': total,
+    'paused': paused,
+  });
 
   Future<void> end() => _call('end');
 

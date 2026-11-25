@@ -45,7 +45,6 @@ class PageLayoutService {
     String storedPath, {
     required bool withRules,
   }) async {
-
     List<LayoutLine>? lines;
     double? aspect;
     final resolved = PathResolver.resolve(storedPath);

@@ -1399,6 +1399,20 @@ class AppLocalizationsTe extends AppLocalizations {
   String get jobScreenOn => 'ఇది పూర్తయ్యే వరకు స్క్రీన్ ఆన్‌లో ఉంటుంది.';
 
   @override
+  String get jobLockHint =>
+      'ఈలోగా మీరు ఇతర యాప్‌లు వాడవచ్చు. ఫోన్ లాక్ చేస్తే iPhone దీన్ని పాజ్ చేయవచ్చు. యాప్ తెరిచినప్పుడు అదే పేజీ నుండి కొనసాగుతుంది.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'మీరు దూరంగా ఉన్నప్పుడు ఫోన్ దీన్ని పాజ్ చేసింది. ఏదీ పోలేదు. పేజీ $page నుండి కొనసాగుతోంది.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” పాజ్ అయింది. కొనసాగించడానికి యాప్ తెరవండి.';
+  }
+
+  @override
   String jobPagesToCheck(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

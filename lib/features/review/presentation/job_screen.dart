@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -127,6 +128,17 @@ class _JobScreenState extends ConsumerState<JobScreen> {
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
+                // iOS may stop the work when the phone is locked, and then
+                // shows "Task failed" on the lock screen (tester, build 26).
+                if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.jobLockHint,
+                    key: const ValueKey('job-lock-hint'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ],
               const SizedBox(height: 20),
               if (view != null)

@@ -1397,6 +1397,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get jobScreenOn => 'L’écran reste allumé jusqu’à la fin.';
 
   @override
+  String get jobLockHint =>
+      'Vous pouvez utiliser d’autres apps en attendant. Si vous verrouillez le téléphone, l’iPhone peut mettre ceci en pause. Tout reprend à la même page quand vous rouvrez l’app.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'Votre téléphone a mis ceci en pause pendant votre absence. Rien n’a été perdu. Reprise à la page $page.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '« $title » en pause. Ouvrez l’app pour continuer.';
+  }
+
+  @override
   String jobPagesToCheck(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -44,52 +44,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   /// Built per-build rather than as a `static const` list: the copy is
   /// localized, so it can only be resolved once a BuildContext exists.
   List<_OnboardingPage> _buildPages(BuildContext context) => [
-        for (final page in _allPages(context))
-          if (widget.only == null || widget.only!.contains(page.id)) page,
-      ];
+    for (final page in _allPages(context))
+      if (widget.only == null || widget.only!.contains(page.id)) page,
+  ];
 
   List<_OnboardingPage> _allPages(BuildContext context) => [
-        _OnboardingPage(
-          id: 'scan',
-          icon: Icons.document_scanner,
-          color: const Color(0xFF1A73E8),
-          title: context.l10n.onboardScanTitle,
-          subtitle: context.l10n.onboardScanBody,
-        ),
-        // PreFill: fields found and labelled, then filled from My Details.
-        _OnboardingPage(
-          id: 'prefill',
-          icon: Icons.auto_awesome,
-          color: const Color(0xFF00897B),
-          title: context.l10n.onboardPrefillTitle,
-          subtitle: context.l10n.onboardPrefillBody,
-        ),
-        _OnboardingPage(
-          id: 'sign',
-          icon: Icons.draw,
-          color: const Color(0xFF6A1B9A),
-          title: context.l10n.onboardSignTitle,
-          subtitle: context.l10n.onboardSignBody,
-        ),
-        _OnboardingPage(
-          id: 'send',
-          icon: Icons.send,
-          color: const Color(0xFF2E7D32),
-          title: context.l10n.onboardSendTitle,
-          subtitle: context.l10n.onboardSendBody,
-        ),
-        _OnboardingPage(
-          id: 'free',
-          icon: Icons.workspace_premium,
-          color: const Color(0xFFE37400),
-          title: context.l10n.onboardFreeTitle,
-          subtitle: context.l10n.onboardFreeBody(
-            FreeUsageService.freeDocuments,
-            FreeUsageService.freePageLimit,
-          ),
-        ),
-      ];
-
+    _OnboardingPage(
+      id: 'scan',
+      icon: Icons.document_scanner,
+      color: const Color(0xFF1A73E8),
+      title: context.l10n.onboardScanTitle,
+      subtitle: context.l10n.onboardScanBody,
+    ),
+    // PreFill: fields found and labelled, then filled from My Details.
+    _OnboardingPage(
+      id: 'prefill',
+      icon: Icons.auto_awesome,
+      color: const Color(0xFF00897B),
+      title: context.l10n.onboardPrefillTitle,
+      subtitle: context.l10n.onboardPrefillBody,
+    ),
+    _OnboardingPage(
+      id: 'sign',
+      icon: Icons.draw,
+      color: const Color(0xFF6A1B9A),
+      title: context.l10n.onboardSignTitle,
+      subtitle: context.l10n.onboardSignBody,
+    ),
+    _OnboardingPage(
+      id: 'send',
+      icon: Icons.send,
+      color: const Color(0xFF2E7D32),
+      title: context.l10n.onboardSendTitle,
+      subtitle: context.l10n.onboardSendBody,
+    ),
+    _OnboardingPage(
+      id: 'free',
+      icon: Icons.workspace_premium,
+      color: const Color(0xFFE37400),
+      title: context.l10n.onboardFreeTitle,
+      subtitle: context.l10n.onboardFreeBody(
+        FreeUsageService.freeDocuments,
+        FreeUsageService.freePageLimit,
+      ),
+    ),
+  ];
 
   @override
   void dispose() {
@@ -168,9 +167,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: _page == pages.length - 1
                         ? _finish
                         : () => _controller.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            ),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          ),
                     style: FilledButton.styleFrom(
                       backgroundColor: pages[_page].color,
                       minimumSize: const Size(120, 48),
@@ -234,19 +233,18 @@ class _OnboardingPage extends StatelessWidget {
           const SizedBox(height: 40),
           Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .displaySmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(color: Colors.grey.shade600, height: 1.5),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Colors.grey.shade600,
+              height: 1.5,
+            ),
           ),
         ],
       ),

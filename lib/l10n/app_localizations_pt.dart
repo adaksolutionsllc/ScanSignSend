@@ -1394,6 +1394,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get jobScreenOn => 'A tela fica ligada até terminar.';
 
   @override
+  String get jobLockHint =>
+      'Enquanto isso, você pode usar outros apps. Se você bloquear o telefone, o iPhone pode pausar isto. Continua da mesma página quando você abrir o app.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'Seu telefone pausou isto enquanto você estava fora. Nada foi perdido. Continua da página $page.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” pausado. Abra o app para continuar.';
+  }
+
+  @override
   String jobPagesToCheck(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

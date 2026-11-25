@@ -74,9 +74,21 @@ class _QuietPhone extends BackgroundWorkService {
   @override
   Future<void> keepScreenOn(bool on) async {}
   @override
-  Future<void> begin(String t, String s, int d, int n) async {}
+  Future<void> begin(
+    String t,
+    String s,
+    int d,
+    int n, {
+    String paused = '',
+  }) async {}
   @override
-  Future<void> progress(String t, String s, int d, int n) async {}
+  Future<void> progress(
+    String t,
+    String s,
+    int d,
+    int n, {
+    String paused = '',
+  }) async {}
   @override
   Future<void> end() async {}
 }

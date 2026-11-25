@@ -31,6 +31,9 @@ class FillModeScreen extends ConsumerStatefulWidget {
 class _FillModeScreenState extends ConsumerState<FillModeScreen> {
   int _currentPage = 0;
 
+  /// For swiping between pages of a document with no fields.
+  PageController? _pager;
+
   // Streams are created ONCE here — not in build(). Rebuilding a StreamBuilder
   // with a freshly-allocated stream on every build re-subscribes each frame and
   // spins an infinite rebuild loop (the "flicker" seen when opening a doc).
@@ -60,6 +63,7 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
 
   @override
   void dispose() {
+    _pager?.dispose();
     _prefillNote.dispose();
     super.dispose();
   }
@@ -240,34 +244,36 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
                         _prefillBar(context, prefill),
                         // ── Page image + overlay ──────────────────────────────
                         Expanded(
-                          child: PageCanvas(
-                            key: ValueKey(page.id),
-                            storedPath: page.imagePath,
-                            overlayBuilder: (context, pageRect) => [
-                              for (final field in pageFields)
-                                _fillFieldBox(
-                                  context,
-                                  field,
-                                  pageRect,
-                                  doc?.textSize,
-                                  prefill: prefill,
-                                  neighbours: [
-                                    for (final other in pageFields)
-                                      if (other.id != field.id)
-                                        BoundingBox.fromJsonString(
-                                          other.boundingBoxJson,
-                                        ).inPageRect(pageRect),
+                          child: allFields.isEmpty && pages.length > 1
+                              ? _swipePages(pages, safePage)
+                              : PageCanvas(
+                                  key: ValueKey(page.id),
+                                  storedPath: page.imagePath,
+                                  overlayBuilder: (context, pageRect) => [
+                                    for (final field in pageFields)
+                                      _fillFieldBox(
+                                        context,
+                                        field,
+                                        pageRect,
+                                        doc?.textSize,
+                                        prefill: prefill,
+                                        neighbours: [
+                                          for (final other in pageFields)
+                                            if (other.id != field.id)
+                                              BoundingBox.fromJsonString(
+                                                other.boundingBoxJson,
+                                              ).inPageRect(pageRect),
+                                        ],
+                                      ),
                                   ],
                                 ),
-                            ],
-                          ),
                         ),
                         // ── Page picker ───────────────────────────────────────
                         if (pages.length > 1)
                           _PagePicker(
                             pageCount: pages.length,
                             currentIndex: safePage,
-                            onSelect: (i) => setState(() => _currentPage = i),
+                            onSelect: _showPage,
                           ),
                       ],
                     );
@@ -279,6 +285,43 @@ class _FillModeScreenState extends ConsumerState<FillModeScreen> {
         );
       },
     );
+  }
+
+  /// A document with no fields (a plain PDF or scan): swipe between pages.
+  /// With fields the page stays still, so a swipe never fights moving or
+  /// resizing a field.
+  Widget _swipePages(List<db.Page> pages, int current) {
+    final pager = _pager ??= PageController(initialPage: current);
+    return PageView.builder(
+      controller: pager,
+      // The next and previous pages are kept ready, so a swipe shows them
+      // at once instead of a blank page while the image loads.
+      allowImplicitScrolling: true,
+      itemCount: pages.length,
+      onPageChanged: (i) => setState(() => _currentPage = i),
+      itemBuilder: (context, i) => PageCanvas(
+        key: ValueKey(pages[i].id),
+        storedPath: pages[i].imagePath,
+        overlayBuilder: (context, pageRect) => const [],
+      ),
+    );
+  }
+
+  void _showPage(int i) {
+    setState(() => _currentPage = i);
+    final pager = _pager;
+    if (pager == null || !pager.hasClients) return;
+    // Next or previous page slides; a far one jumps, so the chips don't
+    // run through every page between.
+    if ((i - (pager.page ?? i)).abs() <= 1) {
+      pager.animateToPage(
+        i,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    } else {
+      pager.jumpToPage(i);
+    }
   }
 
   // ── PreFill ────────────────────────────────────────────────────────────────
@@ -955,7 +998,7 @@ class _FilledContent extends StatelessWidget {
 
 // ── Page picker ───────────────────────────────────────────────────────────────
 
-class _PagePicker extends StatelessWidget {
+class _PagePicker extends StatefulWidget {
   const _PagePicker({
     required this.pageCount,
     required this.currentIndex,
@@ -966,19 +1009,55 @@ class _PagePicker extends StatelessWidget {
   final ValueChanged<int> onSelect;
 
   @override
+  State<_PagePicker> createState() => _PagePickerState();
+}
+
+class _PagePickerState extends State<_PagePicker> {
+  // All chips are built (a Row, not a lazy list), so the current one can
+  // always be scrolled into view after a swipe.
+  late List<GlobalKey> _keys = _newKeys();
+
+  List<GlobalKey> _newKeys() =>
+      List.generate(widget.pageCount, (_) => GlobalKey());
+
+  @override
+  void didUpdateWidget(_PagePicker old) {
+    super.didUpdateWidget(old);
+    if (old.pageCount != widget.pageCount) _keys = _newKeys();
+    if (old.currentIndex != widget.currentIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final chip = _keys[widget.currentIndex].currentContext;
+        if (chip == null || !chip.mounted) return;
+        Scrollable.ensureVisible(
+          chip,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 40,
-      child: ListView.separated(
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: pageCount,
-        separatorBuilder: (context, i) => const SizedBox(width: 6),
-        itemBuilder: (ctx, i) => ChoiceChip(
-          label: Text('${i + 1}'),
-          selected: currentIndex == i,
-          onSelected: (_) => onSelect(i),
-          visualDensity: VisualDensity.compact,
+        child: Row(
+          children: [
+            for (var i = 0; i < widget.pageCount; i++) ...[
+              if (i > 0) const SizedBox(width: 6),
+              ChoiceChip(
+                key: _keys[i],
+                label: Text('${i + 1}'),
+                selected: widget.currentIndex == i,
+                onSelected: (_) => widget.onSelect(i),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ],
         ),
       ),
     );

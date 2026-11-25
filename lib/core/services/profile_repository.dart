@@ -17,11 +17,11 @@ class ProfileRepository {
   /// launch can't create two rows, and reading the lowest id (not "the single
   /// row") keeps a database that already has duplicates working.
   Future<UserProfileData> getOrCreate() => _db.transaction(() async {
-        final existing = await _first().getSingleOrNull();
-        if (existing != null) return existing;
-        await _db.into(_db.userProfile).insert(UserProfileCompanion.insert());
-        return _first().getSingle();
-      });
+    final existing = await _first().getSingleOrNull();
+    if (existing != null) return existing;
+    await _db.into(_db.userProfile).insert(UserProfileCompanion.insert());
+    return _first().getSingle();
+  });
 
   SimpleSelectStatement<$UserProfileTable, UserProfileData> _first() =>
       _db.select(_db.userProfile)
@@ -43,30 +43,30 @@ class ProfileRepository {
   Future<void> update(UserProfileCompanion companion) async {
     // Don't assume id==1 — target whatever row getOrCreate established.
     final profile = await getOrCreate();
-    await (_db.update(_db.userProfile)..where((t) => t.id.equals(profile.id)))
-        .write(companion);
+    await (_db.update(
+      _db.userProfile,
+    )..where((t) => t.id.equals(profile.id))).write(companion);
   }
 
   /// Settings → My Details → Delete my details: clears every detail PreFill
   /// uses (and the pre-v8 full name), leaving settings and purchase alone.
   Future<void> clearDetails() => update(
-        const UserProfileCompanion(
-          fullName: Value(''),
-          firstName: Value(''),
-          middleName: Value(''),
-          lastName: Value(''),
-          email: Value(''),
-          phone: Value(''),
-          address: Value(''),
-          address2: Value(''),
-          city: Value(''),
-          state: Value(''),
-          zip: Value(''),
-          country: Value(''),
-          company: Value(''),
-          jobTitle: Value(''),
-          dateOfBirth: Value(null),
-        ),
-      );
-
+    const UserProfileCompanion(
+      fullName: Value(''),
+      firstName: Value(''),
+      middleName: Value(''),
+      lastName: Value(''),
+      email: Value(''),
+      phone: Value(''),
+      address: Value(''),
+      address2: Value(''),
+      city: Value(''),
+      state: Value(''),
+      zip: Value(''),
+      country: Value(''),
+      company: Value(''),
+      jobTitle: Value(''),
+      dateOfBirth: Value(null),
+    ),
+  );
 }

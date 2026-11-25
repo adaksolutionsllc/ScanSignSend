@@ -26,7 +26,10 @@ void main() {
     ];
     for (final b in cases) {
       final back = PdfGeometry.pdfToNorm(
-          PdfGeometry.normToPdf(b, pw, ph), pw, ph);
+        PdfGeometry.normToPdf(b, pw, ph),
+        pw,
+        ph,
+      );
       expect(back.x, closeTo(b.x, 1e-9));
       expect(back.y, closeTo(b.y, 1e-9));
       expect(back.w, closeTo(b.w, 1e-9));

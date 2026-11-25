@@ -2400,6 +2400,24 @@ abstract class AppLocalizations {
   /// **'The screen stays on until this is done.'**
   String get jobScreenOn;
 
+  /// No description provided for @jobLockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can use other apps meanwhile. If you lock the phone, iPhone may pause this. It goes on from the same page when you open the app.'**
+  String get jobLockHint;
+
+  /// No description provided for @jobResumedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone paused this while you were away. Nothing was lost. It goes on from page {page}.'**
+  String jobResumedNotice(int page);
+
+  /// No description provided for @jobPausedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” paused. Open the app to go on.'**
+  String jobPausedBanner(String title);
+
   /// No description provided for @jobPagesToCheck.
   ///
   /// In en, this message translates to:

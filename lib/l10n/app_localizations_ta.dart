@@ -1400,6 +1400,20 @@ class AppLocalizationsTa extends AppLocalizations {
   String get jobScreenOn => 'இது முடியும் வரை திரை இயக்கத்தில் இருக்கும்.';
 
   @override
+  String get jobLockHint =>
+      'இதற்கிடையில் மற்ற ஆப்களைப் பயன்படுத்தலாம். ஃபோனைப் பூட்டினால் iPhone இதை இடைநிறுத்தக்கூடும். ஆப்பைத் திறந்ததும் அதே பக்கத்திலிருந்து தொடரும்.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'நீங்கள் வெளியே இருந்தபோது ஃபோன் இதை இடைநிறுத்தியது. எதுவும் இழக்கப்படவில்லை. பக்கம் $page இலிருந்து தொடர்கிறது.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” இடைநிறுத்தப்பட்டது. தொடர ஆப்பைத் திறக்கவும்.';
+  }
+
+  @override
   String jobPagesToCheck(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

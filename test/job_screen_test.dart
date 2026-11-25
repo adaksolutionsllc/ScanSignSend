@@ -4,6 +4,7 @@
 
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +25,18 @@ class _FakeRunner extends ChangeNotifier implements ImportJobRunner {
   final results = <int, JobResult>{};
   final calls = <String>[];
   int pending = 0;
+
+  /// What onAppResumed returns: pages the system-paused jobs go on from.
+  List<int> resumedPages = const [];
+
+  @override
+  JobStrings strings = JobStrings.fallback;
+
+  @override
+  Future<void> restore() async {}
+
+  @override
+  List<int> onAppResumed() => resumedPages;
 
   void set(JobView? v, {int docId = 7}) {
     if (v == null) {
@@ -136,6 +149,64 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('job-pause')));
     await tester.tap(find.byKey(const ValueKey('straighten-progress-skip')));
     expect(runner.calls, ['pause 7', 'skip 7']);
+  });
+
+  testWidgets('iOS: running says the phone may pause it when locked', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    try {
+      await open(tester);
+      expect(find.text(l10n.jobLockHint), findsOneWidget);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('Android: no lock line (the work goes on when locked)', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    try {
+      await open(tester);
+      expect(find.text(l10n.jobScreenOn), findsOneWidget);
+      expect(find.text(l10n.jobLockHint), findsNothing);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('the app back in front: a message for a job the phone paused', (
+    tester,
+  ) async {
+    final runner = _FakeRunner()..resumedPages = [6];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [importJobRunnerProvider.overrideWith((ref) => runner)],
+        child: MaterialApp(
+          localizationsDelegates: kLocalizationsDelegates,
+          supportedLocales: kSupportedLocales,
+          builder: (context, child) => ImportJobHost(child: child!),
+          home: const Scaffold(body: Text('library')),
+        ),
+      ),
+    );
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text(l10n.jobResumedNotice(6)), findsOneWidget);
+
+    // Nothing the phone paused: no message.
+    ScaffoldMessenger.of(
+      tester.element(find.text('library')),
+    ).removeCurrentSnackBar();
+    await tester.pump();
+    runner.resumedPages = const [];
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('paused: Resume and the saved-progress line', (tester) async {

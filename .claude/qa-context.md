@@ -27,6 +27,13 @@ Read by the shared `qa-reviewer` agent (claude-config/agents/qa-reviewer.md).
 ## Devices
 
 - iOS simulator: `0B6370E0-C54F-4ACF-9CB6-9C766F8EEAFE` (SSS Verify iPhone).
+- iOS simulator, small phone with no Dynamic Island:
+  `8AAF3DFE-35EA-4461-AE4C-8A3FE2292EB9` (SSS Verify iPhone 16e). Use it as
+  well as the one above for any screen-layout change. The other is an
+  iPhone 17 Pro Max: system UI on phones with no Dynamic Island (iOS 26's
+  background-task banner) never showed there, and a tester's iPhone hit it
+  (1.3.2 build 26). The simulator does not show that banner either; check it
+  on a real phone with no Dynamic Island.
 - Android emulator: `emulator-5554` (Pixel 9 Pro XL, API 36).
 - Never touch: simulator `088FE797-D539-42E1-99D9-2F6FEA6F3725`, and any
   physical phone.

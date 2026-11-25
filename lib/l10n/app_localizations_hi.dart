@@ -1393,6 +1393,20 @@ class AppLocalizationsHi extends AppLocalizations {
   String get jobScreenOn => 'यह पूरा होने तक स्क्रीन चालू रहेगी।';
 
   @override
+  String get jobLockHint =>
+      'इस बीच आप दूसरे ऐप इस्तेमाल कर सकते हैं। फ़ोन लॉक करने पर iPhone इसे रोक सकता है। ऐप खोलने पर यह उसी पृष्ठ से आगे चलेगा।';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'आपके दूर रहने पर फ़ोन ने इसे रोक दिया था। कुछ भी नहीं खोया। यह पृष्ठ $page से आगे चल रहा है।';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” रुका हुआ है। आगे बढ़ाने के लिए ऐप खोलें।';
+  }
+
+  @override
   String jobPagesToCheck(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

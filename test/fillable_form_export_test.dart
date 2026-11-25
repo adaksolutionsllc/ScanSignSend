@@ -12,17 +12,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 void main() {
-  test('filling existing AcroForm widgets round-trips through save/reload',
-      () async {
+  test('filling existing AcroForm widgets round-trips through save/reload', () async {
     // ── Author a form (stands in for an imported fillable PDF) ────────────────
     final authored = PdfDocument();
     final page = authored.pages.add();
     authored.form.fields.add(
-        PdfTextBoxField(page, 'full_name', const Rect.fromLTWH(40, 40, 200, 24)));
+      PdfTextBoxField(page, 'full_name', const Rect.fromLTWH(40, 40, 200, 24)),
+    );
     authored.form.fields.add(
-        PdfCheckBoxField(page, 'agree', const Rect.fromLTWH(40, 80, 20, 20)));
+      PdfCheckBoxField(page, 'agree', const Rect.fromLTWH(40, 80, 20, 20)),
+    );
     authored.form.fields.add(
-        PdfSignatureField(page, 'sig', bounds: const Rect.fromLTWH(40, 120, 200, 60)));
+      PdfSignatureField(
+        page,
+        'sig',
+        bounds: const Rect.fromLTWH(40, 120, 200, 60),
+      ),
+    );
     final authoredBytes = await authored.save();
     authored.dispose();
 
@@ -45,8 +51,11 @@ void main() {
 
     // ── Re-open the filled output and assert the values stuck ─────────────────
     final reopened = PdfDocument(inputBytes: filledBytes);
-    expect(reopened.form.fields.count, 3,
-        reason: 'form must stay live (3 fields) after filling');
+    expect(
+      reopened.form.fields.count,
+      3,
+      reason: 'form must stay live (3 fields) after filling',
+    );
 
     String? nameValue;
     bool? agreeValue;
@@ -64,22 +73,32 @@ void main() {
     expect(agreeValue, isTrue);
   });
 
-  test('authoring new widgets on an image-less page produces a live form',
-      () async {
-    // Mirrors _addWidget for the scanned-page path: create fields from scratch.
-    final doc = PdfDocument();
-    final page = doc.pages.add();
-    final tb = PdfTextBoxField(page, 'field_text', const Rect.fromLTWH(50, 50, 150, 22));
-    tb.text = 'seeded';
-    doc.form.fields.add(tb);
-    final cb = PdfCheckBoxField(page, 'field_check', const Rect.fromLTWH(50, 90, 18, 18));
-    cb.isChecked = true;
-    doc.form.fields.add(cb);
-    final bytes = await doc.save();
-    doc.dispose();
+  test(
+    'authoring new widgets on an image-less page produces a live form',
+    () async {
+      // Mirrors _addWidget for the scanned-page path: create fields from scratch.
+      final doc = PdfDocument();
+      final page = doc.pages.add();
+      final tb = PdfTextBoxField(
+        page,
+        'field_text',
+        const Rect.fromLTWH(50, 50, 150, 22),
+      );
+      tb.text = 'seeded';
+      doc.form.fields.add(tb);
+      final cb = PdfCheckBoxField(
+        page,
+        'field_check',
+        const Rect.fromLTWH(50, 90, 18, 18),
+      );
+      cb.isChecked = true;
+      doc.form.fields.add(cb);
+      final bytes = await doc.save();
+      doc.dispose();
 
-    final reopened = PdfDocument(inputBytes: bytes);
-    expect(reopened.form.fields.count, 2);
-    reopened.dispose();
-  });
+      final reopened = PdfDocument(inputBytes: bytes);
+      expect(reopened.form.fields.count, 2);
+      reopened.dispose();
+    },
+  );
 }

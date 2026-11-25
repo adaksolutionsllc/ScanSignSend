@@ -137,6 +137,38 @@ provide_upgrade() {
   fi
 }
 
+# RECORD:<name> … STOP:<name>: a screen video, then <name>.gif next to it.
+REC_PID=""
+record() {
+  if [[ $PLATFORM == ios ]]; then
+    xcrun simctl io "$DEV" recordVideo --codec=h264 --force "$OUT/$1.mp4" >/dev/null 2>&1 &
+  else
+    adb -s "$DEV" shell screenrecord --bit-rate 6000000 "/sdcard/$1.mp4" &
+  fi
+  REC_PID=$!
+}
+stop_record() {
+  [[ -z $REC_PID ]] && return
+  if [[ $PLATFORM == ios ]]; then
+    kill -INT "$REC_PID" 2>/dev/null || true
+    wait "$REC_PID" 2>/dev/null || true
+  else
+    # </dev/null: anything reading stdin here eats the test's output lines.
+    adb -s "$DEV" shell pkill -INT screenrecord </dev/null || true
+    wait "$REC_PID" 2>/dev/null || true
+    sleep 1
+    adb -s "$DEV" pull "/sdcard/$1.mp4" "$OUT/$1.mp4" </dev/null >/dev/null
+    adb -s "$DEV" shell rm -f "/sdcard/$1.mp4" </dev/null
+  fi
+  REC_PID=""
+  # In the background, so the next marker is not held up.
+  if command -v ffmpeg >/dev/null; then
+    ffmpeg -nostdin -loglevel error -y -i "$OUT/$1.mp4" -vf \
+      "fps=12,scale=360:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" \
+      "$OUT/$1.gif" </dev/null || true &
+  fi
+}
+
 shot() {
   if [[ $PLATFORM == ios ]]; then
     xcrun simctl io "$DEV" screenshot "$1" >/dev/null 2>&1
@@ -173,6 +205,10 @@ run() {  # run <test file> [flutter test args...]
       adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \
         sh -c 'cat > cache/Rental_Application.pdf' \
         < tool/store_capture/forms/Rental_Application.pdf
+    elif [[ "$line" =~ RECORD:([a-z0-9_]+) ]]; then
+      record "${BASH_REMATCH[1]}"
+    elif [[ "$line" =~ STOP:([a-z0-9_]+) ]]; then
+      stop_record "${BASH_REMATCH[1]}"
     elif [[ "$line" =~ LEAVE:([a-z0-9_]+) ]]; then
       # The app is about to leave for another app: shoot that, then return.
       n=$((n + 1))

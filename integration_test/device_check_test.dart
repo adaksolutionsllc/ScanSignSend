@@ -278,7 +278,12 @@ void main() {
     // Then from the bar.
     await _waitFor(tester, find.byKey(barFill));
     await tester.tap(find.byKey(barFill));
-    await _pause(tester, 1500);
+    // Up to 5 s: on a busy emulator the writes take longer than 1.5 s.
+    final fillBy = DateTime.now().add(const Duration(seconds: 5));
+    while ((await w4Values()).length < filled.length &&
+        DateTime.now().isBefore(fillBy)) {
+      await _pause(tester, 200);
+    }
     expect((await w4Values()).length, filled.length);
     _mark('INFO:prefill bar + bottom button ok');
     // Let the snackbar go before the next taps.
@@ -518,6 +523,68 @@ void main() {
     await expectUnchanged('Skip while straightening', pages: 24);
     _mark('INFO:skip while straightening went to Review, pdf kept');
 
+    // Before the restart below: its new runner takes over the channel.
+    // The phone ends the background time (iOS, phone locked; it shows
+    // "Task failed"): the job pauses. Back in the app it goes on, and the
+    // app says nothing was lost (tester, build 26).
+    await openLong('long_scan_6.pdf', pages: 24);
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    await _waitFor(tester, find.byKey(const ValueKey('job-pause')));
+    await _pause(tester, 700); // the job screen slides in
+    final jobs = container.read(importJobRunnerProvider);
+    final awayId = (await newest()).id;
+    // What BackgroundWorkPlugin sends when iOS ends the time.
+    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+      'com.scansignsend/background',
+      const StandardMethodCodec().encodeMethodCall(const MethodCall('expired')),
+      (_) {},
+    );
+    await _waitFor(
+      tester,
+      find.byKey(const ValueKey('job-resume')),
+      seconds: 60,
+    );
+    final awayBy = DateTime.now().add(const Duration(seconds: 60));
+    while (jobs.view(awayId)!.running) {
+      if (DateTime.now().isAfter(awayBy)) {
+        fail('the system pause never stopped it');
+      }
+      await _pause(tester, 200);
+    }
+    final awayAt = jobs.view(awayId)!.done;
+    for (final state in const [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    // The page after the last one finished; the progress shown while
+    // paused may still name the one before.
+    final told = find.textContaining(
+      RegExp(
+        RegExp.escape(l10n.jobResumedNotice(999)).replaceAll('999', r'\d+'),
+      ),
+    );
+    await _waitFor(tester, told);
+    final from = int.parse(
+      RegExp(r'\d+').allMatches(tester.widget<Text>(told).data!).last[0]!,
+    );
+    expect(from, inInclusiveRange(awayAt + 1, awayAt + 2));
+    await _pause(tester, 400);
+    _mark('CAPTURE:job_resumed_after_lock');
+    await _pause(tester, 1200);
+    ScaffoldMessenger.of(
+      tester.element(find.byType(JobScreen)),
+    ).hideCurrentSnackBar();
+    await jobs.skip(awayId);
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    await _pause(tester, 600);
+    _mark('INFO:system pause went on from page $from, told');
+
     // Pause, use the app, and go on after a restart (plan 1.3.2): the job
     // is saved after every page. A new runner stands in for a restarted
     // app: it reads the saved job, shows it paused, and finishes it.
@@ -621,6 +688,45 @@ void main() {
     expect(scan?.pressedPdfPath, isNotNull, reason: 'no PDF saved');
     expect(scan?.statusEnum, DocumentStatus.pressed, reason: 'not Completed');
     _mark('INFO:scan saved without fields as Completed');
+
+    // A document with no fields swipes between pages in Fill mode, and the
+    // page chips follow (tester, build 26: "click each page number").
+    final plainId = await _plainPagesDocument(container, 12);
+    router.go(AppRoutes.fillMode.replaceAll(':docId', '$plainId'));
+    await _waitFor(tester, find.byType(PageView));
+    await _pause(tester, 1200);
+    String chip() =>
+        (tester
+                    .widgetList<ChoiceChip>(find.byType(ChoiceChip))
+                    .singleWhere((c) => c.selected)
+                    .label
+                as Text)
+            .data!;
+    await _capture(tester, 'fill_swipe_page1');
+    _mark('RECORD:fill_swipe');
+    await _pause(tester, 800);
+    for (var i = 0; i < 4; i++) {
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1200);
+      await _pause(tester, 900);
+    }
+    expect(chip(), '5', reason: 'swipes did not move the page');
+    await tester.fling(find.byType(PageView), const Offset(300, 0), 1200);
+    await _pause(tester, 900);
+    expect(chip(), '4');
+    await tester.ensureVisible(find.widgetWithText(ChoiceChip, '9'));
+    await _pause(tester, 400);
+    await tester.tap(find.widgetWithText(ChoiceChip, '9'));
+    await _pause(tester, 900);
+    expect(chip(), '9', reason: 'chip tap did not move the page');
+    for (var i = 0; i < 3; i++) {
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1200);
+      await _pause(tester, 900);
+    }
+    expect(chip(), '12');
+    _mark('STOP:fill_swipe');
+    await _pause(tester, 600);
+    await _capture(tester, 'fill_swipe_page12');
+    _mark('INFO:no-fields doc swiped 1→5→4, chip 9, swiped to 12');
 
     // Categories: the imported W-4 was sorted on its own (keywords on the
     // simulator, the phone's model where it has one). The Library shows the
@@ -819,6 +925,57 @@ Future<int> _scannedDocument(ProviderContainer container) async {
         pageIndex: 0,
         imagePath: '${file.path}#page=0',
       );
+  return doc.id;
+}
+
+/// A scanned document of [pages] image pages, each with its number large,
+/// and no fields.
+Future<int> _plainPagesDocument(ProviderContainer container, int pages) async {
+  final doc = await container
+      .read(documentRepositoryProvider)
+      .createDocument('Sale deed');
+  final dir = await getApplicationDocumentsDirectory();
+  final folder = Directory(p.join(dir.path, 'scans', 'plain_${doc.id}'));
+  await folder.create(recursive: true);
+  for (var i = 0; i < pages; i++) {
+    final image = img.Image(width: 840, height: 1188);
+    img.fill(image, color: img.ColorRgb8(250, 249, 245));
+    for (var line = 0; line < 14; line++) {
+      img.fillRect(
+        image,
+        x1: 90,
+        y1: 380 + line * 50,
+        x2: 750 - (line % 4) * 90,
+        y2: 392 + line * 50,
+        color: img.ColorRgb8(60, 60, 68),
+      );
+    }
+    final number = img.Image(width: 120, height: 60);
+    img.fill(number, color: img.ColorRgb8(250, 249, 245));
+    img.drawString(
+      number,
+      '${i + 1}',
+      font: img.arial48,
+      x: 10,
+      y: 5,
+      color: img.ColorRgb8(30, 60, 150),
+    );
+    img.compositeImage(
+      image,
+      img.copyResize(number, width: 360),
+      dstX: 90,
+      dstY: 90,
+    );
+    final file = File(p.join(folder.path, 'page_$i.jpg'));
+    await file.writeAsBytes(img.encodeJpg(image, quality: 85));
+    await container
+        .read(pageRepositoryProvider)
+        .addPage(
+          documentId: doc.id,
+          pageIndex: i,
+          imagePath: PathResolver.toStorable(file.path),
+        );
+  }
   return doc.id;
 }
 

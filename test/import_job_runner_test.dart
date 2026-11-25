@@ -136,6 +136,7 @@ class _FakeEdges implements EdgeCheckService {
 class _FakePhone extends BackgroundWorkService {
   final screen = <bool>[];
   final calls = <String>[];
+  final pausedTitles = <String>[];
 
   @override
   Future<void> keepScreenOn(bool on) async => screen.add(on);
@@ -145,16 +146,24 @@ class _FakePhone extends BackgroundWorkService {
     String title,
     String subtitle,
     int done,
-    int total,
-  ) async => calls.add('begin $title | $subtitle');
+    int total, {
+    String paused = '',
+  }) async {
+    calls.add('begin $title | $subtitle');
+    pausedTitles.add(paused);
+  }
 
   @override
   Future<void> progress(
     String title,
     String subtitle,
     int done,
-    int total,
-  ) async => calls.add('progress $done/$total');
+    int total, {
+    String paused = '',
+  }) async {
+    calls.add('progress $done/$total');
+    pausedTitles.add(paused);
+  }
 
   @override
   Future<void> end() async => calls.add('end');
@@ -182,6 +191,7 @@ void main() {
           checking: (t) => 'Checking $t',
           straightening: (t) => 'Straightening $t',
           page: (c, t) => 'Page $c of $t',
+          paused: (t) => 'Paused $t',
         );
 
   setUp(() async {
@@ -454,6 +464,39 @@ void main() {
     runner.onAppResumed();
     await settle();
     expect(runner.view(doc)!.step, JobStep.choose);
+  });
+
+  test('after a system pause: the page it goes on from', () async {
+    await runner.startCheck(doc);
+    await settle();
+    phone.onExpired!();
+    await settle();
+    edges.release(); // page 11 done, then the job pauses
+    await settle();
+    expect(runner.view(doc)!.paused, isTrue);
+    // The progress still names page 1 (told when a page starts); the job
+    // goes on from page 2.
+    expect(runner.view(doc)!.done, 0);
+    expect(runner.onAppResumed(), [2]);
+    await settle();
+    expect(runner.view(doc)!.paused, isFalse);
+    // Back again with nothing paused by the system: nothing to tell.
+    expect(runner.onAppResumed(), isEmpty);
+  });
+
+  test('nothing paused by the system: no page to tell', () async {
+    await runner.startCheck(doc);
+    await settle();
+    expect(runner.onAppResumed(), isEmpty);
+  });
+
+  test('the phone gets the paused title with the progress', () async {
+    await runner.startCheck(doc);
+    await settle();
+    edges.release();
+    await settle();
+    expect(phone.pausedTitles, isNotEmpty);
+    expect(phone.pausedTitles.toSet(), {'Paused Tax form'});
   });
 
   test('time left: from page times, not from time away from the app', () async {
