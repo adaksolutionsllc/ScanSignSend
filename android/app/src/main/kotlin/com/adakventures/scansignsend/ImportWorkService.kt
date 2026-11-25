@@ -20,10 +20,13 @@ import androidx.core.app.ServiceCompat
  * The work itself runs in Dart; this service only holds a foreground
  * notification with the progress.
  *
- * Type mediaProcessing on Android 15+, dataSync on Android 14 (local file
- * processing), none below. Started while the app is in front (Android
- * doesn't allow it from the background) and stopped when the job ends or
- * pauses. stopWithTask: swiping the app away from Recents ends the Flutter
+ * Type dataSync (local file processing) on Android 14+, none below.
+ * mediaProcessing is not used: Android 16 rejected it with "Starting FGS
+ * with type none" even with the type and permission declared (1.3.2 build
+ * 27, emulator API 36), so the job had no service at all.
+ *
+ * Started while the app is in front (Android doesn't allow it from the
+ * background) and stopped when the job ends or pauses. stopWithTask: swiping the app away from Recents ends the Flutter
  * engine and the job, so the service goes too; the job shows as paused on
  * the next start.
  *
@@ -115,10 +118,10 @@ class ImportWorkService : Service() {
             intent?.getIntExtra(EXTRA_DONE, 0) ?: 0,
             intent?.getIntExtra(EXTRA_TOTAL, 0) ?: 0,
         )
-        val type = when {
-            Build.VERSION.SDK_INT >= 35 -> ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING
-            Build.VERSION.SDK_INT >= 34 -> ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            else -> 0
+        val type = if (Build.VERSION.SDK_INT >= 34) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        } else {
+            0
         }
         try {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, note, type)
@@ -129,7 +132,7 @@ class ImportWorkService : Service() {
         return START_NOT_STICKY
     }
 
-    // Android 15: the mediaProcessing time (6 h a day) ran out.
+    // Android 15+: the dataSync time (6 h a day) ran out.
     override fun onTimeout(startId: Int, fgsType: Int) {
         stopSelf()
     }

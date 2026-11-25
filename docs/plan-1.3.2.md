@@ -125,10 +125,12 @@ Known limits (Apple forums, not Apple docs — check on a device):
 notification ("Straightening “Tax form”", "Page 7 of 18"). **Changed:** no
 Pause action in the notification: without the notification permission
 (decision 2) most Android 13+ users would not see it. Tap opens the app.
-- Type `mediaProcessing` on Android 15+ (permission
-  `FOREGROUND_SERVICE_MEDIA_PROCESSING`; a 6-hour limit in 24 hours, shared).
-  Type `dataSync` on Android 14 (`FOREGROUND_SERVICE_DATA_SYNC`).
-  Below 14: no type.
+- Type `dataSync` on Android 14+ (`FOREGROUND_SERVICE_DATA_SYNC`; on 15+ a
+  6-hour limit in 24 hours, shared). Below 14: no type.
+  **Changed (build 28, 2026-11-25):** build 27 used `mediaProcessing` on 15+.
+  Android 16 rejected it ("Starting FGS with type none"), so 27 had no
+  service on 15+. `dataSync` was checked on the API 36 emulator: foreground,
+  and the job went from page 2 to 14 while the app was away.
 - The service only keeps the process alive. The job still runs in Dart.
 - Swiping the app away from Recents ends the Flutter engine. The checkpoint
   covers this: the job shows as Paused on the next start.
@@ -154,7 +156,7 @@ Pause action in the notification: without the notification permission
 |---|---|---|---|
 | 1 | Background use must match its purpose | App Review 2.5.4 (task completion is allowed) | Only user-started import work; system progress UI; ends when done |
 | 2 | Screen kept on for no reason | One 2.5.1 rejection of a clock app (forum anecdote) | Hold only while a job runs and the app is open; released on pause |
-| 3 | Foreground service type must fit the work | Play foreground service policy; Android 14+ type rules | `mediaProcessing` fits (processing media files); declaration + video in Play Console |
+| 3 | Foreground service type must fit the work | Play foreground service policy; Android 14+ type rules | `dataSync`, use case "Local processing: Import or export" (build 28); declaration + video in Play Console |
 | 4 | New Android permissions | Manifest strips other permissions on purpose | Add only the two FGS permissions; no notification permission (decision 2) |
 
 To verify during the build (not guessed): the exact Info.plist keys for

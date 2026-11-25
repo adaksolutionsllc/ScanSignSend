@@ -17,10 +17,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Long import jobs keep running when the user leaves the app
-         (ImportWorkService): mediaProcessing on Android 15+, dataSync
-         (local file processing) on Android 14. -->
+         (ImportWorkService): dataSync (local file processing) on Android
+         14+. mediaProcessing was rejected on Android 16 ("type none"). -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- No storage permission is declared on purpose. Imports go through the
          Storage Access Framework (file_picker → ACTION_GET_CONTENT) and the ML
@@ -103,7 +102,7 @@
             android:name=".ImportWorkService"
             android:exported="false"
             android:stopWithTask="true"
-            android:foregroundServiceType="mediaProcessing|dataSync" />
+            android:foregroundServiceType="dataSync" />
     </application>
     <queries>
         <intent>
