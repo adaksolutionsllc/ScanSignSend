@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
@@ -286,6 +287,71 @@ void main() {
         expect(found.map((x) => x.id), [d.id]);
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getBool(DocumentSorter.formTextBackfilledKey), isTrue);
+      },
+    );
+
+    test(
+      'the other pages are read after the edge check, where they are then',
+      () async {
+        model.status = 'unsupported';
+        Future<File> onePage(String name, String words) async {
+          final pdf = PdfDocument();
+          pdf.pages.add().graphics.drawString(
+            words,
+            PdfStandardFont(PdfFontFamily.helvetica, 18),
+            bounds: const Rect.fromLTWH(40, 40, 400, 40),
+          );
+          final f = File('${tmp.path}/$name.pdf')
+            ..writeAsBytesSync(await pdf.save());
+          pdf.dispose();
+          return f;
+        }
+
+        final first = await onePage('first', 'Invoice number 7');
+        final second = await onePage('second', 'Zebracorn delivery terms');
+        final d = await doc('Two files');
+        await pages.addPage(
+          documentId: d.id,
+          pageIndex: 0,
+          imagePath: '${first.path}#page=0',
+        );
+        final p2 = await pages.addPage(
+          documentId: d.id,
+          pageIndex: 1,
+          imagePath: '${second.path}#page=0',
+        );
+
+        final edgeCheck = Completer<void>();
+        final sorting = sorter.sortNew(
+          d.id,
+          nameFor: (t) => t,
+          readRestAfter: edgeCheck.future,
+        );
+        // Sorted from page 1 at once; page 2 waits.
+        for (var i = 0; i < 50; i++) {
+          if ((await docs.getById(d.id))!.category != null) break;
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+        expect((await docs.getById(d.id))!.ocrText, contains('Invoice'));
+        expect(
+          (await docs.getById(d.id))!.ocrText,
+          isNot(contains('Zebracorn')),
+        );
+
+        // The edge check replaces page 2's file meanwhile.
+        final moved = await onePage('moved', 'Quokka delivery terms');
+        second.deleteSync();
+        await pages.updatePage(
+          PagesCompanion(
+            id: Value(p2),
+            imagePath: Value('${moved.path}#page=0'),
+          ),
+        );
+        edgeCheck.complete();
+        await sorting;
+        final text = (await docs.getById(d.id))!.ocrText;
+        expect(text, contains('Invoice'));
+        expect(text, contains('Quokka'));
       },
     );
 

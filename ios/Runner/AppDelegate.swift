@@ -23,5 +23,7 @@ import UIKit
     EdgeDetectionPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "EdgeDetectionPlugin")!)
     PdfPasswordPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "PdfPasswordPlugin")!)
     ShortcutsPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "ShortcutsPlugin")!)
+    TextRecognitionPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "TextRecognitionPlugin")!)
+    BackgroundWorkPlugin.register(with: engineBridge.pluginRegistry.registrar(forPlugin: "BackgroundWorkPlugin")!)
   }
 }

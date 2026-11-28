@@ -600,9 +600,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get sendPressedPdfNotFound => 'முடிக்கப்பட்ட PDF கிடைக்கவில்லை.';
 
   @override
-  String get sendShareMessage => 'Scan Sign Send மூலம் கையொப்பமிடப்பட்டது';
-
-  @override
   String sendShareFailed(String error) {
     return 'பகிர்வு தோல்வி: $error';
   }
@@ -918,15 +915,15 @@ class AppLocalizationsTa extends AppLocalizations {
   String get detectFieldDeleted => 'புலம் நீக்கப்பட்டது';
 
   @override
-  String get detectRemoveDetected => 'கண்டறிந்த புலங்களை நீக்கு';
+  String get detectRemoveAll => 'அனைத்தையும் நீக்கு';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'கண்டறிந்த $count புலங்கள் நீக்கப்பட்டன',
-      one: 'கண்டறிந்த 1 புலம் நீக்கப்பட்டது',
+      other: '$count புலங்கள் நீக்கப்பட்டன',
+      one: '1 புலம் நீக்கப்பட்டது',
     );
     return '$_temp0';
   }
@@ -1304,6 +1301,74 @@ class AppLocalizationsTa extends AppLocalizations {
       'இந்தப் பக்கத்தைச் செதுக்க முடியவில்லை. முழுப் படம் வைக்கப்பட்டது.';
 
   @override
+  String get straightenAskTitle => 'பக்கங்களை நேராக்கவா?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'ஒவ்வொரு பக்கத்தின் ஓரங்களையும் ஆப் கண்டறியும், நீங்கள் அவற்றைச் செதுக்கலாம். இந்த $count பக்கங்களுக்குச் சுமார் $minutes நிமிடங்கள் ஆகும்.',
+      one:
+          'ஒவ்வொரு பக்கத்தின் ஓரங்களையும் ஆப் கண்டறியும், நீங்கள் அவற்றைச் செதுக்கலாம். இந்த $count பக்கங்களுக்குச் சுமார் 1 நிமிடம் ஆகும்.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'ஒவ்வொரு பக்கத்தின் ஓரங்களையும் ஆப் கண்டறியும், நீங்கள் அவற்றைச் செதுக்கலாம். இந்த $count பக்கங்களுக்கு ஒரு நிமிடத்துக்கும் குறைவாக ஆகும்.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'சுமார் $minutes நிமிடங்கள் மீதம்',
+      one: 'சுமார் 1 நிமிடம் மீதம்',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'ஒரு நிமிடத்துக்கும் குறைவாக மீதம்';
+
+  @override
+  String get straightenGo => 'நேராக்கு';
+
+  @override
+  String get straightenKeep => 'அப்படியே வை';
+
+  @override
+  String get straightenAskLater =>
+      'பக்கங்கள் ஏற்கெனவே நேராக இருந்தால் ‘அப்படியே வை’ என்பதைத் தேர்ந்தெடுங்கள். பின்னர் ‘பக்கங்களைச் சரிபார்’ திரையிலும் அவற்றை நேராக்கலாம்.';
+
+  @override
+  String get reviewStraighten => 'பக்கங்களை நேராக்கு';
+
+  @override
+  String get reviewStraightenNone =>
+      'சரிசெய்ய வேண்டிய பக்க ஓரங்கள் எதுவும் கிடைக்கவில்லை.';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'பக்கம் $current / $total சரிபார்க்கப்படுகிறது…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'பக்கம் $current / $total நேராக்கப்படுகிறது…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'மீதிப் பக்கங்களின் முழுப் படத்தையும் வை';
+
+  @override
+  String get jobKeepUsing => 'ஆப்பைத் தொடர்ந்து பயன்படுத்து';
+
+  @override
   String get importErrorMixed =>
       'ஒரு PDF அல்லது ஒன்று அல்லது அதற்கு மேற்பட்ட படங்களைத் தேர்ந்தெடுங்கள்.';
 
@@ -1319,6 +1384,75 @@ class AppLocalizationsTa extends AppLocalizations {
       one: '1 பக்கம்',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'இடைநிறுத்து';
+
+  @override
+  String get jobResume => 'தொடர்';
+
+  @override
+  String get jobPaused => 'இடைநிறுத்தப்பட்டது';
+
+  @override
+  String get jobPausedHint =>
+      'இடைநிறுத்தப்பட்டது. இதுவரை முடிந்த பக்கங்கள் சேமிக்கப்பட்டுள்ளன.';
+
+  @override
+  String get jobWaiting => 'காத்திருக்கிறது';
+
+  @override
+  String get jobScreenOn => 'இது முடியும் வரை திரை இயக்கத்தில் இருக்கும்.';
+
+  @override
+  String get jobLockHint =>
+      'இதற்கிடையில் மற்ற ஆப்களைப் பயன்படுத்தலாம். ஃபோனைப் பூட்டினால் iPhone இதை இடைநிறுத்தக்கூடும். ஆப்பைத் திறந்ததும் அதே பக்கத்திலிருந்து தொடரும்.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'நீங்கள் வெளியே இருந்தபோது ஃபோன் இதை இடைநிறுத்தியது. எதுவும் இழக்கப்படவில்லை. பக்கம் $page இலிருந்து தொடர்கிறது.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” இடைநிறுத்தப்பட்டது. தொடர ஆப்பைத் திறக்கவும்.';
+  }
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'சரிபார்க்க $count பக்கங்கள்',
+      one: 'சரிபார்க்க 1 பக்கம்',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'இப்போது சரிபார்';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count பக்கங்கள் ஆப்பை நிறுத்தின, அதனால் அவை அப்படியே வைக்கப்பட்டன.',
+      one: '1 பக்கம் ஆப்பை நிறுத்தியது, அதனால் அது அப்படியே வைக்கப்பட்டது.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return '“$title” இன் ஓரங்கள் சரிபார்க்கப்படுகின்றன';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return '“$title” நேராக்கப்படுகிறது';
   }
 
   @override

@@ -1,9 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show compute;
-import 'package:flutter/painting.dart' show Rect;
+import 'package:flutter/foundation.dart' show compute, visibleForTesting;
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image/image.dart' as img;
 
 final ocrServiceProvider = Provider<OcrService>((ref) {
@@ -57,36 +56,49 @@ class OcrResult {
   });
 }
 
+/// Reads the text on a page image, on the phone, through
+/// `com.scansignsend/ocr`: Apple Vision on iOS (TextRecognitionPlugin.swift),
+/// ML Kit text recognition on Android (TextRecognitionPlugin.kt). Neither
+/// sends anything off the phone: iOS links no networking SDK, and the
+/// Android app has no INTERNET permission.
+///
+/// Method "read" {path} → {width, height, lines: [{text, box, words: [{text,
+/// box}]}]}, boxes as [left, top, right, bottom] in image pixels, origin
+/// top-left. Lines come in reading order.
 class OcrService {
-  final _recognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  static const _channel = MethodChannel('com.scansignsend/ocr');
 
   Future<OcrResult> processPage(String imagePath) async {
-    final inputImage = InputImage.fromFilePath(imagePath);
-    final recognized = await _recognizer.processImage(inputImage);
+    final answer = await _channel.invokeMapMethod<String, dynamic>('read', {
+      'path': imagePath,
+    });
+    final read = parseOcrAnswer(answer);
 
     // Field bboxes are normalised against this width/height, then later
     // rendered against the real page/image widget size — the two MUST agree.
-    // The union of OCR text-block boxes is not a substitute for the actual
-    // image size: any page with margins, whitespace, or a header/footer the
+    // The union of OCR text boxes is not a substitute for the actual image
+    // size: any page with margins, whitespace, or a header/footer the
     // recognizer didn't box makes that union smaller than the real page,
     // which drags every detected field off its true position once rendered.
-    var imageWidth = 1;
-    var imageHeight = 1;
-    try {
-      // Header-only read in a background isolate: decoding a 12 MP scan on
-      // the UI thread just to learn its size froze the app during detection.
-      final size = await compute(_imageSize, imagePath);
-      if (size != null && size.$1 > 0 && size.$2 > 0) {
-        imageWidth = size.$1;
-        imageHeight = size.$2;
+    var imageWidth = read.imageWidth;
+    var imageHeight = read.imageHeight;
+    if (imageWidth <= 1 || imageHeight <= 1) {
+      try {
+        // Header-only read in a background isolate: decoding a 12 MP scan
+        // on the UI thread just to learn its size froze the app.
+        final size = await compute(_imageSize, imagePath);
+        if (size != null && size.$1 > 0 && size.$2 > 0) {
+          imageWidth = size.$1;
+          imageHeight = size.$2;
+        }
+      } catch (_) {
+        // Fall through to the text-extent fallback below.
       }
-    } catch (_) {
-      // Fall through to the text-extent fallback below.
     }
     if (imageWidth <= 1 || imageHeight <= 1) {
-      // Decode failed — better an approximate size than none.
+      // No size at all — better an approximate one than none.
       double maxX = 1, maxY = 1;
-      for (final b in recognized.blocks) {
+      for (final b in read.blocks) {
         final r = b.boundingBox;
         if (r.right > maxX) maxX = r.right;
         if (r.bottom > maxY) maxY = r.bottom;
@@ -94,36 +106,58 @@ class OcrService {
       imageWidth = maxX.ceil();
       imageHeight = maxY.ceil();
     }
-
-    final blocks = recognized.blocks.map((b) {
-      final lines = b.lines
-          .map(
-            (l) => OcrTextLine(
-              text: l.text,
-              boundingBox: l.boundingBox,
-              elements: [
-                for (final e in l.elements)
-                  OcrTextElement(text: e.text, boundingBox: e.boundingBox),
-              ],
-            ),
-          )
-          .toList();
-      return OcrTextBlock(
-        text: b.text,
-        boundingBox: b.boundingBox,
-        lines: lines,
-      );
-    }).toList();
-
     return OcrResult(
-      fullText: recognized.text,
-      blocks: blocks,
+      fullText: read.fullText,
+      blocks: read.blocks,
       imageWidth: imageWidth,
       imageHeight: imageHeight,
     );
   }
 
-  void dispose() => _recognizer.close();
+  void dispose() {}
+}
+
+/// The channel's answer as an [OcrResult], one block per line. A missing or
+/// malformed part reads as no text, never as an error: a page with no text
+/// is a normal answer.
+@visibleForTesting
+OcrResult parseOcrAnswer(Map<String, dynamic>? answer) {
+  Rect? box(Object? v) {
+    if (v is! List || v.length != 4) return null;
+    final n = [for (final x in v) (x as num).toDouble()];
+    return Rect.fromLTRB(n[0], n[1], n[2], n[3]);
+  }
+
+  final lines = <OcrTextLine>[];
+  for (final l in (answer?['lines'] as List?) ?? const []) {
+    if (l is! Map) continue;
+    final text = l['text'];
+    final lineBox = box(l['box']);
+    if (text is! String || lineBox == null) continue;
+    lines.add(
+      OcrTextLine(
+        text: text,
+        boundingBox: lineBox,
+        elements: [
+          for (final w in (l['words'] as List?) ?? const [])
+            if (w is Map && w['text'] is String && box(w['box']) != null)
+              OcrTextElement(
+                text: w['text'] as String,
+                boundingBox: box(w['box'])!,
+              ),
+        ],
+      ),
+    );
+  }
+  return OcrResult(
+    fullText: lines.map((l) => l.text).join('\n'),
+    blocks: [
+      for (final l in lines)
+        OcrTextBlock(text: l.text, boundingBox: l.boundingBox, lines: [l]),
+    ],
+    imageWidth: (answer?['width'] as num?)?.toInt() ?? 0,
+    imageHeight: (answer?['height'] as num?)?.toInt() ?? 0,
+  );
 }
 
 /// compute() entry: (width, height) of the image at [path], from its header.

@@ -6,8 +6,9 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-final pdfAssemblyServiceProvider =
-    Provider<PdfAssemblyService>((ref) => PdfAssemblyService());
+final pdfAssemblyServiceProvider = Provider<PdfAssemblyService>(
+  (ref) => PdfAssemblyService(),
+);
 
 class PdfAssemblyService {
   /// Assembles [imagePaths] into a single PDF and returns its file path.
@@ -29,9 +30,7 @@ class PdfAssemblyService {
       final pageH = a4.height;
 
       // Fit image to page preserving aspect ratio
-      final scale = (imgW / pageW > imgH / pageH)
-          ? pageW / imgW
-          : pageH / imgH;
+      final scale = (imgW / pageW > imgH / pageH) ? pageW / imgW : pageH / imgH;
       final drawW = imgW * scale;
       final drawH = imgH * scale;
       final offsetX = (pageW - drawW) / 2;

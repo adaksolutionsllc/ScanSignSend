@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'dart:io';
-import 'dart:ui' show Rect, Offset;
+import 'dart:ui' show Rect, Offset, Size;
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/foundation.dart' show compute;
@@ -289,27 +289,22 @@ Future<void> _buildPressedPdf(_PressJob job) async {
   try {
     for (final plan in job.pages) {
       // An imported page keeps its own size (a US Letter form stays Letter);
-      // scans go on A4.
-      final size = outputPageSize(
-        plan.imagePath,
-        (path) => _openSource(path, sourceCache),
-      );
+      // a scan's page takes the image's own shape.
+      final (scan, scanSize) = await _loadScan(plan, job.imageQuality);
+      final size =
+          scanSize ??
+          outputPageSize(
+            plan.imagePath,
+            (path) => _openSource(path, sourceCache),
+          );
       final pw = size.width, ph = size.height;
       final pdfPage = addEdgeToEdgePage(pdfDoc, size);
       final gfx = pdfPage.graphics;
 
       // Fields are normalised to the page *content*; place them in the rect
-      // the content landed in (the whole page for an imported page, the
-      // letterboxed image for a scan).
+      // the content landed in (the whole page for a scan).
       final content =
-          await _drawBackground(
-            gfx,
-            plan,
-            pw,
-            ph,
-            sourceCache,
-            job.imageQuality,
-          ) ??
+          _drawBackground(gfx, plan, scan, pw, ph, sourceCache) ??
           Rect.fromLTWH(0, 0, pw, ph);
       _drawFields(gfx, plan.fields, content, job.textSize, job.shaped);
     }
@@ -344,67 +339,79 @@ PdfDocument? _openSource(String pdfPath, Map<String, PdfDocument?> cache) {
   return doc;
 }
 
-/// Draws the page content fitted (contain, centred) onto the A4 sheet and
-/// returns the rect it occupies, or null when there was nothing to draw.
-Future<Rect?> _drawBackground(
+/// The scanned image of [plan] and the page it goes on (the image's own
+/// shape), with the user's chosen filter applied at that page's resolution
+/// for [quality]. Nulls for an imported PDF page or a missing image.
+Future<(PdfBitmap?, Size?)> _loadScan(
+  _PagePlan plan,
+  PageImageQuality quality,
+) async {
+  if (plan.imagePath.contains('#page=')) return (null, null);
+  final imgFile = File(plan.imagePath);
+  if (!imgFile.existsSync()) return (null, null);
+  final raw = await imgFile.readAsBytes();
+  final original = PdfBitmap(raw);
+  if (original.width <= 0 || original.height <= 0) return (null, null);
+  final size = scanPageSize(
+    original.width.toDouble(),
+    original.height.toDouble(),
+  );
+  final bmp = PdfBitmap(
+    pageImageForPdf(
+      raw,
+      filter: plan.activeFilter,
+      pageW: size.width,
+      pageH: size.height,
+      quality: quality,
+    ),
+  );
+  return bmp.width > 0 && bmp.height > 0 ? (bmp, size) : (null, null);
+}
+
+/// Draws the page content onto the page and returns the rect it occupies, or
+/// null when there was nothing to draw. A [scan] fills its page (the page was
+/// sized to it); an imported page is fitted (contain, centred).
+Rect? _drawBackground(
   PdfGraphics gfx,
   _PagePlan plan,
+  PdfBitmap? scan,
   double pw,
   double ph,
   Map<String, PdfDocument?> sourceCache,
-  PageImageQuality quality,
-) async {
+) {
+  if (scan != null) {
+    final dest = Rect.fromLTWH(0, 0, pw, ph);
+    gfx.drawImage(scan, dest);
+    return dest;
+  }
   final path = plan.imagePath;
 
   // Imported-PDF page: import the source page as a vector template so its
   // real content is preserved (previously these pressed to a blank page).
-  if (path.contains('#page=')) {
-    final parts = path.split('#page=');
-    final pdfPath = parts[0];
-    final pageNum = int.tryParse(parts[1]) ?? 0; // 0-indexed in our model
-    try {
-      final src = _openSource(pdfPath, sourceCache);
-      if (src == null) return null;
-      if (pageNum < 0 || pageNum >= src.pages.count) return null;
-      final template = src.pages[pageNum].createTemplate();
-      // Scale the source page to fit the A4 output while preserving aspect.
-      final tw = template.size.width;
-      final th = template.size.height;
-      if (tw <= 0 || th <= 0) return null;
-      final scale = (tw / pw > th / ph) ? pw / tw : ph / th;
-      final dw = tw * scale;
-      final dh = th * scale;
-      final dest = Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh);
-      gfx.drawPdfTemplate(template, dest.topLeft, dest.size);
-      return dest;
-    } catch (_) {
-      // Unreadable source page — leave the background blank rather than crash
-      // the whole press. Overlays still render on top.
-      return null;
-    }
+  if (!path.contains('#page=')) return null;
+  final parts = path.split('#page=');
+  final pdfPath = parts[0];
+  final pageNum = int.tryParse(parts[1]) ?? 0; // 0-indexed in our model
+  try {
+    final src = _openSource(pdfPath, sourceCache);
+    if (src == null) return null;
+    if (pageNum < 0 || pageNum >= src.pages.count) return null;
+    final template = src.pages[pageNum].createTemplate();
+    // Scale the source page to fit the output while preserving aspect.
+    final tw = template.size.width;
+    final th = template.size.height;
+    if (tw <= 0 || th <= 0) return null;
+    final scale = (tw / pw > th / ph) ? pw / tw : ph / th;
+    final dw = tw * scale;
+    final dh = th * scale;
+    final dest = Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh);
+    gfx.drawPdfTemplate(template, dest.topLeft, dest.size);
+    return dest;
+  } catch (_) {
+    // Unreadable source page — leave the background blank rather than crash
+    // the whole press. Overlays still render on top.
+    return null;
   }
-
-  // Scanned image page: the user's chosen filter, at the page's resolution.
-  final imgFile = File(path);
-  if (!imgFile.existsSync()) return null;
-  final rawBytes = await imgFile.readAsBytes();
-  final processed = pageImageForPdf(
-    rawBytes,
-    filter: plan.activeFilter,
-    pageW: pw,
-    pageH: ph,
-    quality: quality,
-  );
-  final bgImage = PdfBitmap(processed);
-  final iw = bgImage.width.toDouble();
-  final ih = bgImage.height.toDouble();
-  if (iw <= 0 || ih <= 0) return null;
-  final scale = (iw / pw > ih / ph) ? pw / iw : ph / ih;
-  final dw = iw * scale;
-  final dh = ih * scale;
-  final dest = Rect.fromLTWH((pw - dw) / 2, (ph - dh) / 2, dw, dh);
-  gfx.drawImage(bgImage, dest);
-  return dest;
 }
 
 void _drawFields(

@@ -208,7 +208,6 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
         lock: ref.read(appLockProvider.notifier),
         pdfPath: pdfPath,
         title: title,
-        message: l10n.sendShareMessage,
         origin: origin,
       );
     } catch (e) {

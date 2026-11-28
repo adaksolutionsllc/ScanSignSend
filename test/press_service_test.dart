@@ -3,6 +3,7 @@
 // data; formatting the signing date there threw LocaleDataException for all
 // locales except the built-in en_US.
 
+import 'dart:convert' show latin1;
 import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
@@ -197,57 +198,151 @@ void main() {
     },
   );
 
-  test('Hindi, Tamil and Telugu values and certificate press as shaped images',
-      () async {
-    await initializeDateFormatting('hi');
+  test(
+    'Hindi, Tamil and Telugu values and certificate press as shaped images',
+    () async {
+      await initializeDateFormatting('hi');
+      final docs = DocumentRepository(db);
+      final pages = PageRepository(db);
+      final fields = FieldRepository(db);
+      final pageDir = Directory(p.join(docsDir.path, 'pages', 'u'))
+        ..createSync(recursive: true);
+      final image = File(p.join(pageDir.path, 'page_0.jpg'))
+        ..writeAsBytesSync(
+          img.encodeJpg(
+            img.Image(width: 620, height: 877)
+              ..clear(img.ColorRgb8(255, 255, 255)),
+          ),
+        );
+      final doc = await docs.createDocument('शपथ पत्र');
+      await pages.addPage(
+        documentId: doc.id,
+        pageIndex: 0,
+        imagePath: image.path,
+      );
+      var y = 0.2;
+      for (final value in ['मदुरै', 'மதுரை', 'మదురై', 'Madurai']) {
+        await fields.addField(
+          FieldsCompanion.insert(
+            documentId: doc.id,
+            pageIndex: 0,
+            type: FieldType.text.name,
+            boundingBoxJson: BoundingBox(
+              x: 0.2,
+              y: y,
+              w: 0.4,
+              h: 0.03,
+            ).toJsonString(),
+            value: Value(value),
+            isFilled: const Value(true),
+          ),
+        );
+        y += 0.1;
+      }
+
+      final out = await PressService(docs, pages, fields).press(
+        doc.id,
+        const PressCertificateStrings(
+          title: 'हस्ताक्षर प्रमाणपत्र',
+          documentLabel: 'दस्तावेज़',
+          signedOnLabel: 'हस्ताक्षर तिथि',
+          methodLabel: 'तरीका',
+          methodValue: 'हाथ से बनाया गया',
+          noteLabel: 'नोट',
+          noteValue: 'ऑफ़लाइन',
+          dateFormat: 'd MMMM y',
+          localeName: 'hi',
+        ),
+      );
+
+      final pdf = PdfDocument(inputBytes: File(out).readAsBytesSync());
+      final text = PdfTextExtractor(pdf).extractText();
+      // Latin stays real text; Indic is drawn as shaped images, so it never
+      // appears as (unshaped, garbled) PDF text.
+      expect(text, contains('Madurai'));
+      for (final s in ['मदुरै', 'மதுரை', 'మదురై', 'हस्ताक्षर']) {
+        expect(text.contains(s), isFalse, reason: '$s should be an image');
+      }
+      expect(pdf.pages.count, 2);
+      pdf.dispose();
+    },
+  );
+
+  test('a scan taller than A4 fills its page with no side strips', () async {
+    await initializeDateFormatting('en');
     final docs = DocumentRepository(db);
     final pages = PageRepository(db);
     final fields = FieldRepository(db);
-    final pageDir = Directory(p.join(docsDir.path, 'pages', 'u'))
+    final pageDir = Directory(p.join(docsDir.path, 'pages', 'tall'))
       ..createSync(recursive: true);
+    // Indian stamp paper / US Legal shape (8.5 × 14 in).
     final image = File(p.join(pageDir.path, 'page_0.jpg'))
-      ..writeAsBytesSync(img.encodeJpg(img.Image(width: 620, height: 877)
-        ..clear(img.ColorRgb8(255, 255, 255))));
-    final doc = await docs.createDocument('शपथ पत्र');
-    await pages.addPage(documentId: doc.id, pageIndex: 0, imagePath: image.path);
-    var y = 0.2;
-    for (final value in ['मदुरै', 'மதுரை', 'మదురై', 'Madurai']) {
-      await fields.addField(FieldsCompanion.insert(
+      ..writeAsBytesSync(
+        img.encodeJpg(
+          img.Image(width: 850, height: 1400)
+            ..clear(img.ColorRgb8(255, 255, 255)),
+        ),
+      );
+    final doc = await docs.createDocument('Stamp paper');
+    await pages.addPage(
+      documentId: doc.id,
+      pageIndex: 0,
+      imagePath: image.path,
+    );
+    await fields.addField(
+      FieldsCompanion.insert(
         documentId: doc.id,
         pageIndex: 0,
         type: FieldType.text.name,
-        boundingBoxJson:
-            BoundingBox(x: 0.2, y: y, w: 0.4, h: 0.03).toJsonString(),
-        value: Value(value),
+        boundingBoxJson: const BoundingBox(
+          x: 0.1,
+          y: 0.5,
+          w: 0.3,
+          h: 0.02,
+        ).toJsonString(),
+        value: const Value('FILLED'),
         isFilled: const Value(true),
-      ));
-      y += 0.1;
-    }
+      ),
+    );
 
     final out = await PressService(docs, pages, fields).press(
       doc.id,
       const PressCertificateStrings(
-        title: 'हस्ताक्षर प्रमाणपत्र',
-        documentLabel: 'दस्तावेज़',
-        signedOnLabel: 'हस्ताक्षर तिथि',
-        methodLabel: 'तरीका',
-        methodValue: 'हाथ से बनाया गया',
-        noteLabel: 'नोट',
-        noteValue: 'ऑफ़लाइन',
+        title: 'Certificate',
+        documentLabel: 'Document',
+        signedOnLabel: 'Signed on',
+        methodLabel: 'Method',
+        methodValue: 'Drawn',
+        noteLabel: 'Note',
+        noteValue: 'Offline',
         dateFormat: 'd MMMM y',
-        localeName: 'hi',
+        localeName: 'en',
       ),
     );
 
     final pdf = PdfDocument(inputBytes: File(out).readAsBytesSync());
-    final text = PdfTextExtractor(pdf).extractText();
-    // Latin stays real text; Indic is drawn as shaped images, so it never
-    // appears as (unshaped, garbled) PDF text.
-    expect(text, contains('Madurai'));
-    for (final s in ['मदुरै', 'மதுரை', 'మదురై', 'हस्ताक्षर']) {
-      expect(text.contains(s), isFalse, reason: '$s should be an image');
-    }
-    expect(pdf.pages.count, 2);
+    final size = pdf.pages[0].size;
+    expect(size.width, closeTo(595, 0.5));
+    expect(size.height, closeTo(595 * 1400 / 850, 0.5), reason: 'not A4');
+    final words = {
+      for (final l in PdfTextExtractor(
+        pdf,
+      ).extractTextLines(startPageIndex: 0, endPageIndex: 0))
+        for (final w in l.wordCollection) w.text: w.bounds,
+    };
+    expect(
+      words['FILLED']!.left,
+      closeTo(0.1 * 595, 4),
+      reason: 'the field moves with the page edge, not a letterbox',
+    );
+    expect(pdf.pages[1].size, const Size(595, 842), reason: 'certificate');
+    expect(
+      RegExp(
+        r'/Subtype\s*/Image',
+      ).hasMatch(latin1.decode(File(out).readAsBytesSync())),
+      isTrue,
+      reason: 'the scan itself is drawn on the page',
+    );
     pdf.dispose();
   });
 }

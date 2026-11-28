@@ -22,6 +22,7 @@ Scannez n'importe quel document avec l'appareil photo ou importez un PDF, laisse
 SCANNER
 • Des scans nets avec détection automatique des bords, plusieurs pages à la fois
 • Importez vos PDF et photos — les photos sont redressées selon les bords de la page
+• Les gros fichiers se traitent en arrière-plan : continuez à utiliser l'app, mettez en pause, reprenez, et retrouvez votre progression si l'app se ferme
 • Réorganisez, faites pivoter et nettoyez les pages avant de signer
 
 REMPLIR ET SIGNER
@@ -57,11 +58,11 @@ Terminez 2 documents (jusqu'à 2 pages chacun) gratuitement. Illimité est un ac
 Conçu par ADAK Ventures.
 
 ## whats_new
-Nouveau dans la 1.3 : vos documents se classent seuls par catégorie sur votre téléphone, et la recherche trouve les mots de chaque page.
-Les scans et photos prennent le nom de leur titre.
-Les photos importées ou ouvertes sont redressées selon les bords de la page.
-Ignorez les champs pour enregistrer et partager un scan comme PDF terminé.
-Ouvrez des photos depuis Fichiers ou le menu de partage.
+Nouveau dans la 1.3.2 : les gros fichiers se traitent en arrière-plan.
+Pendant la vérification ou le redressement des pages, touchez « Continuer à utiliser l’app ». La bibliothèque affiche la progression.
+Mettez en pause et reprenez à tout moment.
+Si l’app se ferme, les pages déjà traitées sont gardées. Touchez Reprendre pour continuer.
+L’écran reste allumé pendant le traitement.
 
 ## iap_display_name
 Illimité

@@ -31,12 +31,12 @@ void main() {
   });
 
   test('a database that already has duplicate rows still works', () async {
-    await db.into(db.userProfile).insert(
-          const UserProfileCompanion(fullName: Value('first')),
-        );
-    await db.into(db.userProfile).insert(
-          const UserProfileCompanion(fullName: Value('second')),
-        );
+    await db
+        .into(db.userProfile)
+        .insert(const UserProfileCompanion(fullName: Value('first')));
+    await db
+        .into(db.userProfile)
+        .insert(const UserProfileCompanion(fullName: Value('second')));
 
     final p = await profiles.getOrCreate();
     expect(p.fullName, 'first');

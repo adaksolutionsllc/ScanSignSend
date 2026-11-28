@@ -598,9 +598,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sendPressedPdfNotFound => 'No se encuentra el PDF completado.';
 
   @override
-  String get sendShareMessage => 'Firmado con Scan Sign Send';
-
-  @override
   String sendShareFailed(String error) {
     return 'Error al compartir: $error';
   }
@@ -915,15 +912,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get detectFieldDeleted => 'Campo eliminado';
 
   @override
-  String get detectRemoveDetected => 'Quitar campos detectados';
+  String get detectRemoveAll => 'Quitar todos';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Se quitaron $count campos detectados',
-      one: 'Se quitó 1 campo detectado',
+      other: 'Se quitaron $count campos',
+      one: 'Se quitó 1 campo',
     );
     return '$_temp0';
   }
@@ -1300,6 +1297,74 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo recortar esta página. Se conservó la imagen completa.';
 
   @override
+  String get straightenAskTitle => '¿Enderezar las páginas?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'La app busca los bordes de cada página para que puedas recortarlas. Para estas $count páginas tarda unos $minutes minutos.',
+      one:
+          'La app busca los bordes de cada página para que puedas recortarlas. Para estas $count páginas tarda alrededor de 1 minuto.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'La app busca los bordes de cada página para que puedas recortarlas. Para estas $count páginas tarda menos de un minuto.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Faltan unos $minutes minutos',
+      one: 'Falta alrededor de 1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'Falta menos de un minuto';
+
+  @override
+  String get straightenGo => 'Enderezar';
+
+  @override
+  String get straightenKeep => 'Dejar como está';
+
+  @override
+  String get straightenAskLater =>
+      'Elige Dejar como está si las páginas ya están rectas. Puedes enderezarlas más tarde en Revisar páginas.';
+
+  @override
+  String get reviewStraighten => 'Enderezar páginas';
+
+  @override
+  String get reviewStraightenNone =>
+      'No se encontraron bordes de página que corregir.';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'Revisando la página $current de $total…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'Enderezando la página $current de $total…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'Usar la imagen completa en el resto';
+
+  @override
+  String get jobKeepUsing => 'Seguir usando la app';
+
+  @override
   String get importErrorMixed => 'Elige un solo PDF, o una o varias fotos.';
 
   @override
@@ -1314,6 +1379,75 @@ class AppLocalizationsEs extends AppLocalizations {
       one: '1 página',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'Pausa';
+
+  @override
+  String get jobResume => 'Reanudar';
+
+  @override
+  String get jobPaused => 'En pausa';
+
+  @override
+  String get jobPausedHint =>
+      'En pausa. Las páginas ya hechas están guardadas.';
+
+  @override
+  String get jobWaiting => 'En espera';
+
+  @override
+  String get jobScreenOn => 'La pantalla queda encendida hasta que termine.';
+
+  @override
+  String get jobLockHint =>
+      'Mientras tanto puedes usar otras apps. Si bloqueas el teléfono, el iPhone puede pausar esto. Sigue desde la misma página cuando abras la app.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'Tu teléfono pausó esto mientras no estabas. No se perdió nada. Sigue desde la página $page.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '«$title» en pausa. Abre la app para seguir.';
+  }
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count páginas por revisar',
+      one: '1 página por revisar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'Revisar ahora';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count páginas detuvieron la app, así que se dejaron como estaban.',
+      one: '1 página detuvo la app, así que se dejó como estaba.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return 'Revisando los bordes de «$title»';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return 'Enderezando «$title»';
   }
 
   @override

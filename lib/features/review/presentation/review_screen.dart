@@ -14,6 +14,7 @@ import '../../../core/db/app_database.dart' as db;
 import '../../../core/services/clean_filter.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/edge_check_service.dart';
+import '../../../core/services/import_job_runner.dart';
 import '../../../core/services/page_raster_service.dart';
 import '../../../core/utils/path_resolver.dart';
 import '../../../core/utils/router.dart';
@@ -56,6 +57,40 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   late final Stream<db.Document?> _docStream = ref
       .read(documentRepositoryProvider)
       .watchById(widget.docId);
+
+  /// Straighten pages: offered for photo pages (and photo-only PDFs) while
+  /// the document has no fields yet. Crop on one page moves its fields with
+  /// it; the whole-document check does not.
+  bool _canStraighten = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateCanStraighten();
+  }
+
+  Future<void> _updateCanStraighten() async {
+    final fields = await ref
+        .read(fieldRepositoryProvider)
+        .watchFields(widget.docId)
+        .first;
+    final pages = fields.isEmpty
+        ? await ref.read(edgeCheckServiceProvider).checkablePages(widget.docId)
+        : const <db.Page>[];
+    if (mounted) setState(() => _canStraighten = pages.isNotEmpty);
+  }
+
+  /// Checks every page's edges again as an import job (progress, Pause,
+  /// Skip; see JobScreen), then the crop screen, which comes back here.
+  Future<void> _straighten() async {
+    final runner = ref.read(importJobRunnerProvider);
+    final router = GoRouter.of(context);
+    if (_dirty) await _saveOrder();
+    await runner.startCheck(widget.docId);
+    await router.push(
+      '${AppRoutes.job.replaceAll(':docId', '${widget.docId}')}?back=1',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -198,6 +233,19 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
             return Column(
               children: [
                 SortedIntoBar(docId: widget.docId),
+                if (_canStraighten && picked == null)
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: TextButton.icon(
+                        key: const ValueKey('review-straighten'),
+                        onPressed: _straighten,
+                        icon: const Icon(Icons.crop),
+                        label: Text(context.l10n.reviewStraighten),
+                      ),
+                    ),
+                  ),
                 Expanded(child: list),
               ],
             );
@@ -669,7 +717,16 @@ class _RasterThumb extends ConsumerWidget {
         if (path == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        return Image.file(File(path), fit: BoxFit.contain, cacheWidth: 800);
+        // White under the page itself: many PDFs have no background of their
+        // own, and in dark mode their black text sat on the dark card.
+        return Image.file(
+          File(path),
+          key: const ValueKey('review-pdf-page'),
+          fit: BoxFit.contain,
+          cacheWidth: 800,
+          color: Colors.white,
+          colorBlendMode: BlendMode.dstOver,
+        );
       },
     );
   }

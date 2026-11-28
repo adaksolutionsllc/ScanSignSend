@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command // \"\"' | grep -qE '(^|[;&|])[[:space:]]*gh pr create( |$)' && printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"A PR was just opened. Offer the user a QA run now: the qa-reviewer agent on this PR (it reads .claude/qa-context.md; release.sh needs its pass). Ask before starting it, because it uses the simulator and the emulator for a long time.\"}}' || true"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -15,10 +15,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get actionCancel => 'Cancelar';
 
   @override
-  String get actionSave => 'Guardar';
+  String get actionSave => 'Salvar';
 
   @override
-  String get actionDelete => 'Eliminar';
+  String get actionDelete => 'Excluir';
 
   @override
   String get actionRemove => 'Remover';
@@ -30,10 +30,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get actionBack => 'Voltar';
 
   @override
-  String get actionSkip => 'Ignorar';
+  String get actionSkip => 'Pular';
 
   @override
-  String get actionNext => 'Seguinte';
+  String get actionNext => 'Próximo';
 
   @override
   String get actionOpen => 'Abrir';
@@ -42,7 +42,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get actionEdit => 'Editar';
 
   @override
-  String get actionShare => 'Partilhar';
+  String get actionShare => 'Compartilhar';
 
   @override
   String get actionTryAgain => 'Tentar novamente';
@@ -54,17 +54,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get documentFallbackTitle => 'Documento';
 
   @override
-  String get errorGenericTitle => 'Ocorreu um problema aqui.';
+  String get errorGenericTitle => 'Algo deu errado aqui.';
 
   @override
-  String get errorGenericBody => 'Volte atrás e abra novamente este documento.';
+  String get errorGenericBody => 'Volte e abra este documento novamente.';
 
   @override
   String get lockTitle => 'O Scan Sign Send está bloqueado';
 
   @override
   String get lockBody =>
-      'Desbloqueie com o Face ID ou a sua impressão digital para continuar.';
+      'Desbloqueie com o Face ID ou sua impressão digital para continuar.';
 
   @override
   String get lockUnlock => 'Desbloquear';
@@ -74,14 +74,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get onboardScanBody =>
-      'Use a câmara para digitalizar qualquer documento em papel. Deteta os limites e limpa a imagem automaticamente.';
+      'Use a câmera para digitalizar qualquer documento em papel. O app detecta as bordas e limpa a imagem automaticamente.';
 
   @override
   String get onboardSignTitle => 'Assinar';
 
   @override
   String get onboardSignBody =>
-      'Toque nos campos para os preencher. Adicione a sua assinatura com o dedo. Os seus documentos ficam guardados apenas neste dispositivo.';
+      'Toque nos campos para preenchê-los. Adicione sua assinatura com o dedo. Seus documentos ficam salvos apenas neste dispositivo.';
 
   @override
   String get onboardSendTitle => 'Enviar';
@@ -94,7 +94,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get onboardGetStarted => 'Começar';
 
   @override
-  String get librarySearchHint => 'Procurar documentos…';
+  String get librarySearchHint => 'Buscar documentos…';
 
   @override
   String get libraryTabAll => 'Todos';
@@ -115,21 +115,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get libraryNewScan => 'Nova digitalização';
 
   @override
-  String get libraryRenameTooltip => 'Mudar o nome';
+  String get libraryRenameTooltip => 'Renomear';
 
   @override
   String get libraryUseTemplate => 'Usar modelo';
 
   @override
-  String get libraryDeleteTitle => 'Eliminar o documento?';
+  String get libraryDeleteTitle => 'Excluir o documento?';
 
   @override
   String libraryDeleteBody(String title) {
-    return 'Eliminar «$title»? Esta ação não pode ser anulada.';
+    return 'Excluir “$title”? Esta ação não pode ser desfeita.';
   }
 
   @override
-  String get libraryRenameTitle => 'Mudar o nome do documento';
+  String get libraryRenameTitle => 'Renomear documento';
 
   @override
   String get libraryDocumentNameHint => 'Nome do documento';
@@ -176,24 +176,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get emptyAllBody =>
-      'Toque em «Nova digitalização» para começar.\nDigitalizar → Assinar → Enviar.';
+      'Toque em “Nova digitalização” para começar.\nDigitalizar → Assinar → Enviar.';
 
   @override
   String searchNoResults(String query) {
-    return 'Sem resultados para «$query»';
+    return 'Nenhum resultado para “$query”';
   }
 
   @override
   String get captureTitle => 'Digitalizar documento';
 
   @override
-  String get captureLaunching => 'A abrir o scanner…';
+  String get captureLaunching => 'Abrindo o scanner…';
 
   @override
-  String get captureSavingPages => 'A guardar as páginas…';
+  String get captureSavingPages => 'Salvando as páginas…';
 
   @override
-  String get captureImporting => 'A importar…';
+  String get captureImporting => 'Importando…';
 
   @override
   String captureScanFailed(String error) {
@@ -206,7 +206,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get captureScanWithCamera => 'Digitalizar com a câmara';
+  String get captureScanWithCamera => 'Digitalizar com a câmera';
 
   @override
   String get captureImportPdfImage => 'Importar PDF / imagem';
@@ -225,24 +225,24 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get reviewTitle => 'Rever páginas';
+  String get reviewTitle => 'Revisar páginas';
 
   @override
-  String get reviewSaveOrder => 'Guardar ordem';
+  String get reviewSaveOrder => 'Salvar ordem';
 
   @override
   String get reviewNoPagesFound => 'Nenhuma página encontrada.';
 
   @override
-  String get reviewDetectFields => 'Detetar campos →';
+  String get reviewDetectFields => 'Detectar campos →';
 
   @override
   String reviewRotateFailed(String error) {
-    return 'Falha ao rodar: $error';
+    return 'Falha ao girar: $error';
   }
 
   @override
-  String get reviewDeletePageTitle => 'Eliminar a página?';
+  String get reviewDeletePageTitle => 'Excluir a página?';
 
   @override
   String reviewDeletePageBody(int number) {
@@ -255,10 +255,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get reviewRotateTooltip => 'Rodar 90°';
+  String get reviewRotateTooltip => 'Girar 90°';
 
   @override
-  String get reviewDeletePageTooltip => 'Eliminar página';
+  String get reviewDeletePageTooltip => 'Excluir página';
 
   @override
   String get filterOriginal => 'Original';
@@ -276,14 +276,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get filterApplyAll => 'Aplicar a todas as páginas';
 
   @override
-  String get detectTitle => 'Detetar campos';
+  String get detectTitle => 'Detectar campos';
 
   @override
-  String get detectFormFieldsFoundTitle => 'Campos de formulário detetados';
+  String get detectFormFieldsFoundTitle => 'Campos de formulário detectados';
 
   @override
   String get detectFormFieldsFoundBody =>
-      'Este PDF já contém campos de formulário.\nPode adicionar os seus próprios campos manualmente ou avançar diretamente para o preenchimento.';
+      'Este PDF já contém campos de formulário.\nVocê pode adicionar seus próprios campos manualmente ou ir direto para o preenchimento.';
 
   @override
   String get detectContinueToFill => 'Continuar para preencher';
@@ -292,14 +292,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get detectConfirmAll => 'Confirmar tudo';
 
   @override
-  String get detectStarting => 'A iniciar…';
+  String get detectStarting => 'Iniciando…';
 
   @override
-  String get detectReading => 'A ler o seu documento…';
+  String get detectReading => 'Lendo seu documento…';
 
   @override
   String detectAnalysingPage(int current, int total) {
-    return 'A analisar a página $current de $total…';
+    return 'Analisando a página $current de $total…';
   }
 
   @override
@@ -310,7 +310,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todo o processamento acontece no dispositivo.';
 
   @override
-  String get detectFailed => 'Falha na deteção';
+  String get detectFailed => 'Falha na detecção';
 
   @override
   String get detectNoPages => 'Sem páginas.';
@@ -342,7 +342,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get detectFieldType => 'Tipo';
 
   @override
-  String get detectFieldLabelHint => 'Etiqueta / nome do campo';
+  String get detectFieldLabelHint => 'Rótulo / nome do campo';
 
   @override
   String get detectRequiredField => 'Campo obrigatório';
@@ -362,7 +362,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fieldTypeDate => 'Data';
 
   @override
-  String get fieldTypeCheckbox => 'Caixa de verificação';
+  String get fieldTypeCheckbox => 'Caixa de seleção';
 
   @override
   String get fieldTypeSignature => 'Assinatura';
@@ -380,7 +380,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fillEditFields => 'Editar campos';
 
   @override
-  String get fillReviewAndFinish => 'Rever e concluir';
+  String get fillReviewAndFinish => 'Revisar e concluir';
 
   @override
   String get fillNoPages => 'Este documento não tem páginas.';
@@ -389,13 +389,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fillTextFieldFallback => 'Campo de texto';
 
   @override
-  String get fillEnterValueHint => 'Introduza um valor…';
+  String get fillEnterValueHint => 'Digite um valor…';
 
   @override
   String get fillTapToFill => 'Toque para preencher…';
 
   @override
-  String get fillTapForDate => 'Toque para a data…';
+  String get fillTapForDate => 'Toque para inserir a data…';
 
   @override
   String get fillTapToCheck => 'Toque para marcar';
@@ -413,7 +413,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fillScanOrImport => 'Digitalize ou importe um novo documento';
 
   @override
-  String get pressTitle => 'Rever e concluir';
+  String get pressTitle => 'Revisar e concluir';
 
   @override
   String get pressFieldSummary => 'Resumo dos campos';
@@ -434,14 +434,14 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count campos por preencher',
-      one: '1 campo por preencher',
+      other: '$count campos a preencher',
+      one: '1 campo a preencher',
     );
     return '$_temp0';
   }
 
   @override
-  String get pressSaveDraft => 'Guardar rascunho';
+  String get pressSaveDraft => 'Salvar rascunho';
 
   @override
   String get pressFlattenAndSign => 'Achatar e assinar (bloqueia o documento)';
@@ -456,15 +456,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get pressConfirmBody =>
-      'Ao achatar, os seus dados são integrados num novo PDF. O resultado é permanente — ninguém o poderá editar depois, nem o próprio utilizador.';
+      'Ao achatar, seus dados são integrados a um novo PDF. O resultado é permanente — ninguém poderá editá-lo depois, nem você.';
 
   @override
   String get pressConfirmLiveFields =>
-      'Este documento tem campos de formulário interativos. Achatar remove-os — para os manter editáveis, escolha «Guardar rascunho».';
+      'Este documento tem campos de formulário interativos. Achatar remove esses campos — para mantê-los editáveis, escolha “Salvar rascunho”.';
 
   @override
   String get pressConfirmNote =>
-      'Nota: uma assinatura desenhada aqui é uma marca visual, não uma assinatura eletrónica certificada.';
+      'Observação: uma assinatura desenhada aqui é uma marca visual, não uma assinatura eletrônica certificada.';
 
   @override
   String get pressFlattenAndLock => 'Achatar e bloquear';
@@ -474,20 +474,20 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get pressNoFieldsBody =>
-      'Não há nada para preencher ou assinar aqui. Pode guardá-lo como PDF para o manter e partilhar, ou adicionar campos primeiro.';
+      'Não há nada para preencher ou assinar aqui. Você pode salvá-lo como PDF para guardar e compartilhar, ou adicionar campos primeiro.';
 
   @override
   String get pressAddFields => 'Adicionar campos';
 
   @override
-  String get pressSavePdf => 'Guardar PDF';
+  String get pressSavePdf => 'Salvar PDF';
 
   @override
-  String get saveNoFieldsTitle => 'Guardar sem campos?';
+  String get saveNoFieldsTitle => 'Salvar sem campos?';
 
   @override
   String get saveNoFieldsBody =>
-      'Este documento não tem campos para preencher ou assinar. Será guardado como PDF concluído, que pode manter e partilhar.';
+      'Este documento não tem campos para preencher ou assinar. Ele será salvo como PDF concluído, que você pode guardar e compartilhar.';
 
   @override
   String pressFailed(String error) {
@@ -495,10 +495,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get pressWorking => 'A processar…';
+  String get pressWorking => 'Processando…';
 
   @override
-  String get pressNotFilled => 'Por preencher';
+  String get pressNotFilled => 'Não preenchido';
 
   @override
   String get pressChecked => 'Marcado ✓';
@@ -507,7 +507,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pressUnchecked => 'Não marcado';
 
   @override
-  String get pressSignatureCaptured => 'Assinatura captada';
+  String get pressSignatureCaptured => 'Assinatura capturada';
 
   @override
   String get signTitle => 'Assine aqui';
@@ -516,49 +516,49 @@ class AppLocalizationsPt extends AppLocalizations {
   String get signSwitchInk => 'Mudar a cor da tinta';
 
   @override
-  String get signSaveAsMine => 'Guardar como a minha assinatura';
+  String get signSaveAsMine => 'Salvar como minha assinatura';
 
   @override
   String get signReuseSubtitle => 'Reutilizar em documentos futuros';
 
   @override
-  String get signSaving => 'A guardar…';
+  String get signSaving => 'Salvando…';
 
   @override
   String get signUseThis => 'Usar esta assinatura';
 
   @override
-  String get signDrawFirst => 'Desenhe primeiro a sua assinatura.';
+  String get signDrawFirst => 'Desenhe sua assinatura primeiro.';
 
   @override
-  String get signDefaultLabel => 'A minha assinatura';
+  String get signDefaultLabel => 'Minha assinatura';
 
   @override
   String signSaveFailed(String error) {
-    return 'Não foi possível guardar a assinatura: $error';
+    return 'Não foi possível salvar a assinatura: $error';
   }
 
   @override
-  String get signaturesTitle => 'Assinaturas guardadas';
+  String get signaturesTitle => 'Assinaturas salvas';
 
   @override
-  String get signaturesEmpty => 'Ainda sem assinaturas guardadas';
+  String get signaturesEmpty => 'Nenhuma assinatura salva ainda';
 
   @override
   String get signaturesAdd => 'Adicionar assinatura';
 
   @override
-  String get signaturesDefaultBadge => 'Predefinida';
+  String get signaturesDefaultBadge => 'Padrão';
 
   @override
-  String get signaturesSetDefault => 'Definir como predefinida';
+  String get signaturesSetDefault => 'Definir como padrão';
 
   @override
-  String get signaturesDeleteTitle => 'Eliminar a assinatura?';
+  String get signaturesDeleteTitle => 'Excluir a assinatura?';
 
   @override
   String signaturesDeleteBody(String label) {
-    return 'Eliminar «$label»?';
+    return 'Excluir “$label”?';
   }
 
   @override
@@ -571,7 +571,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sendDocumentSent => 'Documento enviado!';
 
   @override
-  String get sendReadyToSend => 'Pronto a enviar';
+  String get sendReadyToSend => 'Pronto para enviar';
 
   @override
   String get sendSharedBody => 'Seu PDF foi compartilhado.';
@@ -581,16 +581,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Compartilhe seu PDF por e-mail, mensagem ou qualquer app.';
 
   @override
-  String get sendOpeningShareSheet => 'A abrir a partilha…';
+  String get sendOpeningShareSheet => 'Abrindo o compartilhamento…';
 
   @override
   String get sendSharePressed => 'Compartilhar PDF';
 
   @override
-  String get sendPreviewDocument => 'Pré-visualizar documento';
+  String get sendPreviewDocument => 'Visualizar documento';
 
   @override
-  String get sendShareAgain => 'Partilhar novamente';
+  String get sendShareAgain => 'Compartilhar novamente';
 
   @override
   String get sendNotYetPressed => 'Este documento ainda não foi concluído.';
@@ -599,34 +599,31 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sendPressedPdfNotFound => 'O PDF concluído não foi encontrado.';
 
   @override
-  String get sendShareMessage => 'Assinado com o Scan Sign Send';
-
-  @override
   String sendShareFailed(String error) {
-    return 'Falha na partilha: $error';
+    return 'Falha ao compartilhar: $error';
   }
 
   @override
-  String get viewerPdfNotFound => 'Ficheiro PDF não encontrado.';
+  String get viewerPdfNotFound => 'Arquivo PDF não encontrado.';
 
   @override
-  String get viewerSearchHint => 'Procurar no documento…';
+  String get viewerSearchHint => 'Buscar no documento…';
 
   @override
-  String get viewerSearchTooltip => 'Procurar';
+  String get viewerSearchTooltip => 'Buscar';
 
   @override
   String get viewerNoExportedPdf => 'Ainda não há nenhum PDF exportado';
 
   @override
   String get viewerNoExportedPdfBody =>
-      'Preencha e exporte este documento (rascunho ou achatado) para o ver aqui.';
+      'Preencha e exporte este documento (rascunho ou achatado) para vê-lo aqui.';
 
   @override
-  String get settingsTitle => 'Definições';
+  String get settingsTitle => 'Configurações';
 
   @override
-  String get settingsSectionProfile => 'Os meus dados';
+  String get settingsSectionProfile => 'Meus dados';
 
   @override
   String get settingsSectionSignatures => 'Assinaturas';
@@ -635,7 +632,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsSectionSecurity => 'Segurança';
 
   @override
-  String get settingsSectionDetection => 'Deteção de campos';
+  String get settingsSectionDetection => 'Detecção de campos';
 
   @override
   String get settingsSectionPurchase => 'Compra';
@@ -650,22 +647,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsPhone => 'Telefone';
 
   @override
-  String get settingsAddress => 'Morada';
+  String get settingsAddress => 'Endereço';
 
   @override
   String get settingsCity => 'Cidade';
 
   @override
-  String get settingsState => 'Distrito';
+  String get settingsState => 'Estado';
 
   @override
-  String get settingsZip => 'Código postal';
+  String get settingsZip => 'CEP';
 
   @override
   String get settingsCompany => 'Empresa';
 
   @override
-  String get settingsManageSignatures => 'Gerir assinaturas';
+  String get settingsManageSignatures => 'Gerenciar assinaturas';
 
   @override
   String get settingsBiometricLock => 'Bloqueio biométrico';
@@ -676,7 +673,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsNoBiometrics =>
-      'Não há dados biométricos registados neste dispositivo. Configure primeiro o Face ID ou a impressão digital.';
+      'Não há biometria cadastrada neste dispositivo. Configure primeiro o Face ID ou a impressão digital.';
 
   @override
   String get settingsUnlockFullAccess => 'Desbloquear Ilimitado';
@@ -694,12 +691,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsRateApp => 'Avaliar o Scan Sign Send';
 
   @override
-  String get settingsRateAppSubtitle =>
-      'Deixe uma classificação ou um comentário';
+  String get settingsRateAppSubtitle => 'Deixe uma avaliação ou um comentário';
 
   @override
   String get settingsRateAppFailed =>
-      'Não foi possível abrir a loja. Tente mais tarde.';
+      'Não foi possível abrir a loja. Tente novamente mais tarde.';
 
   @override
   String get settingsFullAccessUnlocked => 'Ilimitado desbloqueado';
@@ -708,7 +704,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsThankYou => 'Obrigado pela sua compra!';
 
   @override
-  String get settingsCheckingPurchases => 'A procurar compras anteriores…';
+  String get settingsCheckingPurchases => 'Procurando compras anteriores…';
 
   @override
   String get settingsRestored => 'Ilimitado restaurado. Obrigado!';
@@ -737,7 +733,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get paywallHeadline => 'Scan Sign Send — Ilimitado';
 
   @override
-  String get paywallSubhead => 'Compra única. Sem subscrição. Sem conta.';
+  String get paywallSubhead => 'Compra única. Sem assinatura. Sem conta.';
 
   @override
   String get paywallBenefitUnlimited => 'Documentos ilimitados';
@@ -746,7 +742,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get paywallBenefitTemplates => 'Modelos reutilizáveis';
 
   @override
-  String get paywallBenefitSignatures => 'Várias assinaturas guardadas';
+  String get paywallBenefitSignatures => 'Várias assinaturas salvas';
 
   @override
   String get paywallBenefitAutofill => 'Preenchimento automático do perfil';
@@ -756,7 +752,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get paywallBenefitOffline =>
-      'Sempre offline — os seus dados ficam no dispositivo';
+      'Sempre offline — seus dados ficam no dispositivo';
 
   @override
   String paywallUnlockForPrice(String price) {
@@ -768,7 +764,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get paywallPaymentDisclosure =>
-      'O pagamento será cobrado na sua conta App Store / Play ao confirmar.';
+      'O pagamento será cobrado na sua conta da App Store / Play ao confirmar.';
 
   @override
   String get paywallNoPreviousPurchase =>
@@ -790,7 +786,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certDocument => 'Documento';
 
   @override
-  String get certSignedOn => 'Assinado a';
+  String get certSignedOn => 'Assinado em';
 
   @override
   String get certMethod => 'Método';
@@ -799,18 +795,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certMethodValue => 'No dispositivo (Scan Sign Send)';
 
   @override
-  String get certNote => 'Nota';
+  String get certNote => 'Observação';
 
   @override
   String get certNoteValue =>
-      'Assinaturas captadas localmente. Sem processamento na nuvem.';
+      'Assinaturas capturadas localmente. Sem processamento na nuvem.';
 
   @override
   String get certDateFormat => 'd \'de\' MMMM \'de\' yyyy — HH:mm';
 
   @override
   String get importErrorUnreadable =>
-      'Não foi possível abrir este PDF. Pode estar protegido por palavra-passe ou danificado.';
+      'Não foi possível abrir este PDF. Ele pode estar protegido por senha ou danificado.';
 
   @override
   String get importErrorNoPages => 'Este PDF não tem páginas.';
@@ -825,7 +821,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get iapUnavailable =>
-      'As compras na aplicação não estão disponíveis neste dispositivo.';
+      'As compras no app não estão disponíveis neste dispositivo.';
 
   @override
   String get iapProductNotFound => 'Produto não encontrado na loja.';
@@ -855,7 +851,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get detectPinchHint =>
-      'Toque numa ferramenta abaixo para adicionar um campo · toque num campo para selecioná-lo';
+      'Toque em uma ferramenta abaixo para adicionar um campo · toque em um campo para selecioná-lo';
 
   @override
   String get importErrorUnreadableImage =>
@@ -917,15 +913,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get detectFieldDeleted => 'Campo excluído';
 
   @override
-  String get detectRemoveDetected => 'Remover campos detectados';
+  String get detectRemoveAll => 'Remover todos';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count campos detectados removidos',
-      one: '1 campo detectado removido',
+      other: '$count campos removidos',
+      one: '1 campo removido',
     );
     return '$_temp0';
   }
@@ -941,11 +937,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get libraryImport => 'Importar';
 
   @override
-  String get settingsForgetLearned => 'Esquecer o que a aplicação aprendeu';
+  String get settingsForgetLearned => 'Esquecer o que o app aprendeu';
 
   @override
   String get settingsForgetLearnedSubtitle =>
-      'A deteção de campos, o PreFill e a organização aprendem com as suas alterações, apenas neste dispositivo.';
+      'A detecção de campos, o PreFill e a organização aprendem com suas alterações, apenas neste dispositivo.';
 
   @override
   String get settingsForgetLearnedDone => 'Campos aprendidos apagados';
@@ -1028,11 +1024,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settingsMyDetailsSubtitle =>
-      'Guardados uma vez e usados pelo PreFill para preencher formulários';
+      'Salvos uma vez e usados pelo PreFill para preencher formulários';
 
   @override
   String get myDetailsNote =>
-      'Guardados apenas neste dispositivo. Incluídos na cópia de segurança do dispositivo só se a ativar. O PreFill usa-os para preencher os campos correspondentes nos seus formulários; nada é preenchido até tocar em Preencher.';
+      'Salvos apenas neste dispositivo. Incluídos no backup do dispositivo só se você ativá-lo. O PreFill os usa para preencher os campos correspondentes nos seus formulários; nada é preenchido até você tocar em Preencher.';
 
   @override
   String get prefillFill => 'Preencher';
@@ -1041,10 +1037,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get myDetailsGroupName => 'Nome';
 
   @override
-  String get myDetailsGroupContact => 'Contacto';
+  String get myDetailsGroupContact => 'Contato';
 
   @override
-  String get myDetailsGroupAddress => 'Morada';
+  String get myDetailsGroupAddress => 'Endereço';
 
   @override
   String get myDetailsGroupWork => 'Trabalho';
@@ -1053,25 +1049,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get myDetailsGroupPersonal => 'Pessoal';
 
   @override
-  String get detailFirstName => 'Nome próprio';
+  String get detailFirstName => 'Nome';
 
   @override
   String get detailMiddleName => 'Nome do meio';
 
   @override
-  String get detailLastName => 'Apelido';
+  String get detailLastName => 'Sobrenome';
 
   @override
-  String get detailAddress1 => 'Morada';
+  String get detailAddress1 => 'Endereço';
 
   @override
-  String get detailAddress2 => 'Andar / porta';
+  String get detailAddress2 => 'Complemento';
 
   @override
-  String get detailState => 'Estado / distrito';
+  String get detailState => 'Estado';
 
   @override
-  String get detailZip => 'Código postal';
+  String get detailZip => 'CEP';
 
   @override
   String get detailCountry => 'País';
@@ -1083,19 +1079,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get detailDateOfBirth => 'Data de nascimento';
 
   @override
-  String get myDetailsDelete => 'Apagar os meus dados';
+  String get myDetailsDelete => 'Excluir meus dados';
 
   @override
   String get myDetailsDeleteBody =>
-      'Isto apaga todos os dados desta página. Os documentos que já preencheu não mudam.';
+      'Isso apaga todos os dados desta página. Os documentos que você já preencheu não mudam.';
 
   @override
   String prefillOffer(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Preencher $count campos com Os meus dados',
-      one: 'Preencher 1 campo com Os meus dados',
+      other: 'Preencher $count campos com Meus dados',
+      one: 'Preencher 1 campo com Meus dados',
     );
     return '$_temp0';
   }
@@ -1113,29 +1109,29 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get prefillSetup =>
-      'Guarde os seus dados uma vez para preencher formulários mais depressa';
+      'Salve seus dados uma vez para preencher formulários mais rápido';
 
   @override
   String get prefillSetupAction => 'Adicionar';
 
   @override
-  String get prefillSuggestions => 'De Os meus dados';
+  String get prefillSuggestions => 'De Meus dados';
 
   @override
   String get onboardPrefillTitle => 'Preencha formulários com um toque';
 
   @override
   String get onboardPrefillBody =>
-      'Os campos são detetados e identificados automaticamente. Guarde os seus dados uma vez em Os meus dados e o PreFill preenche os campos correspondentes. Guardados apenas neste dispositivo.';
+      'Os campos são detectados e identificados automaticamente. Salve seus dados uma vez em Meus dados e o PreFill preenche os campos correspondentes. Salvos apenas neste dispositivo.';
 
   @override
   String get tourWhatsNew => 'Novidades';
 
   @override
-  String get tourGotIt => 'Entendido';
+  String get tourGotIt => 'Entendi';
 
   @override
-  String get settingsTour => 'Visita guiada';
+  String get settingsTour => 'Tour guiado';
 
   @override
   String get settingsTourSubtitle => 'Veja o que o Scan Sign Send faz';
@@ -1153,7 +1149,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get categoryMedical => 'Saúde';
 
   @override
-  String get categoryHome => 'Casa e arrendamento';
+  String get categoryHome => 'Casa e aluguel';
 
   @override
   String get categoryWork => 'Trabalho';
@@ -1168,7 +1164,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get categoryLegal => 'Contratos e jurídico';
 
   @override
-  String get categoryBills => 'Faturas e recibos';
+  String get categoryBills => 'Contas e recibos';
 
   @override
   String get categoryNone => 'Sem categoria';
@@ -1186,14 +1182,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get categorySortedAutomatically => 'Organizado automaticamente';
 
   @override
-  String get categoryRename => 'Mudar o nome da categoria';
+  String get categoryRename => 'Renomear categoria';
 
   @override
-  String get categoryDelete => 'Eliminar categoria';
+  String get categoryDelete => 'Excluir categoria';
 
   @override
   String categoryDeleteBody(String name) {
-    return '«$name» será eliminada. Os documentos continuam na sua biblioteca, sem categoria.';
+    return '“$name” será excluída. Os documentos continuam na sua biblioteca, sem categoria.';
   }
 
   @override
@@ -1215,14 +1211,14 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Eliminar $count documentos?',
-      one: 'Eliminar 1 documento?',
+      other: 'Excluir $count documentos?',
+      one: 'Excluir 1 documento?',
     );
     return '$_temp0';
   }
 
   @override
-  String get libraryDeleteManyBody => 'Esta ação não pode ser anulada.';
+  String get libraryDeleteManyBody => 'Esta ação não pode ser desfeita.';
 
   @override
   String get libraryMoreTooltip => 'Mais';
@@ -1246,19 +1242,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get aiSortNotEnabled =>
-      'Organizados por palavras-chave. Ative o Apple Intelligence nas Definições para organizar com a IA do dispositivo.';
+      'Organizados por palavras-chave. Ative a Apple Intelligence nos Ajustes para organizar com a IA do dispositivo.';
 
   @override
   String get aiSortNotReady =>
-      'Organizados por palavras-chave, por agora. A IA do dispositivo ainda está a ser configurada neste telemóvel.';
+      'Organizados por palavras-chave, por enquanto. A IA do dispositivo ainda está sendo configurada neste celular.';
 
   @override
   String get aiSortLanguage =>
-      'Organizados por palavras-chave. A organização com a IA do dispositivo ainda não está disponível no idioma do seu telemóvel.';
+      'Organizados por palavras-chave. A organização com a IA do dispositivo ainda não está disponível no idioma do seu celular.';
 
   @override
   String get aiSortUnsupported =>
-      'Organizados por palavras-chave. Este telemóvel não suporta a organização com a IA do dispositivo.';
+      'Organizados por palavras-chave. Este celular não oferece suporte à organização com a IA do dispositivo.';
 
   @override
   String get aiSortOff =>
@@ -1268,10 +1264,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get actionGotIt => 'Entendi';
 
   @override
-  String get reviewSkipFieldsSave => 'Ignorar campos · Guardar e partilhar';
+  String get reviewSkipFieldsSave => 'Pular campos · Salvar e compartilhar';
 
   @override
-  String get saveAndShare => 'Guardar e partilhar';
+  String get saveAndShare => 'Salvar e compartilhar';
 
   @override
   String reviewSortedInto(String category) {
@@ -1282,10 +1278,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get actionChange => 'Alterar';
 
   @override
-  String get cropTitle => 'Verificar os contornos';
+  String get cropTitle => 'Verificar as bordas';
 
   @override
-  String get cropHint => 'Arraste os cantos até aos limites do documento.';
+  String get cropHint => 'Arraste os cantos até as bordas do documento.';
 
   @override
   String get cropUseWhole => 'Usar a imagem inteira';
@@ -1294,11 +1290,79 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cropApply => 'Recortar';
 
   @override
-  String get cropChecking => 'A verificar os contornos…';
+  String get cropChecking => 'Verificando as bordas…';
 
   @override
   String get cropFailed =>
       'Não foi possível recortar esta página. A imagem inteira foi mantida.';
+
+  @override
+  String get straightenAskTitle => 'Endireitar as páginas?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'O app encontra as bordas de cada página para você recortar. Para estas $count páginas, leva cerca de $minutes minutos.',
+      one:
+          'O app encontra as bordas de cada página para você recortar. Para estas $count páginas, leva cerca de 1 minuto.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'O app encontra as bordas de cada página para você recortar. Para estas $count páginas, leva menos de um minuto.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Faltam cerca de $minutes minutos',
+      one: 'Falta cerca de 1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'Falta menos de um minuto';
+
+  @override
+  String get straightenGo => 'Endireitar';
+
+  @override
+  String get straightenKeep => 'Manter como está';
+
+  @override
+  String get straightenAskLater =>
+      'Escolha Manter como está se as páginas já estiverem retas. Você ainda pode endireitá-las depois em Revisar páginas.';
+
+  @override
+  String get reviewStraighten => 'Endireitar páginas';
+
+  @override
+  String get reviewStraightenNone =>
+      'Nenhuma borda de página para corrigir foi encontrada.';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'Verificando a página $current de $total…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'Endireitando a página $current de $total…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'Usar a imagem inteira no restante';
+
+  @override
+  String get jobKeepUsing => 'Continuar usando o app';
 
   @override
   String get importErrorMixed => 'Escolha um só PDF, ou uma ou mais fotos.';
@@ -1315,6 +1379,74 @@ class AppLocalizationsPt extends AppLocalizations {
       one: '1 página',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'Pausar';
+
+  @override
+  String get jobResume => 'Retomar';
+
+  @override
+  String get jobPaused => 'Pausado';
+
+  @override
+  String get jobPausedHint => 'Pausado. As páginas já feitas estão salvas.';
+
+  @override
+  String get jobWaiting => 'Aguardando';
+
+  @override
+  String get jobScreenOn => 'A tela fica ligada até terminar.';
+
+  @override
+  String get jobLockHint =>
+      'Enquanto isso, você pode usar outros apps. Se você bloquear o telefone, o iPhone pode pausar isto. Continua da mesma página quando você abrir o app.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'Seu telefone pausou isto enquanto você estava fora. Nada foi perdido. Continua da página $page.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” pausado. Abra o app para continuar.';
+  }
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count páginas para verificar',
+      one: '1 página para verificar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'Verificar agora';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count páginas fecharam o app, então foram mantidas como estavam.',
+      one: '1 página fechou o app, então foi mantida como estava.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return 'Verificando as bordas de “$title”';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return 'Endireitando “$title”';
   }
 
   @override

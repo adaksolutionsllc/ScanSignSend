@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
@@ -21,12 +20,6 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    // ML Kit's recogniser is created (never used) by the sorter's providers.
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-          const MethodChannel('google_mlkit_text_recognizer'),
-          (_) async => null,
-        );
     db = AppDatabase.forTesting(
       DatabaseConnection(
         NativeDatabase.memory(),

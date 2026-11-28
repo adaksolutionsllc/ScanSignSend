@@ -5,7 +5,12 @@
 #
 # Runs integration_test/device_check_test.dart (library, settings, send,
 # viewer, rating sheet, store listing) and saves a screenshot at each
-# CAPTURE: marker to build/verify/<device>/NN_<name>.png. --full also runs the
+# CAPTURE: marker to build/verify/<device>/NN_<name>.png. --ocr-gate runs only
+# integration_test/ocr_gate_test.dart (OCR fields vs text-layer fields; see
+# its GATE lines). --upgrade [tag…] runs integration_test/upgrade_verify_test.dart
+# once per old version (default: tool/verify/upgrade/versions.txt) on that
+# version's data from test/fixtures/upgrade/ (made by upgrade_seed.sh).
+# --full also runs the
 # whole store flow (import → detect → fill → sign → flatten → send → preview)
 # from integration_test/store_capture_test.dart; on iOS that's capture.sh.
 #
@@ -14,7 +19,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DEV="${1:?usage: device_check.sh <simulator-udid|emulator-NNNN> [--full]}"
+DEV="${1:?usage: device_check.sh <simulator-udid|emulator-NNNN> [--full|--ocr-gate|--upgrade [tag…]]}"
 FULL="${2:-}"
 
 if [[ $DEV == emulator-* ]]; then
@@ -55,12 +60,7 @@ open(p, "w").write(t.replace(dev, dev + "  integration_test:\n    sdk: flutter\n
 PY
 
 if [[ $PLATFORM == ios ]]; then
-  # ML Kit has no arm64 simulator slice; the project is device-only.
-  cat > pubspec_overrides.yaml <<'EOF'
-dependency_overrides:
-  google_mlkit_text_recognition:
-    path: tool/store_capture/mlkit_stub
-EOF
+  # The release builds are device-only; allow the simulator for this run.
   flutter pub get >/dev/null
   sed -i '' 's/SUPPORTED_PLATFORMS = iphoneos;/SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";/' \
     ios/Runner.xcodeproj/project.pbxproj
@@ -126,6 +126,78 @@ share() {
   foreground
 }
 
+# The OCR gate's forms, into the app's temp folder as gate_<name>.pdf.
+provide_gate() {
+  python3 tool/store_capture/make_forms.py >/dev/null
+  local f
+  for f in tool/store_capture/forms/*.pdf test/fixtures/irs_fw4_2026.pdf; do
+    local name="gate_$(basename "$f" .pdf).pdf"
+    [[ $f == *irs_fw4_2026.pdf ]] && name=gate_fw4.pdf
+    if [[ $PLATFORM == ios ]]; then
+      cp "$f" "$(xcrun simctl get_app_container "$DEV" com.adakVentures.scanSignSend data)/Library/Caches/$name"
+    else
+      adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \
+        sh -c "cat > cache/$name" < "$f"
+    fi
+  done
+}
+
+# An old version's data into the freshly installed app (NEED:upgrade), then
+# the marker the test waits for. Settings go through `defaults import` on iOS:
+# the running app reads them from cfprefsd, not from the file.
+provide_upgrade() {
+  local fx="$PWD/test/fixtures/upgrade/$FROM/$PLATFORM"
+  if [[ $PLATFORM == ios ]]; then
+    local c
+    c="$(xcrun simctl get_app_container "$DEV" com.adakVentures.scanSignSend data)"
+    tar -xzf "$fx/data.tar.gz" -C "$c"
+    # Into the container's own domain (its plist path): the app does not
+    # read the simulator-wide com.adakVentures.scanSignSend domain.
+    xcrun simctl spawn "$DEV" defaults import \
+      "$c/Library/Preferences/com.adakVentures.scanSignSend.plist" "$fx/prefs.plist"
+    cp "$fx/expect.json" "$c/Library/Caches/upgrade_expect.json"
+    touch "$c/Library/Caches/upgrade_ready"
+  else
+    gunzip -c "$fx/data.tar.gz" |
+      adb -s "$DEV" exec-in run-as com.adakventures.scansignsend tar -xf -
+    adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \
+      sh -c 'cat > cache/upgrade_expect.json' < "$fx/expect.json"
+    adb -s "$DEV" shell run-as com.adakventures.scansignsend touch cache/upgrade_ready
+  fi
+}
+
+# RECORD:<name> … STOP:<name>: a screen video, then <name>.gif next to it.
+REC_PID=""
+record() {
+  if [[ $PLATFORM == ios ]]; then
+    xcrun simctl io "$DEV" recordVideo --codec=h264 --force "$OUT/$1.mp4" >/dev/null 2>&1 &
+  else
+    adb -s "$DEV" shell screenrecord --bit-rate 6000000 "/sdcard/$1.mp4" &
+  fi
+  REC_PID=$!
+}
+stop_record() {
+  [[ -z $REC_PID ]] && return
+  if [[ $PLATFORM == ios ]]; then
+    kill -INT "$REC_PID" 2>/dev/null || true
+    wait "$REC_PID" 2>/dev/null || true
+  else
+    # </dev/null: anything reading stdin here eats the test's output lines.
+    adb -s "$DEV" shell pkill -INT screenrecord </dev/null || true
+    wait "$REC_PID" 2>/dev/null || true
+    sleep 1
+    adb -s "$DEV" pull "/sdcard/$1.mp4" "$OUT/$1.mp4" </dev/null >/dev/null
+    adb -s "$DEV" shell rm -f "/sdcard/$1.mp4" </dev/null
+  fi
+  REC_PID=""
+  # In the background, so the next marker is not held up.
+  if command -v ffmpeg >/dev/null; then
+    ffmpeg -nostdin -loglevel error -y -i "$OUT/$1.mp4" -vf \
+      "fps=12,scale=360:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" \
+      "$OUT/$1.gif" </dev/null || true &
+  fi
+}
+
 shot() {
   if [[ $PLATFORM == ios ]]; then
     xcrun simctl io "$DEV" screenshot "$1" >/dev/null 2>&1
@@ -151,6 +223,10 @@ run() {  # run <test file> [flutter test args...]
     if [[ "$line" =~ CAPTURE:([a-z0-9_]+) ]]; then
       n=$((n + 1))
       shot "$OUT/$(printf %02d "$n")_${BASH_REMATCH[1]}.png"
+    elif [[ "$line" == *NEED:gate* ]]; then
+      provide_gate
+    elif [[ "$line" == *NEED:upgrade* ]]; then
+      provide_upgrade
     elif [[ "$line" == *NEED:w4* ]]; then
       provide
     elif [[ "$line" == *NEED:share* ]]; then
@@ -160,6 +236,10 @@ run() {  # run <test file> [flutter test args...]
       adb -s "$DEV" exec-in run-as com.adakventures.scansignsend \
         sh -c 'cat > cache/Rental_Application.pdf' \
         < tool/store_capture/forms/Rental_Application.pdf
+    elif [[ "$line" =~ RECORD:([a-z0-9_]+) ]]; then
+      record "${BASH_REMATCH[1]}"
+    elif [[ "$line" =~ STOP:([a-z0-9_]+) ]]; then
+      stop_record "${BASH_REMATCH[1]}"
     elif [[ "$line" =~ LEAVE:([a-z0-9_]+) ]]; then
       # The app is about to leave for another app: shoot that, then return.
       n=$((n + 1))
@@ -172,6 +252,33 @@ run() {  # run <test file> [flutter test args...]
 }
 
 status=0
+if [[ $FULL == --ocr-gate ]]; then
+  run integration_test/ocr_gate_test.dart | grep -E "GATE|passed|failed" || status=$?
+  exit "$status"
+fi
+if [[ $FULL == --upgrade ]]; then
+  tags=("${@:3}")
+  if [[ ${#tags[@]} == 0 ]]; then
+    while read -r t; do tags+=("$t"); done < <(grep -v '^#' tool/verify/upgrade/versions.txt | grep .)
+  fi
+  for FROM in "${tags[@]}"; do
+    if [[ ! -f test/fixtures/upgrade/$FROM/$PLATFORM/data.tar.gz ]]; then
+      echo "FAIL: no fixture for $FROM on $PLATFORM (tool/verify/upgrade_seed.sh $DEV $FROM)"
+      status=1
+      continue
+    fi
+    # A fresh install, as the old data must be the only data.
+    if [[ $PLATFORM == ios ]]; then
+      xcrun simctl uninstall "$DEV" com.adakVentures.scanSignSend 2>/dev/null || true
+    else
+      adb -s "$DEV" uninstall com.adakventures.scansignsend >/dev/null 2>&1 || true
+    fi
+    echo "== upgrade from $FROM"
+    run integration_test/upgrade_verify_test.dart --dart-define=FROM="$FROM" || status=$?
+  done
+  echo "Screenshots in $OUT"
+  exit "$status"
+fi
 run integration_test/device_check_test.dart || status=$?
 
 if [[ $FULL == --full && $status == 0 ]]; then

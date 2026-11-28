@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart'
 import '../../core/services/app_lock_provider.dart';
 
 /// Opens the share sheet for the PDF at [pdfPath], named after the document.
+/// The PDF only, with no text: "Save to Files" saved a text with it.
 ///
 /// The stored file's name is an internal id, which is what recipients used to
 /// receive ("904aa0a1-833a-….pdf"); a copy named "[title].pdf" is shared
@@ -21,7 +22,6 @@ Future<bool> shareDocumentPdf({
   required AppLockNotifier lock,
   required String pdfPath,
   required String title,
-  required String message,
   Rect? origin,
 }) async {
   final named = await _namedCopy(pdfPath, title);
@@ -29,7 +29,6 @@ Future<bool> shareDocumentPdf({
     () => Share.shareXFiles(
       [XFile(named, mimeType: 'application/pdf')],
       subject: title,
-      text: message,
       sharePositionOrigin: origin,
     ),
   );

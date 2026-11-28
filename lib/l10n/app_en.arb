@@ -336,10 +336,6 @@
   "sendShareAgain": "Share Again",
   "sendNotYetPressed": "This document isn't finished yet.",
   "sendPressedPdfNotFound": "The finished PDF couldn't be found.",
-  "sendShareMessage": "Signed with Scan Sign Send",
-  "@sendShareMessage": {
-    "description": "Body text attached to the outgoing share. Keep the product name untranslated."
-  },
   "sendShareFailed": "Share failed: {error}",
   "@sendShareFailed": {
     "placeholders": {
@@ -484,9 +480,9 @@
   "detectSelectedHint": "Drag to move · pinch or drag the corner to resize · tap again to edit",
   "detectRadioAddChoiceHint": "Tap Radio again to add another choice to this question",
   "detectFieldDeleted": "Field deleted",
-  "detectRemoveDetected": "Remove detected fields",
-  "detectRemovedDetected": "{count, plural, =1{Removed 1 detected field} other{Removed {count} detected fields}}",
-  "@detectRemovedDetected": {
+  "detectRemoveAll": "Remove all",
+  "detectRemovedAll": "{count, plural, =1{Removed 1 field} other{Removed {count} fields}}",
+  "@detectRemovedAll": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -707,6 +703,64 @@
   "cropApply": "Crop",
   "cropChecking": "Checking the edges…",
   "cropFailed": "Could not crop this page. The whole image was kept.",
+  "straightenAskTitle": "Straighten the pages?",
+  "straightenAskBodyMinutes": "{minutes, plural, =1{The app finds the edges of each page so you can crop them. For these {count} pages this takes about 1 minute.} other{The app finds the edges of each page so you can crop them. For these {count} pages this takes about {minutes} minutes.}}",
+  "@straightenAskBodyMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "straightenAskBodyQuick": "The app finds the edges of each page so you can crop them. For these {count} pages this takes less than a minute.",
+  "@straightenAskBodyQuick": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "progressMinutesLeft": "{minutes, plural, =1{About 1 minute left} other{About {minutes} minutes left}}",
+  "@progressMinutesLeft": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "progressUnderMinuteLeft": "Less than a minute left",
+  "straightenGo": "Straighten",
+  "straightenKeep": "Keep as is",
+  "straightenAskLater": "Choose Keep as is if the pages are already straight. You can still straighten them later on the Review Pages screen.",
+  "reviewStraighten": "Straighten pages",
+  "reviewStraightenNone": "No page edges to fix were found.",
+  "cropCheckingPage": "Checking page {current} of {total}…",
+  "@cropCheckingPage": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "cropStraighteningPage": "Straightening page {current} of {total}…",
+  "@cropStraighteningPage": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "cropUseWholeRest": "Use whole image for the rest",
+  "jobKeepUsing": "Keep using the app",
   "importErrorMixed": "Choose one PDF, or one or more photos.",
   "sendHome": "Home",
   "searchPageCount": "{count, plural, =1{1 page} other{{count} pages}}",
@@ -714,6 +768,62 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "jobPause": "Pause",
+  "jobResume": "Resume",
+  "jobPaused": "Paused",
+  "jobPausedHint": "Paused. The pages done so far are saved.",
+  "jobWaiting": "Waiting",
+  "jobScreenOn": "The screen stays on until this is done.",
+  "jobLockHint": "You can use other apps meanwhile. If you lock the phone, iPhone may pause this. It goes on from the same page when you open the app.",
+  "jobResumedNotice": "Your phone paused this while you were away. Nothing was lost. It goes on from page {page}.",
+  "@jobResumedNotice": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "jobPausedBanner": "“{title}” paused. Open the app to go on.",
+  "@jobPausedBanner": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "jobPagesToCheck": "{count, plural, =1{1 page to check} other{{count} pages to check}}",
+  "@jobPagesToCheck": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jobCheckNow": "Check now",
+  "jobKeptAsIs": "{count, plural, =1{1 page stopped the app, so it was kept as it is.} other{{count} pages stopped the app, so they were kept as they are.}}",
+  "@jobKeptAsIs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jobCheckingTitle": "Checking the edges of “{title}”",
+  "@jobCheckingTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "jobStraighteningTitle": "Straightening “{title}”",
+  "@jobStraighteningTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
       }
     }
   },

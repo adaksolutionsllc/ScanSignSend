@@ -17,6 +17,7 @@ import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/category_ui.dart';
 import '../../../shared/widgets/text_edit_dialog.dart';
 import '../../../core/utils/l10n_ext.dart';
+import '../../review/presentation/import_job_bar.dart';
 import 'keyword_sorting_tip.dart';
 import 'merge_flow.dart';
 import 'unlimited_banner.dart';
@@ -200,6 +201,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       body: Column(
         children: [
           const UnlimitedBanner(),
+          const ImportJobBar(),
           const KeywordSortingTip(),
           _CategoryFilterBar(
             selected: _category,

@@ -19,6 +19,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:scan_sign_send/core/services/background_work_service.dart';
+import 'package:scan_sign_send/core/services/import_job.dart';
+import 'package:scan_sign_send/core/services/import_job_runner.dart';
 import 'package:scan_sign_send/core/db/app_database.dart';
 import 'package:scan_sign_send/core/services/document_repository.dart';
 import 'package:scan_sign_send/core/services/edge_check_service.dart';
@@ -31,6 +34,7 @@ import 'package:scan_sign_send/core/models/document_category.dart';
 import 'package:scan_sign_send/core/utils/path_resolver.dart';
 import 'package:image/image.dart' as img;
 import 'package:scan_sign_send/core/models/document_model.dart';
+import 'package:scan_sign_send/features/review/presentation/job_screen.dart';
 import 'package:scan_sign_send/features/fill_mode/presentation/fill_mode_screen.dart';
 import 'package:scan_sign_send/features/review/presentation/crop_screen.dart';
 import 'package:scan_sign_send/features/review/presentation/review_screen.dart';
@@ -279,7 +283,12 @@ void main() {
     // Then from the bar.
     await _waitFor(tester, find.byKey(barFill));
     await tester.tap(find.byKey(barFill));
-    await _pause(tester, 1500);
+    // Up to 5 s: on a busy emulator the writes take longer than 1.5 s.
+    final fillBy = DateTime.now().add(const Duration(seconds: 5));
+    while ((await w4Values()).length < filled.length &&
+        DateTime.now().isBefore(fillBy)) {
+      await _pause(tester, 200);
+    }
     expect((await w4Values()).length, filled.length);
     _mark('INFO:prefill bar + bottom button ok');
     // Let the snackbar go before the next taps.
@@ -503,11 +512,24 @@ void main() {
       await _tiltedPhoto(tmp, 'share', 'Shared_page_1.jpg');
       await _tiltedPhoto(tmp, 'share', 'Shared_page_2.jpg');
       _mark('NEED:share');
+      // Two photos: since 1.3.2 the app asks before it checks their edges.
+      const goKey = ValueKey('straighten-go');
+      final straightenGo = find.byKey(goKey);
       await _waitFor(
         tester,
-        find.byWidgetPredicate((w) => w is CropScreen || w is ReviewScreen),
+        find.byWidgetPredicate(
+          (w) => w is CropScreen || w is ReviewScreen || w.key == goKey,
+        ),
         seconds: 60,
       );
+      if (straightenGo.evaluate().isNotEmpty) {
+        await tester.tap(straightenGo);
+        await _waitFor(
+          tester,
+          find.byWidgetPredicate((w) => w is CropScreen || w is ReviewScreen),
+          seconds: 60,
+        );
+      }
       // One crop per photo: Crop, then the next photo (or Review) once the
       // first is applied.
       final cropOrReview = find.byWidgetPredicate(
@@ -537,6 +559,313 @@ void main() {
       );
     }
 
+    // A long photo-only PDF: the user is asked first and told that it takes
+    // longer for bigger files. Skip goes straight to Review, unchanged.
+    Future<Document> newest() async =>
+        (await container.read(documentRepositoryProvider).watchAll().first)
+            .reduce((a, b) => a.id > b.id ? a : b);
+    Future<void> openLong(String name, {int pages = 6}) async {
+      final path = await _photoOnlyPdf(tmp, pages: pages, name: name);
+      router.go(AppRoutes.library);
+      await _waitFor(tester, find.byType(LibraryScreen));
+      router.push(
+        AppRoutes.capture,
+        extra: [OpenedFile(path: path, name: name)],
+      );
+      await _waitFor(tester, find.text(l10n.straightenAskTitle), seconds: 60);
+      // About how long it takes, from this phone's past runs.
+      expect(
+        find.textContaining(
+          RegExp('For these $pages pages this takes (about|less)'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text(l10n.straightenAskLater), findsOneWidget);
+      expect(find.text(l10n.straightenKeep), findsOneWidget);
+    }
+
+    await openLong('long_scan.pdf');
+    await _capture(tester, 'straighten_ask');
+    await tester.tap(find.byKey(const ValueKey('straighten-skip')));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    final skipped = await container
+        .read(pageRepositoryProvider)
+        .pagesOf((await newest()).id);
+    expect(skipped, hasLength(6));
+    expect(
+      skipped.every((pg) => pg.imagePath.contains('#page=')),
+      isTrue,
+      reason: 'Skip changed the pages',
+    );
+    _mark('INFO:long pdf skipped: 6 pdf pages kept');
+
+    // Kept as is, then straightened later from Review: back on the same
+    // Review, the pages now images.
+    await _waitFor(tester, find.byKey(const ValueKey('review-straighten')));
+    await _capture(tester, 'review_straighten_button');
+    await tester.tap(find.byKey(const ValueKey('review-straighten')));
+    await _waitFor(tester, find.byType(CropScreen), seconds: 180);
+    await _pause(tester, 800);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
+    await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
+    await _waitGone(tester, find.byType(CropScreen), seconds: 180);
+    // The job screen shows the straightening, then returns to Review.
+    await _waitGone(tester, find.byType(JobScreen), seconds: 180);
+    await _pause(tester, 1000);
+    expect(
+      find.byType(ReviewScreen, skipOffstage: false),
+      findsOneWidget,
+      reason: 'a second Review was opened',
+    );
+    final later = await container
+        .read(pageRepositoryProvider)
+        .pagesOf((await newest()).id);
+    expect(
+      later.any((pg) => pg.imagePath.contains('#page=')),
+      isFalse,
+      reason: 'Straighten pages left PDF pages',
+    );
+    _mark('INFO:straightened later from Review');
+
+    // Again, straightened: page counts while it checks and while it
+    // straightens; page 1 cropped, the rest kept whole in one tap.
+    await openLong('long_scan_2.pdf');
+    final watch = Stopwatch()..start();
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    final checkCount = await _waitNoting(
+      tester,
+      find.byType(CropScreen),
+      find.textContaining(RegExp(r'^Checking page \d of 6')),
+      seconds: 180,
+    );
+    _mark(
+      'INFO:long pdf checked 6 pages in ${watch.elapsedMilliseconds} ms '
+      '(count shown: $checkCount)',
+    );
+    await _pause(tester, 800);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 6)));
+    await _capture(tester, 'crop_use_whole_rest');
+    await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
+    watch.reset();
+    final straightenCount = await _waitNoting(
+      tester,
+      find.byType(ReviewScreen),
+      find.textContaining(RegExp(r'^Straightening page \d of 6')),
+      seconds: 180,
+    );
+    _mark(
+      'INFO:long pdf straightened 6 pages in ${watch.elapsedMilliseconds} ms '
+      '(count shown: $straightenCount)',
+    );
+    final long = await container
+        .read(pageRepositoryProvider)
+        .pagesOf((await newest()).id);
+    expect(long, hasLength(6));
+    expect(
+      long.any((pg) => pg.imagePath.contains('#page=')),
+      isFalse,
+      reason: 'not every page became an image',
+    );
+    Future<int> widthOf(String stored) async => img
+        .decodeJpg(await File(PathResolver.resolve(stored)).readAsBytes())!
+        .width;
+    final w1 = await widthOf(long[0].imagePath);
+    final w2 = await widthOf(long[1].imagePath);
+    _mark('INFO:long pdf page widths $w1 (cropped) $w2 (whole)');
+    expect(w1, lessThan(w2), reason: 'page 1 was not cropped');
+
+    // Skip while the pages are checked: on to Review, nothing changed.
+    Future<void> expectUnchanged(String why, {int pages = 6}) async {
+      final kept = await container
+          .read(pageRepositoryProvider)
+          .pagesOf((await newest()).id);
+      expect(kept, hasLength(pages));
+      expect(
+        kept.every((pg) => pg.imagePath.contains('#page=')),
+        isTrue,
+        reason: why,
+      );
+      expect(
+        File(
+          PathResolver.resolve(kept[0].imagePath.split('#page=').first),
+        ).existsSync(),
+        isTrue,
+        reason: 'the PDF is gone after $why',
+      );
+    }
+
+    await openLong('long_scan_3.pdf', pages: 24);
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    await _waitFor(tester, find.byKey(const ValueKey('edge-check-skip')));
+    _mark('CAPTURE:edge_check_progress');
+    await _pause(tester, 700); // the job screen slides in
+    await tester.tap(find.byKey(const ValueKey('edge-check-skip')));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    await expectUnchanged('Skip while checking', pages: 24);
+    _mark('INFO:skip while checking went to Review, pages kept');
+
+    // Skip while the pages are straightened: the PDF stays as it was. More
+    // pages, so that Skip lands while the job still works.
+    await openLong('long_scan_4.pdf', pages: 24);
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    await _waitFor(tester, find.byType(CropScreen), seconds: 180);
+    await _pause(tester, 800);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 24)));
+    await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
+    await _waitFor(
+      tester,
+      find.byKey(const ValueKey('straighten-progress-skip')),
+    );
+    _mark('CAPTURE:straighten_progress');
+    await _pause(tester, 700); // the job screen slides in
+    await tester.tap(find.byKey(const ValueKey('straighten-progress-skip')));
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    await expectUnchanged('Skip while straightening', pages: 24);
+    _mark('INFO:skip while straightening went to Review, pdf kept');
+
+    // Before the restart below: its new runner takes over the channel.
+    // The phone ends the background time (iOS, phone locked; it shows
+    // "Task failed"): the job pauses. Back in the app it goes on, and the
+    // app says nothing was lost (tester, build 26).
+    await openLong('long_scan_6.pdf', pages: 24);
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    await _waitFor(tester, find.byKey(const ValueKey('job-pause')));
+    await _pause(tester, 700); // the job screen slides in
+    final jobs = container.read(importJobRunnerProvider);
+    final awayId = (await newest()).id;
+    // What BackgroundWorkPlugin sends when iOS ends the time.
+    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+      'com.scansignsend/background',
+      const StandardMethodCodec().encodeMethodCall(const MethodCall('expired')),
+      (_) {},
+    );
+    await _waitFor(
+      tester,
+      find.byKey(const ValueKey('job-resume')),
+      seconds: 60,
+    );
+    final awayBy = DateTime.now().add(const Duration(seconds: 60));
+    while (jobs.view(awayId)!.running) {
+      if (DateTime.now().isAfter(awayBy)) {
+        fail('the system pause never stopped it');
+      }
+      await _pause(tester, 200);
+    }
+    final awayAt = jobs.view(awayId)!.done;
+    for (final state in const [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    // The page after the last one finished; the progress shown while
+    // paused may still name the one before.
+    final told = find.textContaining(
+      RegExp(
+        RegExp.escape(l10n.jobResumedNotice(999)).replaceAll('999', r'\d+'),
+      ),
+    );
+    await _waitFor(tester, told);
+    final from = int.parse(
+      RegExp(r'\d+').allMatches(tester.widget<Text>(told).data!).last[0]!,
+    );
+    expect(from, inInclusiveRange(awayAt + 1, awayAt + 2));
+    await _pause(tester, 400);
+    _mark('CAPTURE:job_resumed_after_lock');
+    await _pause(tester, 1200);
+    ScaffoldMessenger.of(
+      tester.element(find.byType(JobScreen)),
+    ).hideCurrentSnackBar();
+    await jobs.skip(awayId);
+    await _waitFor(tester, find.byType(ReviewScreen), seconds: 60);
+    await _pause(tester, 600);
+    _mark('INFO:system pause went on from page $from, told');
+
+    // Pause, use the app, and go on after a restart (plan 1.3.2): the job
+    // is saved after every page. A new runner stands in for a restarted
+    // app: it reads the saved job, shows it paused, and finishes it.
+    await openLong('long_scan_5.pdf', pages: 24);
+    await tester.tap(find.byKey(const ValueKey('straighten-go')));
+    await _waitFor(tester, find.byType(CropScreen), seconds: 180);
+    await _pause(tester, 800);
+    await tester.tap(find.text(l10n.cropApply));
+    await _waitFor(tester, find.text(l10n.reviewPageOf(2, 24)));
+    await tester.tap(find.byKey(const ValueKey('crop-use-whole-rest')));
+    await _waitFor(tester, find.byKey(const ValueKey('job-pause')));
+    await _pause(tester, 700); // the job screen slides in
+    await tester.tap(find.byKey(const ValueKey('job-pause')));
+    final runner = container.read(importJobRunnerProvider);
+    final resumable = (await newest()).id;
+    await _waitFor(
+      tester,
+      find.byKey(const ValueKey('job-resume')),
+      seconds: 60,
+    );
+    // The pages in work finish first; then nothing runs.
+    final stopBy = DateTime.now().add(const Duration(seconds: 60));
+    while (runner.view(resumable)!.running) {
+      if (DateTime.now().isAfter(stopBy)) fail('the pause never stopped it');
+      await _pause(tester, 200);
+    }
+    final pausedAt = runner.view(resumable)!.done;
+    _mark('INFO:paused at page $pausedAt of 24');
+    expect(pausedAt, lessThan(24), reason: 'finished before the pause');
+    await _capture(tester, 'job_paused');
+    await tester.tap(find.byKey(const ValueKey('job-keep-using')));
+    await _waitFor(tester, find.byType(LibraryScreen));
+    await _waitFor(tester, find.text(l10n.jobPaused));
+    await _pause(tester, 600);
+    _mark('CAPTURE:library_job_paused');
+    final restarted = ImportJobRunner(
+      edges: container.read(edgeCheckServiceProvider),
+      docRepo: container.read(documentRepositoryProvider),
+      store: ImportJobStore(),
+      phone: BackgroundWorkService(),
+    );
+    await restarted.restore();
+    expect(restarted.view(resumable)?.paused, isTrue, reason: 'not saved');
+    await restarted.resume(resumable);
+    final resumeBy = DateTime.now().add(const Duration(seconds: 180));
+    while (restarted.hasJob(resumable)) {
+      if (DateTime.now().isAfter(resumeBy)) fail('the resumed job never ended');
+      await _pause(tester, 250);
+    }
+    final resumed = await container
+        .read(pageRepositoryProvider)
+        .pagesOf(resumable);
+    expect(resumed, hasLength(24));
+    expect(
+      resumed.any((pg) => pg.imagePath.contains('#page=')),
+      isFalse,
+      reason: 'the resumed job left PDF pages',
+    );
+    expect(
+      resumed.map((pg) => pg.imagePath).toSet(),
+      hasLength(24),
+      reason: 'a page twice',
+    );
+    // The first runner still holds the paused job: Skip clears it.
+    await runner.skip(resumable);
+    await _pause(tester, 600);
+    expect(find.text(l10n.jobPaused), findsNothing);
+    _mark('INFO:paused job saved and resumed after a restart: 24 pages');
+
+    // Photos with no words: Detect Fields finds nothing. TestFlight 1.3.1
+    // (22): a painting got 7 fields from its brush strokes.
+    final picture = (await newest()).id;
+    router.go(AppRoutes.fieldDetection.replaceAll(':docId', '$picture'));
+    await _waitFor(tester, find.text(l10n.detectSkipToFill), seconds: 120);
+    await _pause(tester, 800);
+    await _capture(tester, 'detect_picture_no_fields');
+    _mark('INFO:photos with no words got no fields');
+
     // Straight after scanning: "Skip fields · Save & Share" on the Review
     // screen saves the scan as a finished (Completed) PDF, after a
     // confirmation, and opens Send.
@@ -562,6 +891,45 @@ void main() {
     expect(scan?.pressedPdfPath, isNotNull, reason: 'no PDF saved');
     expect(scan?.statusEnum, DocumentStatus.pressed, reason: 'not Completed');
     _mark('INFO:scan saved without fields as Completed');
+
+    // A document with no fields swipes between pages in Fill mode, and the
+    // page chips follow (tester, build 26: "click each page number").
+    final plainId = await _plainPagesDocument(container, 12);
+    router.go(AppRoutes.fillMode.replaceAll(':docId', '$plainId'));
+    await _waitFor(tester, find.byType(PageView));
+    await _pause(tester, 1200);
+    String chip() =>
+        (tester
+                    .widgetList<ChoiceChip>(find.byType(ChoiceChip))
+                    .singleWhere((c) => c.selected)
+                    .label
+                as Text)
+            .data!;
+    await _capture(tester, 'fill_swipe_page1');
+    _mark('RECORD:fill_swipe');
+    await _pause(tester, 800);
+    for (var i = 0; i < 4; i++) {
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1200);
+      await _pause(tester, 900);
+    }
+    expect(chip(), '5', reason: 'swipes did not move the page');
+    await tester.fling(find.byType(PageView), const Offset(300, 0), 1200);
+    await _pause(tester, 900);
+    expect(chip(), '4');
+    await tester.ensureVisible(find.widgetWithText(ChoiceChip, '9'));
+    await _pause(tester, 400);
+    await tester.tap(find.widgetWithText(ChoiceChip, '9'));
+    await _pause(tester, 900);
+    expect(chip(), '9', reason: 'chip tap did not move the page');
+    for (var i = 0; i < 3; i++) {
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1200);
+      await _pause(tester, 900);
+    }
+    expect(chip(), '12');
+    _mark('STOP:fill_swipe');
+    await _pause(tester, 600);
+    await _capture(tester, 'fill_swipe_page12');
+    _mark('INFO:no-fields doc swiped 1→5→4, chip 9, swiped to 12');
 
     // Categories: the imported W-4 was sorted on its own (keywords on the
     // simulator, the phone's model where it has one). The Library shows the
@@ -951,24 +1319,31 @@ Future<String> _tiltedPhoto(Directory tmp, String folder, String name) async {
   return file.path;
 }
 
-/// A one-page PDF holding only that photo: no text layer, no fields.
-Future<String> _photoOnlyPdf(Directory tmp) async {
+/// A PDF whose [pages] pages each hold only that photo: no text layer, no
+/// fields.
+Future<String> _photoOnlyPdf(
+  Directory tmp, {
+  int pages = 1,
+  String name = 'photo_scan.pdf',
+}) async {
   final jpg = await File(
     await _tiltedPhoto(tmp, 'pdfsrc', 'page.jpg'),
   ).readAsBytes();
   final pdf = PdfDocument();
   pdf.pageSettings.margins.all = 0;
-  final page = pdf.pages.add();
-  final size = page.getClientSize();
-  page.graphics.drawImage(
-    PdfBitmap(jpg),
-    Rect.fromLTWH(0, 0, size.width, size.height),
-  );
+  for (var i = 0; i < pages; i++) {
+    final page = pdf.pages.add();
+    final size = page.getClientSize();
+    page.graphics.drawImage(
+      PdfBitmap(jpg),
+      Rect.fromLTWH(0, 0, size.width, size.height),
+    );
+  }
   final bytes = await pdf.save();
   pdf.dispose();
   final dir = Directory(p.join(tmp.path, 'opened_check', 'pdf'));
   await dir.create(recursive: true);
-  final file = File(p.join(dir.path, 'photo_scan.pdf'));
+  final file = File(p.join(dir.path, name));
   await file.writeAsBytes(bytes);
   return file.path;
 }
@@ -997,6 +1372,57 @@ Future<int> _scannedDocument(ProviderContainer container) async {
         pageIndex: 0,
         imagePath: '${file.path}#page=0',
       );
+  return doc.id;
+}
+
+/// A scanned document of [pages] image pages, each with its number large,
+/// and no fields.
+Future<int> _plainPagesDocument(ProviderContainer container, int pages) async {
+  final doc = await container
+      .read(documentRepositoryProvider)
+      .createDocument('Sale deed');
+  final dir = await getApplicationDocumentsDirectory();
+  final folder = Directory(p.join(dir.path, 'scans', 'plain_${doc.id}'));
+  await folder.create(recursive: true);
+  for (var i = 0; i < pages; i++) {
+    final image = img.Image(width: 840, height: 1188);
+    img.fill(image, color: img.ColorRgb8(250, 249, 245));
+    for (var line = 0; line < 14; line++) {
+      img.fillRect(
+        image,
+        x1: 90,
+        y1: 380 + line * 50,
+        x2: 750 - (line % 4) * 90,
+        y2: 392 + line * 50,
+        color: img.ColorRgb8(60, 60, 68),
+      );
+    }
+    final number = img.Image(width: 120, height: 60);
+    img.fill(number, color: img.ColorRgb8(250, 249, 245));
+    img.drawString(
+      number,
+      '${i + 1}',
+      font: img.arial48,
+      x: 10,
+      y: 5,
+      color: img.ColorRgb8(30, 60, 150),
+    );
+    img.compositeImage(
+      image,
+      img.copyResize(number, width: 360),
+      dstX: 90,
+      dstY: 90,
+    );
+    final file = File(p.join(folder.path, 'page_$i.jpg'));
+    await file.writeAsBytes(img.encodeJpg(image, quality: 85));
+    await container
+        .read(pageRepositoryProvider)
+        .addPage(
+          documentId: doc.id,
+          pageIndex: i,
+          imagePath: PathResolver.toStorable(file.path),
+        );
+  }
   return doc.id;
 }
 
@@ -1046,6 +1472,24 @@ Future<void> _capture(WidgetTester tester, String name) async {
 
 // ignore: avoid_print
 void _mark(String m) => print(m);
+
+/// Waits for [target] like [_waitFor], and says whether [note] showed on the
+/// way (a progress text, which may be on screen only briefly).
+Future<bool> _waitNoting(
+  WidgetTester tester,
+  Finder target,
+  Finder note, {
+  int seconds = 30,
+}) async {
+  var seen = false;
+  final end = DateTime.now().add(Duration(seconds: seconds));
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 50));
+    if (note.evaluate().isNotEmpty) seen = true;
+    if (target.evaluate().isNotEmpty) return seen;
+  }
+  throw TestFailure('Timed out waiting for $target');
+}
 
 Future<void> _pause(WidgetTester tester, int ms) async {
   final end = DateTime.now().add(Duration(milliseconds: ms));

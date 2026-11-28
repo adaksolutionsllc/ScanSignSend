@@ -595,9 +595,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendPressedPdfNotFound => 'The finished PDF couldn\'t be found.';
 
   @override
-  String get sendShareMessage => 'Signed with Scan Sign Send';
-
-  @override
   String sendShareFailed(String error) {
     return 'Share failed: $error';
   }
@@ -911,15 +908,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detectFieldDeleted => 'Field deleted';
 
   @override
-  String get detectRemoveDetected => 'Remove detected fields';
+  String get detectRemoveAll => 'Remove all';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Removed $count detected fields',
-      one: 'Removed 1 detected field',
+      other: 'Removed $count fields',
+      one: 'Removed 1 field',
     );
     return '$_temp0';
   }
@@ -1293,6 +1290,73 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not crop this page. The whole image was kept.';
 
   @override
+  String get straightenAskTitle => 'Straighten the pages?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'The app finds the edges of each page so you can crop them. For these $count pages this takes about $minutes minutes.',
+      one:
+          'The app finds the edges of each page so you can crop them. For these $count pages this takes about 1 minute.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'The app finds the edges of each page so you can crop them. For these $count pages this takes less than a minute.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'About $minutes minutes left',
+      one: 'About 1 minute left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'Less than a minute left';
+
+  @override
+  String get straightenGo => 'Straighten';
+
+  @override
+  String get straightenKeep => 'Keep as is';
+
+  @override
+  String get straightenAskLater =>
+      'Choose Keep as is if the pages are already straight. You can still straighten them later on the Review Pages screen.';
+
+  @override
+  String get reviewStraighten => 'Straighten pages';
+
+  @override
+  String get reviewStraightenNone => 'No page edges to fix were found.';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'Checking page $current of $total…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'Straightening page $current of $total…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'Use whole image for the rest';
+
+  @override
+  String get jobKeepUsing => 'Keep using the app';
+
+  @override
   String get importErrorMixed => 'Choose one PDF, or one or more photos.';
 
   @override
@@ -1307,6 +1371,73 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 page',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'Pause';
+
+  @override
+  String get jobResume => 'Resume';
+
+  @override
+  String get jobPaused => 'Paused';
+
+  @override
+  String get jobPausedHint => 'Paused. The pages done so far are saved.';
+
+  @override
+  String get jobWaiting => 'Waiting';
+
+  @override
+  String get jobScreenOn => 'The screen stays on until this is done.';
+
+  @override
+  String get jobLockHint =>
+      'You can use other apps meanwhile. If you lock the phone, iPhone may pause this. It goes on from the same page when you open the app.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'Your phone paused this while you were away. Nothing was lost. It goes on from page $page.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” paused. Open the app to go on.';
+  }
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages to check',
+      one: '1 page to check',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'Check now';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages stopped the app, so they were kept as they are.',
+      one: '1 page stopped the app, so it was kept as it is.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return 'Checking the edges of “$title”';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return 'Straightening “$title”';
   }
 
   @override

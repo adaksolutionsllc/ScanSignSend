@@ -7,9 +7,7 @@
 # Raw captures land in build/store_capture/raw/<device-name>/<lang>/<n>.png;
 # tool/store_capture/frame.py turns them into store screenshots.
 #
-# ML Kit has no arm64 simulator slice, so for the duration of the run
-# pubspec_overrides.yaml swaps in tool/store_capture/mlkit_stub. The trap puts
-# the iOS project back (pod install rewrites it without ML Kit) on any exit.
+# The trap puts the iOS project back on any exit.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
@@ -41,11 +39,6 @@ dev = "dev_dependencies:\n"
 assert t.count(dev) == 1
 open(p, "w").write(t.replace(dev, dev + "  integration_test:\n    sdk: flutter\n"))
 PY
-cat > pubspec_overrides.yaml <<'EOF'
-dependency_overrides:
-  google_mlkit_text_recognition:
-    path: tool/store_capture/mlkit_stub
-EOF
 flutter pub get >/dev/null
 # The project is device-only (SUPPORTED_PLATFORMS = iphoneos); allow the
 # simulator for this run. The trap restores the project file.
@@ -56,8 +49,6 @@ sed -i '' 's/SUPPORTED_PLATFORMS = iphoneos;/SUPPORTED_PLATFORMS = "iphoneos iph
 sed -i '' 's|INFOPLIST_FILE = Runner/Info.plist;|INFOPLIST_FILE = Runner/Info.plist;\
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "i386 x86_64";|' \
   ios/Runner.xcodeproj/project.pbxproj
-# Re-run CocoaPods now, so Flutter sees a Pods project without ML Kit when it
-# decides whether to exclude arm64 from simulator builds.
 (cd ios && pod install >/dev/null)
 python3 tool/store_capture/make_forms.py >/dev/null
 

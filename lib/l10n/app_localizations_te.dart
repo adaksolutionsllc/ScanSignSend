@@ -602,9 +602,6 @@ class AppLocalizationsTe extends AppLocalizations {
   String get sendPressedPdfNotFound => 'పూర్తయిన PDF కనబడలేదు.';
 
   @override
-  String get sendShareMessage => 'Scan Sign Send ద్వారా సంతకం చేయబడింది';
-
-  @override
   String sendShareFailed(String error) {
     return 'షేర్ విఫలమైంది: $error';
   }
@@ -918,15 +915,15 @@ class AppLocalizationsTe extends AppLocalizations {
   String get detectFieldDeleted => 'ఫీల్డ్ తొలగించబడింది';
 
   @override
-  String get detectRemoveDetected => 'గుర్తించిన ఫీల్డ్‌లను తొలగించు';
+  String get detectRemoveAll => 'అన్నీ తొలగించు';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'గుర్తించిన $count ఫీల్డ్‌లు తొలగించబడ్డాయి',
-      one: 'గుర్తించిన 1 ఫీల్డ్ తొలగించబడింది',
+      other: '$count ఫీల్డ్‌లు తొలగించబడ్డాయి',
+      one: '1 ఫీల్డ్ తొలగించబడింది',
     );
     return '$_temp0';
   }
@@ -1304,6 +1301,73 @@ class AppLocalizationsTe extends AppLocalizations {
       'ఈ పేజీని కత్తిరించలేకపోయాం. మొత్తం చిత్రం ఉంచబడింది.';
 
   @override
+  String get straightenAskTitle => 'పేజీలను నిటారుగా చేయాలా?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'యాప్ ప్రతి పేజీ అంచులను కనుగొంటుంది, మీరు వాటిని కత్తిరించవచ్చు. ఈ $count పేజీలకు సుమారు $minutes నిమిషాలు పడుతుంది.',
+      one:
+          'యాప్ ప్రతి పేజీ అంచులను కనుగొంటుంది, మీరు వాటిని కత్తిరించవచ్చు. ఈ $count పేజీలకు సుమారు 1 నిమిషం పడుతుంది.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'యాప్ ప్రతి పేజీ అంచులను కనుగొంటుంది, మీరు వాటిని కత్తిరించవచ్చు. ఈ $count పేజీలకు ఒక నిమిషం కంటే తక్కువ పడుతుంది.';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'సుమారు $minutes నిమిషాలు మిగిలి ఉన్నాయి',
+      one: 'సుమారు 1 నిమిషం మిగిలి ఉంది',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'ఒక నిమిషం కంటే తక్కువ మిగిలి ఉంది';
+
+  @override
+  String get straightenGo => 'నిటారుగా చేయి';
+
+  @override
+  String get straightenKeep => 'ఉన్నట్లే ఉంచు';
+
+  @override
+  String get straightenAskLater =>
+      'పేజీలు ఇప్పటికే నిటారుగా ఉంటే ‘ఉన్నట్లే ఉంచు’ ఎంచుకోండి. తర్వాత ‘పేజీలను సమీక్షించు’ స్క్రీన్‌లో కూడా వాటిని నిటారుగా చేయవచ్చు.';
+
+  @override
+  String get reviewStraighten => 'పేజీలను నిటారుగా చేయి';
+
+  @override
+  String get reviewStraightenNone => 'సరిచేయాల్సిన పేజీ అంచులు ఏవీ కనబడలేదు.';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'పేజీ $current / $total తనిఖీ చేస్తోంది…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'పేజీ $current / $total నిటారుగా చేస్తోంది…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'మిగతా పేజీల మొత్తం చిత్రాన్ని ఉంచు';
+
+  @override
+  String get jobKeepUsing => 'యాప్‌ను వాడుతూ ఉండండి';
+
+  @override
   String get importErrorMixed =>
       'ఒక PDFని, లేదా ఒకటి లేదా అంతకంటే ఎక్కువ ఫోటోలను ఎంచుకోండి.';
 
@@ -1319,6 +1383,74 @@ class AppLocalizationsTe extends AppLocalizations {
       one: '1 పేజీ',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'పాజ్ చేయి';
+
+  @override
+  String get jobResume => 'కొనసాగించు';
+
+  @override
+  String get jobPaused => 'పాజ్ అయింది';
+
+  @override
+  String get jobPausedHint =>
+      'పాజ్ అయింది. ఇప్పటివరకు పూర్తయిన పేజీలు సేవ్ అయ్యాయి.';
+
+  @override
+  String get jobWaiting => 'వేచి ఉంది';
+
+  @override
+  String get jobScreenOn => 'ఇది పూర్తయ్యే వరకు స్క్రీన్ ఆన్‌లో ఉంటుంది.';
+
+  @override
+  String get jobLockHint =>
+      'ఈలోగా మీరు ఇతర యాప్‌లు వాడవచ్చు. ఫోన్ లాక్ చేస్తే iPhone దీన్ని పాజ్ చేయవచ్చు. యాప్ తెరిచినప్పుడు అదే పేజీ నుండి కొనసాగుతుంది.';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'మీరు దూరంగా ఉన్నప్పుడు ఫోన్ దీన్ని పాజ్ చేసింది. ఏదీ పోలేదు. పేజీ $page నుండి కొనసాగుతోంది.';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” పాజ్ అయింది. కొనసాగించడానికి యాప్ తెరవండి.';
+  }
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'తనిఖీ చేయాల్సిన $count పేజీలు',
+      one: 'తనిఖీ చేయాల్సిన 1 పేజీ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'ఇప్పుడు తనిఖీ చేయి';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count పేజీలు యాప్‌ను ఆపేశాయి, అందుకే వాటిని అలాగే ఉంచాం.',
+      one: '1 పేజీ యాప్‌ను ఆపేసింది, అందుకే దాన్ని అలాగే ఉంచాం.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return '“$title” అంచులు తనిఖీ అవుతున్నాయి';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return '“$title” నిటారుగా చేస్తోంది';
   }
 
   @override

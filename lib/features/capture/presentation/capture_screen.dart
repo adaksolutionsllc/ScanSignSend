@@ -13,6 +13,7 @@ import '../../../core/db/app_database.dart';
 import '../../../core/services/document_repository.dart';
 import '../../../core/services/document_sorter.dart';
 import '../../../core/services/edge_check_service.dart';
+import '../../../core/services/import_job_runner.dart';
 import '../../../core/services/import_service.dart';
 import '../../../core/services/opened_file_service.dart';
 import '../../../core/services/free_usage_service.dart';
@@ -20,6 +21,7 @@ import '../../../core/services/scan_service.dart';
 import '../../../core/utils/router.dart';
 import 'page_limit_prompt.dart';
 import 'pdf_password_prompt.dart';
+import '../../../shared/utils/time_left.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/utils/l10n_ext.dart';
 import '../../../core/services/app_lock_provider.dart';
@@ -166,32 +168,50 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     _nameFor = _namer(context);
     _sorter = ref.read(documentSorterProvider);
     final edges = ref.read(edgeCheckServiceProvider);
+    final runner = ref.read(importJobRunnerProvider);
     setState(() {
       _loading = true;
       _loadingMessageKey = 'importing';
     });
+    int? checking;
     try {
       final doc = await import();
+      checking = doc?.id;
       if (doc == null) {
         if (mounted) setState(() => _loading = false);
         _leaveIfAutoStarted();
         return;
       }
       await _enforcePageLimit(doc.id);
-      _sortInBackground(doc.id);
+      // Reading every page's text waits until the edges are done.
+      edges.begin(doc.id);
+      _sortInBackground(doc.id, readRestAfter: edges.whenDone(doc.id));
       // Photos (and photo-only PDFs) get their edges checked. Pages that
-      // need no fix are skipped, so most imports go straight on.
-      if (mounted) setState(() => _loadingMessageKey = 'edges');
-      final candidates = await edges.candidatesFor(doc.id);
+      // need no fix are skipped, so most imports go straight on. Each page
+      // takes time, so for several pages the user chooses first.
+      final checkable = await edges.checkablePages(doc.id);
+      final check =
+          checkable.length < 2 ||
+          (mounted &&
+              await _askToStraighten(
+                checkable.length,
+                await edges.estimateFor(checkable),
+              ));
+      if (check && checkable.isNotEmpty) {
+        // The check runs as a job: the user can pause it, or leave it and
+        // use the app (plan 1.3.2). The job ends the edge step.
+        await runner.startCheck(doc.id);
+        if (mounted) {
+          setState(() => _loading = false);
+          context.pushReplacement(
+            AppRoutes.job.replaceAll(':docId', '${doc.id}'),
+          );
+        }
+        return;
+      }
+      edges.end(doc.id);
       if (mounted) {
         setState(() => _loading = false);
-        if (candidates.isNotEmpty) {
-          context.pushReplacement(
-            AppRoutes.crop.replaceAll(':docId', '${doc.id}'),
-            extra: candidates,
-          );
-          return;
-        }
         // A PDF that already carries a fillable form goes straight to Fill
         // mode — its fields are ready to use. "Edit fields" there still lets
         // the user adjust or add to them.
@@ -199,6 +219,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         context.pushReplacement(route.replaceAll(':docId', '${doc.id}'));
       }
     } catch (e) {
+      if (checking != null) edges.end(checking);
       if (mounted) {
         setState(() => _loading = false);
         // ImportService reports a typed cause so the message can be localized
@@ -245,11 +266,54 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   /// Names (a scan or photo) and sorts the new document without holding up
   /// the user; the Library and Review update when it lands.
-  void _sortInBackground(int docId) {
+  void _sortInBackground(int docId, {Future<void>? readRestAfter}) {
     final sorter = _sorter;
     if (sorter != null) {
-      unawaited(sorter.sortNew(docId, nameFor: _nameFor));
+      unawaited(
+        sorter.sortNew(docId, nameFor: _nameFor, readRestAfter: readRestAfter),
+      );
     }
+  }
+
+  /// Asks whether to check the edges of a [pages]-page file, and says about
+  /// how long it takes ([estimate]) and that Review can still do it later.
+  /// Dismissed counts as Keep as is.
+  Future<bool> _askToStraighten(int pages, Duration estimate) async {
+    if (!mounted) return false;
+    final l10n = context.l10n;
+    final minutes = roughMinutes(estimate);
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.straightenAskTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              minutes == null
+                  ? l10n.straightenAskBodyQuick(pages)
+                  : l10n.straightenAskBodyMinutes(pages, minutes),
+            ),
+            const SizedBox(height: 12),
+            Text(l10n.straightenAskLater),
+          ],
+        ),
+        actions: [
+          TextButton(
+            key: const ValueKey('straighten-skip'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.straightenKeep),
+          ),
+          FilledButton(
+            key: const ValueKey('straighten-go'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.straightenGo),
+          ),
+        ],
+      ),
+    );
+    return yes ?? false;
   }
 
   Future<int> _saveScannedPages(List<String> tempPaths) async {
@@ -322,7 +386,6 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   Text(switch (_loadingMessageKey) {
                     'saving' => context.l10n.captureSavingPages,
                     'importing' => context.l10n.captureImporting,
-                    'edges' => context.l10n.cropChecking,
                     _ => context.l10n.captureLaunching,
                   }, style: const TextStyle(color: Colors.white70)),
                 ],

@@ -244,8 +244,8 @@ void main() {
       expect(find.byType(CropScreen), findsOneWidget);
       // It starts on the whole image: no second guess at the edges.
       final screen = tester.widget<CropScreen>(find.byType(CropScreen));
-      expect(screen.candidates.single.pageId, page2);
-      expect(screen.candidates.single.quad.isWhole, isTrue);
+      expect(screen.candidates!.single.pageId, page2);
+      expect(screen.candidates!.single.quad.isWhole, isTrue);
 
       // Drag the top-left corner in over the table, then crop.
       final shown = tester.getRect(

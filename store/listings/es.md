@@ -22,6 +22,7 @@ Escanea cualquier documento con la cámara o importa un PDF, deja que la app enc
 ESCANEAR
 • Escaneos nítidos con detección automática de bordes, varias páginas a la vez
 • Importa PDF y fotos; las fotos se enderezan según los bordes de la página
+• Los archivos grandes se procesan en segundo plano: sigue usando la app, pausa y reanuda, y continúa donde lo dejaste si la app se cierra
 • Reordena, gira y limpia las páginas antes de firmar
 
 RELLENAR Y FIRMAR
@@ -57,11 +58,11 @@ Completa 2 documentos (de hasta 2 páginas cada uno) gratis. Ilimitado es una co
 Creado por ADAK Ventures.
 
 ## whats_new
-Novedades de la 1.3: tus documentos se ordenan solos por categorías en tu teléfono y la búsqueda encuentra las palabras de cada página.
-Los escaneos y las fotos toman el nombre de su título.
-Las fotos que importas o abres se enderezan según los bordes de la página.
-Omite los campos para guardar y compartir un escaneo como PDF terminado.
-Abre fotos desde Archivos o el menú de compartir.
+Novedades de la 1.3.2: los archivos grandes se procesan en segundo plano.
+Mientras se revisan o enderezan las páginas, toca “Seguir usando la app”. La biblioteca muestra el progreso.
+Pausa y reanuda cuando quieras.
+Si la app se cierra, se conservan las páginas ya hechas. Toca Reanudar para seguir.
+La pantalla queda encendida mientras la app trabaja.
 
 ## iap_display_name
 Ilimitado

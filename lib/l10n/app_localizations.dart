@@ -1158,12 +1158,6 @@ abstract class AppLocalizations {
   /// **'The finished PDF couldn\'t be found.'**
   String get sendPressedPdfNotFound;
 
-  /// Body text attached to the outgoing share. Keep the product name untranslated.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed with Scan Sign Send'**
-  String get sendShareMessage;
-
   /// No description provided for @sendShareFailed.
   ///
   /// In en, this message translates to:
@@ -1698,17 +1692,17 @@ abstract class AppLocalizations {
   /// **'Field deleted'**
   String get detectFieldDeleted;
 
-  /// No description provided for @detectRemoveDetected.
+  /// No description provided for @detectRemoveAll.
   ///
   /// In en, this message translates to:
-  /// **'Remove detected fields'**
-  String get detectRemoveDetected;
+  /// **'Remove all'**
+  String get detectRemoveAll;
 
-  /// No description provided for @detectRemovedDetected.
+  /// No description provided for @detectRemovedAll.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Removed 1 detected field} other{Removed {count} detected fields}}'**
-  String detectRemovedDetected(int count);
+  /// **'{count, plural, =1{Removed 1 field} other{Removed {count} fields}}'**
+  String detectRemovedAll(int count);
 
   /// No description provided for @actionUndo.
   ///
@@ -2280,6 +2274,90 @@ abstract class AppLocalizations {
   /// **'Could not crop this page. The whole image was kept.'**
   String get cropFailed;
 
+  /// No description provided for @straightenAskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Straighten the pages?'**
+  String get straightenAskTitle;
+
+  /// No description provided for @straightenAskBodyMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{The app finds the edges of each page so you can crop them. For these {count} pages this takes about 1 minute.} other{The app finds the edges of each page so you can crop them. For these {count} pages this takes about {minutes} minutes.}}'**
+  String straightenAskBodyMinutes(int count, int minutes);
+
+  /// No description provided for @straightenAskBodyQuick.
+  ///
+  /// In en, this message translates to:
+  /// **'The app finds the edges of each page so you can crop them. For these {count} pages this takes less than a minute.'**
+  String straightenAskBodyQuick(int count);
+
+  /// No description provided for @progressMinutesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{About 1 minute left} other{About {minutes} minutes left}}'**
+  String progressMinutesLeft(int minutes);
+
+  /// No description provided for @progressUnderMinuteLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than a minute left'**
+  String get progressUnderMinuteLeft;
+
+  /// No description provided for @straightenGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Straighten'**
+  String get straightenGo;
+
+  /// No description provided for @straightenKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep as is'**
+  String get straightenKeep;
+
+  /// No description provided for @straightenAskLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Keep as is if the pages are already straight. You can still straighten them later on the Review Pages screen.'**
+  String get straightenAskLater;
+
+  /// No description provided for @reviewStraighten.
+  ///
+  /// In en, this message translates to:
+  /// **'Straighten pages'**
+  String get reviewStraighten;
+
+  /// No description provided for @reviewStraightenNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No page edges to fix were found.'**
+  String get reviewStraightenNone;
+
+  /// No description provided for @cropCheckingPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking page {current} of {total}…'**
+  String cropCheckingPage(int current, int total);
+
+  /// No description provided for @cropStraighteningPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Straightening page {current} of {total}…'**
+  String cropStraighteningPage(int current, int total);
+
+  /// No description provided for @cropUseWholeRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Use whole image for the rest'**
+  String get cropUseWholeRest;
+
+  /// No description provided for @jobKeepUsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep using the app'**
+  String get jobKeepUsing;
+
   /// No description provided for @importErrorMixed.
   ///
   /// In en, this message translates to:
@@ -2297,6 +2375,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 page} other{{count} pages}}'**
   String searchPageCount(int count);
+
+  /// No description provided for @jobPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get jobPause;
+
+  /// No description provided for @jobResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get jobResume;
+
+  /// No description provided for @jobPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get jobPaused;
+
+  /// No description provided for @jobPausedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused. The pages done so far are saved.'**
+  String get jobPausedHint;
+
+  /// No description provided for @jobWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get jobWaiting;
+
+  /// No description provided for @jobScreenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'The screen stays on until this is done.'**
+  String get jobScreenOn;
+
+  /// No description provided for @jobLockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can use other apps meanwhile. If you lock the phone, iPhone may pause this. It goes on from the same page when you open the app.'**
+  String get jobLockHint;
+
+  /// No description provided for @jobResumedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone paused this while you were away. Nothing was lost. It goes on from page {page}.'**
+  String jobResumedNotice(int page);
+
+  /// No description provided for @jobPausedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” paused. Open the app to go on.'**
+  String jobPausedBanner(String title);
+
+  /// No description provided for @jobPagesToCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 page to check} other{{count} pages to check}}'**
+  String jobPagesToCheck(int count);
+
+  /// No description provided for @jobCheckNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Check now'**
+  String get jobCheckNow;
+
+  /// No description provided for @jobKeptAsIs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 page stopped the app, so it was kept as it is.} other{{count} pages stopped the app, so they were kept as they are.}}'**
+  String jobKeptAsIs(int count);
+
+  /// No description provided for @jobCheckingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the edges of “{title}”'**
+  String jobCheckingTitle(String title);
+
+  /// No description provided for @jobStraighteningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Straightening “{title}”'**
+  String jobStraighteningTitle(String title);
 
   /// No description provided for @fillNextField.
   ///

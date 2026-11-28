@@ -22,6 +22,7 @@ Scan any document with your camera or import a PDF, let the app find the blanks,
 SCAN
 • Clear scans with automatic edge detection, several pages at a time
 • Import PDFs and photos — photos are straightened to the page edges
+• Big files work in the background: keep using the app, pause and resume, and pick up where you left off if the app closes
 • Reorder, rotate and clean up pages before you sign
 
 FILL & SIGN
@@ -57,11 +58,11 @@ Finish 2 documents (up to 2 pages each) free. Unlimited is a one-time purchase f
 Built by ADAK Ventures.
 
 ## whats_new
-New in 1.3: documents sort themselves into categories on your phone, and search finds the words on every page.
-Scans and photos are named from their title.
-Photos you import or open are straightened to the page edges.
-Skip fields to save and share a scan as a finished PDF straight away.
-Open photos from Files or the share sheet.
+New in 1.3.2: big files work in the background.
+While pages are checked or straightened, tap “Keep using the app”. The Library shows the progress.
+Pause and resume at any time.
+If the app closes, the pages done so far are kept. Tap Resume to go on.
+The screen stays on while the app works.
 
 ## iap_display_name
 Unlimited

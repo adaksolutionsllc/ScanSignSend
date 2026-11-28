@@ -5,6 +5,7 @@ Digitalize qualquer documento com a câmera ou importe um PDF, deixe o app encon
 DIGITALIZAR
 • Digitalizações nítidas com detecção automática de bordas, várias páginas de uma vez
 • Importe PDFs e fotos — as fotos são endireitadas pelas bordas da página
+• Arquivos grandes são processados em segundo plano: continue usando o app, pause e retome, e volte de onde parou se o app fechar
 • Reordene, gire e limpe as páginas antes de assinar
 
 PREENCHER E ASSINAR
@@ -12,7 +13,7 @@ PREENCHER E ASSINAR
 • Texto, datas, caixas de seleção, botões de opção, rubricas e assinaturas
 • Arraste para mover, faça pinça para redimensionar — os campos se ajustam ao formulário
 • Desenhe sua assinatura uma vez e reutilize
-• PreFill: salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes
+• PreFill: salve seus dados uma vez em “Meus dados” e preencha com um toque os campos correspondentes
 • Ao assinar, a data de hoje é preenchida onde o formulário pede
 
 ENVIAR

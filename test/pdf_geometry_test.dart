@@ -1,4 +1,4 @@
-import 'dart:ui' show Rect;
+import 'dart:ui' show Rect, Size;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scan_sign_send/core/models/field_model.dart';
@@ -26,7 +26,10 @@ void main() {
     ];
     for (final b in cases) {
       final back = PdfGeometry.pdfToNorm(
-          PdfGeometry.normToPdf(b, pw, ph), pw, ph);
+        PdfGeometry.normToPdf(b, pw, ph),
+        pw,
+        ph,
+      );
       expect(back.x, closeTo(b.x, 1e-9));
       expect(back.y, closeTo(b.y, 1e-9));
       expect(back.w, closeTo(b.w, 1e-9));
@@ -48,5 +51,37 @@ void main() {
     final b = PdfGeometry.pdfToNorm(const Rect.fromLTWH(0, 0, 10, 10), 0, 0);
     expect(b.w, greaterThan(0));
     expect(b.h, greaterThan(0));
+  });
+
+  group('scanPageSize', () {
+    test('a scan taller than A4 keeps its shape (no side strips)', () {
+      // Indian stamp paper / US Legal: 8.5 × 14 in.
+      final s = scanPageSize(1700, 2800);
+      expect(s.width, pw);
+      expect(s.height / s.width, closeTo(2800 / 1700, 1e-9));
+    });
+
+    test('a scan wider than A4 keeps its shape (no top/bottom strips)', () {
+      final s = scanPageSize(1700, 2200); // US Letter
+      expect(s.width, pw);
+      expect(s.height / s.width, closeTo(2200 / 1700, 1e-9));
+    });
+
+    test('a scan within 2% of A4 goes on exact A4', () {
+      expect(scanPageSize(1240, 1754), const Size(pw, ph));
+      expect(scanPageSize(1240, 1720), const Size(pw, ph)); // 1.9% short
+      expect(scanPageSize(1240, 1680), isNot(const Size(pw, ph))); // 4%
+    });
+
+    test('a landscape scan gets a landscape page', () {
+      expect(scanPageSize(1754, 1240), const Size(ph, pw));
+      final s = scanPageSize(3000, 1000);
+      expect(s.height, pw);
+      expect(s.width, closeTo(pw * 3, 1e-9));
+    });
+
+    test('a degenerate image falls back to A4', () {
+      expect(scanPageSize(0, 100), const Size(pw, ph));
+    });
   });
 }

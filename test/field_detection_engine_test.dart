@@ -267,6 +267,38 @@ void main() {
       expect(r.fields.single.label, 'Father\'s name');
     });
 
+    test('a picture with no words gets no fields', () {
+      // Lines found in a painting are its edges and brush strokes.
+      const strokes = [
+        Rect.fromLTRB(0.05, 0.30, 0.60, 0.301),
+        Rect.fromLTRB(0.20, 0.55, 0.90, 0.551),
+        Rect.fromLTRB(0.02, 0.93, 0.98, 0.931),
+      ];
+      final none = PageLayout(
+        lines: const [],
+        rules: strokes,
+        aspect: 1000 / 1414,
+      );
+      expect(_engine.detect(none).fields, isEmpty);
+      // OCR's odd stray character in a picture is not text either.
+      final stray = PageLayout(
+        lines: ocrLayout(
+          _ocr([
+            (
+              const Rect.fromLTRB(100, 400, 160, 420),
+              [
+                ('I', const Rect.fromLTRB(100, 400, 106, 420)),
+                ('~', const Rect.fromLTRB(140, 400, 160, 420)),
+              ],
+            ),
+          ]),
+        ),
+        rules: strokes,
+        aspect: 1000 / 1414,
+      );
+      expect(_engine.detect(stray).fields, isEmpty);
+    });
+
     test('a checkbox glyph becomes a square checkbox', () {
       final layout = PageLayout(
         lines: ocrLayout(

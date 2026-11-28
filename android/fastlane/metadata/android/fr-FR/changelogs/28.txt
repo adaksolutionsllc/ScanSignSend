@@ -1,0 +1,5 @@
+Nouveau dans la 1.3.2 : les gros fichiers se traitent en arrière-plan.
+Pendant la vérification ou le redressement des pages, touchez « Continuer à utiliser l’app ». La bibliothèque affiche la progression.
+Mettez en pause et reprenez à tout moment.
+Si l’app se ferme, les pages déjà traitées sont gardées. Touchez Reprendre pour continuer.
+L’écran reste allumé pendant le traitement.

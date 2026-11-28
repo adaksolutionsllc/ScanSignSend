@@ -598,9 +598,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get sendPressedPdfNotFound => 'पूरा PDF नहीं मिला।';
 
   @override
-  String get sendShareMessage => 'Scan Sign Send से हस्ताक्षरित';
-
-  @override
   String sendShareFailed(String error) {
     return 'साझा करना विफल: $error';
   }
@@ -915,15 +912,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get detectFieldDeleted => 'फ़ील्ड हटाया गया';
 
   @override
-  String get detectRemoveDetected => 'पहचाने गए फ़ील्ड हटाएँ';
+  String get detectRemoveAll => 'सभी हटाएँ';
 
   @override
-  String detectRemovedDetected(int count) {
+  String detectRemovedAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count पहचाने गए फ़ील्ड हटाए गए',
-      one: '1 पहचाना गया फ़ील्ड हटाया गया',
+      other: '$count फ़ील्ड हटाए गए',
+      one: '1 फ़ील्ड हटाया गया',
     );
     return '$_temp0';
   }
@@ -1299,6 +1296,74 @@ class AppLocalizationsHi extends AppLocalizations {
   String get cropFailed => 'यह पेज क्रॉप नहीं हो सका। पूरी छवि रखी गई।';
 
   @override
+  String get straightenAskTitle => 'पृष्ठ सीधे करें?';
+
+  @override
+  String straightenAskBodyMinutes(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'ऐप हर पृष्ठ के किनारे ढूँढता है ताकि आप उन्हें क्रॉप कर सकें। इन $count पृष्ठों में लगभग $minutes मिनट लगेंगे।',
+      one:
+          'ऐप हर पृष्ठ के किनारे ढूँढता है ताकि आप उन्हें क्रॉप कर सकें। इन $count पृष्ठों में लगभग 1 मिनट लगेगा।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String straightenAskBodyQuick(int count) {
+    return 'ऐप हर पृष्ठ के किनारे ढूँढता है ताकि आप उन्हें क्रॉप कर सकें। इन $count पृष्ठों में एक मिनट से कम लगेगा।';
+  }
+
+  @override
+  String progressMinutesLeft(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'लगभग $minutes मिनट बाकी',
+      one: 'लगभग 1 मिनट बाकी',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get progressUnderMinuteLeft => 'एक मिनट से कम बाकी';
+
+  @override
+  String get straightenGo => 'सीधा करें';
+
+  @override
+  String get straightenKeep => 'जैसा है वैसा रखें';
+
+  @override
+  String get straightenAskLater =>
+      'अगर पृष्ठ पहले से सीधे हैं तो ‘जैसा है वैसा रखें’ चुनें। आप बाद में भी ‘पृष्ठ जाँचें’ में उन्हें सीधा कर सकते हैं।';
+
+  @override
+  String get reviewStraighten => 'पृष्ठ सीधे करें';
+
+  @override
+  String get reviewStraightenNone =>
+      'ठीक करने लायक कोई पृष्ठ किनारा नहीं मिला।';
+
+  @override
+  String cropCheckingPage(int current, int total) {
+    return 'पृष्ठ $current / $total जाँचा जा रहा है…';
+  }
+
+  @override
+  String cropStraighteningPage(int current, int total) {
+    return 'पृष्ठ $current / $total सीधा किया जा रहा है…';
+  }
+
+  @override
+  String get cropUseWholeRest => 'बाकी पृष्ठों की पूरी छवि रखें';
+
+  @override
+  String get jobKeepUsing => 'ऐप का उपयोग जारी रखें';
+
+  @override
   String get importErrorMixed => 'एक PDF चुनें, या एक या अधिक फ़ोटो।';
 
   @override
@@ -1313,6 +1378,74 @@ class AppLocalizationsHi extends AppLocalizations {
       one: '1 पेज',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get jobPause => 'रोकें';
+
+  @override
+  String get jobResume => 'फिर से शुरू करें';
+
+  @override
+  String get jobPaused => 'रुका हुआ';
+
+  @override
+  String get jobPausedHint => 'रुका हुआ। अब तक पूरे हुए पृष्ठ सहेजे गए हैं।';
+
+  @override
+  String get jobWaiting => 'प्रतीक्षा में';
+
+  @override
+  String get jobScreenOn => 'यह पूरा होने तक स्क्रीन चालू रहेगी।';
+
+  @override
+  String get jobLockHint =>
+      'इस बीच आप दूसरे ऐप इस्तेमाल कर सकते हैं। फ़ोन लॉक करने पर iPhone इसे रोक सकता है। ऐप खोलने पर यह उसी पृष्ठ से आगे चलेगा।';
+
+  @override
+  String jobResumedNotice(int page) {
+    return 'आपके दूर रहने पर फ़ोन ने इसे रोक दिया था। कुछ भी नहीं खोया। यह पृष्ठ $page से आगे चल रहा है।';
+  }
+
+  @override
+  String jobPausedBanner(String title) {
+    return '“$title” रुका हुआ है। आगे बढ़ाने के लिए ऐप खोलें।';
+  }
+
+  @override
+  String jobPagesToCheck(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'जाँचने के लिए $count पृष्ठ',
+      one: 'जाँचने के लिए 1 पृष्ठ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get jobCheckNow => 'अभी जाँचें';
+
+  @override
+  String jobKeptAsIs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count पृष्ठों से ऐप बंद हो गया, इसलिए उन्हें जैसा था वैसा ही रखा गया।',
+      one: '1 पृष्ठ से ऐप बंद हो गया, इसलिए उसे जैसा था वैसा ही रखा गया।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String jobCheckingTitle(String title) {
+    return '“$title” के किनारे जाँचे जा रहे हैं';
+  }
+
+  @override
+  String jobStraighteningTitle(String title) {
+    return '“$title” सीधा किया जा रहा है';
   }
 
   @override

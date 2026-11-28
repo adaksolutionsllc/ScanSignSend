@@ -58,10 +58,35 @@ Set<String> titleWords(String title) {
 }
 
 const _genericWords = {
-  'document', 'documento', 'documents', 'form', 'forms', 'formulaire',
-  'formulario', 'application', 'demande', 'solicitud', 'pedido', 'ficha',
-  'scan', 'copy', 'copie', 'copia', 'page', 'pagina', 'final', 'signed',
-  'draft', 'with', 'from', 'pour', 'para', 'avec', 'sans', 'that', 'this',
+  'document',
+  'documento',
+  'documents',
+  'form',
+  'forms',
+  'formulaire',
+  'formulario',
+  'application',
+  'demande',
+  'solicitud',
+  'pedido',
+  'ficha',
+  'scan',
+  'copy',
+  'copie',
+  'copia',
+  'page',
+  'pagina',
+  'final',
+  'signed',
+  'draft',
+  'with',
+  'from',
+  'pour',
+  'para',
+  'avec',
+  'sans',
+  'that',
+  'this',
 };
 
 final categoryHintRepositoryProvider = Provider<CategoryHintRepository>(
@@ -94,7 +119,11 @@ class CategoryHintRepository {
     });
   }
 
-  Future<void> _bump(String word, String category, {required bool accepted}) async {
+  Future<void> _bump(
+    String word,
+    String category, {
+    required bool accepted,
+  }) async {
     final existing =
         await (_db.select(_db.categoryHints)..where(
               (t) => t.phrase.equals(word) & t.category.equals(category),

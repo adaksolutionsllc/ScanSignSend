@@ -9,7 +9,7 @@ Preencha formulários offline
 ## short_description
 Digitalize, assine com o dedo e envie PDF assinados. Tudo offline.
 ## promotional_text
-Sem contas. Sem subscrições. Sem nuvem. Digitalize qualquer documento, preencha-o e assine-o no seu dispositivo, e partilhe um PDF pronto em segundos.
+Sem contas. Sem assinaturas. Sem nuvem. Digitalize qualquer documento, preencha e assine no seu aparelho e compartilhe um PDF pronto em segundos.
 
 ## keywords
 digitalizar,assinatura,documento,scanner,contrato,esign,eletrônica,digital,sem internet
@@ -22,6 +22,7 @@ Digitalize qualquer documento com a câmera ou importe um PDF, deixe o app encon
 DIGITALIZAR
 • Digitalizações nítidas com detecção automática de bordas, várias páginas de uma vez
 • Importe PDFs e fotos — as fotos são endireitadas pelas bordas da página
+• Arquivos grandes são processados em segundo plano: continue usando o app, pause e retome, e volte de onde parou se o app fechar
 • Reordene, gire e limpe as páginas antes de assinar
 
 PREENCHER E ASSINAR
@@ -29,7 +30,7 @@ PREENCHER E ASSINAR
 • Texto, datas, caixas de seleção, botões de opção, rubricas e assinaturas
 • Arraste para mover, faça pinça para redimensionar — os campos se ajustam ao formulário
 • Desenhe sua assinatura uma vez e reutilize
-• PreFill: salve seus dados uma vez em “Os meus dados” e preencha com um toque os campos correspondentes
+• PreFill: salve seus dados uma vez em “Meus dados” e preencha com um toque os campos correspondentes
 • Ao assinar, a data de hoje é preenchida onde o formulário pede
 
 ENVIAR
@@ -57,11 +58,11 @@ Conclua 2 documentos (de até 2 páginas cada) de graça. O Ilimitado é uma com
 Feito pela ADAK Ventures.
 
 ## whats_new
-Novo na 1.3: seus documentos se organizam sozinhos em categorias no seu celular, e a busca encontra as palavras de cada página.
-Digitalizações e fotos recebem o nome do título.
-Fotos importadas ou abertas são endireitadas pelas bordas da página.
-Pule os campos para salvar e compartilhar uma digitalização como PDF concluído.
-Abra fotos pelo app Arquivos ou pelo menu de compartilhar.
+Novo na 1.3.2: arquivos grandes são processados em segundo plano.
+Enquanto as páginas são verificadas ou endireitadas, toque em “Continuar usando o app”. A biblioteca mostra o progresso.
+Pause e retome quando quiser.
+Se o app fechar, as páginas já feitas ficam salvas. Toque em Retomar para continuar.
+A tela fica ligada enquanto o app trabalha.
 
 ## iap_display_name
 Ilimitado
